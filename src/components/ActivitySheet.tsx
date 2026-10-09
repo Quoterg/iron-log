@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { burnedKcal, DEFAULT_WEIGHT_KG } from '../lib/activity';
 import { ACTIVITIES } from '../lib/activity-types';
-import { fmt, lang, parseNum, t } from '../lib/i18n';
+import { activityName, fmt, parseNum, t } from '../lib/i18n';
 import { back } from '../nav';
 import { addActivity, settings } from '../state';
 import { Sheet } from './Sheet';
@@ -37,7 +37,7 @@ export default function ActivitySheet() {
           <select aria-label={t('activityType')} value={type} onChange={(e) => setType((e.currentTarget as HTMLSelectElement).value)}>
             {ACTIVITIES.map((x) => (
               <option key={x.id} value={x.id}>
-                {x[lang.value]}
+                {activityName(x)}
               </option>
             ))}
           </select>

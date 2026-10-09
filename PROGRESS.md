@@ -5,8 +5,39 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M18b Languages** (da, fi, de, so), M20b, M16b (see docs/ROADMAP.md).
-Also open: **M19b** — first signed Android build + assetlinks (needs the owner to keep the keystore).
+**M20b In-app Open Food Facts upload**, then **M16b Amino acids**, **M15b Supplement schedules**
+(see docs/ROADMAP.md). Waiting on the owner: **M19b** (first signed Android build — keep the
+keystore — and assetlinks), **M18c** (native-speaker review of da/de/fi/so; screen-reader pass),
+and a real two-phone test of sync (M17).
+
+## 2026-10-09 — M18b Languages (interactive session)
+
+Done:
+- Language packs: Swedish stays built in; English, Danish, German, Finnish and Somali are separate
+  chunks loaded on demand (startup loads the chosen one before first render; a switch loads it
+  first). Missing strings fall back to English, then Swedish. **Initial JS 36.8 → 34.2 KB** gzip,
+  because English left the first bundle.
+- Danish, German, Finnish and Somali: all UI strings, nutrient names (45), activities (27) and
+  household units, plus the sync screens — machine-assisted, marked "(beta)" in the picker.
+  Owner's choice of languages (Norwegian dropped; Norwegian browsers get Swedish).
+- `nutrientName`, `activityName`, `unitLabel`, `locale`, `decimalComma`, `dataLang` replace the
+  sv/en checks across components. Food names: Swedish for sv/da, English for the rest (foods only
+  have those two). CSV headers use the same data language.
+- Browser language detection: supported languages as-is, nb/nn/no → Swedish, others → English.
+- Offline safety: if the saved language's chunk can't load at startup, the app starts with the
+  built-in strings; an offline switch to a never-loaded language keeps the current one.
+- 200 % text in German and Finnish found the nutrient bars overflowing on long names (e.g.
+  "Kertatyydyttymättömät rasvahapot"); bar headers now wrap.
+- The import confirmation now matches the restore rules (only adds what is missing or older).
+- Tests: `i18n.test.ts` (keys, placeholders, coverage ≥ 95 % — currently 100 %, nutrients,
+  activities, units, on-demand loading, fallback, detection); e2e language switch (German, Somali,
+  survives reload, restored backup in German); 200 % checks in de/fi. 138 unit, 97 Playwright and
+  Lighthouse pass. Initial JS 34.4 KB gzip.
+- Review fixes: CSV separator/decimal follow the locale (`;` + comma for sv/da/de/fi) with
+  translated headers; the language pack is fetched in parallel with reading settings (last
+  language remembered as a startup hint); each pack carries its own sync-screen strings; the last
+  language chosen wins; Danish searches Swedish data by default; Somali falls back to an English
+  locale where the browser lacks it.
 
 ## 2026-10-09 — M17b Pairing (interactive session)
 

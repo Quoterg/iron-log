@@ -1,6 +1,7 @@
 // User data lives on the device, in IndexedDB. Nothing is sent anywhere (device-to-device sync,
 // lib/sync.ts, only runs when the user pairs two of their own devices).
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import type { Lang } from './i18n';
 import type { Food, Serving } from './nutrients';
 import { MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
@@ -35,7 +36,7 @@ export function entryVector(e: Entry, foods: Map<string, Food>): (number | null)
 }
 
 export interface Settings {
-  lang: 'sv' | 'en';
+  lang: Lang;
   profile: Profile;
   /** User overrides of target min/max, by nutrient key. */
   targetOverrides: Record<string, TargetOverride>;

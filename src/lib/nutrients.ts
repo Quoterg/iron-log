@@ -36,8 +36,14 @@ export interface Food {
   units?: Serving[];
 }
 
+/**
+ * Foods only have Swedish (and often English) names: Swedish for Swedish and Danish (close enough
+ * to read), English for everyone else.
+ */
+export const dataLangOf = (lang: string): 'sv' | 'en' => (lang === 'sv' || lang === 'da' ? 'sv' : 'en');
+
 export function foodName(food: Food, lang: string): string {
-  return lang === 'en' ? (food.en ?? food.sv) : food.sv;
+  return dataLangOf(lang) === 'en' ? (food.en ?? food.sv) : food.sv;
 }
 
 export function value(v: NutrientVector, key: string): number {

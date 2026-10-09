@@ -136,7 +136,7 @@ function row(f: Food, pick: (f: Food) => void) {
         </span>
         <span class="num muted">
           {fmt(value(f.per100g, 'kcal'))} kcal · P {fmtAmount(value(f.per100g, 'protein'))} ·{' '}
-          {lang.value === 'sv' ? 'K' : 'C'} {fmtAmount(value(f.per100g, 'carbs'))} · F{' '}
+          {t('carbsAbbr')} {fmtAmount(value(f.per100g, 'carbs'))} · F{' '}
           {fmtAmount(value(f.per100g, 'fat'))}
         </span>
       </button>

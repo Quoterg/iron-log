@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { entriesBetween, type Entry } from '../lib/db';
-import { fmt, fmtAmount, lang, t } from '../lib/i18n';
+import { dataLang, fmt, fmtAmount, lang, nutrientName, t } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
 import { contributors } from '../lib/report';
 import { richestFoods, type TopRow } from '../lib/top';
@@ -39,7 +39,7 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
   const n = NUTRIENTS[NUTRIENT_INDEX[nutrient]];
   const top = list ? contributors(list, foods.value, NUTRIENT_INDEX[nutrient]) : [];
   return (
-    <Sheet title={n[lang.value]}>
+    <Sheet title={nutrientName(n)}>
       <div class="pad">
         <p>
           {t('target')}: <TargetText k={nutrient} unit={n.unit} />
@@ -70,7 +70,7 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
           {rich?.map(([ref, sv, en, value]) => (
             <li key={ref}>
               <button class="entry" onClick={() => open({ kind: 'food', ref })}>
-                <span class="entry-name">{lang.value === 'en' ? (en ?? sv) : sv}</span>
+                <span class="entry-name">{dataLang() === 'en' ? (en ?? sv) : sv}</span>
                 <span class="num">
                   {fmtAmount(value)} {n.unit}
                 </span>

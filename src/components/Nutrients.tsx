@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { addDays, entriesBetween, isoDate, recentLoggedDates, type Entry } from '../lib/db';
-import { fmt, lang, t } from '../lib/i18n';
+import { fmt, nutrientName, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
 import { averagePerDay, dailyTotals, gaps, knownNutrients, streak } from '../lib/report';
 import { open } from '../nav';
@@ -56,7 +56,7 @@ export function Nutrients() {
     () => (report && period !== 1 && perDay?.size ? gaps(report.amounts, targets.value, report.known) : null),
     [report, targets.value],
   );
-  const label = (key: string) => NUTRIENTS[NUTRIENT_INDEX[key]][lang.value];
+  const label = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
 
   return (
     <>
