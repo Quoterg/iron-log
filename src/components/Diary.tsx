@@ -1,9 +1,9 @@
-import { useState } from 'preact/hooks';
 import { MEALS, type Entry } from '../lib/db';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
-import { addingTo, dayTotals, entries, foods, removeEntry, targets, updateGrams } from '../state';
+import { open } from '../nav';
+import { dayTotals, entries, foods, targets } from '../state';
 import { Bar } from './Bar';
 
 export function Diary() {
@@ -35,14 +35,20 @@ export function Diary() {
             <header class="meal-head">
               <h2>{t(meal)}</h2>
               <span class="num muted">{list.length ? `${fmt(kcal)} kcal` : ''}</span>
-              <button class="btn small" onClick={() => (addingTo.value = meal)}>
+              <button class="btn small" onClick={() => open({ kind: 'search', meal })}>
                 + {t('addFood')}
               </button>
             </header>
             {list.length > 0 && (
               <ul class="entries">
                 {list.map((e) => (
-                  <EntryRow key={e.id} entry={e} />
+                  <li key={e.id}>
+                    <button class="entry" onClick={() => open({ kind: 'food', ref: e.foodRef, entryId: e.id })}>
+                      <span class="entry-name">{name(e)}</span>
+                      <span class="num muted">{fmtAmount(e.grams)} g</span>
+                      <span class="num">{fmt(entryKcal(e))} kcal</span>
+                    </button>
+                  </li>
                 ))}
               </ul>
             )}
@@ -54,48 +60,12 @@ export function Diary() {
   );
 }
 
+function name(e: Entry): string {
+  const f = foods.value.get(e.foodRef);
+  return f ? foodName(f, lang.value) : '…';
+}
+
 function entryKcal(e: Entry): number {
   const f = foods.value.get(e.foodRef);
   return f ? (value(f.per100g, 'kcal') * e.grams) / 100 : 0;
-}
-
-function EntryRow({ entry }: { entry: Entry }) {
-  const [editing, setEditing] = useState(false);
-  const food = foods.value.get(entry.foodRef);
-  const name = food ? foodName(food, lang.value) : entry.foodRef;
-
-  if (!editing) {
-    return (
-      <li>
-        <button class="entry" onClick={() => setEditing(true)}>
-          <span class="entry-name">{name}</span>
-          <span class="num muted">{fmtAmount(entry.grams)} g</span>
-          <span class="num">{fmt(entryKcal(entry))} kcal</span>
-        </button>
-      </li>
-    );
-  }
-  return (
-    <li class="entry-edit">
-      <span class="entry-name">{name}</span>
-      <input
-        type="number"
-        inputMode="decimal"
-        min="0"
-        value={entry.grams}
-        aria-label={t('amount')}
-        onChange={(ev) => {
-          const v = parseFloat((ev.currentTarget as HTMLInputElement).value.replace(',', '.'));
-          if (v > 0) void updateGrams(entry.id, v);
-        }}
-      />
-      <span>g</span>
-      <button class="btn small danger" onClick={() => void removeEntry(entry.id)}>
-        {t('remove')}
-      </button>
-      <button class="btn small" onClick={() => setEditing(false)}>
-        {t('close')}
-      </button>
-    </li>
-  );
 }

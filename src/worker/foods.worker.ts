@@ -8,9 +8,14 @@ interface FoodsFile {
   foods: [ref: string, sv: string, en: string | null, ...values: (number | null)[]][];
 }
 
-let foods: Food[] = [];
+/** The user's own foods rank slightly above database foods with the same match. */
+const CUSTOM_BOOST = 1;
+
+let builtIn: Food[] = [];
+let custom: Food[] = [];
+let all: Food[] = [];
 const byRef = new Map<string, Food>();
-const index: Partial<Record<string, SearchEntry[]>> = {};
+let index: Partial<Record<string, SearchEntry[]>> = {};
 
 let ready: Promise<void> | undefined;
 
@@ -18,14 +23,22 @@ async function load(url: string) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`foods.json: HTTP ${res.status}`);
   const data = (await res.json()) as FoodsFile;
-  foods = data.foods.map(([ref, sv, en, ...per100g]) => ({ ref, sv, en, per100g }));
-  for (const f of foods) byRef.set(f.ref, f);
+  builtIn = data.foods.map(([ref, sv, en, ...per100g]) => ({ ref, sv, en, per100g }));
+  for (const f of builtIn) byRef.set(f.ref, f);
+  rebuild();
+}
+
+function rebuild() {
+  all = builtIn.concat(custom);
+  index = {};
 }
 
 function indexFor(lang: string): SearchEntry[] {
-  return (index[lang] ??= foods.map((f, i) =>
-    buildEntry(i, [f.sv, f.en], lang === 'en' ? (f.en ?? f.sv) : f.sv),
-  ));
+  return (index[lang] ??= all.map((f, i) => {
+    const e = buildEntry(i, [f.sv, f.en], lang === 'en' ? (f.en ?? f.sv) : f.sv);
+    if (i >= builtIn.length) e.boost = CUSTOM_BOOST;
+    return e;
+  }));
 }
 
 self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
@@ -34,11 +47,18 @@ self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
     ready = load(req.dataUrl);
     return;
   }
+  if (req.type === 'custom') {
+    for (const f of custom) byRef.delete(f.ref);
+    custom = req.foods;
+    for (const f of custom) byRef.set(f.ref, f);
+    rebuild();
+    return;
+  }
   let res: WorkerResponse;
   try {
     await ready;
     if (req.type === 'search') {
-      res = { id: req.id, foods: search(indexFor(req.lang), req.query, 40).map((i) => foods[i]) };
+      res = { id: req.id, foods: search(indexFor(req.lang), req.query, 40).map((i) => all[i]) };
     } else {
       res = { id: req.id, foods: req.refs.map((r) => byRef.get(r)).filter((f): f is Food => !!f) };
     }

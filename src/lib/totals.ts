@@ -13,6 +13,11 @@ export function sum(vectors: number[][]): number[] {
   return out;
 }
 
+/** Energy (kcal) estimated from macros with Atwater factors, incl. 2 kcal/g fibre (EU labelling). */
+export function estimateKcal(protein: number, carbs: number, fat: number, fibre = 0, alcohol = 0): number {
+  return Math.round(protein * 4 + carbs * 4 + fat * 9 + fibre * 2 + alcohol * 7);
+}
+
 export interface MacroSplit {
   protein: number;
   carbs: number;

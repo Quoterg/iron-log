@@ -1,5 +1,6 @@
 // User data lives on the device, in IndexedDB. Nothing is sent anywhere.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import type { Food } from './nutrients';
 import type { Profile } from './targets';
 
 export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -22,21 +23,44 @@ export interface Settings {
   targetOverrides: Record<string, number>;
 }
 
+/** A food the user created. Deleting only hides it, so past diary entries still resolve. */
+export interface CustomFood extends Food {
+  createdAt: number;
+  updatedAt: number;
+  deleted?: boolean;
+}
+
 interface Schema extends DBSchema {
   entries: { key: string; value: Entry; indexes: { date: string } };
   kv: { key: string; value: unknown };
+  customFoods: { key: string; value: CustomFood };
 }
 
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('iron-log', 1, {
-    upgrade(d) {
-      d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
-      d.createObjectStore('kv');
+  dbp ??= openDB<Schema>('iron-log', 2, {
+    upgrade(d, oldVersion) {
+      if (oldVersion < 1) {
+        d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
+        d.createObjectStore('kv');
+      }
+      if (oldVersion < 2) d.createObjectStore('customFoods', { keyPath: 'ref' });
     },
   });
   return dbp;
+}
+
+export async function getEntry(id: string): Promise<Entry | undefined> {
+  return (await db()).get('entries', id);
+}
+
+export async function listCustomFoods(): Promise<CustomFood[]> {
+  return (await db()).getAll('customFoods');
+}
+
+export async function putCustomFood(f: CustomFood): Promise<void> {
+  await (await db()).put('customFoods', f);
 }
 
 export async function entriesFor(date: string): Promise<Entry[]> {

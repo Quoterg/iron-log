@@ -2,13 +2,17 @@ import { render } from 'preact';
 import { App } from './app';
 import { warmUp } from './lib/foods';
 import { lang } from './lib/i18n';
-import { date, loadDay, loadSettings } from './state';
+import { initNav } from './nav';
+import { date, loadCustomFoods, loadDay, loadSettings } from './state';
 import './styles.css';
 
 async function start() {
+  initNav();
   await loadSettings();
   document.documentElement.lang = lang.value;
   render(<App />, document.getElementById('app')!);
+  // Custom foods first: diary entries may reference them, including deleted ones.
+  await loadCustomFoods();
   await loadDay(date.value);
   // Load the food database in the background once the diary is on screen.
   requestIdleCallbackShim(warmUp);

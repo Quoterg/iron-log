@@ -45,6 +45,26 @@ const sv = {
   emptyDay: 'Inget registrerat ännu. Tryck på ”Lägg till” vid en måltid.',
   attribution: 'Livsmedelsdata: Livsmedelsverkets livsmedelsdatabas (CC BY 4.0).',
   privacy: 'All data sparas bara på den här enheten.',
+  back: 'Tillbaka',
+  save: 'Spara',
+  meal: 'Måltid',
+  date: 'Datum',
+  changeFood: 'Byt livsmedel',
+  createFood: 'Skapa eget livsmedel',
+  editFood: 'Redigera livsmedel',
+  myFoods: 'Mina livsmedel',
+  noCustomFoods: 'Du har inga egna livsmedel ännu. Skapa ett från sökningen.',
+  name: 'Namn',
+  nutrientsPer100g: 'Näringsvärden per 100 g',
+  nutrientsForAmount: 'Näringsvärden för vald mängd',
+  showAllNutrients: 'Visa alla näringsämnen',
+  kcalHint: 'Lämna tomt för att räkna ut från protein, kolhydrater, fett och fibrer.',
+  sourceSlv: 'Källa: Livsmedelsverkets livsmedelsdatabas (CC BY 4.0).',
+  sourceCustom: 'Källa: ditt eget livsmedel.',
+  confirmDeleteFood: 'Ta bort livsmedlet? Det försvinner från sökningen men finns kvar i dagboken.',
+  customBadge: 'Eget',
+  nameRequired: 'Ange ett namn.',
+  invalidNumber: 'Ogiltigt tal.',
 };
 
 type Dict = typeof sv;
@@ -92,12 +112,33 @@ const en: Dict = {
   emptyDay: 'Nothing logged yet. Tap “Add” on a meal.',
   attribution: 'Food data: Swedish Food Agency food composition database (CC BY 4.0).',
   privacy: 'All data is stored only on this device.',
+  back: 'Back',
+  save: 'Save',
+  meal: 'Meal',
+  date: 'Date',
+  changeFood: 'Change food',
+  createFood: 'Create custom food',
+  editFood: 'Edit food',
+  myFoods: 'My foods',
+  noCustomFoods: 'You have no custom foods yet. Create one from search.',
+  name: 'Name',
+  nutrientsPer100g: 'Nutrition per 100 g',
+  nutrientsForAmount: 'Nutrition for this amount',
+  showAllNutrients: 'Show all nutrients',
+  kcalHint: 'Leave empty to calculate from protein, carbs, fat and fibre.',
+  sourceSlv: 'Source: Swedish Food Agency food composition database (CC BY 4.0).',
+  sourceCustom: 'Source: your custom food.',
+  confirmDeleteFood: 'Delete this food? It disappears from search but stays in your diary.',
+  customBadge: 'Custom',
+  nameRequired: 'Enter a name.',
+  invalidNumber: 'Invalid number.',
 };
 
 const dicts: Record<Lang, Dict> = { sv, en };
 
 export function detectLang(): Lang {
-  return navigator.language?.toLowerCase().startsWith('en') ? 'en' : 'sv';
+  const l = typeof navigator === 'undefined' ? '' : navigator.language?.toLowerCase();
+  return l?.startsWith('en') ? 'en' : 'sv';
 }
 
 export const lang = signal<Lang>(detectLang());
@@ -117,6 +158,12 @@ export function fmt(n: number, digits = 0): string {
     formatters.set(k, f);
   }
   return f.format(n);
+}
+
+/** Parse a user-typed number; accepts decimal comma ("1,5"). NaN when empty or invalid. */
+export function parseNum(s: string): number {
+  const t = s.trim().replace(',', '.');
+  return t === '' ? NaN : Number(t);
 }
 
 /** Sensible precision for a nutrient amount. */

@@ -19,6 +19,8 @@ export interface SearchEntry {
   words: string[];
   /** Normalised primary name (in the user's language). */
   name: string;
+  /** Extra score, e.g. for the user's own foods. */
+  boost?: number;
 }
 
 export function buildEntry(i: number, names: (string | null)[], primary: string): SearchEntry {
@@ -47,6 +49,7 @@ export function search(entries: SearchEntry[], query: string, limit = 50): numbe
     if (e.name.startsWith(first)) score += 4;
     if (e.name === tokens.join(' ')) score += 4;
     score -= e.name.length / 40;
+    score += e.boost ?? 0;
     hits.push({ i: e.i, score });
   }
 

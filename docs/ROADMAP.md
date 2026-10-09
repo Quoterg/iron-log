@@ -16,7 +16,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   (Moto G4 + 4× CPU throttle) on PRs; deploy `main` to GitHub Pages; README badge + live link.
   Lighthouse CI gate (mobile, simulated slow 4G): performance ≥ 90, FCP ≤ 1.8 s, LCP ≤ 2.5 s,
   TBT ≤ 200 ms, CLS ≤ 0.1. (TTI no longer exists in Lighthouse; LCP + TBT replace it.)
-- [ ] **M3 Food detail & custom foods** — Food detail screen (all nutrients per 100 g and per
+- [x] **M3 Food detail & custom foods** — Food detail screen (all nutrients per 100 g and per
   chosen amount, source + license). Create/edit/delete custom foods (stored in IndexedDB,
   searchable alongside built-in foods, `custom:<uuid>` refs). Edit an entry's food/meal/date.
 - [ ] **M4 Fast re-logging** — Recent & frequent foods shown before typing; favourites; copy a
