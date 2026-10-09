@@ -46,8 +46,13 @@ owner), reproduced exactly:
 - **With body fat %: Katch–McArdle**, BMR = 370 + 21.6 × lean body mass (kg), where lean body
   mass = weight × (1 − body fat %).
 - **Without body fat: Mifflin–St Jeor**, BMR = 10 × kg + 6.25 × cm − 5 × age + 5 (men) / − 161 (women).
-- **TDEE = BMR × activity multiplier**: sedentary 1.2 (default), light 1.375, moderate 1.55,
-  heavy 1.725, athlete 1.9; rounded to whole kcal.
+- **TDEE = BMR × activity multiplier**: sedentary 1.2 (default for new profiles, as on the site),
+  light 1.375, moderate 1.55, heavy 1.725, athlete 1.9; rounded to whole kcal.
+- This replaces NNR 2023's own method (Henry equations × PAL, reference PAL 1.6 ≈ between
+  "light" and "moderate" here) by the **project owner's decision** (2026-10-09). Sedentary as the
+  default gives lower targets than NNR's reference; users should pick their real activity level.
+- Profiles saved before the change were migrated once: an unset level (= NNR 1.6) became
+  moderate 1.55, others the nearest level; users whose automatic target changed see a notice.
 - Verified against the site on 2026-10-09 (pinned in `targets.test.ts`): man 30 y, 80 kg, 180 cm,
   moderate → 2,759 kcal, with 20 % body fat → 2,716; woman 40 y, 65 kg, 168 cm, sedentary →
   1,607, with 30 % body fat → 1,623.

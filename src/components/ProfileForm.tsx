@@ -30,6 +30,8 @@ export function ProfileForm() {
   const estimate = energyNeed(p);
 
   const pregnant = p.sex === 'female' && (p.status ?? 'none').startsWith('pregnant');
+  const shown = (key: 'age' | 'weightKg' | 'heightCm' | 'bodyFatPct', decimals: boolean) =>
+    p[key] == null ? '' : String(p[key]).replace('.', decimals && lang() === 'sv' ? ',' : '.');
 
   /**
    * Number field that commits on change when valid (else reverts). Text + inputmode so phones
@@ -47,13 +49,13 @@ export function ProfileForm() {
       <input
         type="text"
         inputMode={decimals ? 'decimal' : 'numeric'}
-        value={p[key] == null ? '' : String(p[key]).replace('.', decimals ? (lang() === 'sv' ? ',' : '.') : '.')}
+        value={shown(key, decimals)}
         onChange={(e) => {
           const el = e.currentTarget as HTMLInputElement;
           const v = el.value.trim() === '' ? undefined : parseNum(el.value);
           const ok = v === undefined || (v >= min && v <= max && (decimals || Number.isInteger(v)));
           if (!ok) {
-            el.value = p[key] == null ? '' : String(p[key]);
+            el.value = shown(key, decimals); // same formatting as `value` (decimal comma in sv)
             return;
           }
           const rounded = v === undefined ? undefined : Math.round(v * 10) / 10;
@@ -69,6 +71,14 @@ export function ProfileForm() {
   return (
     <section class="card form">
       <h2>{t('profile')}</h2>
+      {settings.value.energyNotice && (
+        <div class="notice" role="status">
+          <p class="small">{t('energyNotice')}</p>
+          <button type="button" class="btn small" onClick={() => void updateSettings({ energyNotice: false })}>
+            {t('ok')}
+          </button>
+        </div>
+      )}
       <label>
         {t('sex')}
         <select

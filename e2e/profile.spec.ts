@@ -10,6 +10,32 @@ async function setField(page: Page, label: string, value: string) {
   await f.blur();
 }
 
+test('profiles saved before the formula change are migrated once, with a notice', async ({ page }) => {
+  await page.goto('./');
+  // Settings as saved by an older version: automatic energy, no activity level (meant NNR 1.6).
+  await page.evaluate(async () => {
+    const req = indexedDB.open('iron-log');
+    const db: IDBDatabase = await new Promise((ok, err) => ((req.onsuccess = () => ok(req.result)), (req.onerror = err)));
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(
+      { lang: 'sv', profile: { sex: 'female', kcal: 2110, kcalAuto: true, age: 30, weightKg: 60, heightCm: 165 }, targetOverrides: {} },
+      'settings',
+    );
+    await new Promise((ok) => (tx.oncomplete = ok));
+    db.close();
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await expect(page.getByText(/Ditt automatiska energimål har ändrats/)).toBeVisible();
+  await expect(page.getByLabel('Energibehov per dag (kcal)')).toHaveValue('2046');
+  await expect(page.getByLabel('Aktivitetsnivå')).toHaveValue('1.55');
+  await page.getByRole('button', { name: 'OK', exact: true }).click();
+  await page.reload();
+  await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await expect(page.getByLabel('Aktivitetsnivå')).toHaveValue('1.55');
+  await expect(page.getByText(/Ditt automatiska energimål har ändrats/)).toHaveCount(0);
+});
+
 test('profile drives energy and NNR targets (age band, pregnancy)', async ({ page }) => {
   await page.goto('./');
   await settingsTab(page);

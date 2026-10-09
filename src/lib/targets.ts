@@ -66,7 +66,7 @@ const EXTRA_MJ: Record<Status, number> = { none: 0, pregnant1: 0.3, pregnant2: 1
  * - otherwise: Mifflin–St Jeor, BMR = 10 × kg + 6.25 × cm − 5 × age + 5 (men) / − 161 (women).
  * Null if the data a formula needs is missing.
  */
-export function bmr(p: Profile): number | null {
+export function basalKcal(p: Profile): number | null {
   const { age, weightKg: w, heightCm: h, bodyFatPct: bf } = p;
   if (w && bf != null) return 370 + 21.6 * w * (1 - bf / 100);
   if (!age || !w || !h) return null;
@@ -74,15 +74,26 @@ export function bmr(p: Profile): number | null {
 }
 
 /**
- * Daily energy need (TDEE) = BMR × activity multiplier, rounded to whole kcal — matches
- * tdeecalculator.net (verified 2026-10-09: man 30 y, 80 kg, 180 cm, moderate → 2,759; with 20 %
- * body fat → 2,716). Pregnancy/lactation adds NNR 2023's extra energy (the site has none).
+ * Daily energy need (TDEE) = BMR × activity multiplier, rounded to whole kcal — reproduces
+ * tdeecalculator.net (recorded cases: targets.test.ts; docs/NNR-SOURCES.md → Energy).
+ * Pregnancy/lactation adds NNR 2023's extra energy (the site has none).
  */
 export function energyNeed(p: Profile): number | null {
-  const base = bmr(p);
+  const base = basalKcal(p);
   if (base == null) return null;
   const extra = p.sex === 'female' ? EXTRA_MJ[p.status ?? 'none'] * KCAL_PER_MJ : 0;
   return Math.round(base * (p.pal ?? DEFAULT_PAL) + extra);
+}
+
+/**
+ * Profiles saved before the switch to tdeecalculator.net's activity levels (settings without a
+ * version) are moved once: an unset level meant NNR's reference 1.6, so it becomes the nearest
+ * new level (moderate, 1.55) rather than the new sedentary default; other levels snap to the
+ * nearest. Returns whether the automatic energy target changed, so the app can say so.
+ */
+export function migrateEnergyProfile(p: Profile): { profile: Profile; kcalChanged: boolean } {
+  const profile = withEnergy({ ...p, pal: snapPal(p.pal ?? 1.6) });
+  return { profile, kcalChanged: !!p.kcalAuto && profile.kcal !== p.kcal };
 }
 
 /**
