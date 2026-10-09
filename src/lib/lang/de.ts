@@ -1,6 +1,6 @@
-// German (Deutsch). Machine-assisted (beta) until a native speaker has reviewed it; missing strings
-// fall back to English. Food names are shown in English (foods only have Swedish/English names).
-// Loaded on demand.
+// German (Deutsch). Machine-assisted, reviewed and approved by the project owner; improvements from
+// native speakers are welcome. Missing strings fall back to English.
+// Food names are shown in English (foods only have Swedish/English names). Loaded on demand.
 import type { LangPack } from '../i18n';
 
 const pack: LangPack = {

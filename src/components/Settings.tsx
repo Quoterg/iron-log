@@ -106,7 +106,7 @@ function General() {
         >
           {LANGS.map((l) => (
             <option key={l.code} value={l.code}>
-              {l.beta ? `${l.name} (beta)` : l.name}
+              {l.name}
             </option>
           ))}
         </select>

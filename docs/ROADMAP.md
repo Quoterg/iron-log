@@ -75,10 +75,11 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   targets editor, body log with chart, settings (profile, sources, your data), activity sheet,
   supplement editor, recipe editor, privacy and about pages. Lighthouse accessibility ≥ 0.95 gates CI.
 - [x] **M18b Languages** — Language packs loaded on demand (only Swedish in the first bundle);
-  Danish, German, Finnish and Somali (beta, machine-assisted) incl. nutrient, activity and unit
+  Danish, German, Finnish and Somali (machine-assisted, owner-reviewed) incl. nutrient, activity and unit
   names; locale-aware numbers and dates.
-- [ ] **M18c Language review & screen readers** — Native-speaker review of da/de/fi/so (then drop
-  "beta"); manual TalkBack/VoiceOver pass.
+- [x] **M18c Language review** — Owner reviewed and approved da/de/fi/so (2026-10-09); "beta"
+  labels removed.
+- [ ] **M18d Screen-reader pass** — Manual TalkBack/VoiceOver walk-through of the main flows.
 - [x] **M19 App stores (prep)** — Privacy policy, landing page, store listing texts, F-Droid
   notes, Bubblewrap config and build guide.
 - [ ] **M19b App stores (publish)**

@@ -5,9 +5,15 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-M18c's remaining screen-reader pass (manual), then new milestones (see docs/ROADMAP.md). Waiting on the owner: **M19b** (first signed Android build — keep the
-keystore — and assetlinks), **M18c** (native-speaker review of da/de/fi/so; screen-reader pass),
-and a real two-phone test of sync (M17).
+**M18d Screen-reader pass** (manual), then new milestones (see docs/ROADMAP.md). Waiting on the
+owner: **M19b** (first signed Android build — keep the keystore — and assetlinks). A two-phone
+test of sync (M17) is not needed yet (owner, 2026-10-09).
+
+## 2026-10-09 — M18c Language review (interactive session)
+
+- The owner reviewed the Danish, German, Finnish and Somali translations and approved them: the
+  "(beta)" labels are gone from the language picker; pack headers and CONTRIBUTING say so.
+- The screen-reader walk-through moves to M18d.
 
 ## 2026-10-09 — M20b In-app Open Food Facts upload (interactive session)
 
