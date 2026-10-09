@@ -165,3 +165,23 @@ input[type='number'], input[type='text'], input[type='search'], select {
 
 .form label { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; color: var(--muted); }
 .form select, .form input { color: var(--text); }
+
+.pad { padding: 12px 16px; max-width: 640px; margin: 0 auto; }
+.pad > h3 { margin: 8px 0 12px; }
+.btn.wide { display: block; width: 100%; margin-top: 12px; }
+.badge {
+  display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px;
+  font-size: 0.75rem; font-weight: 600; vertical-align: middle;
+  background: var(--track); color: var(--accent);
+}
+.row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+.row label { flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 4px; color: var(--muted); }
+.row select, .row input { color: var(--text); }
+.actions + .actions { margin-top: 12px; }
+.actions .btn { flex: 1; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.field span { font-size: 0.85rem; }
+.field input { width: 100%; }
+.field.error input, input[aria-invalid='true'] { border-color: var(--over); }
+.error-text { color: var(--over); margin: -8px 0 12px; font-size: 0.9rem; }
+input[type='date'] { border: 1px solid var(--line); border-radius: 8px; background: var(--card); padding: 10px 12px; min-height: 44px; }

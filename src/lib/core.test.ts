@@ -4,7 +4,8 @@ import { addDays } from './db';
 import { NUTRIENT_INDEX, NUTRIENTS } from './nutrients';
 import { buildEntry, normalize, search } from './search';
 import { nnrTargets, progress } from './targets';
-import { energySplit, scale, sum } from './totals';
+import { parseNum } from './i18n';
+import { energySplit, estimateKcal, scale, sum } from './totals';
 
 describe('normalize', () => {
   it('folds case, Swedish letters and punctuation', () => {
@@ -35,6 +36,12 @@ describe('search', () => {
     const e = n.map((x, i) => buildEntry(i, [x], x));
     expect(search(e, 'kycklingfilé').map((i) => n[i])).toEqual(['Kyckling bröstfilé rå u. skinn']);
     expect(search(e, 'filé').map((i) => n[i])).toHaveLength(2);
+  });
+  it('ranks boosted (custom) foods above equal matches', () => {
+    const n = ['Proteinpulver vanilj', 'Proteinpulver vanilj'];
+    const e = n.map((x, i) => buildEntry(i, [x], x));
+    e[1].boost = 1;
+    expect(search(e, 'proteinpulver')[0]).toBe(1);
   });
   it('returns nothing for blank queries', () => {
     expect(find('  ')).toEqual([]);
@@ -98,6 +105,17 @@ describe('totals', () => {
     expect(a[NUTRIENT_INDEX.kcal]).toBe(100);
     expect(sum([a, a])[NUTRIENT_INDEX.kcal]).toBe(200);
     expect(sum([a])[NUTRIENT_INDEX.protein]).toBe(0);
+  });
+  it('estimates energy from macros like an EU label', () => {
+    // 75 g protein, 8 g carbs, 6 g fat, 2 g fibre → 300 + 32 + 54 + 4
+    expect(estimateKcal(75, 8, 6, 2)).toBe(390);
+    expect(estimateKcal(0, 0, 0)).toBe(0);
+  });
+  it('parses numbers with a decimal comma', () => {
+    expect(parseNum('1,5')).toBe(1.5);
+    expect(parseNum(' 30 ')).toBe(30);
+    expect(parseNum('')).toBeNaN();
+    expect(parseNum('abc')).toBeNaN();
   });
   it('computes energy percentages', () => {
     const s = energySplit(25, 50, 0, 0);

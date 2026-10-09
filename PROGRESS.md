@@ -5,7 +5,31 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M3 Food detail & custom foods** (see docs/ROADMAP.md).
+**M4 Fast re-logging** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M3 Food detail & custom foods (interactive session)
+
+Done:
+- Navigation: `src/nav.ts` — full-screen sheets as a stack mirrored in `history`, so the Android
+  back button/gesture closes the top sheet. All sheets stay mounted (only the top shown), so going
+  back restores e.g. the search query and results.
+- Food detail (`FoodDetail.tsx`): amount, meal, all nutrients for the amount vs. targets
+  (`NutrientGroups.tsx`, shared with the Nutrients tab), data source + license. Unknown values
+  show "–", not 0. Tapping a diary entry opens it in edit mode: amount, meal, date, change food
+  (search in replace mode), remove.
+- Custom foods (`FoodEditor.tsx`, IndexedDB v2 store `customFoods`, refs `custom:<uuid>`):
+  EU-label fields first, all 39 nutrients behind "show all"; empty kcal = estimated from macros
+  (Atwater + 2 kcal/g fibre). Searchable in the worker with a small ranking boost and an "Eget"
+  badge. Delete = soft delete: hidden from search, still shown in old diary entries. Listed under
+  Settings → "Mina livsmedel". Creating from search continues straight to choosing the amount.
+- DB upgrade v1 → v2 tested (existing entries kept). Worker isn't started early just to receive
+  custom foods. Double-tap guard on add/save.
+- Tests: 18 unit (incl. DB upgrade), 5 Playwright (custom-food lifecycle, entry move, back button,
+  search kept on back, unknown nutrients). Initial JS 17.8 KB gzip; Lighthouse 100/100/100.
+
+Known issues / ideas:
+- Custom foods have one name (stored as `sv`), shown in both languages.
+- Nutrients tab day totals still count unknown values as 0 (could show completeness per nutrient).
 
 ## 2026-10-09 — M2 CI & deploy (interactive session)
 
