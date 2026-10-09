@@ -155,6 +155,25 @@ const BY_STATUS: Record<Exclude<Status, 'none'>, Partial<Record<string, number>>
 
 const KCAL_PER_G = { protein: 4, carbs: 4, fat: 9 } as const;
 
+/**
+ * Essential amino acids for adults, mg per kg body weight per day: WHO/FAO/UNU 2007, "Protein and
+ * amino acid requirements in human nutrition" (WHO TRS 935), table 23. NNR 2023 sets none.
+ * Only for non-pregnant, non-lactating adults with a plausible weight (30–300 kg; the body log
+ * accepts a wider range): children need more per kg, and pregnancy/lactation values aren't set here
+ * — no target rather than a wrong one.
+ */
+const AMINO_MG_PER_KG: Record<string, number> = {
+  histidine: 10,
+  isoleucine: 20,
+  leucine: 39,
+  lysine: 30,
+  methCys: 15,
+  pheTyr: 25,
+  threonine: 15,
+  tryptophan: 4,
+  valine: 26,
+};
+
 /** NNR 2023 energy-percent ranges for the macronutrients (protein 15–20 E% for >65). */
 export function nnrMacroPct(age?: number): Record<'protein' | 'carbs' | 'fat', [number, number]> {
   return { protein: [(age ?? 0) > 65 ? 15 : 10, 20], carbs: [45, 60], fat: [25, 40] };
@@ -203,6 +222,11 @@ export function nnrTargets(p: Profile): Record<string, Target> {
     t.iron = { min: menstruating ? 15 : band === '71+' ? 7 : 8, max: null };
   }
   if (status !== 'none') for (const [key, v] of Object.entries(BY_STATUS[status])) t[key] = { min: v!, max: null };
+  const w = p.weightKg;
+  if (w && w >= 30 && w <= 300 && (p.age == null || p.age >= 18) && status === 'none') {
+    // Whole mg first, then g with one decimal (avoids float artefacts like 1.0499999).
+    for (const [key, mg] of Object.entries(AMINO_MG_PER_KG)) t[key] = { min: Math.round(Math.round(mg * w) / 100) / 10, max: null };
+  }
   return t;
 }
 

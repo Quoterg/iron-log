@@ -43,5 +43,14 @@
   { "key": "pantothenic", "slv": "", "unit": "mg", "group": "vitamin", "sv": "Pantotensyra (B5)", "en": "Pantothenic acid (B5)" },
   { "key": "biotin", "slv": "", "unit": "µg", "group": "vitamin", "sv": "Biotin", "en": "Biotin" },
   { "key": "copper", "slv": "", "unit": "mg", "group": "mineral", "sv": "Koppar", "en": "Copper" },
-  { "key": "manganese", "slv": "", "unit": "mg", "group": "mineral", "sv": "Mangan", "en": "Manganese" }
+  { "key": "manganese", "slv": "", "unit": "mg", "group": "mineral", "sv": "Mangan", "en": "Manganese" },
+  { "key": "histidine", "slv": "", "unit": "g", "group": "amino", "sv": "Histidin", "en": "Histidine" },
+  { "key": "isoleucine", "slv": "", "unit": "g", "group": "amino", "sv": "Isoleucin", "en": "Isoleucine" },
+  { "key": "leucine", "slv": "", "unit": "g", "group": "amino", "sv": "Leucin", "en": "Leucine" },
+  { "key": "lysine", "slv": "", "unit": "g", "group": "amino", "sv": "Lysin", "en": "Lysine" },
+  { "key": "methCys", "slv": "", "unit": "g", "group": "amino", "sv": "Metionin + cystein", "en": "Methionine + cysteine" },
+  { "key": "pheTyr", "slv": "", "unit": "g", "group": "amino", "sv": "Fenylalanin + tyrosin", "en": "Phenylalanine + tyrosine" },
+  { "key": "threonine", "slv": "", "unit": "g", "group": "amino", "sv": "Treonin", "en": "Threonine" },
+  { "key": "tryptophan", "slv": "", "unit": "g", "group": "amino", "sv": "Tryptofan", "en": "Tryptophan" },
+  { "key": "valine", "slv": "", "unit": "g", "group": "amino", "sv": "Valin", "en": "Valine" }
 ]

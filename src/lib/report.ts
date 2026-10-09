@@ -1,6 +1,6 @@
 // Reports over a period: daily averages, nutrient gaps, top contributors, logging streak.
 import { entryVector, type Entry } from './db';
-import { NUTRIENTS, type Food } from './nutrients';
+import { type Food, NUTRIENT_INDEX, NUTRIENTS } from './nutrients';
 import type { Target } from './targets';
 
 /** Nutrient totals per logged day (date → vector in NUTRIENTS order). */
@@ -20,6 +20,28 @@ export function dailyTotals(entries: Entry[], foods: Map<string, Food>): Map<str
  * Which nutrients have at least one known (non-null) value among the entries. A nutrient no food
  * in the period reports (e.g. iodine for many USDA/custom foods) is unknown — not 0 % of target.
  */
+/**
+ * Per nutrient: the share of the period's energy (kcal; grams where energy is unknown) that comes
+ * from foods reporting it. A low share means a total that's mostly missing data — e.g. amino acids
+ * or vitamin K when most food is Swedish (Livsmedelsverket doesn't analyse them) — not a shortfall.
+ */
+export function coverage(entries: Entry[], foods: Map<string, Food>): number[] {
+  const reported = NUTRIENTS.map(() => 0);
+  let all = 0;
+  const k = NUTRIENT_INDEX.kcal;
+  for (const e of entries) {
+    const v = entryVector(e, foods);
+    if (!v) continue;
+    const weight = v[k] != null ? (v[k]! * e.grams) / 100 : e.grams;
+    all += weight;
+    v.forEach((x, i) => x != null && (reported[i] += weight));
+  }
+  return reported.map((r) => (all ? r / all : 0));
+}
+
+/** Share of energy that must come from foods reporting a nutrient before a shortfall is listed. */
+export const MIN_COVERAGE = 0.8;
+
 export function knownNutrients(entries: Entry[], foods: Map<string, Food>): boolean[] {
   const known = NUTRIENTS.map(() => false);
   for (const e of entries) entryVector(e, foods)?.forEach((x, i) => x != null && (known[i] = true));

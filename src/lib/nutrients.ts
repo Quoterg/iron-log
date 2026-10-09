@@ -1,6 +1,6 @@
 import list from './nutrients.json';
 
-export type NutrientGroup = 'energy' | 'macro' | 'carb' | 'lipid' | 'other' | 'vitamin' | 'mineral';
+export type NutrientGroup = 'energy' | 'macro' | 'carb' | 'lipid' | 'other' | 'vitamin' | 'mineral' | 'amino';
 
 export interface Nutrient {
   key: string;

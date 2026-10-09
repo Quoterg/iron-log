@@ -182,3 +182,17 @@ describe('NNR 2023 targets for the M16 nutrients', () => {
     expect([l.pantothenic.min, l.biotin.min, l.copper.min]).toEqual([7, 45, 1.3]);
   });
 });
+
+describe('essential amino acids (WHO/FAO/UNU 2007, per kg body weight)', () => {
+  it('scale with the profile weight, and have no target without one', () => {
+    const t = nnrTargets({ sex: 'male', kcal: 2500, age: 30, weightKg: 70 });
+    expect([t.leucine.min, t.lysine.min, t.tryptophan.min, t.methCys.min]).toEqual([2.7, 2.1, 0.3, 1.1]);
+    expect(nnrTargets({ sex: 'male', kcal: 2500, age: 30 }).leucine).toBeUndefined();
+  });
+
+  it('round in whole mg first, and stay away from implausible weights and pregnancy', () => {
+    expect(nnrTargets({ sex: 'female', kcal: 2000, age: 40, weightKg: 70.5 }).methCys.min).toBe(1.1); // 1057.5 mg
+    expect(nnrTargets({ sex: 'female', kcal: 2000, age: 40, weightKg: 25 }).leucine).toBeUndefined();
+    expect(nnrTargets({ sex: 'female', kcal: 2000, age: 30, weightKg: 65, status: 'pregnant2' }).lysine).toBeUndefined();
+  });
+});

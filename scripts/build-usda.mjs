@@ -57,7 +57,18 @@ const IDS = {
   copper: [1098],
   manganese: [1101],
   dpa: [1280],
+  // Essential amino acids (g/100 g); methCys and pheTyr are sums, see below.
+  histidine: [1221],
+  isoleucine: [1212],
+  leucine: [1213],
+  lysine: [1214],
+  threonine: [1211],
+  tryptophan: [1210],
+  valine: [1219],
 };
+
+/** WHO counts these pairs together (the second can stand in for part of the first). */
+const SUMS = { methCys: [1215, 1216], pheTyr: [1217, 1218] };
 
 /** Trailing unknowns are left out of the file (the app pads them back): smaller downloads. */
 function trimNulls(row) {
@@ -137,6 +148,9 @@ for (const f of foods.values()) {
         break;
       }
     }
+  }
+  for (const [key, [a, b]] of Object.entries(SUMS)) {
+    if (f.values.has(a) && f.values.has(b)) v[key] = f.values.get(a) + f.values.get(b);
   }
   // Carbohydrates: SLV reports *available* carbohydrates (excl. fibre); USDA "by difference" includes fibre.
   const bySum = f.values.get(1050);
