@@ -18,7 +18,9 @@ export interface Profile {
   age?: number;
   weightKg?: number;
   heightCm?: number;
-  /** Physical activity level (NNR: 1.4 low, 1.6 average/reference, 1.8 active, 2.0 very active). */
+  /** Body fat percentage (optional). When set, BMR uses Katch–McArdle (lean body mass). */
+  bodyFatPct?: number;
+  /** Activity multiplier (tdeecalculator.net levels: 1.2, 1.375, 1.55, 1.725, 1.9). */
   pal?: number;
   status?: Status;
   /** Women: still menstruating (iron 15 mg). Defaults to age < 51. */
@@ -32,11 +34,20 @@ export interface Target {
   max: number | null;
 }
 
-export const PAL_LEVELS = [1.4, 1.6, 1.8, 2.0] as const;
+/**
+ * Activity multipliers as used by tdeecalculator.net: sedentary (office job), light exercise
+ * 1–2 days/week, moderate 3–5 days/week, heavy 6–7 days/week, athlete (2× per day).
+ */
+export const PAL_LEVELS = [1.2, 1.375, 1.55, 1.725, 1.9] as const;
+/** tdeecalculator.net preselects "Sedentary". */
+export const DEFAULT_PAL = 1.2;
 
-/** The nearest supported activity level (keeps imported values in sync with the UI). */
+/**
+ * The nearest supported activity level. Keeps imported values in sync with the UI and migrates
+ * the earlier NNR-style levels (1.4 / 1.6 / 1.8 / 2.0 → 1.375 / 1.55 / 1.725 / 1.9).
+ */
 export function snapPal(x: number): number {
-  return PAL_LEVELS.reduce((best, v) => (Math.abs(v - x) < Math.abs(best - x) ? v : best), 1.6);
+  return PAL_LEVELS.reduce((best, v) => (Math.abs(v - x) < Math.abs(best - x) ? v : best), DEFAULT_PAL);
 }
 export const DEFAULT_PROFILE: Profile = { sex: 'female', kcal: 2000 };
 
@@ -50,15 +61,28 @@ const KCAL_PER_MJ = 239.006;
 const EXTRA_MJ: Record<Status, number> = { none: 0, pregnant1: 0.3, pregnant2: 1.2, pregnant3: 2.3, lactating: 2.0 };
 
 /**
- * Energy need = BMR × PAL (+ pregnancy/lactation). BMR by Mifflin–St Jeor; NNR 2023 uses the
- * Henry equations, which give values within a few percent for adults. Null if data is missing.
+ * Basal metabolic rate (kcal/day), the way tdeecalculator.net computes it:
+ * - with body fat %: Katch–McArdle, BMR = 370 + 21.6 × lean body mass (kg);
+ * - otherwise: Mifflin–St Jeor, BMR = 10 × kg + 6.25 × cm − 5 × age + 5 (men) / − 161 (women).
+ * Null if the data a formula needs is missing.
+ */
+export function bmr(p: Profile): number | null {
+  const { age, weightKg: w, heightCm: h, bodyFatPct: bf } = p;
+  if (w && bf != null) return 370 + 21.6 * w * (1 - bf / 100);
+  if (!age || !w || !h) return null;
+  return 10 * w + 6.25 * h - 5 * age + (p.sex === 'male' ? 5 : -161);
+}
+
+/**
+ * Daily energy need (TDEE) = BMR × activity multiplier, rounded to whole kcal — matches
+ * tdeecalculator.net (verified 2026-10-09: man 30 y, 80 kg, 180 cm, moderate → 2,759; with 20 %
+ * body fat → 2,716). Pregnancy/lactation adds NNR 2023's extra energy (the site has none).
  */
 export function energyNeed(p: Profile): number | null {
-  const { age, weightKg: w, heightCm: h } = p;
-  if (!age || !w || !h) return null;
-  const bmr = 10 * w + 6.25 * h - 5 * age + (p.sex === 'male' ? 5 : -161);
+  const base = bmr(p);
+  if (base == null) return null;
   const extra = p.sex === 'female' ? EXTRA_MJ[p.status ?? 'none'] * KCAL_PER_MJ : 0;
-  return Math.round((bmr * (p.pal ?? 1.6) + extra) / 10) * 10;
+  return Math.round(base * (p.pal ?? DEFAULT_PAL) + extra);
 }
 
 /**

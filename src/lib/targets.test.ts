@@ -75,27 +75,41 @@ describe('NNR 2023 targets by age, sex and life stage', () => {
 });
 
 describe('energy need', () => {
-  it('Mifflin–St Jeor × PAL, plus pregnancy/lactation energy', () => {
-    // Woman 30 y, 60 kg, 165 cm: BMR 1320 kcal × 1.6 = 2112 → 2110.
-    expect(energyNeed(woman({ age: 30, weightKg: 60, heightCm: 165 }))).toBe(2110);
-    expect(energyNeed(woman({ age: 30, weightKg: 60, heightCm: 165, pal: 1.4 }))).toBe(1850);
-    // + 2.3 MJ ≈ 550 kcal in trimester 3.
-    expect(energyNeed(woman({ age: 30, weightKg: 60, heightCm: 165, status: 'pregnant3' }))).toBe(2660);
-    // Man 40 y, 80 kg, 180 cm: BMR 1730 × 1.8 = 3114 → 3110.
-    expect(energyNeed(man({ age: 40, weightKg: 80, heightCm: 180, pal: 1.8 }))).toBe(3110);
+  it('matches tdeecalculator.net exactly (results recorded 2026-10-09)', () => {
+    // Man 30 y, 80 kg, 180 cm, moderate (1.55): Mifflin → 2,759; with 20 % body fat (Katch–McArdle) → 2,716.
+    const m = man({ age: 30, weightKg: 80, heightCm: 180, pal: 1.55 });
+    expect(energyNeed(m)).toBe(2759);
+    expect(energyNeed({ ...m, bodyFatPct: 20 })).toBe(2716);
+    // Woman 40 y, 65 kg, 168 cm, sedentary (1.2): Mifflin → 1,607; with 30 % body fat → 1,623.
+    const w = woman({ age: 40, weightKg: 65, heightCm: 168, pal: 1.2 });
+    expect(energyNeed(w)).toBe(1607);
+    expect(energyNeed({ ...w, bodyFatPct: 30 })).toBe(1623);
+  });
+
+  it('Katch–McArdle needs only weight and body fat; defaults to sedentary', () => {
+    expect(energyNeed(man({ weightKg: 80, bodyFatPct: 20 }))).toBe(Math.round((370 + 21.6 * 64) * 1.2));
+    expect(energyNeed(man({ bodyFatPct: 20 }))).toBeNull();
     expect(energyNeed(man({ age: 40 }))).toBeNull();
+  });
+
+  it('adds NNR pregnancy/lactation energy on top (≈ +550 kcal in trimester 3)', () => {
+    const w = woman({ age: 30, weightKg: 60, heightCm: 165, pal: 1.2 }); // BMR 1320.25 × 1.2 = 1584.3
+    expect(energyNeed(w)).toBe(1584);
+    expect(energyNeed({ ...w, status: 'pregnant3' })).toBe(2134);
+    expect(energyNeed({ ...w, status: 'lactating' })).toBe(2062);
   });
 
   it('applies to kcal only when automatic, and turns automatic off when data is missing', () => {
     const p = woman({ age: 30, weightKg: 60, heightCm: 165 });
     expect(withEnergy(p).kcal).toBe(2000);
-    expect(withEnergy({ ...p, kcalAuto: true }).kcal).toBe(2110);
+    expect(withEnergy({ ...p, kcalAuto: true }).kcal).toBe(1584);
     const missing = withEnergy({ ...p, kcalAuto: true, weightKg: undefined, kcal: 2110 });
     expect(missing).toMatchObject({ kcalAuto: false, kcal: 2110 });
   });
 
-  it('snaps activity levels to the ones the UI offers', () => {
-    expect([1.2, 1.5, 1.51, 1.75, 2.5].map(snapPal)).toEqual([1.4, 1.6, 1.6, 1.8, 2.0]);
+  it('snaps activity levels to the tdeecalculator.net levels (migrates the old NNR-style ones)', () => {
+    expect([1.4, 1.6, 1.8, 2.0].map(snapPal)).toEqual([1.375, 1.55, 1.725, 1.9]);
+    expect([1.0, 1.2, 1.5, 2.5].map(snapPal)).toEqual([1.2, 1.2, 1.55, 1.9]);
   });
 });
 

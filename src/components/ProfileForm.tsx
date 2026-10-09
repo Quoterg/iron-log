@@ -1,16 +1,26 @@
 import { fmt, parseNum, t } from '../lib/i18n';
-import { defaultKcal, energyNeed, PAL_LEVELS, withEnergy, type Profile, type Sex, type Status } from '../lib/targets';
+import {
+  defaultKcal,
+  DEFAULT_PAL,
+  energyNeed,
+  PAL_LEVELS,
+  withEnergy,
+  type Profile,
+  type Sex,
+  type Status,
+} from '../lib/targets';
 import { lang as langSignal } from '../lib/i18n';
 import { open } from '../nav';
 import { settings, updateSettings } from '../state';
 
 const lang = () => langSignal.value;
 
-const PAL_LABEL: Record<number, 'palLow' | 'palAverage' | 'palActive' | 'palVeryActive'> = {
-  1.4: 'palLow',
-  1.6: 'palAverage',
-  1.8: 'palActive',
-  2.0: 'palVeryActive',
+const PAL_LABEL: Record<number, 'palSedentary' | 'palLight' | 'palModerate' | 'palHeavy' | 'palAthlete'> = {
+  1.2: 'palSedentary',
+  1.375: 'palLight',
+  1.55: 'palModerate',
+  1.725: 'palHeavy',
+  1.9: 'palAthlete',
 };
 
 /** Body data → NNR 2023 targets for age band, pregnancy/lactation, and an energy estimate. */
@@ -25,7 +35,13 @@ export function ProfileForm() {
    * Number field that commits on change when valid (else reverts). Text + inputmode so phones
    * show the right keypad and a decimal comma works for weight.
    */
-  const num = (key: 'age' | 'weightKg' | 'heightCm', label: string, min: number, max: number, decimals: boolean) => (
+  const num = (
+    key: 'age' | 'weightKg' | 'heightCm' | 'bodyFatPct',
+    label: string,
+    min: number,
+    max: number,
+    decimals: boolean,
+  ) => (
     <label>
       {label}
       <input
@@ -70,17 +86,18 @@ export function ProfileForm() {
         {num('age', t('age'), 18, 110, false)}
         {num('weightKg', pregnant ? t('weightBeforePregnancy') : t('weightKg'), 30, 300, true)}
         {num('heightCm', t('heightCm'), 120, 230, false)}
-        <label>
-          {t('activity')}
-          <select value={String(p.pal ?? 1.6)} onChange={(e) => save({ pal: Number((e.currentTarget as HTMLSelectElement).value) })}>
-            {PAL_LEVELS.map((v) => (
-              <option key={v} value={String(v)}>
-                {t(PAL_LABEL[v])}
-              </option>
-            ))}
-          </select>
-        </label>
+        {num('bodyFatPct', t('bodyFatPct'), 3, 70, true)}
       </div>
+      <label>
+        {t('activity')}
+        <select value={String(p.pal ?? DEFAULT_PAL)} onChange={(e) => save({ pal: Number((e.currentTarget as HTMLSelectElement).value) })}>
+          {PAL_LEVELS.map((v) => (
+            <option key={v} value={String(v)}>
+              {t(PAL_LABEL[v])}
+            </option>
+          ))}
+        </select>
+      </label>
       {p.sex === 'female' && (
         <>
           <label>
@@ -123,7 +140,7 @@ export function ProfileForm() {
           inputMode="numeric"
           min="800"
           max="6000"
-          step="10"
+          step="1"
           value={p.kcal}
           readOnly={!!p.kcalAuto}
           onChange={(e) => {
@@ -139,6 +156,7 @@ export function ProfileForm() {
           {t('kcalEstimate')}: {fmt(estimate)} kcal
         </p>
       )}
+      {estimate && <p class="muted small">{p.bodyFatPct != null && p.weightKg ? t('formulaKatch') : t('formulaMifflin')}</p>}
       <button type="button" class="btn wide" onClick={() => open({ kind: 'targets' })}>
         {t('adjustTargets')}
       </button>

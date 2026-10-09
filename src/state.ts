@@ -6,7 +6,7 @@ import { getFoods, setCustomFoods, setUserBoosts } from './lib/foods';
 import { fetchProduct } from './lib/off';
 import { lang } from './lib/i18n';
 import type { Food, NutrientVector, Serving } from './lib/nutrients';
-import { computeTargets, DEFAULT_PROFILE, normalizeOverrides, type Target } from './lib/targets';
+import { computeTargets, DEFAULT_PROFILE, normalizeOverrides, snapPal, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 
 export type View = 'diary' | 'nutrients' | 'settings';
@@ -109,8 +109,10 @@ export async function removeEntry(id: string): Promise<void> {
 export async function loadSettings(): Promise<void> {
   const s = await db.getSettings();
   if (s) {
-    // Older versions stored overrides as plain min numbers.
-    settings.value = { ...s, targetOverrides: normalizeOverrides(s.targetOverrides) };
+    // Older versions stored overrides as plain min numbers, and NNR-style activity levels
+    // (1.4–2.0); move both to the current format and recompute automatic energy.
+    const profile = s.profile.pal == null ? s.profile : { ...s.profile, pal: snapPal(s.profile.pal) };
+    settings.value = { ...s, profile: withEnergy(profile), targetOverrides: normalizeOverrides(s.targetOverrides) };
     lang.value = s.lang;
   }
 }

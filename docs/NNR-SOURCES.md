@@ -40,9 +40,18 @@ value in `targets.ts` and its unit test).
 
 ## Energy
 
-- NNR 2023 estimates energy need as BMR × PAL (reference PAL 1.6; 1.4 "low active").
-  NNR uses the Henry equations; Iron Log uses **Mifflin–St Jeor**, which agrees within a few
-  percent for adults.
-- Pregnancy +0.3 / +1.2 / +2.3 MJ per day (trimester 1/2/3) and exclusive breastfeeding
-  +2.0 MJ per day, from DTU Food's 2025 summary of NNR 2023 (secondary source). The pregnancy
-  add-ons assume **pre-pregnancy weight**, which is what the app asks for while pregnant.
+Energy need follows **[tdeecalculator.net](https://tdeecalculator.net/)** (chosen by the project
+owner), reproduced exactly:
+
+- **With body fat %: Katch–McArdle**, BMR = 370 + 21.6 × lean body mass (kg), where lean body
+  mass = weight × (1 − body fat %).
+- **Without body fat: Mifflin–St Jeor**, BMR = 10 × kg + 6.25 × cm − 5 × age + 5 (men) / − 161 (women).
+- **TDEE = BMR × activity multiplier**: sedentary 1.2 (default), light 1.375, moderate 1.55,
+  heavy 1.725, athlete 1.9; rounded to whole kcal.
+- Verified against the site on 2026-10-09 (pinned in `targets.test.ts`): man 30 y, 80 kg, 180 cm,
+  moderate → 2,759 kcal, with 20 % body fat → 2,716; woman 40 y, 65 kg, 168 cm, sedentary →
+  1,607, with 30 % body fat → 1,623.
+- The site has no pregnancy adjustment; Iron Log adds NNR 2023's extra energy on top:
+  +0.3 / +1.2 / +2.3 MJ per day (trimester 1/2/3) and +2.0 MJ per day for exclusive breastfeeding
+  (DTU Food's 2025 summary of NNR 2023, secondary source). These assume **pre-pregnancy weight**,
+  which is what the app asks for while pregnant.

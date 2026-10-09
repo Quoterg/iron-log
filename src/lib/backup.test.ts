@@ -48,7 +48,7 @@ describe('profile import', () => {
 
   it('round-trips the full profile', () => {
     const profile = {
-      sex: 'female', kcal: 2110, kcalAuto: true, age: 30, weightKg: 60.5, heightCm: 165, pal: 1.6,
+      sex: 'female', kcal: 2110, kcalAuto: true, age: 30, weightKg: 60.5, heightCm: 165, bodyFatPct: 27.5, pal: 1.55,
       status: 'pregnant2', menstruating: false,
     };
     expect(withProfile(profile)).toEqual(profile);
@@ -56,7 +56,8 @@ describe('profile import', () => {
 
   it('drops invalid fields instead of failing', () => {
     const p = withProfile({ sex: 'male', kcal: 2500, age: 30.5, heightCm: 500, status: 'astronaut', pal: 1.5 });
-    expect(p).toEqual({ sex: 'male', kcal: 2500, pal: 1.6 });
+    expect(p).toEqual({ sex: 'male', kcal: 2500, pal: 1.55 });
+    expect(withProfile({ sex: 'male', kcal: 2500, bodyFatPct: 95 })?.bodyFatPct).toBeUndefined();
     expect(withProfile({ sex: 'male', kcal: 2500, age: 12 })?.age).toBeUndefined();
   });
 
@@ -75,7 +76,8 @@ describe('profile import', () => {
     expect(settingsOf({ macroPreset: 'carnivore' })?.macroPreset).toBeUndefined();
   });
 
-  it('keeps automatic energy only with the data it needs', () => {
+  it('keeps automatic energy only with the data a formula needs', () => {
+    expect(withProfile({ sex: 'male', kcal: 2500, kcalAuto: true, weightKg: 80, bodyFatPct: 20 })?.kcalAuto).toBe(true);
     expect(withProfile({ sex: 'male', kcal: 2500, kcalAuto: true, age: 40 })?.kcalAuto).toBeUndefined();
   });
 });

@@ -23,11 +23,23 @@ test('profile drives energy and NNR targets (age band, pregnancy)', async ({ pag
   await setField(page, 'Längd (cm)', '165');
   await expect(page.getByLabel('Vikt (kg)', { exact: true })).toHaveValue('60,4');
   await auto.check();
-  await expect(kcal).toHaveValue('2120'); // 1325 kcal BMR × 1.6
+  // Sedentary by default (like tdeecalculator.net): Mifflin BMR 1324.25 × 1.2 = 1589.
+  await expect(kcal).toHaveValue('1589');
+  await expect(page.getByText(/Mifflin–St Jeor/)).toBeVisible();
+
+  // Body fat % switches to Katch–McArdle: (370 + 21.6 × 60.4 × 0.75) × 1.2 = 1618.
+  await setField(page, 'Fettprocent (valfritt)', '25');
+  await expect(kcal).toHaveValue('1618');
+  await expect(page.getByText(/Katch–McArdle \(fettfri massa\)/)).toBeVisible();
+  await page.getByLabel('Aktivitetsnivå').selectOption('1.55');
+  await expect(kcal).toHaveValue('2090');
+  await setField(page, 'Fettprocent (valfritt)', '');
+  await page.getByLabel('Aktivitetsnivå').selectOption('1.2');
+  await expect(kcal).toHaveValue('1589');
 
   // Third trimester: +2.3 MJ, weight is asked as before pregnancy, iron 26 mg.
   await page.getByLabel('Livssituation').selectOption('pregnant3');
-  await expect(kcal).toHaveValue('2670');
+  await expect(kcal).toHaveValue('2139'); // + 2.3 MJ ≈ 550 kcal
   await expect(page.getByLabel('Vikt före graviditeten (kg)')).toBeVisible();
   await nutrientsTab(page);
   await expect(target(page, 'Järn')).toContainText('/ 26 mg');
