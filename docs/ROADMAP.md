@@ -57,11 +57,13 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 
 ## Phase 3 — Everywhere
 
-- [ ] **M17 Sync (optional, self-hostable)** — End-to-end encrypted sync: tiny server
-  (Node + SQLite, Docker image), client key never leaves devices; app stays fully usable without.
-  **Decided (owner, 2026-10-09): device-to-device sync** — QR code + direct encrypted WebRTC
-  connection between two devices, no server, no account. Own-cloud file sync or a server only later
-  if needed.
+- **M17 Sync** — **Decided (owner, 2026-10-09): device-to-device sync**: QR code + direct
+  encrypted WebRTC connection between two of the user's devices, no server, no account. Own-cloud
+  file sync or a server only later if needed. The app stays fully usable without it.
+  - [x] **M17a Sync engine** — change tracking (`meta` store with tombstones, DB v9) on every
+    write, transport-agnostic merge (newest change wins), validation of incoming records.
+  - [ ] **M17b Pairing** — "Synka" screen: QR offer/answer exchange (camera or pasted code),
+    WebRTC data channel on the same network (no STUN server), progress, reload of state after sync.
 - [x] **M18a Accessibility audit** — axe-core (WCAG 2.1 A/AA) in light and dark mode, and 200 %
   text size at 360 px without horizontal scrolling, on: diary (empty/first run), food search, food
   amount, edit entry, custom food editor, barcode scan, copy day, nutrients, nutrient detail,

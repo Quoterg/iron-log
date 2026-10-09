@@ -79,3 +79,19 @@ Accepted trade-offs and mitigations:
 
 Nutrients are stored as a fixed-order vector keyed by EuroFIR component codes
 (`src/lib/nutrients.ts`), so every food source maps into one shape.
+
+## Device-to-device sync (M17)
+
+The owner's choice (2026-10-09): no server, no account. Two of the user's devices connect directly
+(WebRTC; pairing by QR code in M17b) and exchange changes; nothing is stored anywhere else.
+
+- **Change tracking (`meta` store, DB v9).** Every write and delete in `src/lib/db.ts` also writes
+  `meta[`${store}:${key}`] = { mt, del? }` in the same transaction — `mt` is the change time,
+  `del` a tombstone so deletions sync instead of records coming back. Record formats (and backups)
+  are unchanged. Records from before v9 have no meta and count as changed at time 0.
+- **Engine (`src/lib/sync.ts`, lazy).** Both devices send a summary (key → mt), then each sends
+  what the other lacks or has older; applying keeps whichever change is newest (ties keep the local
+  copy). Incoming records go through the backup validators and must match their key; anything
+  invalid aborts the sync before a single write.
+- **Semantics.** Last write wins per record, by wall clock. A backup restore counts as a fresh
+  change. `usage` (ranking counts) also syncs last-write-wins, which may lose a few counts.
