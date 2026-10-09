@@ -21,6 +21,10 @@ test('no screen overflows a 360 px phone', async ({ page }) => {
   await page.getByLabel('Livssituation').selectOption('lactating');
   await expectNoHorizontalOverflow(page, 'settings');
 
+  await page.getByRole('button', { name: '+ Skapa recept' }).click();
+  await expectNoHorizontalOverflow(page, 'recipe editor');
+  await page.goBack();
+
   await page.getByRole('button', { name: 'Anpassa mål' }).click();
   await page.getByLabel('Förval').selectOption('custom');
   await expectNoHorizontalOverflow(page, 'target editor');

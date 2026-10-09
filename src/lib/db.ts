@@ -1,6 +1,7 @@
 // User data lives on the device, in IndexedDB. Nothing is sent anywhere.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Food, Serving } from './nutrients';
+import type { StoredRecipe } from './recipes';
 import type { MacroPct, MacroPreset, Profile, TargetOverride } from './targets';
 
 export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -72,12 +73,13 @@ interface Schema extends DBSchema {
   usage: { key: string; value: Usage };
   servings: { key: string; value: UserServings };
   offFoods: { key: string; value: OffFood };
+  recipes: { key: string; value: StoredRecipe };
 }
 
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('iron-log', 5, {
+  dbp ??= openDB<Schema>('iron-log', 6, {
     async upgrade(d, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
@@ -92,6 +94,7 @@ function db() {
       }
       if (oldVersion < 4) d.createObjectStore('servings', { keyPath: 'foodRef' });
       if (oldVersion < 5) d.createObjectStore('offFoods', { keyPath: 'ref' });
+      if (oldVersion < 6) d.createObjectStore('recipes', { keyPath: 'ref' });
     },
   });
   return dbp;
@@ -125,26 +128,29 @@ export interface AllData {
   usage: Usage[];
   servings: UserServings[];
   offFoods: OffFood[];
+  recipes: StoredRecipe[];
   settings?: Settings;
 }
 
 export async function exportAll(): Promise<AllData> {
   const d = await db();
-  const [entries, customFoods, usage, servings, offFoods, settings] = await Promise.all([
+  const [entries, customFoods, usage, servings, offFoods, recipes, settings] = await Promise.all([
     d.getAll('entries'),
     d.getAll('customFoods'),
     d.getAll('usage'),
     d.getAll('servings'),
     d.getAll('offFoods'),
+    d.getAll('recipes'),
     d.get('kv', 'settings') as Promise<Settings | undefined>,
   ]);
-  return { entries, customFoods, usage, servings, offFoods, settings };
+  return { entries, customFoods, usage, servings, offFoods, recipes, settings };
 }
 
 /** Upsert everything in one transaction: items with the same id/ref are replaced, others kept. */
 export async function importAll(data: AllData): Promise<void> {
-  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'kv'], 'readwrite');
+  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'kv'], 'readwrite');
   const puts: Promise<unknown>[] = [
+    ...data.recipes.map((r) => tx.objectStore('recipes').put(r)),
     ...data.offFoods.map((f) => tx.objectStore('offFoods').put(f)),
     ...data.entries.map((e) => tx.objectStore('entries').put(e)),
     ...data.customFoods.map((f) => tx.objectStore('customFoods').put(f)),
@@ -156,8 +162,9 @@ export async function importAll(data: AllData): Promise<void> {
 }
 
 export async function clearAll(): Promise<void> {
-  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'kv'], 'readwrite');
+  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'kv'], 'readwrite');
   await Promise.all([
+    tx.objectStore('recipes').clear(),
     tx.objectStore('offFoods').clear(),
     tx.objectStore('entries').clear(),
     tx.objectStore('customFoods').clear(),
@@ -178,6 +185,14 @@ export async function getOffFood(ref: string): Promise<OffFood | undefined> {
 
 export async function putOffFood(f: OffFood): Promise<void> {
   await (await db()).put('offFoods', f);
+}
+
+export async function listRecipes(): Promise<StoredRecipe[]> {
+  return (await db()).getAll('recipes');
+}
+
+export async function putRecipe(r: StoredRecipe): Promise<void> {
+  await (await db()).put('recipes', r);
 }
 
 export async function listServings(): Promise<UserServings[]> {

@@ -1,7 +1,7 @@
 import { fmt, t, type Lang } from '../lib/i18n';
-import { value } from '../lib/nutrients';
+import { NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { open } from '../nav';
-import { customFoods, settings, updateSettings } from '../state';
+import { customFoods, recipes, settings, updateSettings } from '../state';
 import { ProfileForm } from './ProfileForm';
 import { YourData } from './YourData';
 
@@ -11,6 +11,7 @@ export default function Settings() {
     <>
       <ProfileForm />
       <MyFoods />
+      <MyRecipes />
       <General />
       <YourData />
     </>
@@ -36,6 +37,36 @@ function MyFoods() {
               <button class="entry" onClick={() => open({ kind: 'editFood', ref: f.ref })}>
                 <span class="entry-name">{f.sv}</span>
                 <span class="num muted">{fmt(value(f.per100g, 'kcal'))} kcal / 100 g</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function MyRecipes() {
+  const list = recipes.value.filter((r) => !r.deleted).sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+  return (
+    <section class="card">
+      <header class="meal-head">
+        <h2>{t('myRecipes')}</h2>
+        <button class="btn small" onClick={() => open({ kind: 'recipe' })}>
+          + {t('createRecipe')}
+        </button>
+      </header>
+      {list.length === 0 ? (
+        <p class="muted small">{t('noRecipes')}</p>
+      ) : (
+        <ul class="entries">
+          {list.map((r) => (
+            <li key={r.ref}>
+              <button class="entry" onClick={() => open({ kind: 'recipe', ref: r.ref })}>
+                <span class="entry-name">{r.name}</span>
+                <span class="num muted">
+                  {fmt(((r.per100g[NUTRIENT_INDEX.kcal] ?? 0) * r.portionG) / 100)} kcal / {t('portionShort')}
+                </span>
               </button>
             </li>
           ))}

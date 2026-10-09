@@ -1,6 +1,7 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
 import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type Usage, type UserServings } from './db';
 import { foodName, NUTRIENTS, type Food } from './nutrients';
+import type { StoredRecipe } from './recipes';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
 
@@ -74,6 +75,38 @@ function offFood(x: unknown): OffFood {
     return f;
   }
   throw new BackupError('offFood');
+}
+
+function recipe(x: unknown): StoredRecipe {
+  const vector = (v: unknown) =>
+    Array.isArray(v) && v.length <= NUTRIENTS.length && v.every((n) => n === null || (isNum(n) && n >= 0));
+  if (
+    isObj(x) && isStr(x.ref, 200) && x.ref.startsWith('recipe:') && isStr(x.name) && x.name.trim() !== '' &&
+    Array.isArray(x.ingredients) && x.ingredients.length <= 200 && isNum(x.servings) && x.servings >= 1 &&
+    x.servings <= 1000 && isNum(x.createdAt) && isNum(x.updatedAt) && vector(x.per100g) &&
+    isNum(x.portionG) && x.portionG > 0 && isNum(x.totalG) && x.totalG > 0 &&
+    (x.cookedWeightG === undefined || (isNum(x.cookedWeightG) && x.cookedWeightG > 0 && x.cookedWeightG < 100000))
+  ) {
+    const ingredients = x.ingredients.map((i) => {
+      if (!isObj(i) || !isStr(i.foodRef, 200) || !isNum(i.grams) || !(i.grams > 0 && i.grams < 100000)) {
+        throw new BackupError('recipe');
+      }
+      const out: StoredRecipe['ingredients'][number] = { foodRef: i.foodRef, grams: i.grams };
+      if (isStr(i.unit, 50) && isNum(i.qty) && i.qty > 0) {
+        out.unit = i.unit;
+        out.qty = i.qty;
+      }
+      return out;
+    });
+    const r: StoredRecipe = {
+      ref: x.ref, name: x.name, ingredients, servings: x.servings, createdAt: x.createdAt, updatedAt: x.updatedAt,
+      per100g: x.per100g as StoredRecipe['per100g'], portionG: x.portionG, totalG: x.totalG,
+    };
+    if (x.cookedWeightG !== undefined) r.cookedWeightG = x.cookedWeightG as number;
+    if (x.deleted === true) r.deleted = true;
+    return r;
+  }
+  throw new BackupError('recipe');
 }
 
 function usage(x: unknown): Usage {
@@ -156,6 +189,7 @@ export function parseBackup(text: string): AllData {
     usage: list('usage').map(usage),
     servings: list('servings').map(servings),
     offFoods: list('offFoods').map(offFood),
+    recipes: list('recipes').map(recipe),
     settings: settings(raw.settings),
   };
 }

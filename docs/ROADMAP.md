@@ -38,7 +38,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   pregnancy/lactation, post-menopause iron. Unit tests against NNR tables.
 - [x] **M9 Target editor** — Per-nutrient min/max overrides, macro targets in g or E%,
   presets (NNR default, high-protein, low-carb, keto), reset to defaults.
-- [ ] **M10 Recipes** — Recipes from ingredients, servings, cooked yield/weight change;
+- [x] **M10 Recipes** — Recipes from ingredients, servings, cooked yield/weight change;
   log by serving or grams; recipe nutrient summary.
 - [ ] **M11 Global food data** — USDA FoodData Central (Foundation + SR Legacy, public domain)
   mapped to the same nutrient keys; data split per source and loaded by language/region

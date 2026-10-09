@@ -4,13 +4,14 @@ import { fmt, fmtAmount, lang, parseNum, t, unitLabel } from '../lib/i18n';
 import { GRAMS, initialAmount, servingsFor, toGrams } from '../lib/servings';
 import { foodName, NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { scale } from '../lib/totals';
-import { back, closeAll, open } from '../nav';
+import { back, backBy, closeAll, open } from '../nav';
 import {
   addEntry,
   addServing,
   date as currentDate,
   entries,
   foods,
+  recipeDraft,
   removeEntry,
   toggleFavourite,
   updateEntry,
@@ -29,7 +30,14 @@ const numText = (n: number) => String(n).replace('.', lang.value === 'sv' ? ',' 
  * A food with all its nutrients for the chosen amount. Adds a new entry (`meal`)
  * or edits an existing one (`entryId`): amount, meal, date, or swap the food.
  */
-export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: string }) {
+export function FoodDetail(props: {
+  foodRef: string;
+  meal?: Meal;
+  entryId?: string;
+  /** Choosing an amount for a recipe ingredient (new, or `ingredientIndex` to edit). */
+  ingredient?: boolean;
+  ingredientIndex?: number;
+}) {
   const entry = props.entryId ? entries.value.find((e) => e.id === props.entryId) : undefined;
   const ref = entry?.foodRef ?? props.foodRef;
   const food = foods.value.get(ref);
@@ -37,7 +45,14 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
   const used = usage.value.get(ref);
   const servings = food ? servingsFor(food, userServings.value.get(ref)) : [];
   // Start from the entry being edited, else the amount and measure used last time.
-  const [init] = useState(() => initialAmount(servings, entry, used));
+  const editing = props.ingredientIndex != null ? recipeDraft.value?.ingredients[props.ingredientIndex] : undefined;
+  const [init] = useState(() =>
+    editing
+      ? editing.unit && editing.qty
+        ? { unit: editing.unit, qty: editing.qty }
+        : { unit: 'g', qty: editing.grams }
+      : initialAmount(servings, entry, used),
+  );
   const [unit, setUnit] = useState(init.unit);
   const [qtyText, setQtyText] = useState(numText(init.qty));
   const [adding, setAdding] = useState(false);
@@ -58,7 +73,18 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
     e.preventDefault();
     if (!valid || busy.current) return;
     busy.current = true;
-    if (entry) {
+    if (props.ingredient) {
+      const d = recipeDraft.value;
+      if (d) {
+        const ing = { foodRef: ref, ...amount };
+        const list = [...d.ingredients];
+        if (props.ingredientIndex != null) list[props.ingredientIndex] = ing;
+        else list.push(ing);
+        recipeDraft.value = { ...d, ingredients: list };
+      }
+      // Back to the recipe editor: past the search when adding, one step when editing.
+      backBy(props.ingredientIndex != null ? 1 : 2);
+    } else if (entry) {
       await updateEntry(entry.id, { amount, meal, date: day });
       back();
     } else {
@@ -68,7 +94,7 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
   };
 
   return (
-    <Sheet title={entry ? t(entry.meal) : t(meal)}>
+    <Sheet title={props.ingredient ? t('ingredient') : entry ? t(entry.meal) : t(meal)}>
       <form class="amount" onSubmit={submit}>
         <div class="title-row">
           <h3>
@@ -143,7 +169,7 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
             }}
           />
         )}
-        <div class="row">
+        <div class="row" hidden={props.ingredient}>
           <label>
             {t('meal')}
             <select value={meal} onChange={(e) => setMeal((e.currentTarget as HTMLSelectElement).value as Meal)}>
@@ -172,7 +198,7 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
         </p>
         <div class="actions">
           <button type="submit" class="btn primary" disabled={!valid}>
-            {entry ? t('save') : t('add')}
+            {props.ingredient ? t('addToRecipe') : entry ? t('save') : t('add')}
           </button>
         </div>
         {entry && (
@@ -197,6 +223,11 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
             {t('editFood')}
           </button>
         )}
+        {ref.startsWith('recipe:') && !props.ingredient && (
+          <button type="button" class="btn wide" onClick={() => open({ kind: 'recipe', ref })}>
+            {t('editRecipe')}
+          </button>
+        )}
       </form>
 
       <div class="pad">
@@ -205,7 +236,13 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
         </h3>
         <NutrientGroups amounts={amounts} known={food.per100g.map((v) => v != null)} />
         <p class="muted small">
-          {isCustom ? t('sourceCustom') : ref.startsWith('off:') ? `${t('sourceOff')} ${ref.slice(4)}.` : t('sourceSlv')}
+          {isCustom
+            ? t('sourceCustom')
+            : ref.startsWith('recipe:')
+              ? t('sourceRecipe')
+              : ref.startsWith('off:')
+                ? `${t('sourceOff')} ${ref.slice(4)}.`
+                : t('sourceSlv')}
         </p>
       </div>
     </Sheet>

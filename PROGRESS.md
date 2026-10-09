@@ -5,7 +5,27 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M10 Recipes** (see docs/ROADMAP.md).
+**M11 Global food data** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M10 Recipes (interactive session)
+
+Done:
+- `src/lib/recipes.ts`: nutrition from ingredients ÷ finished weight (cooked weight if weighed,
+  else the raw sum) → per 100 g; a nutrient is unknown only if no ingredient has it. Recipes are
+  foods with "portion" and "hela receptet" measures.
+- IndexedDB v6 `recipes` store with a nutrition **snapshot** (per100g, portionG, totalG), so recipes
+  show and log at startup without loading the food database; recomputed on save. Soft delete.
+  Included in backups (validated: ≤ 200 ingredients, servings 1–1000, ranges).
+- `RecipeEditor.tsx` (lazy chunk, 1.5 KB gzip, prefetched when idle): name, servings, ingredients
+  (added via search → food screen in "ingredient" mode with measures; tap a row to change the
+  amount; × to remove), optional cooked weight, per-portion summary + all nutrients per portion.
+  The draft is discarded when the editor closes. A recipe can't contain itself.
+- Recipes in search ("Recept" badge), Settings → "Mina recept", create from a meal's search
+  (continues to logging), "Redigera recept" from the food screen.
+- Tests: 65 unit, 20 Playwright (stable over --repeat-each=3). Initial JS 29.2 KB gzip.
+
+Known gaps: editing a recipe (or a custom food it uses) changes past diary entries that use it,
+like custom foods; ingredient foods changed later aren't propagated until the recipe is saved again.
 
 ## 2026-10-09 — M8.1 Energy formula = tdeecalculator.net (interactive session)
 

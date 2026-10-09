@@ -5,9 +5,9 @@ import type { Meal } from './lib/db';
 
 export type Screen =
   /** Search to add a food to a meal, or to swap the food of an existing entry. */
-  | { kind: 'search'; meal: Meal; replaceEntryId?: string }
+  | { kind: 'search'; meal: Meal; replaceEntryId?: string; pickIngredient?: boolean }
   /** Food detail: add a new entry (meal set), or edit an existing one (entryId set). */
-  | { kind: 'food'; ref: string; meal?: Meal; entryId?: string }
+  | { kind: 'food'; ref: string; meal?: Meal; entryId?: string; ingredient?: boolean; ingredientIndex?: number }
   /** Create (no ref) or edit a custom food. `meal` continues to adding it afterwards. */
   | { kind: 'editFood'; ref?: string; name?: string; meal?: Meal }
   /** Copy the shown day's entries (or one meal's) to another date/meal. */
@@ -15,7 +15,9 @@ export type Screen =
   /** Scan or type a barcode, then continue to the food screen for `meal`. */
   | { kind: 'scan'; meal: Meal }
   /** Adjust macro preset and per-nutrient targets. */
-  | { kind: 'targets' };
+  | { kind: 'targets' }
+  /** Create (no ref) or edit a recipe. `meal` continues to logging it afterwards. */
+  | { kind: 'recipe'; ref?: string; meal?: Meal };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);
@@ -32,6 +34,12 @@ export function replaceTop(s: Screen): void {
 
 export function back(): void {
   if (stack.value.length) history.back();
+}
+
+/** Close the top `n` sheets. */
+export function backBy(n: number): void {
+  const k = Math.min(n, stack.value.length);
+  if (k) history.go(-k);
 }
 
 export function closeAll(): void {

@@ -6,6 +6,7 @@ import { getFoods, setCustomFoods, setUserBoosts } from './lib/foods';
 import { fetchProduct } from './lib/off';
 import { lang } from './lib/i18n';
 import type { Food, NutrientVector, Serving } from './lib/nutrients';
+import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
 import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 
@@ -19,6 +20,8 @@ export const foods = signal<Map<string, Food>>(new Map());
 export const customFoods = signal<CustomFood[]>([]);
 /** Per-food usage (count, last amount, favourite), by food ref. */
 export const usage = signal<Map<string, Usage>>(new Map());
+/** The user's recipes (with a nutrition snapshot). */
+export const recipes = signal<StoredRecipe[]>([]);
 /** Products looked up on Open Food Facts (cached locally). */
 export const offFoods = signal<OffFood[]>([]);
 /** The user's own household measures, by food ref. */
@@ -142,10 +145,16 @@ export async function loadCustomFoods(): Promise<void> {
 function syncCustomFoods() {
   const custom = customFoods.value;
   const off = offFoods.value.map(toFood);
-  setCustomFoods([...custom.filter((f) => !f.deleted).map(toFood), ...off], [...custom.map(toFood), ...off]);
+  const rec = recipes.value;
+  const recFoods = rec.map((r) => recipeToFood(r, r));
+  setCustomFoods(
+    [...custom.filter((f) => !f.deleted).map(toFood), ...off, ...recFoods.filter((_, i) => !rec[i].deleted)],
+    [...custom.map(toFood), ...off, ...recFoods],
+  );
   const map = new Map(foods.value);
   for (const f of custom) map.set(f.ref, toFood(f));
   for (const f of off) map.set(f.ref, f);
+  for (const f of recFoods) map.set(f.ref, f);
   foods.value = map;
 }
 
@@ -291,4 +300,50 @@ export async function addServing(ref: string, s: Serving): Promise<void> {
   const list = [...(userServings.value.get(ref) ?? []).filter((x) => x.name !== s.name), s];
   userServings.value = new Map(userServings.value).set(ref, list);
   await db.putServings({ foodRef: ref, servings: list });
+}
+
+// --- Recipes ---
+
+export async function loadRecipes(): Promise<void> {
+  recipes.value = await db.listRecipes();
+  syncCustomFoods();
+}
+
+export type RecipeDraft = Pick<Recipe, 'name' | 'ingredients' | 'servings' | 'cookedWeightG'> & { ref?: string };
+
+/** The recipe being edited (shared by the editor and the add-ingredient flow). */
+export const recipeDraft = signal<RecipeDraft | null>(null);
+
+/** Create (no ref) or update a recipe; nutrition is computed from the ingredients now. Returns its ref. */
+export async function saveRecipe(draft: RecipeDraft): Promise<string> {
+  await ensureFoods(draft.ingredients.map((i) => i.foodRef));
+  const n = recipeNutrition(draft, foods.value);
+  const now = Date.now();
+  const prev = draft.ref ? recipes.value.find((r) => r.ref === draft.ref) : undefined;
+  const r: StoredRecipe = {
+    ref: prev?.ref ?? `recipe:${db.newId()}`,
+    name: draft.name.trim(),
+    ingredients: draft.ingredients,
+    servings: draft.servings,
+    createdAt: prev?.createdAt ?? now,
+    updatedAt: now,
+    per100g: n.per100g,
+    portionG: n.portionG,
+    totalG: n.totalG,
+  };
+  if (draft.cookedWeightG) r.cookedWeightG = draft.cookedWeightG;
+  recipes.value = prev ? recipes.value.map((x) => (x.ref === r.ref ? r : x)) : [...recipes.value, r];
+  syncCustomFoods();
+  await db.putRecipe(r);
+  return r.ref;
+}
+
+/** Hide a recipe from search; diary entries that use it keep working. */
+export async function deleteRecipe(ref: string): Promise<void> {
+  const r = recipes.value.find((x) => x.ref === ref);
+  if (!r) return;
+  const next = { ...r, deleted: true, updatedAt: Date.now() };
+  recipes.value = recipes.value.map((x) => (x.ref === ref ? next : x));
+  syncCustomFoods();
+  await db.putRecipe(next);
 }

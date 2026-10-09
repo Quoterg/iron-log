@@ -4,12 +4,13 @@ import { searchFoods } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
 import { back, open } from '../nav';
-import { ensureFoods, favourites, foods, recent, updateEntry } from '../state';
+import { ensureFoods, favourites, foods, recent, recipeDraft, updateEntry } from '../state';
 import type { Usage } from '../lib/db';
 import { Sheet } from './Sheet';
 
 /** Search foods to add to a meal, or to swap the food of an existing entry. */
-export function FoodSearch({ meal, replaceEntryId }: { meal: Meal; replaceEntryId?: string }) {
+export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIngredient?: boolean }) {
+  const { meal, replaceEntryId, pickIngredient } = props;
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Food[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -44,9 +45,14 @@ export function FoodSearch({ meal, replaceEntryId }: { meal: Meal; replaceEntryI
     };
   }, [query]);
 
+  // A recipe can't contain itself.
+  const allowed = (f: Food) => !(pickIngredient && f.ref === recipeDraft.value?.ref);
+
   const pick = (f: Food) => {
     foods.value = new Map(foods.value).set(f.ref, f);
-    if (replaceEntryId) {
+    if (pickIngredient) {
+      open({ kind: 'food', ref: f.ref, ingredient: true });
+    } else if (replaceEntryId) {
       void updateEntry(replaceEntryId, { foodRef: f.ref });
       back();
     } else {
@@ -55,8 +61,8 @@ export function FoodSearch({ meal, replaceEntryId }: { meal: Meal; replaceEntryI
   };
 
   return (
-    <Sheet title={replaceEntryId ? t('changeFood') : t(meal)}>
-      {!replaceEntryId && (
+    <Sheet title={pickIngredient ? t('addIngredient') : replaceEntryId ? t('changeFood') : t(meal)}>
+      {!replaceEntryId && !pickIngredient && (
         <div class="pad scan-row">
           <button class="btn wide" onClick={() => open({ kind: 'scan', meal })}>
             ▥ {t('scanBarcode')}
@@ -76,7 +82,7 @@ export function FoodSearch({ meal, replaceEntryId }: { meal: Meal; replaceEntryI
       {loading && !results && <p class="muted center">{t('loadingFoods')}</p>}
       {results && results.length === 0 && <p class="muted center">{t('noResults')}</p>}
       {results ? (
-        <ul class="results">{results.map((f) => row(f, pick))}</ul>
+        <ul class="results">{results.filter(allowed).map((f) => row(f, pick))}</ul>
       ) : query.trim() ? null : (
         <>
           <QuickList title={t('favourites')} list={favourites.value} pick={pick} />
@@ -84,10 +90,13 @@ export function FoodSearch({ meal, replaceEntryId }: { meal: Meal; replaceEntryI
           {quick.length === 0 && <p class="muted center small pad">{t('searchHint')}</p>}
         </>
       )}
-      {!replaceEntryId && (
+      {!replaceEntryId && !pickIngredient && (
         <div class="pad">
           <button class="btn wide" onClick={() => open({ kind: 'editFood', name: query.trim(), meal })}>
             + {t('createFood')}
+          </button>
+          <button class="btn wide" onClick={() => open({ kind: 'recipe', meal })}>
+            + {t('createRecipe')}
           </button>
         </div>
       )}
@@ -114,6 +123,7 @@ function row(f: Food, pick: (f: Food) => void) {
           {foodName(f, lang.value)}
           {f.ref.startsWith('custom:') && <span class="badge">{t('customBadge')}</span>}
           {f.ref.startsWith('off:') && <span class="badge">{t('barcodeBadge')}</span>}
+          {f.ref.startsWith('recipe:') && <span class="badge">{t('recipeBadge')}</span>}
         </span>
         <span class="num muted">
           {fmt(value(f.per100g, 'kcal'))} kcal · P {fmtAmount(value(f.per100g, 'protein'))} ·{' '}

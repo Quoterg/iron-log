@@ -1,10 +1,10 @@
 import { render } from 'preact';
-import { App, settingsView, targetEditorView } from './app';
+import { App, recipeEditorView, settingsView, targetEditorView } from './app';
 import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang } from './lib/i18n';
 import { initNav } from './nav';
-import { date, loadCustomFoods, loadDay, loadOffFoods, loadServings, loadSettings, loadUsage } from './state';
+import { date, loadCustomFoods, loadDay, loadOffFoods, loadRecipes, loadServings, loadSettings, loadUsage } from './state';
 import './styles.css';
 
 async function start() {
@@ -14,7 +14,7 @@ async function start() {
   document.documentElement.lang = lang.value;
   // Small local tables, loaded before first render so every screen starts with complete data
   // (custom foods are also needed to resolve diary entries, including deleted ones).
-  await Promise.all([loadCustomFoods(), loadOffFoods(), loadUsage(), loadServings()]);
+  await Promise.all([loadCustomFoods(), loadOffFoods(), loadRecipes(), loadUsage(), loadServings()]);
   render(<App />, document.getElementById('app')!);
   await loadDay(date.value);
   // Load the food database in the background once the diary is on screen.
@@ -26,6 +26,7 @@ async function start() {
       .then(() => {
         void settingsView.prefetch();
         void targetEditorView.prefetch();
+        void recipeEditorView.prefetch();
       });
   });
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
