@@ -17,7 +17,9 @@ export type Screen =
   /** Adjust macro preset and per-nutrient targets. */
   | { kind: 'targets' }
   /** Create (no ref) or edit a recipe. `meal` continues to logging it afterwards. */
-  | { kind: 'recipe'; ref?: string; meal?: Meal };
+  | { kind: 'recipe'; ref?: string; meal?: Meal }
+  /** Top foods for one nutrient over a date range. */
+  | { kind: 'contributors'; key: string; from: string; to: string };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

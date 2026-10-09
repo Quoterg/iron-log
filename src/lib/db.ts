@@ -260,6 +260,31 @@ export async function putCustomFood(f: CustomFood): Promise<void> {
   await (await db()).put('customFoods', f);
 }
 
+/** All entries from `from` to `to` (inclusive, YYYY-MM-DD) via the date index. */
+export async function entriesBetween(from: string, to: string): Promise<Entry[]> {
+  return (await db()).getAllFromIndex('entries', 'date', IDBKeyRange.bound(from, to));
+}
+
+/**
+ * Logged dates walking back from `today` (unique index keys only — no entries loaded), stopping at
+ * the first gap of more than one day: enough for the streak, O(streak) instead of O(history).
+ */
+export async function recentLoggedDates(today: string): Promise<Set<string>> {
+  const out = new Set<string>();
+  const index = (await db()).transaction('entries').store.index('date');
+  let cur = await index.openKeyCursor(IDBKeyRange.upperBound(today), 'prevunique');
+  let expected = today;
+  while (cur) {
+    const d = cur.key;
+    // Allow "today not logged yet": the first expected day may be today or yesterday.
+    if (d !== expected && !(out.size === 0 && d === addDays(today, -1))) break;
+    out.add(d);
+    expected = addDays(d, -1);
+    cur = await cur.continue();
+  }
+  return out;
+}
+
 export async function entriesFor(date: string): Promise<Entry[]> {
   const list = await (await db()).getAllFromIndex('entries', 'date', date);
   return list.sort((a, b) => a.createdAt - b.createdAt);

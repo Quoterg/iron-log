@@ -18,7 +18,8 @@ const GROUPS: { group: NutrientGroup[]; title: Title }[] = [
  * Every tracked nutrient, grouped, against the user's daily targets. `amounts` is in
  * NUTRIENTS order; `known[i] === false` shows the nutrient as unknown instead of 0.
  */
-export function NutrientGroups({ amounts, known }: { amounts: number[]; known?: boolean[] }) {
+export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; onSelect?: (key: string) => void }) {
+  const { amounts, known, onSelect } = props;
   const tg = targets.value;
   return (
     <>
@@ -27,14 +28,20 @@ export function NutrientGroups({ amounts, known }: { amounts: number[]; known?: 
           <h2>{t(title)}</h2>
           {NUTRIENTS.map((n, i) =>
             group.includes(n.group) ? (
-              <Bar
-                key={n.key}
-                label={n[lang.value]}
-                amount={amounts[i]}
-                unit={n.unit}
-                target={tg[n.key]}
-                unknown={known?.[i] === false}
-              />
+              onSelect ? (
+                <button key={n.key} class="bar-btn" onClick={() => onSelect(n.key)}>
+                  <Bar label={n[lang.value]} amount={amounts[i]} unit={n.unit} target={tg[n.key]} unknown={known?.[i] === false} />
+                </button>
+              ) : (
+                <Bar
+                  key={n.key}
+                  label={n[lang.value]}
+                  amount={amounts[i]}
+                  unit={n.unit}
+                  target={tg[n.key]}
+                  unknown={known?.[i] === false}
+                />
+              )
             ) : null,
           )}
         </section>
