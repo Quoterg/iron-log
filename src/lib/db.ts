@@ -30,25 +30,68 @@ export interface CustomFood extends Food {
   deleted?: boolean;
 }
 
+/** How the user uses a food: drives "recent", favourites and search ranking. */
+export interface Usage {
+  foodRef: string;
+  count: number;
+  lastUsed: number;
+  lastGrams: number;
+  fav?: boolean;
+}
+
 interface Schema extends DBSchema {
   entries: { key: string; value: Entry; indexes: { date: string } };
   kv: { key: string; value: unknown };
   customFoods: { key: string; value: CustomFood };
+  usage: { key: string; value: Usage };
 }
 
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('iron-log', 2, {
-    upgrade(d, oldVersion) {
+  dbp ??= openDB<Schema>('iron-log', 3, {
+    async upgrade(d, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
         d.createObjectStore('kv');
       }
       if (oldVersion < 2) d.createObjectStore('customFoods', { keyPath: 'ref' });
+      if (oldVersion < 3) {
+        // Seed usage from the existing diary so recent/frequent foods work right away.
+        const usage = d.createObjectStore('usage', { keyPath: 'foodRef' });
+        const all = await tx.objectStore('entries').getAll();
+        for (const u of usageFromEntries(all)) await usage.put(u);
+      }
     },
   });
   return dbp;
+}
+
+export function usageFromEntries(entries: Entry[]): Usage[] {
+  const map = new Map<string, Usage>();
+  for (const e of [...entries].sort((a, b) => a.createdAt - b.createdAt)) {
+    const u = map.get(e.foodRef);
+    map.set(e.foodRef, {
+      foodRef: e.foodRef,
+      count: (u?.count ?? 0) + 1,
+      lastUsed: e.createdAt,
+      lastGrams: e.grams,
+    });
+  }
+  return [...map.values()];
+}
+
+export async function listUsage(): Promise<Usage[]> {
+  return (await db()).getAll('usage');
+}
+
+export async function putUsage(u: Usage): Promise<void> {
+  await (await db()).put('usage', u);
+}
+
+export async function putEntries(list: Entry[]): Promise<void> {
+  const tx = (await db()).transaction('entries', 'readwrite');
+  await Promise.all([...list.map((e) => tx.store.put(e)), tx.done]);
 }
 
 export async function getEntry(id: string): Promise<Entry | undefined> {

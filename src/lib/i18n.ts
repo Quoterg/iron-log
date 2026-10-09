@@ -65,6 +65,17 @@ const sv = {
   customBadge: 'Eget',
   nameRequired: 'Ange ett namn.',
   invalidNumber: 'Ogiltigt tal.',
+  favourites: 'Favoriter',
+  recent: 'Senaste',
+  addFavourite: '☆ Favorit',
+  isFavourite: '★ Favorit',
+  copy: 'Kopiera',
+  copyMeal: 'Kopiera måltid',
+  copyDay: 'Kopiera hela dagen',
+  toDate: 'Till datum',
+  toMeal: 'Till måltid',
+  sameMeal: 'Samma måltider',
+  searchHint: 'Tips: tidigare och favoritmarkerade livsmedel visas här.',
 };
 
 type Dict = typeof sv;
@@ -132,6 +143,17 @@ const en: Dict = {
   customBadge: 'Custom',
   nameRequired: 'Enter a name.',
   invalidNumber: 'Invalid number.',
+  favourites: 'Favourites',
+  recent: 'Recent',
+  addFavourite: '☆ Favourite',
+  isFavourite: '★ Favourite',
+  copy: 'Copy',
+  copyMeal: 'Copy meal',
+  copyDay: 'Copy whole day',
+  toDate: 'To date',
+  toMeal: 'To meal',
+  sameMeal: 'Same meals',
+  searchHint: 'Tip: foods you have logged or marked as favourite show up here.',
 };
 
 const dicts: Record<Lang, Dict> = { sv, en };

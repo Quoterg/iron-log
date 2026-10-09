@@ -4,6 +4,7 @@ import type { Food } from './nutrients';
 export type WorkerRequest =
   | { id: number; type: 'init'; dataUrl: string }
   | { id: number; type: 'custom'; foods: Food[] }
+  | { id: number; type: 'boost'; boosts: Record<string, number> }
   | { id: number; type: 'search'; query: string; lang: string }
   | { id: number; type: 'get'; refs: string[] };
 
@@ -49,7 +50,21 @@ function getWorker(): Worker {
   const init: WorkerRequest = { id: 0, type: 'init', dataUrl: new URL('data/foods.json', document.baseURI).href };
   w.postMessage(init);
   if (customVisible.length) postCustom(w);
+  if (Object.keys(userBoosts).length) postBoosts(w);
   return (worker = w);
+}
+
+let userBoosts: Record<string, number> = {};
+
+function postBoosts(w: Worker) {
+  const msg: WorkerRequest = { id: 0, type: 'boost', boosts: userBoosts };
+  w.postMessage(msg);
+}
+
+/** Search ranking boosts from the user's history, by food ref. */
+export function setUserBoosts(boosts: Record<string, number>): void {
+  userBoosts = boosts;
+  if (worker) postBoosts(worker);
 }
 
 function postCustom(w: Worker) {

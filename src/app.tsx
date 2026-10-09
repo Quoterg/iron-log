@@ -1,5 +1,6 @@
 import { addDays, isoDate } from './lib/db';
 import { lang, t } from './lib/i18n';
+import { CopySheet } from './components/CopySheet';
 import { Diary } from './components/Diary';
 import { FoodDetail } from './components/FoodDetail';
 import { FoodEditor } from './components/FoodEditor';
@@ -51,6 +52,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <FoodDetail foodRef={s.ref} meal={s.meal} entryId={s.entryId} />;
     case 'editFood':
       return <FoodEditor foodRef={s.ref} name={s.name} meal={s.meal} />;
+    case 'copy':
+      return <CopySheet meal={s.meal} />;
   }
 }
 

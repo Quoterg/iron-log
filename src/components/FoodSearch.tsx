@@ -4,7 +4,8 @@ import { searchFoods } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
 import { back, open } from '../nav';
-import { foods, updateEntry } from '../state';
+import { ensureFoods, favourites, foods, recent, updateEntry } from '../state';
+import type { Usage } from '../lib/db';
 import { Sheet } from './Sheet';
 
 /** Search foods to add to a meal, or to swap the food of an existing entry. */
@@ -15,6 +16,12 @@ export function FoodSearch({ meal, replaceEntryId }: { meal: Meal; replaceEntryI
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => inputRef.current?.focus(), []);
+
+  // Before typing: favourites and recent foods (resolved from the worker/custom foods).
+  const quick = [...favourites.value, ...recent.value];
+  useEffect(() => {
+    void ensureFoods(quick.map((u) => u.foodRef));
+  }, [quick.map((u) => u.foodRef).join()]);
 
   // Debounce lightly: search is fast, but avoid queueing work on every keypress on slow phones.
   useEffect(() => {
@@ -61,23 +68,15 @@ export function FoodSearch({ meal, replaceEntryId }: { meal: Meal; replaceEntryI
       />
       {loading && !results && <p class="muted center">{t('loadingFoods')}</p>}
       {results && results.length === 0 && <p class="muted center">{t('noResults')}</p>}
-      <ul class="results">
-        {results?.map((f) => (
-          <li key={f.ref}>
-            <button class="result" onClick={() => pick(f)}>
-              <span class="entry-name">
-                {foodName(f, lang.value)}
-                {f.ref.startsWith('custom:') && <span class="badge">{t('customBadge')}</span>}
-              </span>
-              <span class="num muted">
-                {fmt(value(f.per100g, 'kcal'))} kcal · P {fmtAmount(value(f.per100g, 'protein'))} ·{' '}
-                {lang.value === 'sv' ? 'K' : 'C'} {fmtAmount(value(f.per100g, 'carbs'))} · F{' '}
-                {fmtAmount(value(f.per100g, 'fat'))}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      {results ? (
+        <ul class="results">{results.map((f) => row(f, pick))}</ul>
+      ) : (
+        <>
+          <QuickList title={t('favourites')} list={favourites.value} pick={pick} />
+          <QuickList title={t('recent')} list={recent.value} pick={pick} />
+          {quick.length === 0 && <p class="muted center small pad">{t('searchHint')}</p>}
+        </>
+      )}
       {!replaceEntryId && (
         <div class="pad">
           <button class="btn wide" onClick={() => open({ kind: 'editFood', name: query.trim(), meal })}>
@@ -86,5 +85,34 @@ export function FoodSearch({ meal, replaceEntryId }: { meal: Meal; replaceEntryI
         </div>
       )}
     </Sheet>
+  );
+}
+
+function QuickList({ title, list, pick }: { title: string; list: Usage[]; pick: (f: Food) => void }) {
+  const items = list.map((u) => foods.value.get(u.foodRef)).filter((f): f is Food => !!f);
+  if (!items.length) return null;
+  return (
+    <>
+      <h3 class="list-title">{title}</h3>
+      <ul class="results">{items.map((f) => row(f, pick))}</ul>
+    </>
+  );
+}
+
+function row(f: Food, pick: (f: Food) => void) {
+  return (
+    <li key={f.ref}>
+      <button class="result" onClick={() => pick(f)}>
+        <span class="entry-name">
+          {foodName(f, lang.value)}
+          {f.ref.startsWith('custom:') && <span class="badge">{t('customBadge')}</span>}
+        </span>
+        <span class="num muted">
+          {fmt(value(f.per100g, 'kcal'))} kcal · P {fmtAmount(value(f.per100g, 'protein'))} ·{' '}
+          {lang.value === 'sv' ? 'K' : 'C'} {fmtAmount(value(f.per100g, 'carbs'))} · F{' '}
+          {fmtAmount(value(f.per100g, 'fat'))}
+        </span>
+      </button>
+    </li>
   );
 }

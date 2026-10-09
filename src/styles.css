@@ -185,3 +185,12 @@ input[type='number'], input[type='text'], input[type='search'], select {
 .field.error input, input[aria-invalid='true'] { border-color: var(--over); }
 .error-text { color: var(--over); margin: -8px 0 12px; font-size: 0.9rem; }
 input[type='date'] { border: 1px solid var(--line); border-radius: 8px; background: var(--card); padding: 10px 12px; min-height: 44px; }
+
+.list-title { margin: 16px 16px 0; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.title-row { display: flex; align-items: flex-start; gap: 8px; }
+.title-row h3 { flex: 1; }
+.fav.on { color: var(--carbs); border-color: var(--carbs); }
+.link {
+  background: none; border: 0; padding: 8px 0 0; min-height: 36px;
+  color: var(--accent); font-size: 0.9rem; cursor: pointer;
+}

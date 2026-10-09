@@ -3,7 +3,7 @@ import { App } from './app';
 import { warmUp } from './lib/foods';
 import { lang } from './lib/i18n';
 import { initNav } from './nav';
-import { date, loadCustomFoods, loadDay, loadSettings } from './state';
+import { date, loadCustomFoods, loadDay, loadSettings, loadUsage } from './state';
 import './styles.css';
 
 async function start() {
@@ -13,6 +13,7 @@ async function start() {
   render(<App />, document.getElementById('app')!);
   // Custom foods first: diary entries may reference them, including deleted ones.
   await loadCustomFoods();
+  await loadUsage();
   await loadDay(date.value);
   // Load the food database in the background once the diary is on screen.
   requestIdleCallbackShim(warmUp);

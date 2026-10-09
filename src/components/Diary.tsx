@@ -40,6 +40,7 @@ export function Diary() {
               </button>
             </header>
             {list.length > 0 && (
+              <>
               <ul class="entries">
                 {list.map((e) => (
                   <li key={e.id}>
@@ -51,11 +52,21 @@ export function Diary() {
                   </li>
                 ))}
               </ul>
+              <button class="link" onClick={() => open({ kind: 'copy', meal })}>
+                {t('copyMeal')}
+              </button>
+              </>
             )}
           </section>
         );
       })}
-      {entries.value.length === 0 && <p class="muted center">{t('emptyDay')}</p>}
+      {entries.value.length === 0 ? (
+        <p class="muted center">{t('emptyDay')}</p>
+      ) : (
+        <button class="btn wide" onClick={() => open({ kind: 'copy' })}>
+          {t('copyDay')}
+        </button>
+      )}
     </>
   );
 }
