@@ -1,4 +1,4 @@
-# OpenNutri
+# Iron Log
 
 Open-source nutrition tracker for energy, macros **and micronutrients** — a free alternative
 to Cronometer and MyFitnessPal. Swedish first (Livsmedelsverket's food database and the Nordic

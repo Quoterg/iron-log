@@ -3,7 +3,7 @@ import { signal } from '@preact/signals';
 export type Lang = 'sv' | 'en';
 
 const sv = {
-  appName: 'OpenNutri',
+  appName: 'Iron Log',
   today: 'Idag',
   yesterday: 'Igår',
   tomorrow: 'Imorgon',
@@ -50,7 +50,7 @@ const sv = {
 type Dict = typeof sv;
 
 const en: Dict = {
-  appName: 'OpenNutri',
+  appName: 'Iron Log',
   today: 'Today',
   yesterday: 'Yesterday',
   tomorrow: 'Tomorrow',

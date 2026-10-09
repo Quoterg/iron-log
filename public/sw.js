@@ -2,7 +2,7 @@
 // - App pages: network-first, fall back to cache (so updates arrive when online).
 // - Hashed assets (/assets/*): cache-first, they never change.
 // - Food data: stale-while-revalidate.
-const CACHE = 'opennutri-v1';
+const CACHE = 'iron-log-v1';
 
 self.addEventListener('install', () => self.skipWaiting());
 

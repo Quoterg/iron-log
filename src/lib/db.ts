@@ -30,7 +30,7 @@ interface Schema extends DBSchema {
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('opennutri', 1, {
+  dbp ??= openDB<Schema>('iron-log', 1, {
     upgrade(d) {
       d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
       d.createObjectStore('kv');

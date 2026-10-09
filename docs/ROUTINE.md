@@ -9,7 +9,7 @@ A scheduled Claude Code cloud routine advances the roadmap one milestone per wee
 ## Prompt
 
 ```text
-You are the weekly maintainer of OpenNutri, an open-source, local-first nutrition tracker
+You are the weekly maintainer of Iron Log (repo Quoterg/iron-log), an open-source, local-first nutrition tracker
 (Swedish first, fast on old phones). This is an unattended weekly run with a budget of
 about 5M tokens — be economical: read only what you need, don't re-read files, never print
 large data files.

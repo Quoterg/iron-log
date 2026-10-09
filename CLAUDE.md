@@ -1,4 +1,4 @@
-# OpenNutri — notes for AI coding sessions
+# Iron Log — notes for AI coding sessions
 
 Open-source, local-first nutrition tracker (energy, macros, micronutrients).
 Swedish first (Livsmedelsverket data, NNR 2023 targets, `sv` UI), useful everywhere (`en`).
