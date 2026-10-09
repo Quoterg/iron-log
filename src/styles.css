@@ -118,7 +118,7 @@ main {
 .macro-val { font-weight: 600; font-size: 1.05rem; }
 .macro-lbl, .macro-pct { font-size: 0.8rem; color: var(--muted); }
 
-.meal-head { display: flex; align-items: center; gap: 8px; }
+.meal-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; } /* wraps at large text sizes */
 .meal-head h2 { flex: 1; }
 .entries, .results { list-style: none; margin: 8px 0 0; padding: 0; }
 .entries li + li, .results li + li { border-top: 1px solid var(--line); }

@@ -16,9 +16,10 @@ Done:
 - 200 % text size (WCAG 1.4.4) at 360 px: long Swedish compounds ("Makronäringsämnen") widened the
   page, so mobile browsers zoomed out and the tab bar ended up partly off-screen. Headings, labels,
   paragraphs and food names now wrap/hyphenate (`overflow-wrap: break-word; hyphens: auto`).
-- Review fixes: one test per screen (17 screens + 2 pages, each in light and dark), 200 % text on
-  all of them (found and fixed: the tab bar's "Inställningar" and long words/URLs on the static
-  pages); local dates in tests; failure messages list up to 3 nodes with axe's summary;
+- Review fixes: one test per screen (15 screens/sheets + 2 pages, each in light and dark), 200 % text on
+  all of them, with CI's wide default font (DejaVu Sans) forced so local runs match CI (found and
+  fixed: the tab bar's "Inställningar", card headers like "Mina livsmedel" whose button couldn't
+  wrap, and long words/URLs on the static pages); local dates in tests; failure messages list up to 3 nodes with axe's summary;
   Lighthouse accessibility is now an error gate at ≥ 0.95.
 - M18 split: languages (Danish, Finnish, German, Somali — the owner's choice; Norwegian dropped)
   move to M18b, with on-demand string loading and a manual screen-reader pass.

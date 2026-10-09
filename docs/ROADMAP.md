@@ -59,8 +59,9 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 
 - [ ] **M17 Sync (optional, self-hostable)** — End-to-end encrypted sync: tiny server
   (Node + SQLite, Docker image), client key never leaves devices; app stays fully usable without.
-  Proposed direction (awaiting the owner): device-to-device first (QR + direct WebRTC connection,
-  no server), then sync via an encrypted file in the user's own cloud; a server only if needed.
+  **Decided (owner, 2026-10-09): device-to-device sync** — QR code + direct encrypted WebRTC
+  connection between two devices, no server, no account. Own-cloud file sync or a server only later
+  if needed.
 - [x] **M18a Accessibility audit** — axe-core (WCAG 2.1 A/AA) in light and dark mode, and 200 %
   text size at 360 px without horizontal scrolling, on: diary (empty/first run), food search, food
   amount, edit entry, custom food editor, barcode scan, copy day, nutrients, nutrient detail,

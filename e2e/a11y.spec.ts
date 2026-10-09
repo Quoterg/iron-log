@@ -136,7 +136,9 @@ for (const scheme of ['light', 'dark'] as const) {
 test.describe('200 % text size, 360 px wide: no horizontal scrolling', () => {
   // Compare with the device width: overflow makes mobile browsers zoom out (innerWidth grows too).
   const overflow = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - 360);
-  const big = (page: Page) => page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+  // A wide font (DejaVu Sans, CI's default) so local runs catch what CI catches.
+  const big = (page: Page) =>
+    page.addStyleTag({ content: 'html { font-size: 200% !important; } * { font-family: "DejaVu Sans", sans-serif !important; }' });
   for (const [name, show] of Object.entries(SCREENS)) {
     test(name, async ({ page }) => {
       await page.setViewportSize({ width: 360, height: 740 });
