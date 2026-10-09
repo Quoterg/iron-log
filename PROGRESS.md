@@ -5,9 +5,10 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-Nothing scheduled — the roadmap is done; awaiting the owner. Optional when the owner wants it:
-**M19c** (Play / F-Droid listings). M18d (screen-reader pass) is deferred until someone reports an
-issue.
+**M21 Security hardening** (see docs/SECURITY-REVIEW.md, S2/S4/S5) — do this before any other
+milestone. Then **M22 Own origin** once the owner has chosen a domain (S1, high). Optional when the
+owner wants it: **M19c** (Play / F-Droid listings). M18d (screen-reader pass) is deferred until
+someone reports an issue.
 
 ## 2026-10-09 — M19b Android app (interactive session)
 
