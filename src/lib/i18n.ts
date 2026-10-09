@@ -84,7 +84,8 @@ const sv = {
   copy: 'Kopiera',
   offAdd: 'Lägg till produkten på Open Food Facts',
   offComplete: 'Fyll i näringsvärdena på Open Food Facts',
-  offHelpNote: 'Sidan öppnas i webbläsaren. När produkten finns där hittar alla den nästa gång.',
+  offHelpNote: 'Då hittar alla produkten nästa gång.',
+  offWebsite: 'Eller gör det på Open Food Facts webbplats',
   offFix: 'Rätta eller komplettera på Open Food Facts',
   reportError: 'Rapportera fel i livsmedelsdata',
   privacyPolicy: 'Integritet',
@@ -292,6 +293,8 @@ export interface LangPack {
   units?: Record<string, string>;
   /** Strings of the sync screens (Swedish ones live in strings-sync.ts, loaded with them). */
   sync?: Record<string, string>;
+  /** Strings of the Open Food Facts upload screen (Swedish ones: strings-off.ts). */
+  off?: Record<string, string>;
 }
 
 const LOADERS: Record<Exclude<Lang, 'sv'>, () => Promise<{ default: LangPack }>> = {

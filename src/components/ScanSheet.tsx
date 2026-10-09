@@ -105,16 +105,21 @@ export function ScanSheet({ meal }: { meal: Meal }) {
         </p>
         {(status === 'notFound' || status === 'noData') && (
           <>
+            {/* Built from the code that was looked up, not the (editable) field. */}
+            {navigator.onLine && (
+              <button class="btn wide primary" onClick={() => open({ kind: 'offUpload', code: lastCode, meal })}>
+                {status === 'notFound' ? t('offAdd') : t('offComplete')}
+              </button>
+            )}
             <button class="btn wide" onClick={() => open({ kind: 'editFood', meal, name: '' })}>
               + {t('createFood')}
             </button>
-            {/* Built from the code that was looked up, not the (editable) field. */}
             {navigator.onLine && (
               <p class="small">
+                <span class="muted">{t('offHelpNote')}</span>{' '}
                 <a href={status === 'notFound' ? offAddUrl(lastCode) : offProductUrl(lastCode)} target="_blank" rel="noopener noreferrer">
-                  {status === 'notFound' ? t('offAdd') : t('offComplete')}
-                </a>{' '}
-                <span class="muted">{t('offHelpNote')}</span>
+                  {t('offWebsite')}
+                </a>
               </p>
             )}
           </>

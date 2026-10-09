@@ -64,6 +64,14 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: /Skanna streckkod/ }).click();
     await expect(page.getByLabel('Streckkod', { exact: true })).toBeVisible();
   },
+  'Open Food Facts upload': async (page) => {
+    await page.route('**/world.openfoodfacts.org/**', (route) => route.fulfill({ status: 404, json: { status: 0 } }));
+    await SCREENS['barcode scan'](page);
+    await page.getByLabel('Streckkod', { exact: true }).fill('7310865004710');
+    await page.getByRole('button', { name: 'Sök', exact: true }).click();
+    await page.getByRole('button', { name: 'Lägg till produkten på Open Food Facts' }).click();
+    await expect(page.getByLabel('Lösenord')).toBeVisible();
+  },
   'copy day': async (page) => {
     await SCREENS['edit entry'](page);
     await dialog(page).getByRole('button', { name: /‹/ }).click();

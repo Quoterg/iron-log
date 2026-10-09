@@ -90,5 +90,6 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [x] **M20 Contribute back (links only)** — Submit missing products/photos to Open Food Facts from the app;
   report data errors; contributor docs. (Done as links to OFF's own add/edit pages — no OFF
   credentials pass through the app — plus prefilled GitHub issues and CONTRIBUTING.md.)
-- [ ] **M20b In-app Open Food Facts upload** — Submit nutrition facts and label photos via the
-  OFF write API from the scan flow (needs an OFF account login flow).
+- [x] **M20b In-app Open Food Facts upload** — From the scan flow: name, brand, the label's
+  nutrition per 100 g and photos (front, nutrition table) go to Open Food Facts with the user's
+  own OFF login (memory only, never stored); the product is then logged right away.
