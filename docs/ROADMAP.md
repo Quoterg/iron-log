@@ -12,9 +12,10 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [x] **M1 Foundation** — Preact PWA, Livsmedelsverket data pipeline, worker search
   (diacritics + Swedish compounds), diary with meals, NNR 2023 targets, nutrients view,
   settings (sv/en, sex, kcal), offline service worker, size budget, unit + Playwright tests.
-- [ ] **M2 CI & deploy** — GitHub Actions: unit tests, build + size budget, Playwright smoke
+- [x] **M2 CI & deploy** — GitHub Actions: unit tests, build + size budget, Playwright smoke
   (Moto G4 + 4× CPU throttle) on PRs; deploy `main` to GitHub Pages; README badge + live link.
-  Add Lighthouse CI (mobile preset) with TTI < 2.5 s and performance score ≥ 90 as a gate.
+  Lighthouse CI gate (mobile, simulated slow 4G): performance ≥ 90, FCP ≤ 1.8 s, LCP ≤ 2.5 s,
+  TBT ≤ 200 ms, CLS ≤ 0.1. (TTI no longer exists in Lighthouse; LCP + TBT replace it.)
 - [ ] **M3 Food detail & custom foods** — Food detail screen (all nutrients per 100 g and per
   chosen amount, source + license). Create/edit/delete custom foods (stored in IndexedDB,
   searchable alongside built-in foods, `custom:<uuid>` refs). Edit an entry's food/meal/date.
