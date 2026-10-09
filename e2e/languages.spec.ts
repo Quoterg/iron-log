@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-test('switching to a beta language loads it on demand, translates the app and survives a reload', async ({ page }) => {
+test('switching language loads it on demand, translates the app and survives a reload', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
   const picker = page.getByLabel('Språk');
-  await expect(picker.locator('option')).toHaveText(['Svenska', 'English', 'Dansk (beta)', 'Deutsch (beta)', 'Suomi (beta)', 'Soomaali (beta)']);
+  await expect(picker.locator('option')).toHaveText(['Svenska', 'English', 'Dansk', 'Deutsch', 'Suomi', 'Soomaali']);
 
   await picker.selectOption('de');
   await expect(page.getByRole('button', { name: 'Tagebuch', exact: true })).toBeVisible();

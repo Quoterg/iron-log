@@ -4,14 +4,14 @@ import { dataLangOf } from './nutrients';
 
 export type Lang = 'sv' | 'en' | 'da' | 'fi' | 'de' | 'so';
 
-/** The language picker, in this order. Machine-assisted translations are marked beta until reviewed. */
+/** The language picker, in this order. A new, unreviewed translation can be marked `beta: true`. */
 export const LANGS: { code: Lang; name: string; beta?: true }[] = [
   { code: 'sv', name: 'Svenska' },
   { code: 'en', name: 'English' },
-  { code: 'da', name: 'Dansk', beta: true },
-  { code: 'de', name: 'Deutsch', beta: true },
-  { code: 'fi', name: 'Suomi', beta: true },
-  { code: 'so', name: 'Soomaali', beta: true },
+  { code: 'da', name: 'Dansk' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'fi', name: 'Suomi' },
+  { code: 'so', name: 'Soomaali' },
 ];
 
 export const isLang = (x: unknown): x is Lang => LANGS.some((l) => l.code === x);
