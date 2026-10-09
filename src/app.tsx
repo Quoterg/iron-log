@@ -26,6 +26,7 @@ const PREFETCH: Partial<Record<View, () => void>> = {
 };
 export const contributorsView = lazyView(() => import('./components/Contributors'));
 export const activityView = lazyView(() => import('./components/ActivitySheet'));
+export const supplementView = lazyView(() => import('./components/SupplementEditor'));
 
 export function App() {
   const s = top.value;
@@ -90,6 +91,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <contributorsView.Lazy nutrient={s.key} from={s.from} to={s.to} />;
     case 'activity':
       return <activityView.Lazy />;
+    case 'supplement':
+      return <supplementView.Lazy foodRef={s.ref} />;
   }
 }
 

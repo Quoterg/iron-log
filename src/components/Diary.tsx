@@ -4,7 +4,8 @@ import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, burnedToday, dayActivities, dayTotals, dayWater, entries, foods, removeActivity, settings, targets,
+  activityTypes, addWater, burnedToday, dayActivities, dayTotals, dayWater, entries, foods, removeActivity, settings, supplementRefs,
+  supplements, takeSupplement, targets, toggleSupplementTaken,
 } from '../state';
 import { Bar } from './Bar';
 
@@ -33,7 +34,7 @@ export function Diary() {
       </section>
 
       {MEALS.map((meal) => {
-        const list = entries.value.filter((e) => e.meal === meal);
+        const list = entries.value.filter((e) => e.meal === meal && !supplementRefs.value.has(e.foodRef));
         const kcal = list.reduce((s, e) => s + entryKcal(e), 0);
         return (
           <section class="card meal" key={meal}>
@@ -67,6 +68,7 @@ export function Diary() {
           </section>
         );
       })}
+      <SupplementCard />
       <ActivityCard />
       <WaterCard />
       {entries.value.length === 0 ? (
@@ -139,6 +141,55 @@ function WaterCard() {
           −{fmt(2)} dl
         </button>
       </div>
+    </section>
+  );
+}
+
+/** Supplements: daily ones as a checklist (one tap logs the daily dose), the rest with "+1". */
+function SupplementCard() {
+  const list = supplements.value;
+  return (
+    <section class="card">
+      <header class="meal-head">
+        <h2>{t('supplements')}</h2>
+        <span />
+        <button class="btn small" onClick={() => open({ kind: 'supplement' })}>
+          + {t('add')}
+        </button>
+      </header>
+      {list.length > 0 && (
+        <ul class="entries">
+          {list.map((f) => {
+            const s = f.supplement!;
+            const taken = entries.value.filter((e) => e.foodRef === f.ref);
+            const qty = taken.reduce((n, e) => n + (e.qty ?? e.grams), 0);
+            return (
+              <li key={f.ref} class="ingredient">
+                {s.perDay > 0 && (
+                  <input
+                    type="checkbox"
+                    class="supp-check"
+                    checked={taken.length > 0}
+                    aria-label={`${t('supplementTaken')}: ${f.sv}`}
+                    onChange={() => void toggleSupplementTaken(f.ref)}
+                  />
+                )}
+                <button class="entry" onClick={() => open(taken.length ? { kind: 'food', ref: f.ref, entryId: taken[0].id } : { kind: 'supplement', ref: f.ref })}>
+                  <span class="entry-name">{f.sv}</span>
+                  <span class="num muted">
+                    {taken.length ? `${fmtAmount(qty)} ${unitLabel(s.unit)}` : s.perDay ? `${fmtAmount(s.perDay)} ${unitLabel(s.unit)}/${t('perDayShort')}` : ''}
+                  </span>
+                </button>
+                {s.perDay === 0 && (
+                  <button class="btn small" aria-label={`+1 ${unitLabel(s.unit)} ${f.sv}`} onClick={() => void takeSupplement(f.ref, 1)}>
+                    +1
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 }

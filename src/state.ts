@@ -10,6 +10,7 @@ import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from '.
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
 import type { ActivityType } from './lib/activity-types';
 import type { BodyEntry } from './lib/body';
+import { supplementServings, type SupplementInfo } from './lib/supplements';
 import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 
@@ -209,7 +210,9 @@ function syncCustomFoods() {
   foods.value = map;
 }
 
-function toFood({ ref, sv, en, per100g, units }: Food): Food {
+function toFood(f: Food & { supplement?: SupplementInfo }): Food {
+  const { ref, sv, en, per100g } = f;
+  const units = f.supplement ? supplementServings(f.supplement) : f.units;
   return units ? { ref, sv, en, per100g, units } : { ref, sv, en, per100g };
 }
 
@@ -230,7 +233,12 @@ export async function lookupBarcode(code: string): Promise<Food> {
 }
 
 /** Create (no ref) or update a custom food. Returns its ref. */
-export async function saveCustomFood(input: { ref?: string; name: string; per100g: NutrientVector }): Promise<string> {
+export async function saveCustomFood(input: {
+  ref?: string;
+  name: string;
+  per100g: NutrientVector;
+  supplement?: SupplementInfo;
+}): Promise<string> {
   const now = Date.now();
   const prev = input.ref ? customFoods.value.find((f) => f.ref === input.ref) : undefined;
   const food: CustomFood = {
@@ -242,6 +250,7 @@ export async function saveCustomFood(input: { ref?: string; name: string; per100
     updatedAt: now,
     // Editing a deleted food (opened from an old diary entry) must not bring it back into search.
     ...(prev?.deleted ? { deleted: true } : {}),
+    ...(input.supplement ? { supplement: input.supplement } : {}),
   };
   customFoods.value = prev
     ? customFoods.value.map((f) => (f.ref === food.ref ? food : f))
@@ -455,4 +464,31 @@ export async function addWater(ml: number): Promise<void> {
   dayWater.value = Math.max(0, dayWater.value + ml); // instant feedback
   const total = await db.changeWater(d, ml); // the stored total is the truth
   if (date.value === d) dayWater.value = total;
+}
+
+// --- Supplements ---
+
+/** The user's supplements (custom foods measured per unit), alphabetical. */
+export const supplements = computed(() =>
+  customFoods.value.filter((f) => f.supplement && !f.deleted).sort((a, b) => a.sv.localeCompare(b.sv, 'sv')),
+);
+
+/** Refs of current supplements: their entries show in the supplement card, not under meals. */
+export const supplementRefs = computed(() => new Set(supplements.value.map((f) => f.ref)));
+
+/** Quick log for the selected day: `qty` units of a supplement (1 unit is stored as 1 g). */
+export async function takeSupplement(ref: string, qty: number): Promise<void> {
+  const f = customFoods.value.find((x) => x.ref === ref);
+  if (!f?.supplement) return;
+  await addEntry('breakfast', toFood(f), { grams: qty, unit: f.supplement.unit, qty });
+}
+
+/** Daily checklist: log the daily dose, or remove the day's entries for it again. */
+export async function toggleSupplementTaken(ref: string): Promise<void> {
+  const taken = entries.value.filter((e) => e.foodRef === ref);
+  if (!taken.length) {
+    const f = customFoods.value.find((x) => x.ref === ref);
+    return takeSupplement(ref, f?.supplement?.perDay || 1);
+  }
+  for (const e of taken) await removeEntry(e.id);
 }

@@ -5,7 +5,23 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M15 Supplements** (see docs/ROADMAP.md).
+**M16 More nutrients** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M15 Supplements (interactive session)
+
+Done:
+- Supplements are custom foods with `supplement: { unit, perDay }`. Amounts are entered per unit
+  (tablett, kapsel, ml…); one unit is stored as 1 g, so per-100 g = per-unit × 100 and logging,
+  totals, reports, search and backups work unchanged. Backups validate the supplement field.
+- Diary card "Kosttillskott": daily supplements (perDay > 0) get a checkbox that logs the daily
+  dose (unticking removes the day's entries); as-needed ones (perDay 0) get "+1". Their entries
+  show in this card, not under meals. Tapping a taken row opens the entry; otherwise the editor.
+- Lazy supplement editor (3 KB): vitamins, minerals and EPA/DHA first, the rest behind "show all".
+  Search shows a "Tillskott" badge.
+- Tests: 93 unit, 28 Playwright. Initial JS 35.1 KB gzip (+0.8 KB; ≈ 5 KB headroom left).
+
+Known limitations: the schedule is "units per day" only (no weekdays or times); a supplement's
+entries are logged under breakfast internally (visible only if the supplement is deleted).
 
 ## 2026-10-09 — M14 Activity (interactive session)
 

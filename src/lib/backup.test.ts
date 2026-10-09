@@ -42,6 +42,14 @@ describe('backup', () => {
     expect(() => parseBackup(JSON.stringify({ ...makeBackup(data), version: 99 }))).toThrow(BackupError);
   });
 
+  it('round-trips supplements and rejects invalid supplement info', () => {
+    const supp = { ...data.customFoods[0], ref: 'custom:s', supplement: { unit: 'kapsel', perDay: 2 } };
+    const text = (s: object) => JSON.stringify(makeBackup({ ...data, customFoods: [{ ...supp, ...s }] }));
+    expect(parseBackup(text({})).customFoods[0].supplement).toEqual({ unit: 'kapsel', perDay: 2 });
+    expect(() => parseBackup(text({ supplement: { unit: '', perDay: 1 } }))).toThrow(BackupError);
+    expect(() => parseBackup(text({ supplement: { unit: 'st', perDay: -1 } }))).toThrow(BackupError);
+  });
+
   it('rejects the whole file if any item is invalid', () => {
     const bad = (patch: object) =>
       JSON.stringify({ ...makeBackup(data), entries: [{ ...data.entries[0], ...patch }] });

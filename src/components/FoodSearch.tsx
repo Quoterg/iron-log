@@ -4,7 +4,7 @@ import { searchFoods, unavailableSources } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
 import { back, open } from '../nav';
-import { ensureFoods, favourites, foods, recent, updateEntry } from '../state';
+import { ensureFoods, favourites, foods, recent, supplementRefs, updateEntry } from '../state';
 import type { Usage } from '../lib/db';
 import { Sheet } from './Sheet';
 
@@ -127,7 +127,9 @@ function row(f: Food, pick: (f: Food) => void) {
       <button class="result" onClick={() => pick(f)}>
         <span class="entry-name">
           {foodName(f, lang.value)}
-          {f.ref.startsWith('custom:') && <span class="badge">{t('customBadge')}</span>}
+          {f.ref.startsWith('custom:') && (
+            <span class="badge">{supplementRefs.value.has(f.ref) ? t('supplementBadge') : t('customBadge')}</span>
+          )}
           {f.ref.startsWith('off:') && <span class="badge">{t('barcodeBadge')}</span>}
           {f.ref.startsWith('recipe:') && <span class="badge">{t('recipeBadge')}</span>}
           {f.ref.startsWith('usda:') && <span class="badge">USDA</span>}

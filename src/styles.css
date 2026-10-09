@@ -272,3 +272,4 @@ table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom
 .chip.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
 .entry-static { cursor: default; }
+.supp-check { width: 1.5rem; height: 1.5rem; margin: 0 .5rem 0 0; flex: none; accent-color: var(--accent); }
