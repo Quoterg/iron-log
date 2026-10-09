@@ -53,6 +53,13 @@ for (const scheme of ['light', 'dark'] as const) {
       await audit(page);
     });
 
+    test('static pages (privacy, about) pass axe', async ({ page }) => {
+      await page.goto('./privacy.html');
+      await audit(page);
+      await page.goto('./about.html');
+      await audit(page);
+    });
+
     test('sheets: activity, supplement and recipe editors pass axe', async ({ page }) => {
       await page.goto('./');
       const card = (title: string) => page.locator('section.card', { has: page.getByRole('heading', { name: title, exact: true }) });
@@ -73,3 +80,18 @@ for (const scheme of ['light', 'dark'] as const) {
     });
   });
 }
+
+// WCAG 1.4.4: text resized to 200 % must not need horizontal scrolling on a 360 px phone.
+test('200 % text size: no horizontal overflow on the main screens', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto('./');
+  await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+  // Compare with the device width: overflow makes mobile browsers zoom out (innerWidth grows too).
+  const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - 360);
+  await expect(page.locator('.meal').first()).toBeVisible();
+  expect(await overflow(), 'Dagbok').toBeLessThanOrEqual(0);
+  for (const tab of ['Näringsämnen', 'Kropp', 'Inställningar']) {
+    await page.getByRole('button', { name: tab, exact: true }).click();
+    expect(await overflow(), tab).toBeLessThanOrEqual(0);
+  }
+});

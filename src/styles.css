@@ -49,6 +49,8 @@ body {
 }
 button, input, select { font: inherit; color: inherit; }
 h1, h2, h3 { margin: 0; font-weight: 600; }
+/* Long Swedish compounds (Makronäringsämnen) must wrap at large text sizes, not widen the page. */
+h1, h2, h3, p, label, .entry-name { overflow-wrap: break-word; hyphens: auto; }
 h1 { font-size: 1.15rem; }
 h2 { font-size: 1rem; }
 h3 { font-size: 1.05rem; margin-bottom: 12px; }
