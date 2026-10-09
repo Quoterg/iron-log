@@ -5,7 +5,22 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M14 Activity** (see docs/ROADMAP.md).
+**M15 Supplements** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M14 Activity (interactive session)
+
+Done:
+- Diary cards "Aktivitet" (exercise with burned kcal, × to remove) and "Vatten" (+2 dl, +5 dl,
+  −2 dl, total in litres). IndexedDB v8: `activities` (index by date) and `water` (per day); both
+  in backups (validated; water import keeps the larger daily total).
+- Burned energy = (MET − 1) × weight × hours — energy on top of resting, which the daily energy
+  need already includes. 27 activities with Compendium of Physical Activities (2024) MET values
+  (`lib/activity-types.ts`, split out: loaded by the add sheet and by the diary only on days with
+  activities). Profile weight is used; 70 kg assumed (and said) if missing.
+- Optional "Lägg till förbränd energi i dagens energimål" (profile): the day's target grows by the
+  burned energy and the diary says so.
+- Add-activity sheet is lazy (0.7 KB gzip). Tests: 87 unit, 27 Playwright. Initial JS 34.2 KB gzip
+  (≈ 6 KB headroom left — keep new first-screen code small or lazy).
 
 ## 2026-10-09 — M13 Reports & insights (interactive session)
 

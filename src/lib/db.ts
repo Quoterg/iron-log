@@ -1,6 +1,7 @@
 // User data lives on the device, in IndexedDB. Nothing is sent anywhere.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Food, Serving } from './nutrients';
+import type { Activity, Water } from './activity';
 import type { BodyEntry } from './body';
 import type { StoredRecipe } from './recipes';
 import type { MacroPct, MacroPreset, Profile, TargetOverride } from './targets';
@@ -45,6 +46,8 @@ export interface Settings {
   energyNotice?: boolean;
   /** Food databases to search (default by language: Swedish → Livsmedelsverket; English → both). */
   sources?: ('slv' | 'usda')[];
+  /** Add the day's exercise energy to the day's energy target. */
+  addBurnedToTarget?: boolean;
 }
 
 /** Current settings format version. */
@@ -88,12 +91,14 @@ interface Schema extends DBSchema {
   offFoods: { key: string; value: OffFood };
   recipes: { key: string; value: StoredRecipe };
   body: { key: string; value: BodyEntry };
+  activities: { key: string; value: Activity; indexes: { date: string } };
+  water: { key: string; value: Water };
 }
 
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('iron-log', 7, {
+  dbp ??= openDB<Schema>('iron-log', 8, {
     async upgrade(d, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
@@ -110,6 +115,10 @@ function db() {
       if (oldVersion < 5) d.createObjectStore('offFoods', { keyPath: 'ref' });
       if (oldVersion < 6) d.createObjectStore('recipes', { keyPath: 'ref' });
       if (oldVersion < 7) d.createObjectStore('body', { keyPath: 'date' });
+      if (oldVersion < 8) {
+        d.createObjectStore('activities', { keyPath: 'id' }).createIndex('date', 'date');
+        d.createObjectStore('water', { keyPath: 'date' });
+      }
     },
   });
   return dbp;
@@ -145,12 +154,14 @@ export interface AllData {
   offFoods: OffFood[];
   recipes: StoredRecipe[];
   body: BodyEntry[];
+  activities: Activity[];
+  water: Water[];
   settings?: Settings;
 }
 
 export async function exportAll(): Promise<AllData> {
   const d = await db();
-  const [entries, customFoods, usage, servings, offFoods, recipes, body, settings] = await Promise.all([
+  const [entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, settings] = await Promise.all([
     d.getAll('entries'),
     d.getAll('customFoods'),
     d.getAll('usage'),
@@ -158,14 +169,19 @@ export async function exportAll(): Promise<AllData> {
     d.getAll('offFoods'),
     d.getAll('recipes'),
     d.getAll('body'),
+    d.getAll('activities'),
+    d.getAll('water'),
     d.get('kv', 'settings') as Promise<Settings | undefined>,
   ]);
-  return { entries, customFoods, usage, servings, offFoods, recipes, body, settings };
+  return { entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, settings };
 }
 
 /** Upsert everything in one transaction: items with the same id/ref are replaced, others kept. */
 export async function importAll(data: AllData): Promise<void> {
-  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'kv'], 'readwrite');
+  const tx = (await db()).transaction(
+    ['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'activities', 'water', 'kv'],
+    'readwrite',
+  );
   // Recipes and custom foods: keep whichever version is newer (an old backup must not undo edits).
   const newest = async <S extends 'recipes' | 'customFoods' | 'body'>(store: S, items: Schema[S]['value'][]) => {
     const os = tx.objectStore(store);
@@ -179,6 +195,12 @@ export async function importAll(data: AllData): Promise<void> {
     newest('recipes', data.recipes),
     newest('customFoods', data.customFoods),
     newest('body', data.body),
+    ...data.activities.map((a) => tx.objectStore('activities').put(a)),
+    // Water: the larger total wins (a day only ever adds up).
+    ...data.water.map(async (w) => {
+      const cur = await tx.objectStore('water').get(w.date);
+      if (!cur || cur.ml < w.ml) await tx.objectStore('water').put(w);
+    }),
     ...data.offFoods.map((f) => tx.objectStore('offFoods').put(f)),
     ...data.entries.map((e) => tx.objectStore('entries').put(e)),
     ...data.usage.map((u) => tx.objectStore('usage').put(u)),
@@ -189,8 +211,13 @@ export async function importAll(data: AllData): Promise<void> {
 }
 
 export async function clearAll(): Promise<void> {
-  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'kv'], 'readwrite');
+  const tx = (await db()).transaction(
+    ['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'activities', 'water', 'kv'],
+    'readwrite',
+  );
   await Promise.all([
+    tx.objectStore('activities').clear(),
+    tx.objectStore('water').clear(),
     tx.objectStore('body').clear(),
     tx.objectStore('recipes').clear(),
     tx.objectStore('offFoods').clear(),
@@ -213,6 +240,26 @@ export async function getOffFood(ref: string): Promise<OffFood | undefined> {
 
 export async function putOffFood(f: OffFood): Promise<void> {
   await (await db()).put('offFoods', f);
+}
+
+export async function activitiesFor(date: string): Promise<Activity[]> {
+  return (await db()).getAllFromIndex('activities', 'date', date);
+}
+
+export async function putActivity(a: Activity): Promise<void> {
+  await (await db()).put('activities', a);
+}
+
+export async function deleteActivity(id: string): Promise<void> {
+  await (await db()).delete('activities', id);
+}
+
+export async function waterFor(date: string): Promise<number> {
+  return (await (await db()).get('water', date))?.ml ?? 0;
+}
+
+export async function putWater(w: Water): Promise<void> {
+  await (await db()).put('water', w);
 }
 
 export async function listBody(): Promise<BodyEntry[]> {
