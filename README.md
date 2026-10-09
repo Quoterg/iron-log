@@ -19,7 +19,7 @@ Nutrition Recommendations 2023), in Swedish, English, Danish, German, Finnish an
 - **Fast on old phones.** ~35 KB of JavaScript (gzip) to start, search runs in a background worker.
 - **Works offline.** Installable web app; everything works without a connection.
 - **Private.** Your diary never leaves your device. No account, no ads, no tracking.
-- **Micronutrients first.** ~60 nutrients incl. essential amino acids, compared against NNR 2023 targets.
+- **Micronutrients first.** ~55 nutrients incl. essential amino acids, compared against NNR 2023 targets.
 - **Sync without a server.** Two of your devices sync directly by scanning a QR code.
 
 > Status: the planned roadmap is done — see [docs/ROADMAP.md](docs/ROADMAP.md) and [PROGRESS.md](PROGRESS.md).
