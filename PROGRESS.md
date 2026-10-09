@@ -22,7 +22,13 @@ Done:
   gzip in the first bundle otherwise). Privacy policy and data-safety notes cover sync.
 - Tests: unit (codes, framing, protocol over an in-memory channel with 300+ records); e2e with two
   browser contexts syncing over a real WebRTC connection; garbled code refused; axe + 200 % on
-  the sync screens. 123 unit, 86 Playwright and Lighthouse pass. Initial JS 36.8 KB gzip.
+  the sync screens. 126 unit, 92 Playwright and Lighthouse pass. Initial JS 36.8 KB gzip.
+- Review fixes: camera permission is asked before creating a code (otherwise browsers put an
+  mDNS name instead of the local address in it, which many phones/networks can't resolve);
+  5 min to get the code scanned, 30 s to connect after; the final message is flushed and a close
+  after it counts as success; changes go in batches of 500, applied as they arrive, with progress
+  ("1 000 av 1 502"); cancel button; stale connections closed on retry; caps on incoming parts;
+  smaller codes; honest error text once changes were saved. e2e syncs 1,500 records for real.
 
 Not verified on real phones yet (the owner should try two phones on the same Wi-Fi): camera QR
 scanning of the dense code, and networks that block device-to-device traffic.
