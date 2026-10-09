@@ -5,6 +5,7 @@ import { dataLangOf, foodName, NUTRIENTS, type Food } from './nutrients';
 import { MAX_ACTIVITY_KCAL, MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
 import { padVector, type StoredRecipe } from './recipes';
+import { SUPPLEMENT_TIMES, type SupplementTime } from './supplements';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
 
@@ -66,6 +67,17 @@ function customFood(x: unknown): CustomFood {
         throw new BackupError('customFood');
       }
       f.supplement = { unit: s.unit, perDay: s.perDay };
+      if (s.days !== undefined) {
+        const days = s.days;
+        if (!Array.isArray(days) || !days.length || days.length > 7 || new Set(days).size !== days.length || !days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6)) {
+          throw new BackupError('customFood');
+        }
+        if (days.length < 7) f.supplement.days = [...(days as number[])].sort();
+      }
+      if (s.time !== undefined) {
+        if (!SUPPLEMENT_TIMES.includes(s.time as SupplementTime)) throw new BackupError('customFood');
+        f.supplement.time = s.time as SupplementTime;
+      }
     }
     return f;
   }

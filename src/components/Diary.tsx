@@ -4,9 +4,9 @@ import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, burnedToday, dayActivities, dayTotals, dayWater, entries, foods, removeActivity, settings, supplementRefs,
-  supplements, takeSupplement, targets, toggleSupplementTaken,
+  activityTypes, addWater, burnedToday, date, dayActivities, dayTotals, dayWater, entries, foods, removeActivity, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken,
 } from '../state';
+import { scheduledOn, timeRank } from '../lib/supplements';
 import { Bar } from './Bar';
 
 export function Diary() {
@@ -148,9 +148,12 @@ function WaterCard() {
 
 /** Supplements: daily ones as a checklist (one tap logs the daily dose), the rest with "+1". */
 function SupplementCard() {
-  const list = supplements.value;
   const byRef = new Map<string, Entry[]>();
   for (const e of entries.value) if (supplementRefs.value.has(e.foodRef)) byRef.set(e.foodRef, [...(byRef.get(e.foodRef) ?? []), e]);
+  // This day's checklist: daily ones scheduled for this weekday, as-needed ones, and anything taken.
+  const list = supplements.value
+    .filter((f) => f.supplement!.perDay === 0 || scheduledOn(f.supplement!, date.value) || byRef.has(f.ref))
+    .sort((a, b) => timeRank(a.supplement!) - timeRank(b.supplement!));
   return (
     <section class="card">
       <header class="meal-head">
@@ -178,7 +181,10 @@ function SupplementCard() {
                   />
                 )}
                 <button class="entry" onClick={() => open({ kind: 'supplement', ref: f.ref })}>
-                  <span class="entry-name">{f.sv}</span>
+                  <span class="entry-name">
+                    {f.sv}
+                    {s.time && <span class="muted small"> · {t(`time_${s.time}`)}</span>}
+                  </span>
                   {!taken.length && (
                     <span class="num muted">{s.perDay ? `${fmtAmount(s.perDay)} ${unitLabel(s.unit)}/${t('perDayShort')}` : ''}</span>
                   )}

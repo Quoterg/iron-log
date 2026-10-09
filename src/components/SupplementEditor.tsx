@@ -1,11 +1,15 @@
 import { useRef, useState } from 'preact/hooks';
-import { inputNum, nutrientName, parseNum, t } from '../lib/i18n';
+import { inputNum, locale, nutrientName, parseNum, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS, type NutrientVector } from '../lib/nutrients';
-import { per100gToPerUnit, perUnitToPer100g } from '../lib/supplements';
+import { per100gToPerUnit, perUnitToPer100g, SUPPLEMENT_TIMES, type SupplementTime } from '../lib/supplements';
 import { estimateKcal } from '../lib/totals';
 import { back } from '../nav';
 import { customFoods, deleteCustomFood, saveCustomFood } from '../state';
 import { Sheet } from './Sheet';
+
+const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
+/** Short weekday name in the UI language (0 = Monday; 2024-01-01 was a Monday). */
+const weekdayName = (d: number) => new Date(2024, 0, 1 + d).toLocaleDateString(locale(), { weekday: 'short' });
 
 /** What supplement labels list (vitamins, minerals, EPA/DHA); the rest is behind "show all". */
 const isMain = (n: { key: string; group: string }) => n.group === 'vitamin' || n.group === 'mineral' || n.key === 'epa' || n.key === 'dha';
@@ -17,6 +21,8 @@ export default function SupplementEditor(props: { foodRef?: string }) {
   const [name, setName] = useState(existing?.sv ?? '');
   const [unit, setUnit] = useState(existing?.supplement?.unit ?? t('supplementUnitDefault'));
   const [perDayText, setPerDayText] = useState(inputNum(existing?.supplement?.perDay ?? 1));
+  const [days, setDays] = useState<number[]>(existing?.supplement?.days ?? [0, 1, 2, 3, 4, 5, 6]);
+  const [time, setTime] = useState<SupplementTime | ''>(existing?.supplement?.time ?? '');
   // Raw text per nutrient, kept outside state: typing doesn't re-render the ~40 fields.
   const vals = useRef<Record<string, string>>(
     Object.fromEntries(NUTRIENTS.map((n, i) => [n.key, perUnit[i] == null ? '' : inputNum(+perUnit[i]!.toPrecision(6))])),
@@ -38,14 +44,15 @@ export default function SupplementEditor(props: { foodRef?: string }) {
   const perDayInvalid = !(perDay >= 0 && perDay <= 100);
   const nameMissing = !name.trim();
   const unitMissing = !unit.trim();
-  const hasErrors = nameMissing || unitMissing || perDayInvalid || bad.size > 0;
+  const daysMissing = perDay > 0 && days.length === 0;
+  const hasErrors = nameMissing || unitMissing || perDayInvalid || daysMissing || bad.size > 0;
 
   const save = async (e: Event) => {
     e.preventDefault();
     setSubmitted(true);
     const invalidNow = new Set(NUTRIENTS.filter((n) => invalid(n.key)).map((n) => n.key));
     setBad(invalidNow);
-    if (nameMissing || unitMissing || perDayInvalid || invalidNow.size) return;
+    if (nameMissing || unitMissing || perDayInvalid || daysMissing || invalidNow.size) return;
     const unitVals: NutrientVector = NUTRIENTS.map((n) => (vals.current[n.key].trim() === '' ? null : parseNum(vals.current[n.key])));
     const k = NUTRIENT_INDEX.kcal;
     if (unitVals[k] == null) {
@@ -56,7 +63,12 @@ export default function SupplementEditor(props: { foodRef?: string }) {
       ref: existing?.ref,
       name,
       per100g: perUnitToPer100g(unitVals),
-      supplement: { unit: unit.trim(), perDay },
+      supplement: {
+        unit: unit.trim(),
+        perDay,
+        ...(perDay > 0 && days.length < 7 ? { days: [...days].sort() } : {}),
+        ...(time ? { time } : {}),
+      },
     });
     back();
   };
@@ -104,6 +116,36 @@ export default function SupplementEditor(props: { foodRef?: string }) {
           </label>
         </div>
         <p class="muted small">{t('supplementPerDayHint')}</p>
+        {perDay > 0 && (
+          <fieldset class="weekdays">
+            <legend>{t('supplementDays')}</legend>
+            <div class="chips">
+              {WEEKDAYS.map((d) => (
+                <button
+                  type="button"
+                  key={d}
+                  class={days.includes(d) ? 'chip on' : 'chip'}
+                  aria-pressed={days.includes(d)}
+                  onClick={() => setDays(days.includes(d) ? days.filter((x) => x !== d) : [...days, d])}
+                >
+                  {weekdayName(d)}
+                </button>
+              ))}
+            </div>
+            {daysMissing && <p class="error-text">{t('supplementDaysMissing')}</p>}
+          </fieldset>
+        )}
+        <label class="field">
+          <span>{t('supplementTime')}</span>
+          <select aria-label={t('supplementTime')} value={time} onChange={(e) => setTime((e.currentTarget as HTMLSelectElement).value as SupplementTime | '')}>
+            <option value="">{t('time_any')}</option>
+            {SUPPLEMENT_TIMES.map((x) => (
+              <option key={x} value={x}>
+                {t(`time_${x}`)}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <h3>{t('supplementPerUnit').replace('{unit}', unit.trim() || t('supplementUnitDefault'))}</h3>
         <div class="grid2">{NUTRIENTS.filter(isMain).map((n) => field(n.key))}</div>
