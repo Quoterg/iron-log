@@ -22,7 +22,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [x] **M4 Fast re-logging** — Recent & frequent foods shown before typing; favourites; copy a
   meal or a whole day to another date; search ranking boosted by the user's own history.
   Rank everyday items first ("ris" → cooked rice before raw).
-- [ ] **M5 Your data** — Export/import everything (JSON backup + CSV of diary/nutrients),
+- [x] **M5 Your data** — Export/import everything (JSON backup + CSV of diary/nutrients),
   "storage is persistent" status, delete-all. Prompt to install to home screen (iOS hint).
 - [ ] **M6 Serving sizes** — Household units per food (st, dl, msk, tsk, portion, skiva) from a
   curated table for common SLV foods + user-defined servings; amount picker supports units.

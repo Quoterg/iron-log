@@ -76,6 +76,19 @@ const sv = {
   toMeal: 'Till måltid',
   sameMeal: 'Samma måltider',
   searchHint: 'Tips: tidigare och favoritmarkerade livsmedel visas här.',
+  yourData: 'Dina data',
+  exportBackup: 'Exportera säkerhetskopia (JSON)',
+  exportCsv: 'Exportera dagbok som kalkylark (CSV)',
+  importBackup: 'Importera säkerhetskopia',
+  importConfirm: 'Importera {n} poster och {f} egna livsmedel? Befintliga data behålls; poster med samma id ersätts.',
+  importDone: 'Importen är klar.',
+  importFailed: 'Filen kunde inte importeras: den är inte en giltig säkerhetskopia från Iron Log.',
+  deleteAll: 'Radera all data',
+  deleteAllConfirm: 'Radera ALL data på den här enheten (dagbok, egna livsmedel, inställningar)? Det går inte att ångra. Exportera en säkerhetskopia först.',
+  storagePersistent: 'Lagringen är skyddad: webbläsaren rensar inte dina data automatiskt.',
+  storageNotPersistent: 'Webbläsaren kan rensa dina data om utrymmet tar slut. Installera appen och exportera säkerhetskopior regelbundet.',
+  installApp: 'Installera appen',
+  installIosHint: 'Installera på iPhone: tryck på Dela-knappen och välj ”Lägg till på hemskärmen”.',
 };
 
 type Dict = typeof sv;
@@ -154,6 +167,19 @@ const en: Dict = {
   toMeal: 'To meal',
   sameMeal: 'Same meals',
   searchHint: 'Tip: foods you have logged or marked as favourite show up here.',
+  yourData: 'Your data',
+  exportBackup: 'Export backup (JSON)',
+  exportCsv: 'Export diary as spreadsheet (CSV)',
+  importBackup: 'Import backup',
+  importConfirm: 'Import {n} entries and {f} custom foods? Existing data is kept; items with the same id are replaced.',
+  importDone: 'Import finished.',
+  importFailed: 'The file could not be imported: it is not a valid Iron Log backup.',
+  deleteAll: 'Delete all data',
+  deleteAllConfirm: 'Delete ALL data on this device (diary, custom foods, settings)? This cannot be undone. Export a backup first.',
+  storagePersistent: 'Storage is protected: the browser will not clear your data automatically.',
+  storageNotPersistent: 'The browser may clear your data when space runs low. Install the app and export backups regularly.',
+  installApp: 'Install the app',
+  installIosHint: 'Install on iPhone: tap the Share button and choose “Add to Home Screen”.',
 };
 
 const dicts: Record<Lang, Dict> = { sv, en };

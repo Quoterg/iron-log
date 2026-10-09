@@ -3,12 +3,14 @@ import { value } from '../lib/nutrients';
 import { defaultKcal, type Sex } from '../lib/targets';
 import { open } from '../nav';
 import { customFoods, settings, updateSettings } from '../state';
+import { YourData } from './YourData';
 
 export function Settings() {
   return (
     <>
       <MyFoods />
       <Profile />
+      <YourData />
     </>
   );
 }

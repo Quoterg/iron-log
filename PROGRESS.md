@@ -5,7 +5,23 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M5 Your data** (see docs/ROADMAP.md).
+**M6 Serving sizes** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M5 Your data (interactive session)
+
+Done:
+- Settings → "Dina data" (`YourData.tsx`): export JSON backup, export diary CSV, import backup,
+  storage-persistence status, delete all data, install button (Android `beforeinstallprompt`)
+  and an iOS "Add to Home Screen" hint.
+- `src/lib/backup.ts`: backup format `iron-log-backup` v1; strict validation (whole file rejected
+  on any invalid item; newer versions rejected; invalid settings/unknown target keys dropped).
+  Import = upsert in one transaction, then reload.
+- CSV: one row per entry, all nutrients for the logged amount, unknown = empty cell; Swedish uses
+  `;` + decimal comma, UTF-8 BOM for Excel; formula injection neutralised (`'=...`).
+- Tests: 27 unit, 8 Playwright (export → delete all → import round trip; broken file rejected).
+  Initial JS 21.7 KB gzip.
+
+Note for M8/M9: when the profile/targets shape changes, update `settings()` in backup.ts.
 
 ## 2026-10-09 — M4 Fast re-logging (interactive session)
 

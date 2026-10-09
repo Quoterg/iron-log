@@ -1,0 +1,62 @@
+import { describe, expect, it } from 'vitest';
+import { BackupError, makeBackup, parseBackup, toCsv } from './backup';
+import type { AllData } from './db';
+import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
+
+const data: AllData = {
+  entries: [{ id: 'e1', date: '2026-10-09', meal: 'lunch', foodRef: 'custom:a', grams: 50, createdAt: 1 }],
+  customFoods: [{ ref: 'custom:a', sv: 'Proteinpulver', en: null, per100g: [380, 75], createdAt: 1, updatedAt: 1 }],
+  usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true }],
+  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: 12 } },
+};
+
+describe('backup', () => {
+  it('round-trips through JSON', () => {
+    const text = JSON.stringify(makeBackup(data, new Date('2026-10-09T10:00:00Z')));
+    expect(parseBackup(text)).toEqual(data);
+  });
+
+  it('rejects files that are not Iron Log backups', () => {
+    expect(() => parseBackup('not json')).toThrow(BackupError);
+    expect(() => parseBackup('{"entries": []}')).toThrow(BackupError);
+    expect(() => parseBackup(JSON.stringify({ ...makeBackup(data), version: 99 }))).toThrow(BackupError);
+  });
+
+  it('rejects the whole file if any item is invalid', () => {
+    const bad = (patch: object) =>
+      JSON.stringify({ ...makeBackup(data), entries: [{ ...data.entries[0], ...patch }] });
+    expect(() => parseBackup(bad({ grams: -5 }))).toThrow(BackupError);
+    expect(() => parseBackup(bad({ date: '9 okt' }))).toThrow(BackupError);
+    expect(() => parseBackup(bad({ meal: 'brunch' }))).toThrow(BackupError);
+  });
+
+  it('drops invalid settings and unknown target keys instead of failing', () => {
+    const b = makeBackup({ ...data, settings: { lang: 'xx' } as never });
+    expect(parseBackup(JSON.stringify(b)).settings).toBeUndefined();
+    const c = makeBackup({ ...data, settings: { ...data.settings!, targetOverrides: { iron: 12, evil: 1, zinc: -1 } as never } });
+    expect(parseBackup(JSON.stringify(c)).settings?.targetOverrides).toEqual({ iron: 12 });
+  });
+});
+
+describe('csv', () => {
+  const v = new Array(NUTRIENTS.length).fill(null);
+  v[NUTRIENT_INDEX.kcal] = 380;
+  v[NUTRIENT_INDEX.protein] = 75.5;
+  const foods = new Map<string, Food>([['custom:a', { ref: 'custom:a', sv: '=HYPERLINK("x")', en: null, per100g: v }]]);
+
+  it('uses ; and decimal comma in Swedish, with all nutrients for the amount', () => {
+    const csv = toCsv(data.entries, foods, 'sv', (m) => (m === 'lunch' ? 'Lunch' : m));
+    const [head, row] = csv.replace('﻿', '').trim().split('\r\n');
+    expect(head.split(';').slice(0, 5)).toEqual(['Datum', 'Måltid', 'Livsmedel', 'Mängd (g)', 'Energi (kcal)']);
+    const cells = row.split(';');
+    expect(cells[0]).toBe('2026-10-09');
+    expect(cells[4]).toBe('190');
+    expect(cells[4 + NUTRIENT_INDEX.protein]).toBe('37,75');
+    expect(cells[4 + NUTRIENT_INDEX.iron]).toBe(''); // unknown, not 0
+  });
+
+  it('neutralises formulas in food names (CSV injection)', () => {
+    const csv = toCsv(data.entries, foods, 'en', (m) => m);
+    expect(csv).toContain(`"'=HYPERLINK(""x"")"`);
+  });
+});

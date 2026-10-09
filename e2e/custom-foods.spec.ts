@@ -55,12 +55,12 @@ test('create a custom food, log it, edit the entry and the food, then delete the
   await expect(page.getByRole('button', { name: 'Idag' })).toBeVisible();
 
   // Delete from Settings → gone from search, but the diary entry still shows it.
-  await page.getByRole('button', { name: 'Inställningar' }).click();
+  await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
   page.once('dialog', (d) => d.accept());
   await page.getByRole('button', { name: /Mitt proteinpulver/ }).click();
   await page.getByRole('button', { name: 'Ta bort' }).click();
   await expect(page.getByText(/inga egna livsmedel/)).toBeVisible();
-  await page.getByRole('button', { name: 'Dagbok' }).click();
+  await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
   await expect(meal(page, 1).locator('.entry')).toContainText('Mitt proteinpulver');
   await page.reload();
   await expect(meal(page, 1).locator('.entry')).toContainText('Mitt proteinpulver');
