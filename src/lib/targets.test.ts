@@ -168,3 +168,17 @@ describe('adjusted targets (presets and overrides)', () => {
     expect(normalizeMacroPct({ protein: [10, 120], carbs: [45, 60], fat: [25, 40] })).toBeNull();
   });
 });
+
+describe('NNR 2023 targets for the M16 nutrients', () => {
+  it('vitamin K, pantothenic acid, biotin, copper and manganese by sex, age and status', () => {
+    const w = nnrTargets({ sex: 'female', kcal: 2000, age: 30 });
+    expect([w.vitK.min, w.pantothenic.min, w.biotin.min, w.copper.min, w.manganese.min]).toEqual([65, 5, 40, 0.9, 3]);
+    expect(nnrTargets({ sex: 'male', kcal: 2500, age: 30 }).vitK.min).toBe(75);
+    expect(nnrTargets({ sex: 'male', kcal: 2500, age: 60 }).vitK.min).toBe(70);
+    expect(nnrTargets({ sex: 'female', kcal: 2000, age: 75 }).vitK.min).toBe(60);
+    const p3 = nnrTargets({ sex: 'female', kcal: 2000, age: 30, status: 'pregnant3' });
+    expect([p3.vitK.min, p3.copper.min]).toEqual([75, 1.0]);
+    const l = nnrTargets({ sex: 'female', kcal: 2000, age: 30, status: 'lactating' });
+    expect([l.pantothenic.min, l.biotin.min, l.copper.min]).toEqual([7, 45, 1.3]);
+  });
+});

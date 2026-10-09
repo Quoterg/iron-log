@@ -32,7 +32,12 @@ test('7-day averages, gaps, top sources and streak', async ({ page }) => {
 
   // Tap a nutrient: its top sources over the period.
   await page.locator('.bar-btn', { hasText: 'Fibrer' }).click();
-  await expect(page.getByRole('heading', { name: 'Största källor: Fibrer' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Fibrer', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Största källor' })).toBeVisible();
+  // Nutrient detail: target and the richest foods in the database.
+  await expect(page.getByRole('dialog')).toContainText('Mål: ≥ 25 g');
+  await expect(page.getByRole('heading', { name: 'Rikast i livsmedelsdatabasen' })).toBeVisible();
+  await expect(page.getByRole('dialog').locator('.entries').last().locator('.entry')).toHaveCount(10);
   const rows = page.locator('.contrib');
   await expect(rows).toHaveCount(2);
   await expect(rows.first()).toContainText('Havregryn fullkorn'); // 20 g fibre from 200 g oats

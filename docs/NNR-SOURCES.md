@@ -34,6 +34,22 @@ machine-checked against it.
   riboflavin, B6, B12, vitamin A, vitamin C in pregnancy.
 - Lactation: vitamin A 1400 µg, folate 490 µg, vitamin C 155 mg, B12 5.5 µg, riboflavin 2.0 mg,
   B6 1.7 mg, iodine 200 µg, selenium 85 µg.
+- M16 nutrients, retrieved 2026-10-09 from Helsedirektoratet chapter 3.3 "Vitaminer og
+  mineraler" (https://www.helsedirektoratet.no/rapporter/referanseverdier-for-energi-og-naeringsstoffer/anbefalinger-om-energi-og-naeringsstoffer-ved-planlegging-av-kosthold/vitaminer-og-mineraler).
+  Row by row (women 18–24 / 25–50 / 51–70 / >70; pregnant T1 / T2 / T3; lactating; men 18–24 /
+  25–50 / 51–70 / >70):
+
+  | Nutrient | Table, type | Women | Pregnant T1/T2/T3 | Lactating | Men |
+  |---|---|---|---|---|---|
+  | Vitamin K (µg) | 9, AI | 65 / 65 / 60 / 60 | 65 / 70 / 75 | 65 | 75 / 75 / 70 / 70 |
+  | Pantothenic acid (mg) | 9, AI | 5 / 5 / 5 / 5 | 5 / 5 / 5 | 7 | 5 / 5 / 5 / 5 |
+  | Biotin (µg) | 9, AI | 40 / 40 / 40 / 40 | 40 / 40 / 40 | 45 | 40 / 40 / 40 / 40 |
+  | Copper (µg) | 10, RI | 900 (all bands) | 1000 / 1000 / 1000 | 1300 | 900 (all bands) |
+  | Manganese (mg) | 11, AI | 3.0 (all bands) | 3.0 / 3.0 / 3.0 | 3.0 | 3.0 (all bands) |
+
+  Food data for vitamin K is phylloquinone (K1, USDA nutrient 1185) only, while the AI covers
+  all forms; foods rich in K2 (cheese, egg yolk, natto) are under-reported. The app labels it
+  "Vitamin K (K1)".
 
 If you check a row against the printed NNR 2023 tables, move it to the table above (or fix the
 value in `targets.ts` and its unit test).

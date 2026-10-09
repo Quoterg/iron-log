@@ -5,8 +5,11 @@
 import { buildEntry, search, type SearchEntry } from '../lib/search';
 import type { Food } from '../lib/nutrients';
 import type { WorkerRequest, WorkerResponse } from '../lib/foods';
+import { rowToFood } from '../lib/food-row';
 
 interface FoodsFile {
+  /** Nutrient keys in vector order; rows may be shorter (trailing unknowns left out). */
+  keys: string[];
   popular?: string[];
   units?: Record<string, [name: string, grams: number][]>;
   foods: [ref: string, sv: string, en: string | null, ...values: (number | null)[]][];
@@ -36,8 +39,10 @@ async function loadFile(url: string): Promise<Food[]> {
   const data = (await res.json()) as FoodsFile;
   const units = data.units ?? {};
   for (const r of data.popular ?? []) popular.add(r);
-  return data.foods.map(([ref, sv, en, ...per100g]) => {
-    const f: Food = { ref, sv, en, per100g };
+  const n = data.keys.length;
+  return data.foods.map((row) => {
+    const f = rowToFood(row, n);
+    const ref = f.ref;
     const u = units[ref];
     if (u) f.units = u.map(([name, g]) => ({ name, g }));
     return f;

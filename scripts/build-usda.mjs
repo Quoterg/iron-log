@@ -51,7 +51,20 @@ const IDS = {
   selenium: [1103],
   iodine: [1100],
   sodium: [1093],
+  vitK: [1185], // phylloquinone (K1)
+  pantothenic: [1170],
+  biotin: [1176],
+  copper: [1098],
+  manganese: [1101],
+  dpa: [1280],
 };
+
+/** Trailing unknowns are left out of the file (the app pads them back): smaller downloads. */
+function trimNulls(row) {
+  let n = row.length;
+  while (n > 3 && row[n - 1] == null) n--;
+  return row.slice(0, n);
+}
 
 function parseCsvLine(line) {
   const out = [];
@@ -132,7 +145,7 @@ for (const f of foods.values()) {
   if (v.sodium != null) v.salt = (v.sodium * 2.5) / 1000;
   if (v.kcal == null) continue; // unusable without energy
   const ref = `usda:${f.id}`;
-  out.push([ref, f.name, null, ...NUTRIENTS.map((n) => round(v[n.key]))]);
+  out.push(trimNulls([ref, f.name, null, ...NUTRIENTS.map((n) => round(v[n.key]))]));
   const seen = new Set();
   const p = f.portions.filter(([label]) => !seen.has(label) && seen.add(label)).slice(0, 3);
   if (p.length) units[ref] = p;
