@@ -19,9 +19,7 @@
   "webManifestUrl": "https://quoterg.github.io/iron-log/manifest.webmanifest",
   "fallbackType": "customtabs",
   "features": {},
-  "alphaDependencies": {
-    "enabled": false
-  },
+  "alphaDependencies": { "enabled": false },
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
@@ -29,10 +27,7 @@
   "fingerprints": [],
   "appVersionCode": 1,
   "appVersionName": "1.0.0",
-  "signingKey": {
-    "path": "./android.keystore",
-    "alias": "ironlog"
-  },
+  "signingKey": { "path": "./android.keystore", "alias": "ironlog" },
   "generatorApp": "bubblewrap-cli",
   "shortcuts": [],
   "minSdkVersion": 21
