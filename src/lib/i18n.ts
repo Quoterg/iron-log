@@ -98,6 +98,7 @@ const sv = {
   myFoods: 'Mina livsmedel',
   noCustomFoods: 'Du har inga egna livsmedel ännu. Skapa ett från sökningen.',
   name: 'Namn',
+  food: 'Livsmedel',
   nutrientsPer100g: 'Näringsvärden per 100 g',
   nutrientsForAmount: 'Näringsvärden för vald mängd',
   showAllNutrients: 'Visa alla näringsämnen',
@@ -280,6 +281,8 @@ export interface LangPack {
   activities?: Record<string, string>;
   /** Household measures by stored name (Swedish and English: UNIT_LABELS below). */
   units?: Record<string, string>;
+  /** Strings of the sync screens (Swedish ones live in strings-sync.ts, loaded with them). */
+  sync?: Record<string, string>;
 }
 
 const LOADERS: Record<Exclude<Lang, 'sv'>, () => Promise<{ default: LangPack }>> = {
@@ -292,12 +295,32 @@ const LOADERS: Record<Exclude<Lang, 'sv'>, () => Promise<{ default: LangPack }>>
 
 const packs = new Map<Lang, LangPack>([['sv', { strings: sv }]]);
 
+/** A loaded pack (for lazily loaded screens with their own strings, e.g. sync). */
+export const packOf = (l: Lang): LangPack | undefined => packs.get(l);
+
+/** The language used last on this device (a startup hint only; settings stay the truth). */
+export function lastLang(): Lang | undefined {
+  try {
+    const l = localStorage.getItem('iron-log-lang');
+    return isLang(l) ? l : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function rememberLang(l: Lang): void {
+  try {
+    localStorage.setItem('iron-log-lang', l);
+  } catch {
+    // private mode etc.: only the startup hint is lost
+  }
+}
+
 /** Load a language (and English, its fallback). Call before switching `lang` to it. */
 export async function loadLang(l: Lang): Promise<void> {
   const need: Exclude<Lang, 'sv'>[] = l === 'sv' ? [] : l === 'en' ? ['en'] : [l, 'en'];
   await Promise.all(need.filter((x) => !packs.has(x)).map(async (x) => void packs.set(x, (await LOADERS[x]()).default)));
 }
-
 
 /** The browser's language if we have it; Norwegian reads Swedish; anything else gets English. */
 export function detectLang(): Lang {
@@ -315,14 +338,28 @@ export function t(key: keyof Dict): string {
 
 const LOCALES: Record<Lang, string> = { sv: 'sv-SE', en: 'en-GB', da: 'da-DK', fi: 'fi-FI', de: 'de-DE', so: 'so-SO' };
 
+/** BCP 47 locale for a language; falls back to English where the browser lacks it (Somali on older Android). */
+export function localeOf(l: Lang): string {
+  const want = LOCALES[l];
+  return Intl.NumberFormat.supportedLocalesOf([want]).length ? want : 'en-GB';
+}
+
 /** BCP 47 locale for dates and numbers. */
-export const locale = (): string => LOCALES[lang.value];
+export const locale = (): string => localeOf(lang.value);
+
+const commaCache = new Map<Lang, boolean>();
+/** Whether a language writes decimals with a comma (1,5). */
+export function decimalCommaOf(l: Lang): boolean {
+  let c = commaCache.get(l);
+  if (c === undefined) commaCache.set(l, (c = new Intl.NumberFormat(localeOf(l)).format(1.5).includes(',')));
+  return c;
+}
 
 /** Which food-data names to show (foods only have Swedish and English names). */
 export const dataLang = (): 'sv' | 'en' => dataLangOf(lang.value);
 
-/** Whether this language writes decimals with a comma (1,5) — inputs accept both anyway. */
-export const decimalComma = (): boolean => fmt(1.5, 1).includes(',');
+/** Whether the current language writes decimals with a comma (1,5) — inputs accept both anyway. */
+export const decimalComma = (): boolean => decimalCommaOf(lang.value);
 
 export function nutrientName(n: { key: string; sv: string; en: string }): string {
   return packs.get(lang.value)?.nutrients?.[n.key] ?? n[dataLang()];

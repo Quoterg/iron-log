@@ -29,3 +29,24 @@ test('Somali, the newest language, shows its own strings', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Dejinta', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Buugga maalinlaha', exact: true })).toBeVisible();
 });
+
+test('restoring a backup made in another language opens the app in that language', async ({ page }) => {
+  page.on('dialog', (d) => d.accept()); // the import's confirm()
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  const reloaded = page.waitForEvent('load', { timeout: 15_000 });
+  await page.getByLabel('Importera säkerhetskopia').setInputFiles({
+    name: 'backup.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(
+      JSON.stringify({
+        format: 'iron-log-backup',
+        version: 1,
+        entries: [],
+        settings: { lang: 'de', profile: { sex: 'female', kcal: 2000 }, targetOverrides: {}, version: 2 },
+      }),
+    ),
+  });
+  await reloaded;
+  await expect(page.getByRole('button', { name: 'Tagebuch', exact: true })).toBeVisible();
+});

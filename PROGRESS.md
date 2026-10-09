@@ -31,7 +31,13 @@ Done:
 - The import confirmation now matches the restore rules (only adds what is missing or older).
 - Tests: `i18n.test.ts` (keys, placeholders, coverage ≥ 95 % — currently 100 %, nutrients,
   activities, units, on-demand loading, fallback, detection); e2e language switch (German, Somali,
-  survives reload); 200 % checks in de/fi. 133 unit, 96 Playwright and Lighthouse pass.
+  survives reload, restored backup in German); 200 % checks in de/fi. 138 unit, 97 Playwright and
+  Lighthouse pass. Initial JS 34.4 KB gzip.
+- Review fixes: CSV separator/decimal follow the locale (`;` + comma for sv/da/de/fi) with
+  translated headers; the language pack is fetched in parallel with reading settings (last
+  language remembered as a startup hint); each pack carries its own sync-screen strings; the last
+  language chosen wins; Danish searches Swedish data by default; Somali falls back to an English
+  locale where the browser lacks it.
 
 ## 2026-10-09 — M17b Pairing (interactive session)
 

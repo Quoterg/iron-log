@@ -85,6 +85,7 @@ const strings: Dict = {
   myFoods: 'My foods',
   noCustomFoods: 'You have no custom foods yet. Create one from search.',
   name: 'Name',
+  food: 'Food',
   nutrientsPer100g: 'Nutrition per 100 g',
   nutrientsForAmount: 'Nutrition for this amount',
   showAllNutrients: 'Show all nutrients',
@@ -253,5 +254,38 @@ const strings: Dict = {
   resetTargetsConfirm: 'Reset all targets to NNR 2023?',
 };
 
-const pack: LangPack = { strings };
+const sync: Record<string, string> = {
+  syncTitle: 'Sync with another device',
+  syncCardIntro: 'Copy your diary and settings directly between two of your devices – no account or server.',
+  syncStart: 'Sync',
+  syncIntro: 'Open Iron Log on both devices, on the same Wi-Fi. Start on one device and scan the code with the other.',
+  syncPrivacy: 'The devices connect directly and encrypted. Nothing is sent to any server.',
+  syncShowCode: 'Start here (show code)',
+  syncScanCode: 'Scan code',
+  syncPreparing: 'Preparing…',
+  syncOfferHint: 'Scan this code with the other device (Settings → Sync → Scan code).',
+  syncThenScanAnswer: 'Then scan the answer from the other device',
+  syncScanOfferHint: 'Scan the code shown on the other device.',
+  syncAnswerHint: 'Scan this code with the first device.',
+  syncWaiting: 'Waiting for the other device…',
+  syncRunning: 'Syncing…',
+  syncApplying: 'Saving the changes…',
+  syncDone: 'Done! {in} changes received, {out} sent.',
+  syncErrorCode: 'The code could not be read. Make sure you scan the code from Iron Log and try again.',
+  syncErrorVersion: 'The devices run different versions of Iron Log. Reload the app on both and try again.',
+  syncErrorConnect: 'The devices could not connect. Check that both are on the same Wi-Fi (not a guest network) and try again.',
+  syncErrorOther: 'Sync failed. Try again.',
+  syncErrorPartial: 'The connection dropped. Some changes were saved – sync again to get the rest.',
+  syncShowSaved: 'Show what was saved',
+  syncProgress: 'Saving changes… {done} of {total}',
+  syncQrLabel: 'QR code to pair the devices',
+  syncAsText: 'Show as text',
+  syncScanHint: 'Point the camera at the QR code.',
+  syncNoCamera: 'The camera is not available. Paste the code below.',
+  syncPasteLabel: 'Or paste the code',
+  syncUseCode: 'Use the code',
+  copied: 'Copied',
+};
+
+const pack: LangPack = { strings, sync };
 export default pack;

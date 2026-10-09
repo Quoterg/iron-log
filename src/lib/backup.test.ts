@@ -128,6 +128,22 @@ describe('csv', () => {
     expect(cells[4 + NUTRIENT_INDEX.iron]).toBe(''); // unknown, not 0
   });
 
+  it('follows the locale: ; and decimal comma for German and Finnish, , and point for English', () => {
+    for (const lang of ['de', 'fi', 'da'] as const) {
+      const row = toCsv(data.entries, foods, lang, (m) => m).replace('\ufeff', '').trim().split('\r\n')[1];
+      expect(row.split(';')[4 + NUTRIENT_INDEX.protein], lang).toBe('37,75');
+    }
+    const en = toCsv(data.entries, foods, 'en', (m) => m).replace('\ufeff', '').trim().split('\r\n');
+    expect(en[0].startsWith('Date,Meal,Food,Amount (g),')).toBe(true);
+    expect(en[1].split(',')[4 + NUTRIENT_INDEX.protein]).toBe('37.75');
+  });
+
+  it('uses the labels it is given (the app passes translated ones)', () => {
+    const labels = { date: 'Datum', meal: 'Mahlzeit', food: 'Name', amount: 'Menge (g)', supplements: 'Ergänzung', nutrient: () => 'X' };
+    const head = toCsv(data.entries, foods, 'de', (m) => m, new Set(), labels).replace('\ufeff', '').split('\r\n')[0];
+    expect(head.split(';').slice(0, 5)).toEqual(['Datum', 'Mahlzeit', 'Name', 'Menge (g)', 'X (kcal)']);
+  });
+
   it('neutralises formulas in food names (CSV injection)', () => {
     const csv = toCsv(data.entries, foods, 'en', (m) => m);
     expect(csv).toContain(`"'=HYPERLINK(""x"")"`);

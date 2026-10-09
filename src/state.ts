@@ -4,8 +4,8 @@ import * as db from './lib/db';
 import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db';
 import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
 import { fetchProduct } from './lib/off';
-import { lang, loadLang } from './lib/i18n';
-import type { Food, NutrientVector, Serving } from './lib/nutrients';
+import { lang, loadLang, rememberLang } from './lib/i18n';
+import { type Food, type NutrientVector, type Serving, dataLangOf } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
 import type { ActivityType } from './lib/activity-types';
@@ -168,12 +168,20 @@ export async function loadSettings(): Promise<void> {
 
 /** Databases searched: the user's choice, else by language (Swedish → Swedish data only). */
 export function activeSources(s: Settings): Source[] {
-  return s.sources?.length ? s.sources : s.lang === 'sv' ? ['slv'] : ['slv', 'usda'];
+  // Swedish data for languages that show Swedish names (sv, da); both databases for the rest.
+  return s.sources?.length ? s.sources : dataLangOf(s.lang) === 'sv' ? ['slv'] : ['slv', 'usda'];
 }
+
+let langSwitch = 0;
 
 export async function updateSettings(patch: Partial<Settings>): Promise<void> {
   // Strings first, so the switch is instant and complete; offline and never loaded → keep the current one.
-  if (patch.lang) await loadLang(patch.lang);
+  if (patch.lang) {
+    const n = ++langSwitch;
+    await loadLang(patch.lang);
+    if (n !== langSwitch) return; // a later choice is already on its way
+    rememberLang(patch.lang);
+  }
   settings.value = { ...settings.value, ...patch };
   setSources(activeSources(settings.value));
   lang.value = settings.value.lang;

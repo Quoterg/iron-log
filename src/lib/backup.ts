@@ -1,7 +1,7 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
 import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type SyncStore, type Usage, type UserServings } from './db';
-import { isLang } from './i18n';
-import { foodName, NUTRIENTS, type Food } from './nutrients';
+import { decimalCommaOf, isLang, type Lang } from './i18n';
+import { dataLangOf, foodName, NUTRIENTS, type Food } from './nutrients';
 import { MAX_ACTIVITY_KCAL, MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
 import { padVector, type StoredRecipe } from './recipes';
@@ -280,32 +280,54 @@ export function parseBackup(text: string): AllData {
  * Diary as CSV, one row per entry with all nutrients for the logged amount.
  * Swedish uses ";" and decimal comma (what Excel expects in a Swedish locale).
  */
+/** Column labels for the CSV (the app passes translated ones; defaults: Swedish or English). */
+export interface CsvLabels {
+  date: string;
+  meal: string;
+  food: string;
+  amount: string;
+  supplements: string;
+  nutrient: (n: (typeof NUTRIENTS)[number]) => string;
+}
+
+function defaultLabels(lang: string): CsvLabels {
+  const sv = lang === 'sv';
+  return {
+    date: sv ? 'Datum' : 'Date',
+    meal: sv ? 'Måltid' : 'Meal',
+    food: sv ? 'Livsmedel' : 'Food',
+    amount: sv ? 'Mängd (g)' : 'Amount (g)',
+    supplements: sv ? 'Kosttillskott' : 'Supplements',
+    nutrient: (n) => n[dataLangOf(lang)],
+  };
+}
+
+/**
+ * The diary as a spreadsheet. Where the language writes decimals with a comma (sv, da, de, fi…)
+ * the file uses `;` between columns and `,` in numbers — what Excel expects in those locales.
+ */
 export function toCsv(
   entries: Entry[],
   foods: Map<string, Food>,
-  lang: 'sv' | 'en',
+  lang: Lang,
   mealName: (m: string) => string,
   supplementRefs: ReadonlySet<string> = new Set(),
+  labels: CsvLabels = defaultLabels(lang),
 ): string {
-  const sep = lang === 'sv' ? ';' : ',';
+  const comma = decimalCommaOf(lang);
+  const sep = comma ? ';' : ',';
   const num = (n: number) => {
     const s = String(Math.round(n * 1000) / 1000);
-    return lang === 'sv' ? s.replace('.', ',') : s;
+    return comma ? s.replace('.', ',') : s;
   };
-  const head = [
-    lang === 'sv' ? 'Datum' : 'Date',
-    lang === 'sv' ? 'Måltid' : 'Meal',
-    lang === 'sv' ? 'Livsmedel' : 'Food',
-    lang === 'sv' ? 'Mängd (g)' : 'Amount (g)',
-    ...NUTRIENTS.map((n) => `${n[lang]} (${n.unit})`),
-  ];
+  const head = [labels.date, labels.meal, labels.food, labels.amount, ...NUTRIENTS.map((n) => `${labels.nutrient(n)} (${n.unit})`)];
   const rows = [...entries]
     .sort((a, b) => a.date.localeCompare(b.date) || MEALS.indexOf(a.meal) - MEALS.indexOf(b.meal) || a.createdAt - b.createdAt)
     .map((e) => {
       const f = foods.get(e.foodRef);
       const v = e.snap ?? f?.per100g; // as logged, for recipes
       const amounts = v ? scale(v, e.grams).map((x, i) => (v[i] == null ? '' : num(x))) : NUTRIENTS.map(() => '');
-      const meal = supplementRefs.has(e.foodRef) ? (lang === 'sv' ? 'Kosttillskott' : 'Supplements') : mealName(e.meal);
+      const meal = supplementRefs.has(e.foodRef) ? labels.supplements : mealName(e.meal);
       return [e.date, meal, f ? foodName(f, lang) : e.foodRef, num(e.grams), ...amounts];
     });
   const BOM = '﻿'; // so Excel opens UTF-8 (å, ä, ö) correctly

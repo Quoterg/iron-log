@@ -101,7 +101,7 @@ function General() {
           onChange={(e) => {
             const sel = e.currentTarget as HTMLSelectElement;
             // Offline and the language was never loaded: stay on the current one.
-            updateSettings({ lang: sel.value as Lang }).catch(() => (sel.value = s.lang));
+            updateSettings({ lang: sel.value as Lang }).catch(() => (sel.value = settings.value.lang));
           }}
         >
           {LANGS.map((l) => (
