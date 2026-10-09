@@ -106,7 +106,7 @@ const pack: LangPack = {
     supplementTime: 'Tidspunkt',
     time_any: 'Intet bestemt tidspunkt',
     time_morning: 'Morgen',
-    time_midday: 'Middag',
+    time_midday: 'Midt på dagen',
     time_evening: 'Aften',
     time_night: 'Nat',
     perDayShort: 'dag',

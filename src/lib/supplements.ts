@@ -27,7 +27,10 @@ export function weekday(date: string): number {
 export const scheduledOn = (s: SupplementInfo, date: string): boolean =>
   s.perDay > 0 && (!s.days || s.days.includes(weekday(date)));
 
-/** Checklist order: by time of day (unset last), then the caller's order. */
+/** Stored form of a day selection: sorted, and absent when it's every day. */
+export const normalizeDays = (days: number[]): number[] | undefined => (days.length >= 7 ? undefined : [...days].sort());
+
+/** Checklist order: by time of day (unset last), then the caller's order (Array.sort is stable). */
 export const timeRank = (s: SupplementInfo): number => (s.time ? SUPPLEMENT_TIMES.indexOf(s.time) : SUPPLEMENT_TIMES.length);
 
 export const UNIT_GRAMS = 1;

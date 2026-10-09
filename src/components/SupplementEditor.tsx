@@ -1,15 +1,24 @@
 import { useRef, useState } from 'preact/hooks';
 import { inputNum, locale, nutrientName, parseNum, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS, type NutrientVector } from '../lib/nutrients';
-import { per100gToPerUnit, perUnitToPer100g, SUPPLEMENT_TIMES, type SupplementTime } from '../lib/supplements';
+import { normalizeDays, per100gToPerUnit, perUnitToPer100g, SUPPLEMENT_TIMES, type SupplementTime } from '../lib/supplements';
 import { estimateKcal } from '../lib/totals';
 import { back } from '../nav';
 import { customFoods, deleteCustomFood, saveCustomFood } from '../state';
 import { Sheet } from './Sheet';
 
 const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
-/** Short weekday name in the UI language (0 = Monday; 2024-01-01 was a Monday). */
-const weekdayName = (d: number) => new Date(2024, 0, 1 + d).toLocaleDateString(locale(), { weekday: 'short' });
+/** Short weekday names in the UI language (0 = Monday; 2024-01-01 was a Monday), formatted once per locale. */
+const weekdayNames = new Map<string, string[]>();
+function weekdayName(d: number): string {
+  const loc = locale();
+  let names = weekdayNames.get(loc);
+  if (!names) {
+    const f = new Intl.DateTimeFormat(loc, { weekday: 'short' });
+    weekdayNames.set(loc, (names = WEEKDAYS.map((i) => f.format(new Date(2024, 0, 1 + i)))));
+  }
+  return names[d];
+}
 
 /** What supplement labels list (vitamins, minerals, EPA/DHA); the rest is behind "show all". */
 const isMain = (n: { key: string; group: string }) => n.group === 'vitamin' || n.group === 'mineral' || n.key === 'epa' || n.key === 'dha';
@@ -21,6 +30,7 @@ export default function SupplementEditor(props: { foodRef?: string }) {
   const [name, setName] = useState(existing?.sv ?? '');
   const [unit, setUnit] = useState(existing?.supplement?.unit ?? t('supplementUnitDefault'));
   const [perDayText, setPerDayText] = useState(inputNum(existing?.supplement?.perDay ?? 1));
+  // Kept while "per day" is 0 (hidden), so switching back restores the selection; only saved for daily ones.
   const [days, setDays] = useState<number[]>(existing?.supplement?.days ?? [0, 1, 2, 3, 4, 5, 6]);
   const [time, setTime] = useState<SupplementTime | ''>(existing?.supplement?.time ?? '');
   // Raw text per nutrient, kept outside state: typing doesn't re-render the ~40 fields.
@@ -66,7 +76,7 @@ export default function SupplementEditor(props: { foodRef?: string }) {
       supplement: {
         unit: unit.trim(),
         perDay,
-        ...(perDay > 0 && days.length < 7 ? { days: [...days].sort() } : {}),
+        ...(perDay > 0 && normalizeDays(days) ? { days: normalizeDays(days) } : {}),
         ...(time ? { time } : {}),
       },
     });

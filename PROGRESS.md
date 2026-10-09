@@ -17,7 +17,8 @@ Done:
   time of day (morning, midday, evening, night). The diary's checklist shows a day's scheduled
   supplements, as-needed ones and anything already taken, ordered by time of day.
 - Stored as optional `days` (0 = Monday) and `time` on the supplement: old data and backups are
-  unchanged; backups and sync validate them (all seven days is stored as "every day").
+  unchanged; backups and sync (same validator) check them — tested — and all seven days is stored
+  as "every day".
 - Reminders: not built — a web app can't schedule notifications while closed without a server.
 - Strings in all six languages. Tests: weekday/schedule logic, backup validation, e2e (today off →
   not on the checklist; back on → shown with its time; no days refused).
