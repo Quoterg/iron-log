@@ -30,12 +30,16 @@ const importHistory = async (page: Page, n: number) => {
     id: `hist-${i}`, date: '2026-01-15', meal: 'lunch', foodRef: 'slv:1', grams: 100, createdAt: 1000 + i,
   }));
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  // The import reloads the app: wait for that reload itself, not just any 'load' state (which the
+  // page is already in) — otherwise the next clicks land mid-reload on a slow runner.
+  const reloaded = page.waitForEvent('load');
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'history.json',
     mimeType: 'application/json',
     buffer: Buffer.from(JSON.stringify({ format: 'iron-log-backup', version: 1, entries })),
   });
-  await page.waitForLoadState('load');
+  await reloaded;
+  await expect(page.locator('.meal').first()).toBeVisible();
 };
 
 test('two devices pair with codes and end up with each other’s data, in batches', async ({ browser }) => {
