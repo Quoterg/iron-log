@@ -5,7 +5,21 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M2 CI & deploy** (see docs/ROADMAP.md).
+**M3 Food detail & custom foods** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M2 CI & deploy (interactive session)
+
+Done:
+- `.github/workflows/ci.yml` on every PR and push to main: unit tests → build + size budget →
+  Playwright smoke (Moto G4, 4× CPU) → Lighthouse CI; reports uploaded as the `reports` artifact.
+- `.github/workflows/deploy.yml`: `main` → GitHub Pages (Pages source set to "GitHub Actions").
+  Live: https://quoterg.github.io/iron-log/
+- `lighthouserc.json` gates: performance ≥ 0.9, FCP ≤ 1.8 s, LCP ≤ 2.5 s, TBT ≤ 200 ms, CLS ≤ 0.1.
+  Local result: 100/100/100 (perf/a11y/best practices), FCP ~1.06 s, LCP ~1.2 s, TBT 0, CLS 0.
+- README: CI/deploy badges and live link.
+
+Ideas:
+- Inline the 1.6 KB CSS into index.html to remove the one render-blocking request (FCP).
 
 ## 2026-10-09 — M1 Foundation (interactive session)
 

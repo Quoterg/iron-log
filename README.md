@@ -1,5 +1,10 @@
 # Iron Log
 
+[![CI](https://github.com/Quoterg/iron-log/actions/workflows/ci.yml/badge.svg)](https://github.com/Quoterg/iron-log/actions/workflows/ci.yml)
+[![Deploy](https://github.com/Quoterg/iron-log/actions/workflows/deploy.yml/badge.svg)](https://github.com/Quoterg/iron-log/actions/workflows/deploy.yml)
+
+**Try it: https://quoterg.github.io/iron-log/** — open on your phone and choose "Add to Home screen".
+
 Open-source nutrition tracker for energy, macros **and micronutrients** — a free alternative
 to Cronometer and MyFitnessPal. Swedish first (Livsmedelsverket's food database and the Nordic
 Nutrition Recommendations 2023), with English UI for everyone else.
@@ -23,7 +28,9 @@ pnpm dev
 
 `pnpm test` runs unit tests, `pnpm build` builds and enforces the performance budget,
 `pnpm e2e` runs browser smoke tests on an emulated low-end phone
-(first time: `pnpm exec playwright install chromium`).
+(first time: `pnpm exec playwright install chromium`), and `pnpm lighthouse` audits the build
+on a simulated mobile device. CI runs all of these on every pull request; `main` deploys to
+GitHub Pages automatically.
 
 ## Data sources
 

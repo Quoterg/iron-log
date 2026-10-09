@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "e2e": "playwright test",
+    "lighthouse": "lhci autorun",
     "icons": "node scripts/make-icons.mjs",
     "data:fetch": "node scripts/fetch-slv.mjs",
     "data:build": "node scripts/build-foods.mjs"
@@ -22,6 +23,7 @@
     "preact": "10"
   },
   "devDependencies": {
+    "@lhci/cli": "0.15.1",
     "@playwright/test": "1.55",
     "@preact/preset-vite": "2",
     "@types/node": "22",

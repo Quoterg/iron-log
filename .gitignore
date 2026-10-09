@@ -5,3 +5,5 @@ test-results/
 playwright-report/
 .claude/
 *.log
+lhci-report/
+.lighthouseci/
