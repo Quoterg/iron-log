@@ -12,8 +12,9 @@ Must stay fast on old low/mid-range phones. Read docs/ARCHITECTURE.md before str
 3. Do **one milestone** only. Token budget is ~5M per run: if the milestone is clearly larger,
    split it in ROADMAP.md (`M7a`/`M7b`) and do the first part. Stop when it's done — don't start the next one.
 4. Before finishing, all must pass: `pnpm test`, `pnpm build` (includes size budget), `pnpm e2e`,
-   `pnpm lighthouse`. CI (.github/workflows/ci.yml) runs the same on the PR — check it with
-   `gh pr checks` and fix failures before ending the session.
+   `pnpm lighthouse`. CI (.github/workflows/ci.yml) runs the same on the PR — check its status
+   (`gh pr checks` if `gh` exists, otherwise your GitHub tools) and fix failures before ending.
+   `main` deploys to GitHub Pages only after CI passes on it.
    If something can't be made to pass, say so in PROGRESS.md and the PR — never hide failures.
 5. Update `PROGRESS.md` (new entry at top + "Next up"), tick the milestone in ROADMAP.md.
 6. Commit, push the branch, open a PR to `main` titled `Mn: <name>` with a short summary and test results.
