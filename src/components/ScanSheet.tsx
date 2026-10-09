@@ -6,12 +6,15 @@ import { open, replaceTop } from '../nav';
 import { lookupBarcode } from '../state';
 import { Sheet } from './Sheet';
 
-type Status = 'starting' | 'scanning' | 'noCamera' | 'looking' | 'notFound' | 'noData' | 'network' | 'invalid';
+type Camera = 'starting' | 'scanning' | 'noCamera';
+type Lookup = 'idle' | 'looking' | 'notFound' | 'noData' | 'network' | 'invalid';
 
 /** Scan (or type) a barcode → look it up → continue to the food screen. */
 export function ScanSheet({ meal }: { meal: Meal }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [status, setStatus] = useState<Status>('starting');
+  // Separate states: the camera starts asynchronously and must never overwrite a lookup result.
+  const [camera, setCamera] = useState<Camera>('starting');
+  const [status, setStatus] = useState<Lookup>('idle');
   const [code, setCode] = useState('');
   const [lastCode, setLastCode] = useState('');
   const busy = useRef(false);
@@ -53,7 +56,7 @@ export function ScanSheet({ meal }: { meal: Meal }) {
         const { createDetector } = await import('../lib/scanner');
         const detector = await createDetector();
         if (stopped) return;
-        setStatus('scanning');
+        setCamera('scanning');
         // ~4 scans per second is plenty and keeps old phones cool.
         const tick = async () => {
           if (stopped) return;
@@ -66,7 +69,7 @@ export function ScanSheet({ meal }: { meal: Meal }) {
         };
         void tick();
       } catch {
-        if (!stopped) setStatus('noCamera');
+        if (!stopped) setCamera('noCamera');
       }
     })();
     return () => {
@@ -76,10 +79,12 @@ export function ScanSheet({ meal }: { meal: Meal }) {
     };
   }, []);
 
-  const message: Partial<Record<Status, string>> = {
+  const cameraMessage: Record<Camera, string> = {
     starting: t('scanStarting'),
     scanning: t('scanHint'),
     noCamera: t('scanNoCamera'),
+  };
+  const message: Partial<Record<Lookup, string>> = {
     looking: t('scanLooking'),
     notFound: t('scanNotFound'),
     noData: t('scanNoData'),
@@ -90,12 +95,12 @@ export function ScanSheet({ meal }: { meal: Meal }) {
   return (
     <Sheet title={t('scanBarcode')}>
       <div class="pad">
-        <div class="scanner" hidden={status === 'noCamera'}>
+        <div class="scanner" hidden={camera === 'noCamera'}>
           <video ref={videoRef} muted playsInline aria-label={t('scanBarcode')} />
           <div class="scan-frame" aria-hidden="true" />
         </div>
         <p class="small" role="status">
-          {message[status]}
+          {message[status] ?? cameraMessage[camera]}
         </p>
         {(status === 'notFound' || status === 'noData') && (
           <button class="btn wide" onClick={() => open({ kind: 'editFood', meal, name: '' })}>

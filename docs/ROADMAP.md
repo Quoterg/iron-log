@@ -32,7 +32,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 
 ## Phase 2 — Cronometer depth
 
-- [ ] **M8 Profile-based targets** — Age, weight, height, activity → energy need
+- [x] **M8 Profile-based targets** — Age, weight, height, activity → energy need
   (Mifflin-St Jeor / NNR PAL); NNR 2023 age bands (18–24, 25–50, 51–70, 71+),
   pregnancy/lactation, post-menopause iron. Unit tests against NNR tables.
 - [ ] **M9 Target editor** — Per-nutrient min/max overrides, macro targets in g or E%,

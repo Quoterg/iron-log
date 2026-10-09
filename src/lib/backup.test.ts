@@ -41,6 +41,30 @@ describe('backup', () => {
   });
 });
 
+describe('profile import', () => {
+  const withProfile = (profile: object) =>
+    parseBackup(JSON.stringify({ ...makeBackup(data), settings: { lang: 'sv', profile, targetOverrides: {} } })).settings
+      ?.profile;
+
+  it('round-trips the full profile', () => {
+    const profile = {
+      sex: 'female', kcal: 2110, kcalAuto: true, age: 30, weightKg: 60.5, heightCm: 165, pal: 1.6,
+      status: 'pregnant2', menstruating: false,
+    };
+    expect(withProfile(profile)).toEqual(profile);
+  });
+
+  it('drops invalid fields instead of failing', () => {
+    const p = withProfile({ sex: 'male', kcal: 2500, age: 30.5, heightCm: 500, status: 'astronaut', pal: 1.5 });
+    expect(p).toEqual({ sex: 'male', kcal: 2500, pal: 1.6 });
+    expect(withProfile({ sex: 'male', kcal: 2500, age: 12 })?.age).toBeUndefined();
+  });
+
+  it('keeps automatic energy only with the data it needs', () => {
+    expect(withProfile({ sex: 'male', kcal: 2500, kcalAuto: true, age: 40 })?.kcalAuto).toBeUndefined();
+  });
+});
+
 describe('csv', () => {
   const v = new Array(NUTRIENTS.length).fill(null);
   v[NUTRIENT_INDEX.kcal] = 380;

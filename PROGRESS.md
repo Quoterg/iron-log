@@ -5,7 +5,30 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M8 Profile-based targets** (Phase 2, see docs/ROADMAP.md).
+**M9 Target editor** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M8 Profile-based targets (interactive session)
+
+Done:
+- Profile (Settings → Profil, `ProfileForm.tsx`): sex, age, weight (decimal), height, activity
+  (PAL 1.4/1.6/1.8/2.0), life stage (pregnant T1–T3, breastfeeding), menstruating toggle,
+  automatic energy.
+- `targets.ts`: NNR 2023 values for 18–24 / 25–50 / 51–70 / 71+ and pregnancy/lactation; iron for
+  women by menstruation (15 / 8 / 7 mg); protein 15–20 E% for >65. Sources and verification status
+  per value: `docs/NNR-SOURCES.md`.
+- Energy: Mifflin–St Jeor × PAL + pregnancy (+0.3/+1.2/+2.3 MJ, asks for weight *before* pregnancy)
+  and exclusive breastfeeding (+2.0 MJ). Auto mode switches itself off when body data goes missing.
+- Review fixes (reviewer agent on PR #8): PAL snapped to UI levels on import; integer age/height;
+  decimal-comma weight; kcal input reverts invalid values (step 10); menstruation default resets
+  when age crosses 51; backup profile validation tests; age-band boundary tests.
+- Found via CI: the 2-column form grid overflowed 360 px phones (page zoomed out, controls
+  overlapped) → `minmax(0,1fr)` columns + new `e2e/layout.spec.ts` asserting no horizontal overflow
+  on every main screen. ScanSheet: a late "no camera" error could overwrite lookup messages →
+  separate camera/lookup state. Playwright keeps traces of failures (CI artifact).
+- Tests: 47 unit, 15 Playwright (stable over --repeat-each=3). Initial JS 28.4 KB gzip.
+
+Known gaps: no values for under 18 (inputs start at 18; backups with age < 18 drop the age);
+vitamin K/biotin/pantothenic acid not tracked yet (M16).
 
 ## 2026-10-09 — M7 Barcode scanning (interactive session) — Phase 1 complete
 
