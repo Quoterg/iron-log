@@ -5,7 +5,7 @@ export type WorkerRequest =
   | { id: number; type: 'init'; dataUrl: string }
   | { id: number; type: 'custom'; foods: Food[] }
   | { id: number; type: 'boost'; boosts: Record<string, number> }
-  | { id: number; type: 'search'; query: string; lang: string }
+  | { id: number; type: 'search'; query: string; lang: string; excludePrefix?: string }
   | { id: number; type: 'get'; refs: string[] };
 
 export interface WorkerResponse {
@@ -88,8 +88,9 @@ export function setCustomFoods(visible: Food[], all: Food[]): void {
   if (worker) postCustom(worker);
 }
 
-export function searchFoods(query: string, lang: string): Promise<Food[]> {
-  return call({ type: 'search', query, lang });
+/** Search foods; `excludePrefix` (e.g. 'recipe:') leaves out a kind of food, still returning a full page. */
+export function searchFoods(query: string, lang: string, excludePrefix?: string): Promise<Food[]> {
+  return call({ type: 'search', query, lang, excludePrefix });
 }
 
 export async function getFoods(refs: string[]): Promise<Map<string, Food>> {

@@ -232,3 +232,6 @@ table.targets tr.changed th { font-weight: 600; }
   border: 1px solid var(--carbs); border-radius: 8px; background: var(--track);
 }
 .notice p { flex: 1; margin: 0; }
+
+.ingredient { display: flex; align-items: center; gap: 8px; }
+.ingredient .entry { flex: 1; min-width: 0; }

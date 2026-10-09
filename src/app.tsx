@@ -16,6 +16,7 @@ const TABS: View[] = ['diary', 'nutrients', 'settings'];
 // Not needed for the first screen: split out and prefetched when idle (main.tsx).
 export const settingsView = lazyView(() => import('./components/Settings'));
 export const targetEditorView = lazyView(() => import('./components/TargetEditor'));
+export const recipeEditorView = lazyView(() => import('./components/RecipeEditor'));
 
 export function App() {
   const s = top.value;
@@ -58,9 +59,11 @@ function ScreenView({ screen: s }: { screen: Screen }) {
   // replaceTop can turn an editor into a detail screen at the same depth: remount by kind.
   switch (s.kind) {
     case 'search':
-      return <FoodSearch meal={s.meal} replaceEntryId={s.replaceEntryId} />;
+      return <FoodSearch meal={s.meal} replaceEntryId={s.replaceEntryId} pickIngredient={s.pickIngredient} />;
     case 'food':
-      return <FoodDetail foodRef={s.ref} meal={s.meal} entryId={s.entryId} />;
+      return (
+        <FoodDetail foodRef={s.ref} meal={s.meal} entryId={s.entryId} ingredient={s.ingredient} ingredientIndex={s.ingredientIndex} />
+      );
     case 'editFood':
       return <FoodEditor foodRef={s.ref} name={s.name} meal={s.meal} />;
     case 'copy':
@@ -69,6 +72,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <ScanSheet meal={s.meal} />;
     case 'targets':
       return <targetEditorView.Lazy />;
+    case 'recipe':
+      return <recipeEditorView.Lazy recipeRef={s.ref} meal={s.meal} />;
   }
 }
 

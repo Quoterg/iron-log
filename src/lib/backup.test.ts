@@ -8,6 +8,12 @@ const data: AllData = {
   customFoods: [{ ref: 'custom:a', sv: 'Proteinpulver', en: null, per100g: [380, 75], createdAt: 1, updatedAt: 1 }],
   usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true, lastUnit: 'skopa', lastQty: 2 }],
   servings: [{ foodRef: 'custom:a', servings: [{ name: 'skopa', g: 25 }] }],
+  recipes: [
+    {
+      ref: 'recipe:r1', name: 'Gröt', ingredients: [{ foodRef: 'slv:1', grams: 100, unit: 'dl', qty: 3 }],
+      servings: 2, cookedWeightG: 300, createdAt: 1, updatedAt: 2, per100g: NUTRIENTS.map((_, i) => (i === 0 ? 120 : null)), portionG: 150, totalG: 300,
+    },
+  ],
   offFoods: [{ ref: 'off:7310865004703', sv: 'Yoghurt (Arla)', en: null, per100g: [100], fetchedAt: 3, units: [{ name: 'portion', g: 150 }] }],
   settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: 2 },
 };
@@ -16,6 +22,15 @@ describe('backup', () => {
   it('round-trips through JSON', () => {
     const text = JSON.stringify(makeBackup(data, new Date('2026-10-09T10:00:00Z')));
     expect(parseBackup(text)).toEqual(data);
+  });
+
+  it('accepts backups from before recipes existed, and pads short nutrient vectors', () => {
+    const old = { format: 'iron-log-backup', version: 1, entries: [], customFoods: [], usage: [] };
+    expect(parseBackup(JSON.stringify(old)).recipes).toEqual([]);
+    const short = { ...data.recipes[0], per100g: [120, null] };
+    const r = parseBackup(JSON.stringify(makeBackup({ ...data, recipes: [short] }))).recipes[0];
+    expect(r.per100g).toHaveLength(NUTRIENTS.length);
+    expect(r.per100g.slice(0, 2)).toEqual([120, null]);
   });
 
   it('rejects files that are not Iron Log backups', () => {
