@@ -14,7 +14,7 @@
   "enableNotifications": false,
   "startUrl": "/iron-log/",
   "iconUrl": "https://quoterg.github.io/iron-log/icon-512.png",
-  "maskableIconUrl": "https://quoterg.github.io/iron-log/icon-512.png",
+  "maskableIconUrl": "https://quoterg.github.io/iron-log/icon-maskable-512.png",
   "webManifestUrl": "https://quoterg.github.io/iron-log/manifest.webmanifest",
   "fallbackType": "customtabs",
   "features": {},

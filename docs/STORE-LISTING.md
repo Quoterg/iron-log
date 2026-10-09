@@ -48,10 +48,12 @@ Iron Log is a fast, free, open-source nutrition tracker.
 
 ## Data safety form (Google Play)
 
-- Data collected: **none** (all data stays on the device; there is no server of ours).
-- Data shared: **none**. A scanned barcode is sent to Open Food Facts to look up the product; it is
-  not linked to the user and no other data is sent (declare per Play's guidance on "data sent to
-  third-party APIs at the user's request" if asked).
+- Nothing the user logs leaves the device; there is no server of ours.
+- **Decide before filing (check Play's current definitions):** a barcode lookup sends the barcode
+  and, like any request, the IP address to Open Food Facts; loading the app and data sends the IP
+  address to GitHub Pages. Play treats some data sent to third parties as "collected/shared" even
+  without a server of ours — declare accordingly rather than "none" if it applies. A wrong
+  declaration can get the listing removed.
 - Encryption in transit: yes (HTTPS only). Deletion: the user can delete all data in the app.
 - Privacy policy URL: https://quoterg.github.io/iron-log/privacy.html
 

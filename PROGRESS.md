@@ -28,7 +28,7 @@ Done:
 
 Not done (split out as M16b): amino acids.
 
-## 2026-10-09 — M19 App stores (interactive session)
+## 2026-10-09 — M19 App stores, prep (interactive session)
 
 Done:
 - `public/privacy.html` (sv + en): no accounts, no tracking, data only on the device; what goes
@@ -40,7 +40,13 @@ Done:
   quoterg.github.io/iron-log/ can't do — needs a custom domain or a `Quoterg.github.io` user site.
 - `docs/STORE-LISTING.md` (texts sv/en, category, rating, Play data-safety answers, graphics
   checklist) and `docs/FDROID.md` (TWA caveats; PWA install as the no-store path).
-- Manifest: `id` and `categories`. e2e: both pages reachable from Settings, no overflow at 360 px.
+- Manifest: `id`, `categories`, a dedicated maskable icon (`icon-maskable-512.png`, full-bleed;
+  artwork inside the safe zone). The service worker precaches both static pages (offline on
+  first use). Privacy covers the camera (on-device only) and IP addresses seen by OFF/GitHub.
+- Publishing is split out as **M19b** (domain + package id decision, assetlinks, Android project
+  for F-Droid, first build) — needs the owner's decision on the domain.
+- Tests: 97 unit, 30 Playwright (pages reachable in sv and en, `#en` targets, served as their own
+  pages and not the app shell, available offline after the first app load). Initial JS 35.2 KB.
 
 ## 2026-10-09 — M15 Supplements (interactive session)
 

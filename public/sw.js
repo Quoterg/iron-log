@@ -5,7 +5,13 @@
 //   anything else under data/ is stale-while-revalidate.
 const CACHE = 'iron-log-v2';
 
-self.addEventListener('install', () => self.skipWaiting());
+// The policy and about pages are linked from Settings: available offline from the first run.
+const PAGES = ['privacy.html', 'about.html'];
+
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(PAGES)).catch(() => {}));
+});
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
