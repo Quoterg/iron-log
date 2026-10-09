@@ -175,6 +175,10 @@ function settings(x: unknown): Settings | undefined {
   const pct = normalizeMacroPct(x.macroPct);
   if (pct) out.macroPct = pct;
   if (out.macroPreset === 'custom' && !pct) out.macroPreset = 'nnr';
+  if (Array.isArray(x.sources)) {
+    const src = (['slv', 'usda'] as const).filter((s) => (x.sources as unknown[]).includes(s));
+    if (src.length) out.sources = src;
+  }
   return out;
 }
 

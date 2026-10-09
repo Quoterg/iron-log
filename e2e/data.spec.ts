@@ -14,7 +14,7 @@ test('export a backup, delete everything, import it back; export CSV', async ({ 
   await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
   await page.getByRole('button', { name: /Skapa eget livsmedel/ }).click();
-  await page.getByLabel('Namn').fill('Min smoothie');
+  await page.getByLabel('Namn', { exact: true }).fill('Min smoothie');
   await page.getByLabel('Energi (kcal)', { exact: true }).fill('70');
   await page.getByRole('button', { name: 'Spara' }).click();
 

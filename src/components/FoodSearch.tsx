@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Meal } from '../lib/db';
-import { searchFoods } from '../lib/foods';
+import { searchFoods, unavailableSources } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
 import { back, open } from '../nav';
@@ -81,6 +81,11 @@ export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIng
         onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)}
       />
       {loading && !results && <p class="muted center">{t('loadingFoods')}</p>}
+      {results && unavailableSources.value.length > 0 && (
+        <p class="small warn pad" role="status">
+          {t('sourcesUnavailable').replace('{list}', unavailableSources.value.map((s) => (s === 'usda' ? 'USDA' : 'Livsmedelsverket')).join(', '))}
+        </p>
+      )}
       {results && results.length === 0 && <p class="muted center">{t('noResults')}</p>}
       {results ? (
         <ul class="results">{results.filter(allowed).map((f) => row(f, pick))}</ul>
@@ -125,6 +130,7 @@ function row(f: Food, pick: (f: Food) => void) {
           {f.ref.startsWith('custom:') && <span class="badge">{t('customBadge')}</span>}
           {f.ref.startsWith('off:') && <span class="badge">{t('barcodeBadge')}</span>}
           {f.ref.startsWith('recipe:') && <span class="badge">{t('recipeBadge')}</span>}
+          {f.ref.startsWith('usda:') && <span class="badge">USDA</span>}
         </span>
         <span class="num muted">
           {fmt(value(f.per100g, 'kcal'))} kcal · P {fmtAmount(value(f.per100g, 'protein'))} ·{' '}

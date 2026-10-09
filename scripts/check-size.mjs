@@ -7,14 +7,18 @@ const BUDGET = {
   initialJs: 40 * KB, // entry chunk(s) referenced by index.html
   css: 8 * KB,
   workerJs: 15 * KB,
-  foodData: 250 * KB,
+  foodData: 250 * KB, // per file
 };
 
 const gz = async (p) => gzipSync(await readFile(p), { level: 9 }).length;
 const html = await readFile('dist/index.html', 'utf8');
 const assets = await readdir('dist/assets');
 
-const sizes = { initialJs: 0, css: 0, workerJs: 0, foodData: await gz('dist/data/foods.json') };
+// Every food-data file must fit the budget on its own (they load independently).
+const dataFiles = (await readdir('dist/data')).filter((f) => f.endsWith('.json'));
+let largestData = 0;
+for (const f of dataFiles) largestData = Math.max(largestData, await gz(`dist/data/${f}`));
+const sizes = { initialJs: 0, css: 0, workerJs: 0, foodData: largestData };
 for (const f of assets) {
   const size = await gz(`dist/assets/${f}`);
   if (f.endsWith('.css')) sizes.css += size;

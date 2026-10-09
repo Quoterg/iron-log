@@ -49,8 +49,38 @@ describe('search', () => {
   });
 });
 
+describe('USDA food data', () => {
+  const sources = JSON.parse(readFileSync('src/lib/sources.json', 'utf8')) as { usda: string[] };
+  const files = sources.usda.map(
+    (f) => JSON.parse(readFileSync(`public/data/${f}`, 'utf8')) as { keys: string[]; foods: [string, string, null, ...(number | null)[]][] },
+  );
+  const foods = files.flatMap((f) => f.foods);
+
+  it('uses our nutrient order and unique usda refs and names', () => {
+    for (const f of files) expect(f.keys).toEqual(NUTRIENTS.map((n) => n.key));
+    expect(foods.length).toBeGreaterThan(7000);
+    expect(new Set(foods.map((f) => f[0])).size).toBe(foods.length);
+    expect(new Set(foods.map((f) => f[1])).size).toBe(foods.length);
+    expect(foods.every((f) => f[0].startsWith('usda:'))).toBe(true);
+  });
+
+  it('has plausible energy (available carbs, not carbs by difference)', () => {
+    const off: string[] = [];
+    for (const [, name, , ...v] of foods) {
+      const k = (key: string) => v[NUTRIENT_INDEX[key]] ?? 0;
+      const est = k('protein') * 4 + k('carbs') * 4 + k('fat') * 9 + k('alcohol') * 7 + k('fibre') * 2;
+      if (Math.abs(est - k('kcal')) > 0.15 * k('kcal') + 15) off.push(`${name}: ${k('kcal')} kcal vs ${Math.round(est)}`);
+    }
+    // Pinned to today's count (mostly foods with sugar alcohols/organic acids); new outliers fail.
+    expect(off.length, off.slice(0, 10).join('\n')).toBeLessThanOrEqual(40);
+    const banana = foods.find((f) => f[1] === 'Bananas, raw')!;
+    expect(banana[3 + NUTRIENT_INDEX.carbs]).toBeCloseTo(20.2, 1); // 22.8 by difference − 2.6 fibre
+  });
+});
+
 describe('real food data', () => {
-  const data = JSON.parse(readFileSync('public/data/foods.json', 'utf8')) as {
+  const slvFile = (JSON.parse(readFileSync('src/lib/sources.json', 'utf8')) as { slv: string[] }).slv[0];
+  const data = JSON.parse(readFileSync(`public/data/${slvFile}`, 'utf8')) as {
     keys: string[];
     foods: [string, string, string | null, ...(number | null)[]][];
   };

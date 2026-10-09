@@ -33,6 +33,8 @@ pnpm lighthouse            # Lighthouse CI on dist/ (mobile, simulated slow 4G);
                            # locally: CHROME_PATH=~/.cache/ms-playwright/chromium-*/chrome-linux/chrome
 pnpm data:fetch            # re-download Livsmedelsverket data → data/raw (slow, ~2.6k requests)
 pnpm data:build            # data/raw → public/data/foods.json
+pnpm data:fetch-usda       # USDA FoodData Central CSVs → data/raw/usda (needs `unzip`)
+pnpm data:build-usda       # data/raw/usda → public/data/usda-*.json (+ src/lib/sources.json)
 ```
 
 ## Rules

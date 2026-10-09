@@ -1,8 +1,9 @@
 // Offline support. Hand-written to stay tiny.
 // - App pages: network-first, fall back to cache (so updates arrive when online).
 // - Hashed assets (/assets/*): cache-first, they never change.
-// - Food data: stale-while-revalidate.
-const CACHE = 'iron-log-v1';
+// - Food data: content-hashed files (data/*.<hash>.json) are cache-first — never re-downloaded;
+//   anything else under data/ is stale-while-revalidate.
+const CACHE = 'iron-log-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -19,7 +20,7 @@ self.addEventListener('fetch', (event) => {
 
   if (req.mode === 'navigate') {
     event.respondWith(networkFirst(req));
-  } else if (url.pathname.includes('/assets/')) {
+  } else if (url.pathname.includes('/assets/') || /\/data\/[^/]+\.[0-9a-f]{8}\.json$/.test(url.pathname)) {
     event.respondWith(cacheFirst(req));
   } else {
     event.respondWith(staleWhileRevalidate(event, req));

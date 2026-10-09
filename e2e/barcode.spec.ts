@@ -66,5 +66,5 @@ test('unknown products offer to create a custom food', async ({ page }) => {
   await page.getByRole('button', { name: 'Sök', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('finns inte i Open Food Facts');
   await page.getByRole('button', { name: /Skapa eget livsmedel/ }).click();
-  await expect(page.getByLabel('Namn')).toBeVisible();
+  await expect(page.getByLabel('Namn', { exact: true })).toBeVisible();
 });

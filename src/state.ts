@@ -2,7 +2,7 @@
 import { computed, signal } from '@preact/signals';
 import * as db from './lib/db';
 import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db';
-import { getFoods, setCustomFoods, setUserBoosts } from './lib/foods';
+import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
 import { fetchProduct } from './lib/off';
 import { lang } from './lib/i18n';
 import type { Food, NutrientVector, Serving } from './lib/nutrients';
@@ -131,10 +131,18 @@ export async function loadSettings(): Promise<void> {
     settings.value = next;
     lang.value = s.lang;
   }
+  // Also for new users (no saved settings): the default databases follow the language.
+  setSources(activeSources(settings.value));
+}
+
+/** Databases searched: the user's choice, else by language (Swedish → Swedish data only). */
+export function activeSources(s: Settings): Source[] {
+  return s.sources?.length ? s.sources : s.lang === 'en' ? ['slv', 'usda'] : ['slv'];
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<void> {
   settings.value = { ...settings.value, ...patch };
+  setSources(activeSources(settings.value));
   lang.value = settings.value.lang;
   document.documentElement.lang = lang.value;
   await db.saveSettings(settings.value);

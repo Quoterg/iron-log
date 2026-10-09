@@ -15,7 +15,9 @@
     "lighthouse": "lhci autorun",
     "icons": "node scripts/make-icons.mjs",
     "data:fetch": "node scripts/fetch-slv.mjs",
-    "data:build": "node scripts/build-foods.mjs"
+    "data:build": "node scripts/build-foods.mjs",
+    "data:fetch-usda": "node scripts/fetch-usda.mjs",
+    "data:build-usda": "node scripts/build-usda.mjs"
   },
   "dependencies": {
     "@preact/signals": "1",
