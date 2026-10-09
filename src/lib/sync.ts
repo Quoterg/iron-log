@@ -13,6 +13,8 @@
 import { SYNC_VALIDATORS } from './backup';
 import { KEY_PATH, openDb, SYNC_STORES, type Meta, type Settings, type SyncStore, type Usage } from './db';
 
+export type { SyncStore };
+
 /** metaKey → last change (ms). */
 export type Summary = Record<string, number>;
 

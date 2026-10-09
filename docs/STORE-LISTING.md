@@ -61,7 +61,11 @@ What actually leaves the device:
 | Barcode lookup | Open Food Facts (world.openfoodfacts.org) | the barcode; the IP address (as any request) | only when the user scans or types a barcode |
 | App and food-data files | GitHub Pages (quoterg.github.io) | the IP address (as any request) | loading/updating the app |
 
-Not declared: links the user taps (Open Food Facts pages, GitHub issues) open those websites in
+Not declared: device-to-device sync (M17) sends the user's data only to another of the user's own
+devices, directly and encrypted on the local network, after the user scans a code — no server,
+developer or third party receives it. Re-check this against Play's definitions before submitting.
+
+Also not declared: links the user taps (Open Food Facts pages, GitHub issues) open those websites in
 the browser; nothing is sent by the app itself.
 
 What we declare on the form:

@@ -97,6 +97,16 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await tab(page, 'Inställningar');
     await expect(page.getByLabel('Språk')).toBeVisible();
   },
+  'sync sheet': async (page) => {
+    await tab(page, 'Inställningar');
+    await page.getByRole('button', { name: 'Synka', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Skanna kod' })).toBeVisible();
+  },
+  'sync code (QR)': async (page) => {
+    await SCREENS['sync sheet'](page);
+    await page.getByRole('button', { name: 'Starta här (visa kod)' }).click();
+    await expect(page.getByRole('img', { name: /QR-kod/ })).toBeVisible();
+  },
   'activity sheet': async (page) => {
     await card(page, 'Aktivitet').getByRole('button', { name: /Lägg till/ }).click();
     await expect(page.getByLabel('Minuter')).toBeVisible();
