@@ -17,7 +17,10 @@ Done (approved by the owner):
   table (shrunk to ≤ 1600 px JPEG before upload), the user's OFF username and password. The app
   posts to OFF's write API (product_jqm2.pl, product_image_upload.pl — CORS-enabled, checked
   against the staging server), then saves the product locally and opens it for logging.
-- The login lives in memory for the app session only (never IndexedDB, backups or sync). Wrong
+- The password is used for the upload only (cleared afterwards); only the username stays in memory
+  for the session (never IndexedDB, backups or sync). Plausibility checks before publishing
+  (macros ≤ 100 g, sugar ≤ carbs, sat. fat ≤ fat, sum ≤ 105 g, ≤ 900 kcal). Photos upload in
+  parallel, shrunk when chosen; a failed photo never undoes the product. Wrong
   login, no network and refusals get clear messages; a refused photo doesn't undo the product.
 - The website link stays as a fallback. Upload-screen strings are lazy (strings-off.ts + `off`
   sections in the packs). Privacy policy and data-safety notes describe the upload.

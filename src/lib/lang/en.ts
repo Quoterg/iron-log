@@ -306,7 +306,7 @@ const off: Record<string, string> = {
   offAccount: 'Your Open Food Facts account',
   offUser: 'Username',
   offPassword: 'Password',
-  offLoginNote: 'Used only for this upload and never stored on the device.',
+  offLoginNote: 'The password is used only for this upload and never stored.',
   offCreateAccount: 'Create an account (free)',
   offPublishNote: 'The data and photos are published openly on Open Food Facts (ODbL / CC BY-SA) for everyone to use.',
   offUploadSend: 'Send and add',
@@ -314,7 +314,16 @@ const off: Record<string, string> = {
   offUploadLogin: 'Wrong Open Food Facts username or password.',
   offUploadNetwork: 'Could not reach Open Food Facts. Check your connection and try again.',
   offUploadRejected: 'Open Food Facts did not accept the product. Check the details or use the website.',
-  offUploadInvalid: 'Fill in name, energy (kcal), username and password – with valid numbers only.',
+  offUploadInvalid: 'One of the nutrition values is not a valid number.',
+  offContinue: 'Continue',
+  offPhotosFailed: 'The product was added, but {n} photo(s) did not arrive. You can add them on the Open Food Facts website.',
+  offCheckKcal: 'The energy looks too high (over 900 kcal per 100 g). Is it in kJ?',
+  offCheckSum: 'Fat, carbohydrates, protein, fibre and salt add up to more than 100 g – check the decimals.',
+  offCheckParts: 'Sugars cannot be more than carbohydrates, nor saturated fat more than fat.',
+  offCheckMacros: 'No nutrient can be more than 100 g per 100 g – check the decimals.',
+  offMissingLogin: 'Fill in your Open Food Facts username and password.',
+  offMissingKcal: 'Fill in the energy (kcal per 100 g) from the label.',
+  offMissingName: 'Fill in the product name.',
 };
 
 const pack: LangPack = { strings, sync, off };

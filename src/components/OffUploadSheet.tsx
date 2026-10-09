@@ -1,12 +1,30 @@
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Meal } from '../lib/db';
-import { lang, nutrientName, parseNum, t } from '../lib/i18n';
+import { fmt, lang, nutrientName, parseNum, t } from '../lib/i18n';
+import type { Food } from '../lib/nutrients';
 import { NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
-import { LABEL, offSession, OffWriteError, uploadProduct } from '../lib/off-write';
+import { implausible, LABEL, offSession, OffWriteError, shrink, uploadProduct } from '../lib/off-write';
+import { to, type OffKey } from '../lib/strings-off';
 import { replaceTop } from '../nav';
 import { rememberOffFood } from '../state';
-import { to } from '../lib/strings-off';
 import { Sheet } from './Sheet';
+
+type Problem = 'missingName' | 'missingKcal' | 'missingLogin' | 'number' | 'macros' | 'parts' | 'sum' | 'kcal';
+const PROBLEM_TEXT: Record<Problem, OffKey> = {
+  missingName: 'offMissingName',
+  missingKcal: 'offMissingKcal',
+  missingLogin: 'offMissingLogin',
+  number: 'offUploadInvalid',
+  macros: 'offCheckMacros',
+  parts: 'offCheckParts',
+  sum: 'offCheckSum',
+  kcal: 'offCheckKcal',
+};
+const SEND_ERROR: Record<OffWriteError['kind'], OffKey> = {
+  login: 'offUploadLogin',
+  network: 'offUploadNetwork',
+  rejected: 'offUploadRejected',
+};
 
 /**
  * Add (or complete) a product on Open Food Facts from the app: the label's nutrition per 100 g,
@@ -17,41 +35,88 @@ export default function OffUploadSheet({ code, meal }: { code: string; meal: Mea
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('');
   const [vals, setVals] = useState<Record<string, string>>({});
-  const front = useRef<File | undefined>();
-  const nutrition = useRef<File | undefined>();
-  const [user, setUser] = useState(offSession.login?.user ?? '');
-  const [password, setPassword] = useState(offSession.login?.password ?? '');
-  const [state, setState] = useState<'edit' | 'sending' | OffWriteError['kind'] | 'invalid'>('edit');
+  // Photos are shrunk as soon as they're chosen (the cost is hidden while the rest is filled in).
+  const photos = useRef<{ front?: Promise<Blob>; nutrition?: Promise<Blob> }>({});
+  const [user, setUser] = useState(offSession.user ?? '');
+  const [password, setPassword] = useState('');
+  const [sending, setSending] = useState(false);
+  const [problem, setProblem] = useState<Problem | OffWriteError['kind'] | null>(null);
+  const [done, setDone] = useState<{ food: Food; failed: number } | null>(null);
+  const abort = useRef(new AbortController());
+  useEffect(() => () => abort.current.abort(), []); // closing the sheet stops the upload
 
   const parsed = Object.fromEntries(LABEL.map(([k]) => [k, vals[k]?.trim() ? parseNum(vals[k]) : undefined]));
-  const badNumber = LABEL.some(([k]) => parsed[k] !== undefined && !(parsed[k]! >= 0));
-  const ready = name.trim() && parsed.kcal !== undefined && !badNumber && user.trim() && password;
+
+  const check = (): Problem | null => {
+    if (!name.trim()) return 'missingName';
+    if (parsed.kcal === undefined) return 'missingKcal';
+    if (LABEL.some(([k]) => parsed[k] !== undefined && !(parsed[k]! >= 0))) return 'number';
+    const why = implausible(parsed);
+    if (why) return why;
+    if (!user.trim() || !password) return 'missingLogin';
+    return null;
+  };
+
+  const open = (food: Food) => replaceTop({ kind: 'food', ref: food.ref, meal });
 
   const send = async (e: Event) => {
     e.preventDefault();
-    if (!ready) return setState('invalid');
-    setState('sending');
-    const login = { user: user.trim(), password };
+    const p = check();
+    setProblem(p);
+    if (p) return;
+    setSending(true);
     try {
-      const food = await uploadProduct(
+      const [front, nutrition] = await Promise.all([photos.current.front, photos.current.nutrition]);
+      const r = await uploadProduct(
         { code, name, brand, lang: lang.value, values: parsed },
-        login,
-        { front: front.current, nutrition: nutrition.current },
+        { user: user.trim(), password },
+        { front, nutrition },
+        { signal: abort.current.signal },
       );
-      offSession.login = login; // for this app session only (memory), so a second product needn't ask again
-      await rememberOffFood(food);
-      replaceTop({ kind: 'food', ref: food.ref, meal });
+      offSession.user = user.trim(); // the username only, for this app session
+      setPassword('');
+      await rememberOffFood(r.food);
+      if (r.photosFailed.length) setDone({ food: r.food, failed: r.photosFailed.length });
+      else open(r.food);
     } catch (err) {
-      setState(err instanceof OffWriteError ? err.kind : 'rejected');
+      setProblem(err instanceof OffWriteError ? err.kind : 'rejected');
+    } finally {
+      setSending(false);
     }
   };
 
-  const error: Partial<Record<typeof state, string>> = {
-    login: to('offUploadLogin'),
-    network: to('offUploadNetwork'),
-    rejected: to('offUploadRejected'),
-    invalid: to('offUploadInvalid'),
-  };
+  if (done) {
+    return (
+      <Sheet title={to('offUploadTitle')}>
+        <div class="pad">
+          <p role="status">{to('offPhotosFailed').replace('{n}', fmt(done.failed))}</p>
+          <div class="actions">
+            <button class="btn primary" onClick={() => open(done.food)}>
+              {to('offContinue')}
+            </button>
+          </div>
+        </div>
+      </Sheet>
+    );
+  }
+
+  const photoInput = (field: 'front' | 'nutrition', label: OffKey) => (
+    <label class="field">
+      <span>{to(label)}</span>
+      {/* No `capture`: the phone offers both the camera and existing photos. */}
+      <input
+        type="file"
+        accept="image/*"
+        name={field}
+        onChange={(e) => {
+          const file = (e.currentTarget as HTMLInputElement).files?.[0];
+          photos.current[field] = file ? shrink(file) : undefined;
+        }}
+      />
+    </label>
+  );
+
+  const message = problem ? to(problem in PROBLEM_TEXT ? PROBLEM_TEXT[problem as Problem] : SEND_ERROR[problem as OffWriteError['kind']]) : null;
 
   return (
     <Sheet title={to('offUploadTitle')}>
@@ -61,11 +126,11 @@ export default function OffUploadSheet({ code, meal }: { code: string; meal: Mea
         </p>
         <label class="field">
           <span>{t('name')}</span>
-          <input type="text" value={name} autoFocus onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
+          <input type="text" name="product" value={name} autoFocus onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
         </label>
         <label class="field">
           <span>{to('offBrand')}</span>
-          <input type="text" value={brand} onInput={(e) => setBrand((e.currentTarget as HTMLInputElement).value)} />
+          <input type="text" name="brand" value={brand} onInput={(e) => setBrand((e.currentTarget as HTMLInputElement).value)} />
         </label>
 
         <h3>{t('nutrientsPer100g')}</h3>
@@ -89,23 +154,23 @@ export default function OffUploadSheet({ code, meal }: { code: string; meal: Mea
         </div>
 
         <h3>{to('offPhotos')}</h3>
-        <label class="field">
-          <span>{to('offPhotoFront')}</span>
-          <input type="file" accept="image/*" capture="environment" onChange={(e) => (front.current = (e.currentTarget as HTMLInputElement).files?.[0])} />
-        </label>
-        <label class="field">
-          <span>{to('offPhotoNutrition')}</span>
-          <input type="file" accept="image/*" capture="environment" onChange={(e) => (nutrition.current = (e.currentTarget as HTMLInputElement).files?.[0])} />
-        </label>
+        {photoInput('front', 'offPhotoFront')}
+        {photoInput('nutrition', 'offPhotoNutrition')}
 
         <h3>{to('offAccount')}</h3>
         <label class="field">
           <span>{to('offUser')}</span>
-          <input type="text" autoComplete="username" value={user} onInput={(e) => setUser((e.currentTarget as HTMLInputElement).value)} />
+          <input type="text" name="username" autoComplete="username" value={user} onInput={(e) => setUser((e.currentTarget as HTMLInputElement).value)} />
         </label>
         <label class="field">
           <span>{to('offPassword')}</span>
-          <input type="password" autoComplete="current-password" value={password} onInput={(e) => setPassword((e.currentTarget as HTMLInputElement).value)} />
+          <input
+            type="password"
+            name="password"
+            autoComplete="current-password"
+            value={password}
+            onInput={(e) => setPassword((e.currentTarget as HTMLInputElement).value)}
+          />
         </label>
         <p class="muted small">
           {to('offLoginNote')}{' '}
@@ -115,14 +180,14 @@ export default function OffUploadSheet({ code, meal }: { code: string; meal: Mea
         </p>
         <p class="muted small">{to('offPublishNote')}</p>
 
-        {error[state] && (
+        {message && (
           <p class="error-text" role="alert">
-            {error[state]}
+            {message}
           </p>
         )}
         <div class="actions">
-          <button type="submit" class="btn primary" disabled={state === 'sending'}>
-            {state === 'sending' ? to('offUploading') : to('offUploadSend')}
+          <button type="submit" class="btn primary" disabled={sending}>
+            {sending ? to('offUploading') : to('offUploadSend')}
           </button>
         </div>
       </form>
