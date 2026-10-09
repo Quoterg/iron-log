@@ -3,18 +3,26 @@
 [![CI](https://github.com/Quoterg/iron-log/actions/workflows/ci.yml/badge.svg)](https://github.com/Quoterg/iron-log/actions/workflows/ci.yml)
 [![Deploy](https://github.com/Quoterg/iron-log/actions/workflows/deploy.yml/badge.svg)](https://github.com/Quoterg/iron-log/actions/workflows/deploy.yml)
 
-**Try it: https://quoterg.github.io/iron-log/** — open on your phone and choose "Add to Home screen".
+**Try it: https://quoterg.github.io/iron-log/** — or install it:
+
+- **iPhone:** open the link in Safari → Share → *Add to Home Screen*.
+- **Android:** open it in Chrome → ⋮ → *Install app*, or download the **[Android app (APK)](https://github.com/Quoterg/iron-log/releases/latest/download/iron-log.apk)**
+  from the [latest release](https://github.com/Quoterg/iron-log/releases/latest) (Android 7+; tap
+  *More details → Install anyway* at the Play Protect warning — it isn't on Google Play). Only
+  download it from here. Signing certificate SHA-256:
+  `F9:FF:C7:18:F1:E9:E9:F7:C2:F0:94:53:ED:8E:FB:D5:7C:39:F3:DF:C5:6A:1E:D2:E8:0C:0B:E0:19:23:DC:4F`
 
 Open-source nutrition tracker for energy, macros **and micronutrients** — a free alternative
 to Cronometer and MyFitnessPal. Swedish first (Livsmedelsverket's food database and the Nordic
-Nutrition Recommendations 2023), with English UI for everyone else.
+Nutrition Recommendations 2023), in Swedish, English, Danish, German, Finnish and Somali.
 
-- **Fast on old phones.** ~15 KB of JavaScript to start, search runs in a background worker.
+- **Fast on old phones.** ~35 KB of JavaScript (gzip) to start, search runs in a background worker.
 - **Works offline.** Installable web app; everything works without a connection.
 - **Private.** Your diary never leaves your device. No account, no ads, no tracking.
-- **Micronutrients first.** ~40 nutrients per food, compared against NNR 2023 targets.
+- **Micronutrients first.** ~55 nutrients incl. essential amino acids, compared against NNR 2023 targets.
+- **Sync without a server.** Two of your devices sync directly by scanning a QR code.
 
-> Status: early development — see [docs/ROADMAP.md](docs/ROADMAP.md) and [PROGRESS.md](PROGRESS.md).
+> Status: the planned roadmap is done — see [docs/ROADMAP.md](docs/ROADMAP.md) and [PROGRESS.md](PROGRESS.md).
 
 ## Develop
 

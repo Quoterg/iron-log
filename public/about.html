@@ -25,6 +25,9 @@
   h2 { font-size: 1.1rem; }
   a { color: var(--accent); overflow-wrap: anywhere; } /* long URLs must wrap at large text sizes */
   .muted { color: var(--muted); font-size: .9rem; }
+  .install { background: var(--card); border-radius: 12px; padding: 4px 16px 12px; margin: 16px 0; }
+  .install ol { padding-left: 1.2em; }
+  code.fp { font-size: .75rem; overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
@@ -32,7 +35,20 @@
   <header><img src="icon.svg" alt=""><h1>Iron Log</h1></header>
   <p class="lead">En snabb, gratis näringsdagbok med öppen källkod. Logga maten och se energi, makron och vitaminer, mineraler och fettsyror mot de nordiska näringsrekommendationerna (NNR 2023).</p>
   <a class="cta" href="./">Öppna Iron Log</a>
-  <p class="muted">Fungerar i webbläsaren och kan installeras som app (”Lägg till på startskärmen”). Funkar offline.</p>
+  <p class="muted">Fungerar i webbläsaren och kan installeras som app. Funkar offline.</p>
+
+  <section class="install" id="installera">
+    <h2>Installera på mobilen</h2>
+    <h3>iPhone</h3>
+    <ol>
+      <li>Öppna <a href="./">quoterg.github.io/iron-log</a> i Safari (eller Chrome).</li>
+      <li>Tryck på <b>Dela</b> (□↑) och välj <b>Lägg till på hemskärmen</b>.</li>
+    </ol>
+    <h3>Android</h3>
+    <p>Enklast: öppna appen i Chrome, tryck på <b>⋮</b> och välj <b>Installera app</b>. Eller ladda ner Android-appen:</p>
+    <p><a class="cta" href="https://github.com/Quoterg/iron-log/releases/latest/download/iron-log.apk">Ladda ner för Android (APK)</a></p>
+    <p class="muted">Ladda bara ner appen härifrån. Android varnar (”Play Protect”) eftersom appen inte finns i Play Butik – tryck på <b>Mer information → Installera ändå</b>, och stäng av ”Installera okända appar” för webbläsaren igen efteråt. Appen kräver Android 7 eller senare och visar samma Iron Log som webben, så den uppdateras av sig själv. Signeringscertifikatets SHA-256: <code class="fp">F9:FF:C7:18:F1:E9:E9:F7:C2:F0:94:53:ED:8E:FB:D5:7C:39:F3:DF:C5:6A:1E:D2:E8:0C:0B:E0:19:23:DC:4F</code></p>
+  </section>
 
   <div class="grid">
     <div><h2>Svensk mat först</h2><p>Livsmedelsverkets databas med svenska namn och vanliga mått (dl, msk, st), plus USDA och Open Food Facts-streckkoder.</p></div>
@@ -44,6 +60,7 @@
   <section lang="en">
   <h2 id="en">In English</h2>
   <p>Iron Log is a fast, free, open-source nutrition tracker. Log food and see energy, macros, vitamins, minerals and fatty acids against the Nordic Nutrition Recommendations (NNR 2023). It works in the browser, installs as an app and works offline. <a href="./">Open the app</a></p>
+  <p><b>Install:</b> on iPhone, open the app in Safari → <b>Share</b> → <b>Add to Home Screen</b>. On Android, open it in Chrome → <b>⋮</b> → <b>Install app</b>, or <a href="https://github.com/Quoterg/iron-log/releases/latest/download/iron-log.apk">download the Android app (APK)</a> — only from this link; tap <b>More details → Install anyway</b> at the Play Protect warning (the app isn't on Google Play). Android 7+. Certificate SHA-256: <code class="fp">F9:FF:C7:18:F1:E9:E9:F7:C2:F0:94:53:ED:8E:FB:D5:7C:39:F3:DF:C5:6A:1E:D2:E8:0C:0B:E0:19:23:DC:4F</code></p>
   <ul>
     <li><b>Swedish food first:</b> the Swedish Food Agency database with household measures, plus USDA and Open Food Facts barcodes.</li>
     <li><b>Your data stays with you:</b> no accounts, no tracking; export or delete any time. <a href="privacy.html#en">Privacy</a></li>
