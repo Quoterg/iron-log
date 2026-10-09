@@ -9,7 +9,9 @@ export type Screen =
   /** Food detail: add a new entry (meal set), or edit an existing one (entryId set). */
   | { kind: 'food'; ref: string; meal?: Meal; entryId?: string }
   /** Create (no ref) or edit a custom food. `meal` continues to adding it afterwards. */
-  | { kind: 'editFood'; ref?: string; name?: string; meal?: Meal };
+  | { kind: 'editFood'; ref?: string; name?: string; meal?: Meal }
+  /** Copy the shown day's entries (or one meal's) to another date/meal. */
+  | { kind: 'copy'; meal?: Meal };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

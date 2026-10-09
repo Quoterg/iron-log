@@ -1,8 +1,8 @@
 // App-wide reactive state (Preact signals) and the actions that change it.
 import { computed, signal } from '@preact/signals';
 import * as db from './lib/db';
-import type { CustomFood, Entry, Meal, Settings } from './lib/db';
-import { getFoods, setCustomFoods } from './lib/foods';
+import type { CustomFood, Entry, Meal, Settings, Usage } from './lib/db';
+import { getFoods, setCustomFoods, setUserBoosts } from './lib/foods';
 import { lang } from './lib/i18n';
 import type { Food, NutrientVector } from './lib/nutrients';
 import { DEFAULT_PROFILE, nnrTargets, type Target } from './lib/targets';
@@ -16,6 +16,8 @@ export const entries = signal<Entry[]>([]);
 /** Every food referenced on screen, built-in or custom, by ref. */
 export const foods = signal<Map<string, Food>>(new Map());
 export const customFoods = signal<CustomFood[]>([]);
+/** Per-food usage (count, last amount, favourite), by food ref. */
+export const usage = signal<Map<string, Usage>>(new Map());
 export const settings = signal<Settings>({
   lang: lang.value,
   profile: DEFAULT_PROFILE,
@@ -62,6 +64,7 @@ export async function addEntry(meal: Meal, food: Food, grams: number): Promise<v
   foods.value = new Map(foods.value).set(food.ref, food);
   entries.value = [...entries.value, e];
   await db.putEntry(e);
+  await recordUse(food.ref, grams);
 }
 
 export type EntryPatch = Partial<Pick<Entry, 'grams' | 'meal' | 'date' | 'foodRef'>>;
@@ -148,4 +151,70 @@ export async function deleteCustomFood(ref: string): Promise<void> {
   customFoods.value = customFoods.value.map((x) => (x.ref === ref ? next : x));
   syncCustomFoods();
   await db.putCustomFood(next);
+}
+
+// --- Usage: recent, frequent, favourites ---
+
+export async function loadUsage(): Promise<void> {
+  usage.value = new Map((await db.listUsage()).map((u) => [u.foodRef, u]));
+  setUserBoosts(userBoosts(usage.value));
+}
+
+/** Ranking boost from history: grows with use (log scale, capped), extra for favourites. */
+export function userBoosts(map: Map<string, Usage>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const u of map.values()) {
+    const b = Math.min(3, 0.75 * Math.log2(1 + u.count)) + (u.fav ? 2 : 0);
+    if (b > 0) out[u.foodRef] = b;
+  }
+  return out;
+}
+
+async function putUsage(u: Usage) {
+  usage.value = new Map(usage.value).set(u.foodRef, u);
+  setUserBoosts(userBoosts(usage.value));
+  await db.putUsage(u);
+}
+
+async function recordUse(ref: string, grams: number) {
+  const prev = usage.value.get(ref);
+  await putUsage({ ...prev, foodRef: ref, count: (prev?.count ?? 0) + 1, lastUsed: Date.now(), lastGrams: grams });
+}
+
+export async function toggleFavourite(ref: string): Promise<void> {
+  const prev = usage.value.get(ref);
+  await putUsage({ foodRef: ref, count: 0, lastUsed: 0, lastGrams: 100, ...prev, fav: !prev?.fav });
+}
+
+function isHidden(ref: string) {
+  return customFoods.value.some((f) => f.ref === ref && f.deleted);
+}
+
+/** Favourites (most used first) and other recently used foods (newest first). */
+export const favourites = computed(() =>
+  [...usage.value.values()].filter((u) => u.fav && !isHidden(u.foodRef)).sort((a, b) => b.count - a.count),
+);
+export const recent = computed(() =>
+  [...usage.value.values()]
+    .filter((u) => u.lastUsed > 0 && !u.fav && !isHidden(u.foodRef))
+    .sort((a, b) => b.lastUsed - a.lastUsed)
+    .slice(0, 15),
+);
+
+// --- Copy meals / days ---
+
+/** Copy the selected day's entries (optionally one meal) to another date and meal. */
+export async function copyEntries(opts: { fromMeal?: Meal; toDate: string; toMeal?: Meal }): Promise<number> {
+  const src = entries.value.filter((e) => !opts.fromMeal || e.meal === opts.fromMeal);
+  const now = Date.now();
+  const copies: Entry[] = src.map((e, i) => ({
+    ...e,
+    id: db.newId(),
+    date: opts.toDate,
+    meal: opts.toMeal ?? e.meal,
+    createdAt: now + i, // keep the original order
+  }));
+  await db.putEntries(copies);
+  if (opts.toDate === date.value) entries.value = [...entries.value, ...copies];
+  return copies.length;
 }

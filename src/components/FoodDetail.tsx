@@ -4,7 +4,16 @@ import { fmt, fmtAmount, lang, parseNum, t } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { scale } from '../lib/totals';
 import { back, closeAll, open } from '../nav';
-import { addEntry, date as currentDate, entries, foods, removeEntry, updateEntry } from '../state';
+import {
+  addEntry,
+  date as currentDate,
+  entries,
+  foods,
+  removeEntry,
+  toggleFavourite,
+  updateEntry,
+  usage,
+} from '../state';
 import { NutrientGroups } from './NutrientGroups';
 import { Sheet } from './Sheet';
 
@@ -19,7 +28,11 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
   const ref = entry?.foodRef ?? props.foodRef;
   const food = foods.value.get(ref);
 
-  const [grams, setGrams] = useState(String(entry?.grams ?? 100).replace('.', lang.value === 'sv' ? ',' : '.'));
+  const used = usage.value.get(ref);
+  // New entries start from the amount you used last time for this food.
+  const [grams, setGrams] = useState(
+    String(entry?.grams ?? used?.lastGrams ?? 100).replace('.', lang.value === 'sv' ? ',' : '.'),
+  );
   const [meal, setMeal] = useState<Meal>(entry?.meal ?? props.meal ?? 'breakfast');
   const [day, setDay] = useState(entry?.date ?? currentDate.value);
   // Synchronous guard: a double tap on a slow phone must not log the food twice.
@@ -47,10 +60,20 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
   return (
     <Sheet title={entry ? t(entry.meal) : t(meal)}>
       <form class="amount" onSubmit={submit}>
-        <h3>
-          {foodName(food, lang.value)}
-          {isCustom && <span class="badge">{t('customBadge')}</span>}
-        </h3>
+        <div class="title-row">
+          <h3>
+            {foodName(food, lang.value)}
+            {isCustom && <span class="badge">{t('customBadge')}</span>}
+          </h3>
+          <button
+            type="button"
+            class={used?.fav ? 'btn small fav on' : 'btn small fav'}
+            aria-pressed={!!used?.fav}
+            onClick={() => void toggleFavourite(ref)}
+          >
+            {used?.fav ? t('isFavourite') : t('addFavourite')}
+          </button>
+        </div>
         <label>
           {t('amount')}
           <span class="amount-row">

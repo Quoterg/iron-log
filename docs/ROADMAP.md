@@ -19,7 +19,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [x] **M3 Food detail & custom foods** — Food detail screen (all nutrients per 100 g and per
   chosen amount, source + license). Create/edit/delete custom foods (stored in IndexedDB,
   searchable alongside built-in foods, `custom:<uuid>` refs). Edit an entry's food/meal/date.
-- [ ] **M4 Fast re-logging** — Recent & frequent foods shown before typing; favourites; copy a
+- [x] **M4 Fast re-logging** — Recent & frequent foods shown before typing; favourites; copy a
   meal or a whole day to another date; search ranking boosted by the user's own history.
   Rank everyday items first ("ris" → cooked rice before raw).
 - [ ] **M5 Your data** — Export/import everything (JSON backup + CSV of diary/nutrients),

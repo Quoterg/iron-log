@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { addDays } from './db';
+import { addDays, usageFromEntries } from './db';
+import { userBoosts } from '../state';
 import { NUTRIENT_INDEX, NUTRIENTS } from './nutrients';
 import { buildEntry, normalize, search } from './search';
 import { nnrTargets, progress } from './targets';
@@ -58,6 +59,19 @@ describe('real food data', () => {
     expect(data.keys).toEqual(NUTRIENTS.map((n) => n.key));
   });
 
+  it('ranks everyday foods first: "ris" → cooked rice', () => {
+    const popular = new Set((data as unknown as { popular: string[] }).popular);
+    expect(popular.size).toBeGreaterThan(40);
+    const entries = data.foods.map((f, i) => {
+      const e = buildEntry(i, [f[1], f[2]], f[1]);
+      if (popular.has(f[0])) e.boost = 2; // POPULAR_BOOST in the worker
+      return e;
+    });
+    for (const [q, expected] of [['ris', /kokt/], ['mjölk', /^Mjölk fett 3%/], ['ägg', /^Ägg/]] as const) {
+      expect(data.foods[search(entries, q)[0]][1]).toMatch(expected);
+    }
+  });
+
   it('finds common Swedish foods quickly', () => {
     const entries = data.foods.map((f, i) => buildEntry(i, [f[1], f[2]], f[1]));
     const t0 = performance.now();
@@ -94,6 +108,26 @@ describe('targets', () => {
     expect(progress(50, { min: 100, max: null })).toBe(0.5);
     expect(progress(3, { min: null, max: 6 })).toBe(0.5);
     expect(progress(3, undefined)).toBeNull();
+  });
+});
+
+describe('usage', () => {
+  it('derives counts and last amount from diary entries', () => {
+    const e = (id: string, foodRef: string, grams: number, createdAt: number) =>
+      ({ id, date: '2026-10-09', meal: 'lunch', foodRef, grams, createdAt }) as const;
+    const u = usageFromEntries([e('2', 'slv:1', 50, 20), e('1', 'slv:1', 30, 10), e('3', 'slv:2', 100, 15)]);
+    expect(u.find((x) => x.foodRef === 'slv:1')).toEqual({ foodRef: 'slv:1', count: 2, lastUsed: 20, lastGrams: 50 });
+  });
+  it('boosts frequently used and favourite foods, capped', () => {
+    const map = new Map([
+      ['a', { foodRef: 'a', count: 1, lastUsed: 1, lastGrams: 1 }],
+      ['b', { foodRef: 'b', count: 1000, lastUsed: 1, lastGrams: 1 }],
+      ['c', { foodRef: 'c', count: 0, lastUsed: 0, lastGrams: 1, fav: true }],
+    ]);
+    const b = userBoosts(map);
+    expect(b.a).toBeCloseTo(0.75);
+    expect(b.b).toBe(3);
+    expect(b.c).toBe(2);
   });
 });
 

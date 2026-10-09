@@ -5,7 +5,24 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M4 Fast re-logging** (see docs/ROADMAP.md).
+**M5 Your data** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M4 Fast re-logging (interactive session)
+
+Done:
+- IndexedDB v3 store `usage` (count, lastUsed, lastGrams, fav per food), seeded from the existing
+  diary on upgrade (tested). Updated on every add.
+- Search sheet before typing: "Favoriter" and "Senaste" (15 most recent). Food detail pre-fills
+  the last amount used; ☆/★ favourite toggle.
+- Ranking: `data/popular.txt` (59 everyday foods, exact SLV names; build warns on misses) →
+  `popular` refs in foods.json → +2 boost; user history boost `min(3, 0.75·log2(1+count))` +2 for
+  favourites, pushed to the worker and applied in place. Real-data test: "ris" → cooked rice,
+  "mjölk" → Mjölk fett 3%, "ägg" → Ägg.
+- Copy a meal or a whole day to another date/meal (`CopySheet.tsx`); the app then shows that day.
+- Tests: 21 unit, 6 Playwright. Initial JS 19.1 KB gzip.
+
+Ideas:
+- Copied entries don't count as "uses" for ranking (deliberate for now).
 
 ## 2026-10-09 — M3 Food detail & custom foods (interactive session)
 

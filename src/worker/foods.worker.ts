@@ -5,17 +5,23 @@ import type { Food } from '../lib/nutrients';
 import type { WorkerRequest, WorkerResponse } from '../lib/foods';
 
 interface FoodsFile {
+  popular?: string[];
   foods: [ref: string, sv: string, en: string | null, ...values: (number | null)[]][];
 }
 
 /** The user's own foods rank slightly above database foods with the same match. */
 const CUSTOM_BOOST = 1;
+/** Everyday foods (data/popular.txt): "ris" → cooked rice before raw specialty rice. */
+const POPULAR_BOOST = 2;
 
 let builtIn: Food[] = [];
 let custom: Food[] = [];
 let all: Food[] = [];
 const byRef = new Map<string, Food>();
 let index: Partial<Record<string, SearchEntry[]>> = {};
+let popular = new Set<string>();
+/** Per-food boost from the user's own history (count, favourites), set by the main thread. */
+let userBoost: Record<string, number> = {};
 
 let ready: Promise<void> | undefined;
 
@@ -24,6 +30,7 @@ async function load(url: string) {
   if (!res.ok) throw new Error(`foods.json: HTTP ${res.status}`);
   const data = (await res.json()) as FoodsFile;
   builtIn = data.foods.map(([ref, sv, en, ...per100g]) => ({ ref, sv, en, per100g }));
+  popular = new Set(data.popular ?? []);
   for (const f of builtIn) byRef.set(f.ref, f);
   rebuild();
 }
@@ -36,15 +43,27 @@ function rebuild() {
 function indexFor(lang: string): SearchEntry[] {
   return (index[lang] ??= all.map((f, i) => {
     const e = buildEntry(i, [f.sv, f.en], lang === 'en' ? (f.en ?? f.sv) : f.sv);
-    if (i >= builtIn.length) e.boost = CUSTOM_BOOST;
+    e.boost = boostFor(f.ref, i >= builtIn.length);
     return e;
   }));
+}
+
+function boostFor(ref: string, isCustom: boolean): number {
+  return (isCustom ? CUSTOM_BOOST : 0) + (popular.has(ref) ? POPULAR_BOOST : 0) + (userBoost[ref] ?? 0);
 }
 
 self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
   const req = ev.data;
   if (req.type === 'init') {
     ready = load(req.dataUrl);
+    return;
+  }
+  if (req.type === 'boost') {
+    userBoost = req.boosts;
+    // Update in place: cheaper than rebuilding the normalised index after every logged food.
+    for (const entries of Object.values(index)) {
+      for (const e of entries ?? []) e.boost = boostFor(all[e.i].ref, e.i >= builtIn.length);
+    }
     return;
   }
   if (req.type === 'custom') {

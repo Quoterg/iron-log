@@ -1,0 +1,62 @@
+# Everyday foods (exact Livsmedelsverket names) that get a search ranking boost,
+# so e.g. "ris" shows cooked rice before raw. One name per line; "#" starts a comment.
+# scripts/build-foods.mjs warns about names that no longer exist in the data.
+Ris långkornigt kokt m. salt
+Ris jasmin kokt m. salt
+Ris basmati kokt m. salt
+Pasta kokt u. salt
+Potatis kokt m. salt
+Mjölk fett 3% berikad
+Mellanmjölk fett 1,5% berikad
+Lättmjölk fett 0,5% berikad
+Filmjölk fett 3% berikad
+Yoghurt naturell fett 3% berikad
+Kvarg naturell fett 0,2%
+Ägg kokt
+Ägg stekt
+Banan
+Äpple m. skal
+Apelsin
+Havregryn fullkorn
+Havregrynsgröt fullkorn
+Smör fett 80%
+Matfettsblandning havssaltat fett 80% berikad typ Bregott
+Ost hårdost fett 28%
+Ost hårdost fett 17%
+Mjukost smältost fett 10%
+Hårt bröd fullkorn råg fibrer ca 14% typ rutknäcke
+Bröd rågsikt fibrer ca 4%
+Kaffe bryggt
+Te bryggt
+Kyckling bröstfilé färsk stekt u. skinn
+Lax odlad Norge fjordlax rå
+Tonfisk i vatten konserv. avrunnen
+Korv falukorv stekt fett 19% kött 58%
+Köttbullar nöt stekta
+Tomat
+Gurka
+Morot
+Broccoli
+Paprika röd
+Lök gul
+Avokado
+Jordgubbar
+Blåbär
+Vindruvor
+Jordnötssmör
+Rapsolja
+Olivolja
+Socker
+Vetemjöl
+Vispgrädde fett 40%
+Matlagningsgrädde fett 15%
+Havredryck fett 1,5% berikad
+Sojadryck osötad berikad
+Linser torkade
+Kikärtor konserv. u. lag
+Tofu fast
+Gröna bönor frysvara
+Frukostflingor müsli fullkorn m. frukt
+Sallad m. grönsallat gurka tomat u. dressing
+Leverpastej bredbar fett ca 24%
+Pannkaka tunn hemlagad
