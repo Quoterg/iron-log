@@ -11,6 +11,7 @@
   "navigationDividerColor": "#1f7a4d",
   "navigationDividerColorDark": "#121513",
   "backgroundColor": "#f6f7f5",
+  "splashScreenFadeOutDuration": 300,
   "enableNotifications": false,
   "startUrl": "/iron-log/",
   "iconUrl": "https://quoterg.github.io/iron-log/icon-512.png",
@@ -29,5 +30,5 @@
   "signingKey": { "path": "./android.keystore", "alias": "ironlog" },
   "generatorApp": "bubblewrap-cli",
   "shortcuts": [],
-  "minSdkVersion": 21
+  "minSdkVersion": 24
 }

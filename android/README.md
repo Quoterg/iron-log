@@ -58,6 +58,8 @@ Without the file the app still works, but shows a browser address bar (Custom Ta
 ## Notes
 
 - Package id `io.github.quoterg.ironlog` is final (it can't be changed after the first Play upload).
+- minSdkVersion 24 (Android 7.0): required by androidbrowserhelper 2.7+. Older phones use the
+  web app in the browser instead.
 - Notifications are off (the app has none yet); location/camera: the camera is used through the
   web page's barcode scanner only (the browser asks for permission).
 - Store texts, data-safety answers and F-Droid notes: `docs/STORE-LISTING.md`, `docs/FDROID.md`.
