@@ -5,7 +5,23 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M6 Serving sizes** (see docs/ROADMAP.md).
+**M7 Barcode scanning** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M6 Serving sizes (interactive session)
+
+Done:
+- `data/units.json`: 57 regex rules → approximate household measures (st, dl, msk, tsk, skiva,
+  glas, kopp, portion, smörgås) for 349 SLV foods; emitted as `units` in foods.json (+1.5 KB gzip).
+  Build warns on rules matching nothing; false positives (Mjölkchoklad, Smörgåstårta, Vattenmelon,
+  croissant…) checked and excluded.
+- Amount picker: quantity + measure select (g or "1 st (≈ 55 g)"), quick chips per unit (½, 1, 2, 3),
+  "+ Eget mått" for user-defined measures (IndexedDB v4 store `servings`, included in backups).
+- Entries store `unit`/`qty` alongside grams (grams stays the source of truth); diary shows "2 st".
+  Last measure per food is remembered (usage.lastUnit/lastQty). Swapping an entry's food keeps the
+  grams and drops the measure.
+- Local tables (custom foods, usage, servings) now load before first render (removes startup races).
+- Search: favourites/recent hide as soon as you type (no stale taps).
+- Tests: 30 unit, 10 Playwright (verified stable with --repeat-each=3). Initial JS 23.0 KB gzip.
 
 ## 2026-10-09 — M5 Your data (interactive session)
 

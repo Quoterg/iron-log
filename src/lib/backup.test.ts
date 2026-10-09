@@ -4,9 +4,10 @@ import type { AllData } from './db';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
 
 const data: AllData = {
-  entries: [{ id: 'e1', date: '2026-10-09', meal: 'lunch', foodRef: 'custom:a', grams: 50, createdAt: 1 }],
+  entries: [{ id: 'e1', date: '2026-10-09', meal: 'lunch', foodRef: 'custom:a', grams: 50, createdAt: 1, unit: 'skopa', qty: 2 }],
   customFoods: [{ ref: 'custom:a', sv: 'Proteinpulver', en: null, per100g: [380, 75], createdAt: 1, updatedAt: 1 }],
-  usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true }],
+  usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true, lastUnit: 'skopa', lastQty: 2 }],
+  servings: [{ foodRef: 'custom:a', servings: [{ name: 'skopa', g: 25 }] }],
   settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: 12 } },
 };
 
@@ -28,6 +29,7 @@ describe('backup', () => {
     expect(() => parseBackup(bad({ grams: -5 }))).toThrow(BackupError);
     expect(() => parseBackup(bad({ date: '9 okt' }))).toThrow(BackupError);
     expect(() => parseBackup(bad({ meal: 'brunch' }))).toThrow(BackupError);
+    expect(() => parseBackup(bad({ unit: 'st', qty: 0 }))).toThrow(BackupError);
   });
 
   it('drops invalid settings and unknown target keys instead of failing', () => {

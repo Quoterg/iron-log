@@ -4,7 +4,7 @@ import * as db from './lib/db';
 import type { CustomFood, Entry, Meal, Settings, Usage } from './lib/db';
 import { getFoods, setCustomFoods, setUserBoosts } from './lib/foods';
 import { lang } from './lib/i18n';
-import type { Food, NutrientVector } from './lib/nutrients';
+import type { Food, NutrientVector, Serving } from './lib/nutrients';
 import { DEFAULT_PROFILE, nnrTargets, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 
@@ -18,6 +18,8 @@ export const foods = signal<Map<string, Food>>(new Map());
 export const customFoods = signal<CustomFood[]>([]);
 /** Per-food usage (count, last amount, favourite), by food ref. */
 export const usage = signal<Map<string, Usage>>(new Map());
+/** The user's own household measures, by food ref. */
+export const userServings = signal<Map<string, Serving[]>>(new Map());
 export const settings = signal<Settings>({
   lang: lang.value,
   profile: DEFAULT_PROFILE,
@@ -59,20 +61,39 @@ export async function ensureFoods(refs: string[]): Promise<void> {
   foods.value = new Map([...foods.value, ...found]);
 }
 
-export async function addEntry(meal: Meal, food: Food, grams: number): Promise<void> {
-  const e: Entry = { id: db.newId(), date: date.value, meal, foodRef: food.ref, grams, createdAt: Date.now() };
+/** A logged amount: grams, plus the household measure it was entered in (if any). */
+export interface Amount {
+  grams: number;
+  unit?: string;
+  qty?: number;
+}
+
+export async function addEntry(meal: Meal, food: Food, amount: Amount): Promise<void> {
+  const e: Entry = { id: db.newId(), date: date.value, meal, foodRef: food.ref, createdAt: Date.now(), ...measure(amount) };
   foods.value = new Map(foods.value).set(food.ref, food);
   entries.value = [...entries.value, e];
   await db.putEntry(e);
-  await recordUse(food.ref, grams);
+  await recordUse(food.ref, amount);
 }
 
-export type EntryPatch = Partial<Pick<Entry, 'grams' | 'meal' | 'date' | 'foodRef'>>;
+/** Normalise an Amount: unit and qty are stored together or not at all. */
+function measure(a: Amount): Amount {
+  return a.unit && a.qty ? { grams: a.grams, unit: a.unit, qty: a.qty } : { grams: a.grams };
+}
+
+export type EntryPatch = Partial<Pick<Entry, 'meal' | 'date' | 'foodRef'>> & { amount?: Amount };
 
 export async function updateEntry(id: string, patch: EntryPatch): Promise<void> {
   const e = entries.value.find((x) => x.id === id) ?? (await db.getEntry(id));
   if (!e) return;
-  const next = { ...e, ...patch };
+  const { amount, ...rest } = patch;
+  const next: Entry = { ...e, ...rest };
+  // A measure belongs to a food ("2 st" of egg ≠ 2 st of banana): swapping the food keeps the grams.
+  if (amount || patch.foodRef) {
+    delete next.unit;
+    delete next.qty;
+  }
+  if (amount) Object.assign(next, measure(amount));
   // Moving to another day removes it from the day on screen.
   entries.value =
     next.date === date.value
@@ -176,9 +197,18 @@ async function putUsage(u: Usage) {
   await db.putUsage(u);
 }
 
-async function recordUse(ref: string, grams: number) {
+async function recordUse(ref: string, amount: Amount) {
   const prev = usage.value.get(ref);
-  await putUsage({ ...prev, foodRef: ref, count: (prev?.count ?? 0) + 1, lastUsed: Date.now(), lastGrams: grams });
+  const m = measure(amount);
+  await putUsage({
+    foodRef: ref,
+    fav: prev?.fav,
+    count: (prev?.count ?? 0) + 1,
+    lastUsed: Date.now(),
+    lastGrams: m.grams,
+    lastUnit: m.unit,
+    lastQty: m.qty,
+  });
 }
 
 export async function toggleFavourite(ref: string): Promise<void> {
@@ -217,4 +247,16 @@ export async function copyEntries(opts: { fromMeal?: Meal; toDate: string; toMea
   await db.putEntries(copies);
   if (opts.toDate === date.value) entries.value = [...entries.value, ...copies];
   return copies.length;
+}
+
+// --- User-defined household measures ---
+
+export async function loadServings(): Promise<void> {
+  userServings.value = new Map((await db.listServings()).map((s) => [s.foodRef, s.servings]));
+}
+
+export async function addServing(ref: string, s: Serving): Promise<void> {
+  const list = [...(userServings.value.get(ref) ?? []).filter((x) => x.name !== s.name), s];
+  userServings.value = new Map(userServings.value).set(ref, list);
+  await db.putServings({ foodRef: ref, servings: list });
 }

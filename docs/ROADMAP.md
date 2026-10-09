@@ -24,7 +24,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   Rank everyday items first ("ris" → cooked rice before raw).
 - [x] **M5 Your data** — Export/import everything (JSON backup + CSV of diary/nutrients),
   "storage is persistent" status, delete-all. Prompt to install to home screen (iOS hint).
-- [ ] **M6 Serving sizes** — Household units per food (st, dl, msk, tsk, portion, skiva) from a
+- [x] **M6 Serving sizes** — Household units per food (st, dl, msk, tsk, portion, skiva) from a
   curated table for common SLV foods + user-defined servings; amount picker supports units.
 - [ ] **M7 Barcode scanning** — Open Food Facts lookup by barcode (typed or scanned), mapped to
   the nutrient vector, cached locally. Camera scanning via `BarcodeDetector` where available,

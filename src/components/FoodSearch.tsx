@@ -70,7 +70,7 @@ export function FoodSearch({ meal, replaceEntryId }: { meal: Meal; replaceEntryI
       {results && results.length === 0 && <p class="muted center">{t('noResults')}</p>}
       {results ? (
         <ul class="results">{results.map((f) => row(f, pick))}</ul>
-      ) : (
+      ) : query.trim() ? null : (
         <>
           <QuickList title={t('favourites')} list={favourites.value} pick={pick} />
           <QuickList title={t('recent')} list={recent.value} pick={pick} />

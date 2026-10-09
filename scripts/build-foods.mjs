@@ -31,11 +31,26 @@ for (const line of (await readFile('data/popular.txt', 'utf8')).split('\n')) {
   else console.warn(`popular.txt: no food named "${name}"`);
 }
 
+// Household measures (see data/units.json): first matching rule per food.
+const { rules } = JSON.parse(await readFile('data/units.json', 'utf8'));
+const compiled = rules.map((r) => ({ re: new RegExp(r.match), units: r.units, hits: 0 }));
+const units = {};
+for (const f of raw.foods) {
+  const rule = compiled.find((r) => r.re.test(f.sv.trim()));
+  if (rule) {
+    units[`slv:${f.id}`] = rule.units;
+    rule.hits++;
+  }
+}
+for (const r of compiled) if (!r.hits) console.warn(`units.json: rule ${r.re} matches no food`);
+console.log(`Units for ${Object.keys(units).length} foods`);
+
 const out = {
   v: 1,
   sources: [{ id: 'slv', name: 'Livsmedelsverket, Livsmedelsdatabasen', license: 'CC BY 4.0', fetched: raw.fetched }],
   keys: NUTRIENTS.map((n) => n.key),
   popular,
+  units,
   foods,
 };
 

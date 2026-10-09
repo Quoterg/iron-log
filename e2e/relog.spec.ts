@@ -12,6 +12,7 @@ async function logFood(page: Page, mealIndex: number, query: string, grams: stri
   await meal(page, mealIndex).getByRole('button', { name: /Lägg till/ }).click();
   await searchBox(page).fill(query);
   await page.locator('.result').first().click();
+  await page.getByLabel('Mått', { exact: true }).selectOption('g');
   await page.getByLabel('Mängd').fill(grams);
   await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
 }

@@ -6,6 +6,7 @@ import type { WorkerRequest, WorkerResponse } from '../lib/foods';
 
 interface FoodsFile {
   popular?: string[];
+  units?: Record<string, [name: string, grams: number][]>;
   foods: [ref: string, sv: string, en: string | null, ...values: (number | null)[]][];
 }
 
@@ -29,7 +30,13 @@ async function load(url: string) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`foods.json: HTTP ${res.status}`);
   const data = (await res.json()) as FoodsFile;
-  builtIn = data.foods.map(([ref, sv, en, ...per100g]) => ({ ref, sv, en, per100g }));
+  const units = data.units ?? {};
+  builtIn = data.foods.map(([ref, sv, en, ...per100g]) => {
+    const f: Food = { ref, sv, en, per100g };
+    const u = units[ref];
+    if (u) f.units = u.map(([name, g]) => ({ name, g }));
+    return f;
+  });
   popular = new Set(data.popular ?? []);
   for (const f of builtIn) byRef.set(f.ref, f);
   rebuild();

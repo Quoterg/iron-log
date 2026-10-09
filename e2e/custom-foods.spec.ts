@@ -92,6 +92,7 @@ test('food detail shows all nutrients for the chosen amount and the data source'
   await meal(page, 0).getByRole('button', { name: /Lägg till/ }).click();
   await page.getByPlaceholder(/Sök livsmedel/).fill('havregryn');
   await page.locator('.result').first().click();
+  await page.getByLabel('Mått', { exact: true }).selectOption('g');
   await page.getByRole('button', { name: '50 g', exact: true }).click();
   await expect(page.getByText(/Näringsvärden för vald mängd \(50 g\)/)).toBeVisible();
   await expect(page.getByText('Järn')).toBeVisible();
