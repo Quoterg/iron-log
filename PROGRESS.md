@@ -5,7 +5,28 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M7 Barcode scanning** (see docs/ROADMAP.md).
+**M8 Profile-based targets** (Phase 2, see docs/ROADMAP.md).
+
+## 2026-10-09 — M7 Barcode scanning (interactive session) — Phase 1 complete
+
+Done:
+- `src/lib/off.ts`: EAN-8/UPC-A/EAN-13/GTIN-14 check-digit validation; Open Food Facts v2 lookup
+  (`fields=` limited, 10 s timeout, CORS `*`); per-100 g mapping of 31 nutrients with unit
+  conversion (OFF stores g), kcal from kJ fallback, salt↔sodium; "Name (Brand)"; serving and
+  package size become measures ("portion", "förpackning").
+- IndexedDB v5 `offFoods` cache: scanned products work offline, are searchable ("Streckkod"
+  badge) and included in backups (validated).
+- `ScanSheet.tsx`: camera with native `BarcodeDetector` when available, else lazily loaded
+  `barcode-detector` ponyfill + zxing WASM (457 KB gzip) served from our origin
+  (`zxing-wasm/reader/zxing_reader.wasm?url`, no CDN). ~4 scans/s; camera stopped on close.
+  Manual entry always available; not found → create custom food.
+- Tests: 33 unit, 13 Playwright incl. a real camera scan: Chromium fake camera plays a generated
+  EAN-13 JPEG → WASM decodes it → product opens; asserts the .wasm came from our origin.
+  Initial JS 26.3 KB gzip.
+
+Ideas / known gaps:
+- Cached OFF products are never refreshed (add "update from Open Food Facts" later).
+- No `X-User-Agent` header (would add a CORS preflight on every lookup).
 
 ## 2026-10-09 — M6 Serving sizes (interactive session)
 

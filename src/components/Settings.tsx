@@ -88,6 +88,7 @@ function Profile() {
       <p class="muted small">{t('targetsNote')}</p>
       <p class="muted small">{t('privacy')}</p>
       <p class="muted small">{t('attribution')}</p>
+      <p class="muted small">{t('attributionOff')}</p>
     </section>
   );
 }

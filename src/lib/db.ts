@@ -44,6 +44,11 @@ export interface Usage {
   fav?: boolean;
 }
 
+/** A product from Open Food Facts, cached after the first lookup (works offline afterwards). */
+export interface OffFood extends Food {
+  fetchedAt: number;
+}
+
 /** The user's own measures for a food ("min skål" = 300 g). */
 export interface UserServings {
   foodRef: string;
@@ -56,12 +61,13 @@ interface Schema extends DBSchema {
   customFoods: { key: string; value: CustomFood };
   usage: { key: string; value: Usage };
   servings: { key: string; value: UserServings };
+  offFoods: { key: string; value: OffFood };
 }
 
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('iron-log', 4, {
+  dbp ??= openDB<Schema>('iron-log', 5, {
     async upgrade(d, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
@@ -75,6 +81,7 @@ function db() {
         for (const u of usageFromEntries(all)) await usage.put(u);
       }
       if (oldVersion < 4) d.createObjectStore('servings', { keyPath: 'foodRef' });
+      if (oldVersion < 5) d.createObjectStore('offFoods', { keyPath: 'ref' });
     },
   });
   return dbp;
@@ -107,25 +114,28 @@ export interface AllData {
   customFoods: CustomFood[];
   usage: Usage[];
   servings: UserServings[];
+  offFoods: OffFood[];
   settings?: Settings;
 }
 
 export async function exportAll(): Promise<AllData> {
   const d = await db();
-  const [entries, customFoods, usage, servings, settings] = await Promise.all([
+  const [entries, customFoods, usage, servings, offFoods, settings] = await Promise.all([
     d.getAll('entries'),
     d.getAll('customFoods'),
     d.getAll('usage'),
     d.getAll('servings'),
+    d.getAll('offFoods'),
     d.get('kv', 'settings') as Promise<Settings | undefined>,
   ]);
-  return { entries, customFoods, usage, servings, settings };
+  return { entries, customFoods, usage, servings, offFoods, settings };
 }
 
 /** Upsert everything in one transaction: items with the same id/ref are replaced, others kept. */
 export async function importAll(data: AllData): Promise<void> {
-  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'kv'], 'readwrite');
+  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'kv'], 'readwrite');
   const puts: Promise<unknown>[] = [
+    ...data.offFoods.map((f) => tx.objectStore('offFoods').put(f)),
     ...data.entries.map((e) => tx.objectStore('entries').put(e)),
     ...data.customFoods.map((f) => tx.objectStore('customFoods').put(f)),
     ...data.usage.map((u) => tx.objectStore('usage').put(u)),
@@ -136,8 +146,9 @@ export async function importAll(data: AllData): Promise<void> {
 }
 
 export async function clearAll(): Promise<void> {
-  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'kv'], 'readwrite');
+  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'kv'], 'readwrite');
   await Promise.all([
+    tx.objectStore('offFoods').clear(),
     tx.objectStore('entries').clear(),
     tx.objectStore('customFoods').clear(),
     tx.objectStore('usage').clear(),
@@ -145,6 +156,18 @@ export async function clearAll(): Promise<void> {
     tx.objectStore('kv').clear(),
     tx.done,
   ]);
+}
+
+export async function listOffFoods(): Promise<OffFood[]> {
+  return (await db()).getAll('offFoods');
+}
+
+export async function getOffFood(ref: string): Promise<OffFood | undefined> {
+  return (await db()).get('offFoods', ref);
+}
+
+export async function putOffFood(f: OffFood): Promise<void> {
+  await (await db()).put('offFoods', f);
 }
 
 export async function listServings(): Promise<UserServings[]> {

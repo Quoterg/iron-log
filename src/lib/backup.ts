@@ -1,5 +1,5 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
-import { MEALS, type AllData, type CustomFood, type Entry, type Settings, type Usage, type UserServings } from './db';
+import { MEALS, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type Usage, type UserServings } from './db';
 import { foodName, NUTRIENTS, type Food } from './nutrients';
 import { scale } from './totals';
 
@@ -50,6 +50,29 @@ function customFood(x: unknown): CustomFood {
     return f;
   }
   throw new BackupError('customFood');
+}
+
+function servingList(x: unknown): { name: string; g: number }[] | null {
+  if (!Array.isArray(x) || x.length > 50) return null;
+  if (!x.every((s) => isObj(s) && isStr(s.name, 50) && s.name.trim() !== '' && isNum(s.g) && s.g > 0 && s.g < 100000)) return null;
+  return (x as { name: string; g: number }[]).map(({ name, g }) => ({ name, g }));
+}
+
+function offFood(x: unknown): OffFood {
+  if (
+    isObj(x) && isStr(x.ref, 40) && /^off:\d{8,14}$/.test(x.ref) && isStr(x.sv) && (x.en === null || isStr(x.en)) &&
+    Array.isArray(x.per100g) && x.per100g.length <= NUTRIENTS.length &&
+    x.per100g.every((v) => v === null || (isNum(v) && v >= 0)) && isNum(x.fetchedAt)
+  ) {
+    const f: OffFood = { ref: x.ref, sv: x.sv, en: x.en, per100g: x.per100g, fetchedAt: x.fetchedAt };
+    if (x.units !== undefined) {
+      const units = servingList(x.units);
+      if (!units) throw new BackupError('offFood');
+      f.units = units;
+    }
+    return f;
+  }
+  throw new BackupError('offFood');
 }
 
 function usage(x: unknown): Usage {
@@ -111,6 +134,7 @@ export function parseBackup(text: string): AllData {
     customFoods: list('customFoods').map(customFood),
     usage: list('usage').map(usage),
     servings: list('servings').map(servings),
+    offFoods: list('offFoods').map(offFood),
     settings: settings(raw.settings),
   };
 }

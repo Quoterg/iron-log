@@ -6,6 +6,7 @@ import { FoodDetail } from './components/FoodDetail';
 import { FoodEditor } from './components/FoodEditor';
 import { FoodSearch } from './components/FoodSearch';
 import { Nutrients } from './components/Nutrients';
+import { ScanSheet } from './components/ScanSheet';
 import { Settings } from './components/Settings';
 import { stack, top, type Screen } from './nav';
 import { date, loadDay, view, type View } from './state';
@@ -54,6 +55,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <FoodEditor foodRef={s.ref} name={s.name} meal={s.meal} />;
     case 'copy':
       return <CopySheet meal={s.meal} />;
+    case 'scan':
+      return <ScanSheet meal={s.meal} />;
   }
 }
 

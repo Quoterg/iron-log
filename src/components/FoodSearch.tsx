@@ -56,6 +56,13 @@ export function FoodSearch({ meal, replaceEntryId }: { meal: Meal; replaceEntryI
 
   return (
     <Sheet title={replaceEntryId ? t('changeFood') : t(meal)}>
+      {!replaceEntryId && (
+        <div class="pad scan-row">
+          <button class="btn wide" onClick={() => open({ kind: 'scan', meal })}>
+            ▥ {t('scanBarcode')}
+          </button>
+        </div>
+      )}
       <input
         ref={inputRef}
         class="search"
@@ -106,6 +113,7 @@ function row(f: Food, pick: (f: Food) => void) {
         <span class="entry-name">
           {foodName(f, lang.value)}
           {f.ref.startsWith('custom:') && <span class="badge">{t('customBadge')}</span>}
+          {f.ref.startsWith('off:') && <span class="badge">{t('barcodeBadge')}</span>}
         </span>
         <span class="num muted">
           {fmt(value(f.per100g, 'kcal'))} kcal · P {fmtAmount(value(f.per100g, 'protein'))} ·{' '}
