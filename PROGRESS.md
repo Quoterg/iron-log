@@ -9,6 +9,16 @@ Keep entries short — this file is read at the start of every session.
 by the owner — don't start it. Optional when the owner wants it: **M19c** (Play / F-Droid). M18d
 (screen-reader pass) is deferred until someone reports an issue.
 
+## 2026-10-09 — Android release and install instructions (interactive session)
+
+- GitHub Release **v1.0.0** with `iron-log.apk` (the owner's signed build, verified: package
+  io.github.quoterg.ironlog, 1.0.0, upload-key fingerprint matching assetlinks.json; file and
+  certificate SHA-256 in the release notes). The stable link
+  `releases/latest/download/iron-log.apk` serves it.
+- Landing page and README: install on iPhone (Safari → Share → Add to Home Screen) and Android
+  (install from Chrome, or the APK with the Play Protect note and the certificate fingerprint).
+- The weekly assetlinks check now requires exactly our package and key (an added entry fails).
+
 ## 2026-10-09 — M21a Content-Security-Policy (interactive session)
 
 - S2: strict CSP meta tag in production builds of the app (scripts/styles only from this site,
