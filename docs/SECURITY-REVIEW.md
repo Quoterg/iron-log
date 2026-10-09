@@ -72,6 +72,13 @@ them). Add an e2e test that fails on any CSP violation (`page.on('console')` /
 `securitypolicyviolation` listener) across the existing flows, including scan, OFF upload (mocked),
 sync screen and export.
 
+**Status (2026-10-09, M21a):** done — see `src/csp.ts` (tightened to `img-src 'self'` and
+`media-src 'self'`, nothing needs more), `e2e/csp.spec.ts` (main flows, scanner fallback with a fake
+camera, and the service-worker path) and the static pages' own no-script policy. **Accepted residual
+risk:** `frame-ancestors` can't be set in a meta tag, so clickjacking protection needs real response
+headers — only possible with an own origin behind a host that sets them (S1/M22, deferred). Existing
+installs get the policy on their next online load (the service worker serves pages network-first).
+
 ## S3 (low) — the OFF password is typed into this app
 
 M20b asks for the user's Open Food Facts username and password. The code handles it carefully,

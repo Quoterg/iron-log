@@ -19,6 +19,9 @@ by the owner — don't start it. Optional when the owner wants it: **M19c** (Pla
   editor, export JSON/CSV, language switch, scan → Open Food Facts upload, sync code, static
   pages) and fails on any `securitypolicyviolation`.
 - S1 decision (owner): keep `quoterg.github.io` for now with safeguards; written into CLAUDE.md.
+- Existing installs get the policy on their next online load (pages are network-first in the
+  service worker). Clickjacking (`frame-ancestors`) can't be covered by a meta tag — accepted
+  residual risk until an own origin with real headers (M22).
 
 ## 2026-10-09 — M19b Android app (interactive session)
 
