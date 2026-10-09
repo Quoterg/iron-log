@@ -5,7 +5,23 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M8 Profile-based targets** (Phase 2, see docs/ROADMAP.md).
+**M9 Target editor** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M8 Profile-based targets (interactive session)
+
+Done:
+- Profile (Settings → Profil, `ProfileForm.tsx`): sex, age, weight, height, activity (PAL 1.4/1.6/
+  1.8/2.0), life stage (pregnant T1–T3, breastfeeding), menstruating toggle, automatic energy.
+- `targets.ts`: NNR 2023 values for 18–24 / 25–50 / 51–70 / 71+ and pregnancy/lactation
+  (Helsedirektoratet's NNR 2023 tables 8–12); iron for women by menstruation (15 / 8 / 7 mg);
+  protein 15–20 E% for >65 (NNR 2023 erratum, Box 8).
+- Energy: Mifflin–St Jeor × PAL (NNR itself uses Henry; within a few % for adults) + pregnancy
+  +0.3/+1.2/+2.3 MJ and lactation +2.0 MJ (from DTU Food's 2025 NNR 2023 summary — verify against
+  the official tables if updated).
+- Backup validation extended to the new profile fields (range-checked).
+- Tests: 41 unit (values per band/stage, energy), 14 Playwright. Initial JS 28.0 KB gzip.
+
+Known gaps: no values for under 18 (inputs start at 18); vitamin K/biotin/pantothenic acid not tracked yet (M16).
 
 ## 2026-10-09 — M7 Barcode scanning (interactive session) — Phase 1 complete
 

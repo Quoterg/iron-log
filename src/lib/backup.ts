@@ -110,7 +110,18 @@ function settings(x: unknown): Settings | undefined {
       if (NUTRIENTS.some((n) => n.key === k) && isNum(v) && v >= 0) overrides[k] = v;
     }
   }
-  return { lang: x.lang, profile: { sex: p.sex, kcal: p.kcal }, targetOverrides: overrides };
+  const profile: Settings['profile'] = { sex: p.sex, kcal: p.kcal };
+  const inRange = (v: unknown, lo: number, hi: number) => isNum(v) && v >= lo && v <= hi;
+  if (p.kcalAuto === true) profile.kcalAuto = true;
+  if (inRange(p.age, 18, 110)) profile.age = p.age as number;
+  if (inRange(p.weightKg, 30, 300)) profile.weightKg = p.weightKg as number;
+  if (inRange(p.heightCm, 120, 230)) profile.heightCm = p.heightCm as number;
+  if (inRange(p.pal, 1.2, 2.5)) profile.pal = p.pal as number;
+  if (['none', 'pregnant1', 'pregnant2', 'pregnant3', 'lactating'].includes(p.status as string)) {
+    profile.status = p.status as Settings['profile']['status'];
+  }
+  if (typeof p.menstruating === 'boolean') profile.menstruating = p.menstruating;
+  return { lang: x.lang, profile, targetOverrides: overrides };
 }
 
 /** Parse and validate a backup file. Throws BackupError on anything unexpected (nothing is imported). */
