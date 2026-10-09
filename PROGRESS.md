@@ -5,7 +5,28 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M12 Body log & charts** (see docs/ROADMAP.md).
+**M13 Reports & insights** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M12 Body log & charts (interactive session)
+
+Done:
+- "Kropp" tab (`BodyView.tsx`, lazy 2.7 KB gzip, prefetched at idle): log weight, body fat %,
+  waist per day (IndexedDB v7 `body` store, in backups); saving the newest measurement updates
+  the profile's weight/body fat (automatic energy follows).
+- `LineChart.tsx`: hand-written SVG, one measure per chart (no dual axes), measurement dots
+  (r 4 + 2 px surface ring) + 7-day time-window moving average (`lib/body.ts`, 2 px line), clean
+  ticks (`niceScale`), recessive hairline grid, first/last dates; crosshair + readout on pointer and
+  arrow keys; "Visa som tabell" table view. Colours validated with the dataviz palette checker:
+  light #1f7a4d / #3b6fb6, dark #36a56f / #5f8bd0 (CSS tokens `--chart-trend`, `--chart-point`).
+- Range chips 30 d / 90 d / 1 år / allt; the trend is computed over the full history.
+- Review fixes (reviewer agent on PR #14): import keeps the newer body entry per day; future
+  dates refused (form + `saveBody`); deleting the newest weigh-in falls back to the next newest
+  for the profile; "today" refreshes on visibility change; long histories draw ≤ 240 dots
+  (min/max per bucket), table rows render only when opened, nearest point by binary search,
+  series/trends memoised; year on axis labels for spans > 300 days. Found while testing: the
+  readout ↔ hint swap shifted the layout under the pointer (taps landed elsewhere) → fixed height.
+- Tests: 78 unit (+ body state: profile fallback, future date, import precedence), 25 Playwright.
+  Initial JS 31.3 KB gzip.
 
 ## 2026-10-09 — M11 Global food data (interactive session)
 

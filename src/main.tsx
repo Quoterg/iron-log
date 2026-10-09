@@ -1,5 +1,5 @@
 import { render } from 'preact';
-import { App, recipeEditorView, settingsView, targetEditorView } from './app';
+import { App, bodyView, recipeEditorView, settingsView, targetEditorView } from './app';
 import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang } from './lib/i18n';
@@ -26,6 +26,7 @@ async function start() {
       void settingsView.prefetch();
       void targetEditorView.prefetch();
       void recipeEditorView.prefetch();
+      void bodyView.prefetch();
     }, 1500);
   });
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
