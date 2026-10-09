@@ -51,8 +51,9 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   energy to the day's target; water intake.
 - [x] **M15 Supplements** — Supplements with per-unit nutrients, daily dose checklist, quick log.
 - [ ] **M15b Supplement schedules** — Weekdays / times of day / reminders for supplements.
-- [ ] **M16 More nutrients** — Add the remaining SLV/USDA nutrients (vitamin K, B5, biotin,
-  copper, manganese, amino acids where available) with NNR targets; nutrient detail pages.
+- [x] **M16 More nutrients** — Vitamin K, B5, biotin, copper, manganese (USDA) and DPA (SLV/USDA)
+  with NNR 2023 targets; nutrient detail pages (target, your top sources, richest foods).
+- [ ] **M16b Amino acids** — Essential amino acids from USDA, with protein-quality hints.
 
 ## Phase 3 — Everywhere
 

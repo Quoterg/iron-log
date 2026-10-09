@@ -76,6 +76,15 @@ describe('USDA food data', () => {
     const banana = foods.find((f) => f[1] === 'Bananas, raw')!;
     expect(banana[3 + NUTRIENT_INDEX.carbs]).toBeCloseTo(20.2, 1); // 22.8 by difference − 2.6 fibre
   });
+
+  it('has the M16 nutrients where USDA analysed them (rows may omit trailing unknowns)', () => {
+    const almonds = foods.find((f) => f[1] === 'Nuts, almonds')!;
+    expect(almonds.length).toBeLessThanOrEqual(3 + NUTRIENTS.length);
+    expect(almonds[3 + NUTRIENT_INDEX.copper]).toBeGreaterThan(0.8); // ≈ 1 mg/100 g
+    expect(almonds[3 + NUTRIENT_INDEX.manganese]).toBeGreaterThan(1.5); // ≈ 2.2 mg/100 g
+    const kale = foods.find((f) => /^Kale, raw/.test(f[1]))!;
+    expect(kale[3 + NUTRIENT_INDEX.vitK]).toBeGreaterThan(300); // ≈ 390 µg/100 g
+  });
 });
 
 describe('real food data', () => {

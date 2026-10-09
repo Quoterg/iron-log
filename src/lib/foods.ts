@@ -14,7 +14,8 @@ export type WorkerRequest =
   | { id: number; type: 'custom'; foods: Food[] }
   | { id: number; type: 'boost'; boosts: Record<string, number> }
   | { id: number; type: 'search'; query: string; lang: string; excludePrefix?: string }
-  | { id: number; type: 'get'; refs: string[] };
+  | { id: number; type: 'get'; refs: string[] }
+  | { id: number; type: 'top'; index: number; n: number };
 
 export interface WorkerResponse {
   id: number;
@@ -36,7 +37,7 @@ let nextId = 1;
 const pending = new Map<number, Pending>();
 const cache = new Map<string, Food>();
 
-type Query = Extract<WorkerRequest, { type: 'search' | 'get' }>;
+type Query = Extract<WorkerRequest, { type: 'search' | 'get' | 'top' }>;
 type WithoutId<T> = T extends unknown ? Omit<T, 'id'> : never;
 
 function call(req: WithoutId<Query>, trackFailures = false): Promise<Food[]> {
@@ -119,6 +120,11 @@ export function setCustomFoods(visible: Food[], all: Food[]): void {
 /** Search foods; `excludePrefix` (e.g. 'recipe:') leaves out a kind of food, still returning a full page. */
 export function searchFoods(query: string, lang: string, excludePrefix?: string): Promise<Food[]> {
   return call({ type: 'search', query, lang, excludePrefix }, true);
+}
+
+/** The `n` database foods with the most of nutrient `index` per 100 g (enabled sources). */
+export function richestFoods(index: number, n = 10): Promise<Food[]> {
+  return call({ type: 'top', index, n });
 }
 
 export async function getFoods(refs: string[]): Promise<Map<string, Food>> {

@@ -127,13 +127,18 @@ const BASE: Record<string, Pair> = {
   zinc: [9.7, 12.7],
   iodine: [150, 150],
   selenium: [75, 90],
+  vitK: [65, 75],
+  pantothenic: [5, 5],
+  biotin: [40, 40],
+  copper: [0.9, 0.9],
+  manganese: [3, 3],
 };
 
 /** Differences from BASE by age band. Helsedirektoratet tables 8–11, "18–24", "51–70" and ">70 år" columns. */
 const BY_AGE: Record<'18-24' | '51-70' | '71+', Partial<Record<string, Pair>>> = {
   '18-24': { calcium: [1000, 1000], phosphorus: [550, 550] },
-  '51-70': { vitE: [9, 11], zinc: [9.5, 12.4] },
-  '71+': { vitA: [650, 750], vitD: [20, 20], vitE: [9, 11], vitB6: [1.6, 1.7], zinc: [9.3, 12.1], selenium: [75, 85] },
+  '51-70': { vitE: [9, 11], zinc: [9.5, 12.4], vitK: [60, 70] },
+  '71+': { vitA: [650, 750], vitD: [20, 20], vitE: [9, 11], vitB6: [1.6, 1.7], zinc: [9.3, 12.1], selenium: [75, 85], vitK: [60, 70] },
 };
 
 /**
@@ -142,10 +147,10 @@ const BY_AGE: Record<'18-24' | '51-70' | '71+', Partial<Record<string, Pair>>> =
  * folate in pregnancy, cross-checked against NNR 2023 table 14 and the folate chapter.
  */
 const BY_STATUS: Record<Exclude<Status, 'none'>, Partial<Record<string, number>>> = {
-  pregnant1: { vitA: 750, vitE: 10, riboflavin: 1.6, vitB6: 1.6, folate: 600, vitB12: 4.5, vitC: 105, calcium: 950, phosphorus: 520, iron: 24, zinc: 9.7, iodine: 175, selenium: 80 },
-  pregnant2: { vitA: 750, vitE: 11, riboflavin: 1.7, vitB6: 1.8, folate: 600, vitB12: 4.5, vitC: 105, calcium: 950, phosphorus: 520, iron: 25, zinc: 12.1, iodine: 200, selenium: 85 },
-  pregnant3: { vitA: 750, vitE: 12, riboflavin: 1.8, vitB6: 2.0, folate: 600, vitB12: 4.5, vitC: 105, calcium: 950, phosphorus: 520, iron: 26, zinc: 12.1, iodine: 200, selenium: 90 },
-  lactating: { vitA: 1400, vitE: 11, riboflavin: 2.0, vitB6: 1.7, folate: 490, vitB12: 5.5, vitC: 155, calcium: 950, phosphorus: 520, iron: 15, zinc: 12.6, iodine: 200, selenium: 85 },
+  pregnant1: { vitA: 750, vitE: 10, riboflavin: 1.6, vitB6: 1.6, folate: 600, vitB12: 4.5, vitC: 105, calcium: 950, phosphorus: 520, iron: 24, zinc: 9.7, iodine: 175, selenium: 80, vitK: 65, copper: 1.0 },
+  pregnant2: { vitA: 750, vitE: 11, riboflavin: 1.7, vitB6: 1.8, folate: 600, vitB12: 4.5, vitC: 105, calcium: 950, phosphorus: 520, iron: 25, zinc: 12.1, iodine: 200, selenium: 85, vitK: 70, copper: 1.0 },
+  pregnant3: { vitA: 750, vitE: 12, riboflavin: 1.8, vitB6: 2.0, folate: 600, vitB12: 4.5, vitC: 105, calcium: 950, phosphorus: 520, iron: 26, zinc: 12.1, iodine: 200, selenium: 90, vitK: 75, copper: 1.0 },
+  lactating: { vitA: 1400, vitE: 11, riboflavin: 2.0, vitB6: 1.7, folate: 490, vitB12: 5.5, vitC: 155, calcium: 950, phosphorus: 520, iron: 15, zinc: 12.6, iodine: 200, selenium: 85, vitK: 65, pantothenic: 7, biotin: 45, copper: 1.3 },
 };
 
 const KCAL_PER_G = { protein: 4, carbs: 4, fat: 9 } as const;

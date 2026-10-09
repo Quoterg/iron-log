@@ -2,15 +2,30 @@ import { useEffect, useState } from 'preact/hooks';
 import { entriesBetween, type Entry } from '../lib/db';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
+import { richestFoods } from '../lib/foods';
+import type { Food } from '../lib/nutrients';
 import { contributors } from '../lib/report';
-import { ensureFoods, entries as dayEntries, foods, periodCache } from '../state';
+import { ensureFoods, entries as dayEntries, foods, periodCache, targets } from '../state';
+import { open } from '../nav';
 import { Sheet } from './Sheet';
 
-/** Which foods gave the most of one nutrient over a period. Loaded lazily. */
+/**
+ * Nutrient detail: the daily target, which foods gave the most of it over a period, and the
+ * richest foods in the databases (per 100 g). Loaded lazily.
+ */
 export default function Contributors({ nutrient, from, to }: { nutrient: string; from: string; to: string }) {
   // Reuse what the Nutrients tab already loaded (no second query, no loading flash).
   const cached = periodCache.value?.key === `${from}|${to}` ? periodCache.value.entries : from === to ? dayEntries.value : null;
   const [list, setList] = useState<Entry[] | null>(cached);
+  const [rich, setRich] = useState<Food[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    void richestFoods(NUTRIENT_INDEX[nutrient]).then(
+      (r) => live && setRich(r),
+      () => live && setRich([]),
+    );
+    return () => void (live = false);
+  }, [nutrient]);
   useEffect(() => {
     if (cached) return;
     let live = true;
@@ -24,8 +39,12 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
   const n = NUTRIENTS[NUTRIENT_INDEX[nutrient]];
   const top = list ? contributors(list, foods.value, NUTRIENT_INDEX[nutrient]) : [];
   return (
-    <Sheet title={`${t('topSources')}: ${n[lang.value]}`}>
+    <Sheet title={n[lang.value]}>
       <div class="pad">
+        <p>
+          {t('target')}: <TargetText k={nutrient} unit={n.unit} />
+        </p>
+        <h3>{t('topSources')}</h3>
         <p class="muted small">{from === to ? from : `${from} – ${to}`}</p>
         {!list && <p class="muted">{t('loading')}</p>}
         {list && top.length === 0 && <p class="muted">{t('noSources')}</p>}
@@ -44,7 +63,29 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
             );
           })}
         </ul>
+        <h3>{t('richestFoods')}</h3>
+        {!rich && <p class="muted">{t('loading')}</p>}
+        <ul class="entries">
+          {rich?.map((f) => (
+            <li key={f.ref}>
+              <button class="entry" onClick={() => open({ kind: 'food', ref: f.ref })}>
+                <span class="entry-name">{foodName(f, lang.value)}</span>
+                <span class="num">
+                  {fmtAmount(f.per100g[NUTRIENT_INDEX[nutrient]] ?? 0)} {n.unit}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p class="muted small">{t('richestNote')}</p>
       </div>
     </Sheet>
   );
+}
+
+function TargetText({ k, unit }: { k: string; unit: string }) {
+  const tg = targets.value[k];
+  if (!tg || (tg.min == null && tg.max == null)) return <span class="muted">{t('noTarget')}</span>;
+  if (tg.min != null && tg.max != null) return <span class="num">{`${fmtAmount(tg.min)}–${fmtAmount(tg.max)} ${unit}`}</span>;
+  return <span class="num">{tg.min != null ? `≥ ${fmtAmount(tg.min)} ${unit}` : `≤ ${fmtAmount(tg.max!)} ${unit}`}</span>;
 }

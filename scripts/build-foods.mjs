@@ -18,7 +18,10 @@ const foods = raw.foods.map((f) => {
     if (n.code === 'ENERC' && n.unit !== 'kcal') continue;
     byCode.set(n.code, n.value);
   }
-  return [`slv:${f.id}`, f.sv, f.en && f.en !== f.sv ? f.en : null, ...NUTRIENTS.map((n) => round(byCode.get(n.slv)))];
+  const row = [`slv:${f.id}`, f.sv, f.en && f.en !== f.sv ? f.en : null, ...NUTRIENTS.map((n) => round(n.slv ? byCode.get(n.slv) : null))];
+  // Trailing unknowns (e.g. nutrients SLV doesn't analyse) are left out; the app pads them back.
+  while (row.length > 3 && row[row.length - 1] == null) row.pop();
+  return row;
 });
 
 // Everyday foods get a ranking boost in search (see data/popular.txt).

@@ -34,6 +34,10 @@ machine-checked against it.
   riboflavin, B6, B12, vitamin A, vitamin C in pregnancy.
 - Lactation: vitamin A 1400 µg, folate 490 µg, vitamin C 155 mg, B12 5.5 µg, riboflavin 2.0 mg,
   B6 1.7 mg, iodine 200 µg, selenium 85 µg.
+- M16 (retrieved 2026-10-09, Helsedirektoratet chapter 3.3 "Vitaminer og mineraler"):
+  vitamin K AI (table 9) women 65 µg (60 from 51), men 75 µg (70 from 51), pregnancy 65/70/75,
+  lactation 65; pantothenic acid AI 5 mg (lactation 7); biotin AI 40 µg (lactation 45);
+  copper RI (table 10) 900 µg (pregnancy 1000, lactation 1300); manganese AI (table 11) 3.0 mg.
 
 If you check a row against the printed NNR 2023 tables, move it to the table above (or fix the
 value in `targets.ts` and its unit test).
