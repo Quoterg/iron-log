@@ -7,6 +7,16 @@ Keep entries short — this file is read at the start of every session.
 
 **M20b In-app Open Food Facts upload**, then **M16b Amino acids** and **M17** (see docs/ROADMAP.md).
 
+## 2026-10-09 — M19b decisions (interactive session)
+
+- Android verification host: the free GitHub user site **Quoterg/Quoterg.github.io** (created; has
+  `.nojekyll`, forwards `/` to the app; build verified: root and /iron-log/ return 200). No custom
+  domain (cost) and no move to another host (users' on-device data is per origin).
+  Package id stays `io.github.quoterg.ironlog`. Steps to finish: android/README.md.
+- Play data safety: declare conservatively (barcode shared with Open Food Facts for app
+  functionality; IP address explained; health data never leaves the device) — reasoning in
+  docs/STORE-LISTING.md.
+
 ## 2026-10-09 — M20 Contribute back (interactive session)
 
 Done:

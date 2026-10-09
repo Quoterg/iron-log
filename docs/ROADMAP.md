@@ -63,9 +63,10 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   a11y audit (screen readers, contrast, font scaling 200%); RTL-safe CSS.
 - [x] **M19 App stores (prep)** — Privacy policy, landing page, store listing texts, F-Droid
   notes, Bubblewrap config and build guide.
-- [ ] **M19b App stores (publish)** — Decide domain and package id (permanent on Play), serve
-  `/.well-known/assetlinks.json` at the origin root, commit the generated Android project for
-  F-Droid, first signed build.
+- [ ] **M19b App stores (publish)** — Domain/package id decided (free user site
+  quoterg.github.io serves the root; package `io.github.quoterg.ironlog`); data-safety answers
+  decided (conservative). Left: first signed build, `assetlinks.json` in the user-site repo,
+  commit the generated Android project for F-Droid.
 - [x] **M20 Contribute back (links only)** — Submit missing products/photos to Open Food Facts from the app;
   report data errors; contributor docs. (Done as links to OFF's own add/edit pages — no OFF
   credentials pass through the app — plus prefilled GitHub issues and CONTRIBUTING.md.)

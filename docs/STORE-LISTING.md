@@ -48,14 +48,40 @@ Iron Log is a fast, free, open-source nutrition tracker.
 
 ## Data safety form (Google Play)
 
-- Nothing the user logs leaves the device; there is no server of ours.
-- **Decide before filing (check Play's current definitions):** a barcode lookup sends the barcode
-  and, like any request, the IP address to Open Food Facts; loading the app and data sends the IP
-  address to GitHub Pages. Play treats some data sent to third parties as "collected/shared" even
-  without a server of ours — declare accordingly rather than "none" if it applies. A wrong
-  declaration can get the listing removed.
-- Encryption in transit: yes (HTTPS only). Deletion: the user can delete all data in the app.
+**Decision (2026-10-09): declare conservatively.** Iron Log has no server and nothing the user
+logs ever leaves the device. But two kinds of requests do leave it, and Play counts data sent off
+the device — including to third parties — even when the developer never receives it. Declaring
+"no data collected" would be arguable at best, and a wrong declaration can get the listing
+removed, so we declare what actually leaves the device.
+
+What actually leaves the device:
+
+| Request | Goes to | Contains | When |
+|---|---|---|---|
+| Barcode lookup | Open Food Facts (world.openfoodfacts.org) | the barcode; the IP address (as any request) | only when the user scans or types a barcode |
+| App and food-data files | GitHub Pages (quoterg.github.io) | the IP address (as any request) | loading/updating the app |
+| Links the user taps (OFF pages, GitHub issues) | those websites, in the browser | whatever the user does there | only on tap; leaves the app |
+
+What we declare on the form:
+
+- **Does your app collect or share any of the required user data types? Yes.**
+- **App activity → "Other user-generated content" / in-app search** (the scanned barcode):
+  *collected* (sent off the device) and *shared* with Open Food Facts. Processed ephemerally: no
+  (we can't promise how OFF logs requests). Required: no — optional, only when the user scans.
+  Purpose: **App functionality**. Not used for tracking, ads or analytics; not linked to an
+  identity (no accounts).
+- **IP address:** not a data type of its own on the form. It is seen by Open Food Facts and GitHub
+  Pages as part of any web request; we don't use it to derive location, so "Location" is not
+  declared. This is stated in the privacy policy and here, so the reasoning is public.
+- **Health and fitness / personal info** (food log, weight, profile): **not** collected or shared —
+  they stay on the device (IndexedDB) and are never transmitted.
+- **Encryption in transit:** yes (HTTPS only).
+- **Deletion:** users can delete all their data in the app (Settings → Your data). We hold none.
 - Privacy policy URL: https://quoterg.github.io/iron-log/privacy.html
+
+Re-check this section against Play's current definitions before each submission (they change), and
+whenever a feature sends anything new off the device (e.g. M17 sync, M20b uploads). This is our
+reading of the rules, not legal advice.
 
 ## Graphics checklist
 
