@@ -11,13 +11,23 @@ export const offProductUrl = (code: string) => `${OFF}/product/${encodeURICompon
 export const offAddUrl = (code: string) =>
   `${OFF}/cgi/product.pl?type=search_or_add&action=process&code=${encodeURIComponent(code)}`;
 
-/** A prefilled GitHub issue for a wrong value in a built-in food. */
-export function reportUrl(ref: string, name: string, source: string): string {
+/** Built-in databases (the ref prefix) → the name shown in reports. Only these get a report link. */
+const DATABASES: Record<string, string> = { slv: 'Livsmedelsverket', usda: 'USDA FoodData Central' };
+
+/** The database a ref comes from, or null for the user's own foods, recipes and scanned products. */
+export const databaseOf = (ref: string): string | null => DATABASES[ref.slice(0, ref.indexOf(':'))] ?? null;
+
+/**
+ * A prefilled GitHub issue for a wrong value in a built-in food. The body is fixed text plus the
+ * food's names — keep it that way: GitHub rejects URLs longer than about 8 KB.
+ */
+export function reportUrl(ref: string, sv: string, en: string | null): string {
+  const name = en && en !== sv ? `${sv} / ${en}` : sv;
   const title = `Data error: ${name} (${ref})`;
   const body = [
     `Food: ${name}`,
     `Ref: ${ref}`,
-    `Source: ${source}`,
+    `Source: ${databaseOf(ref) ?? ref.slice(0, ref.indexOf(':'))}`,
     '',
     'What is wrong (nutrient, value shown):',
     '',

@@ -108,12 +108,15 @@ export function ScanSheet({ meal }: { meal: Meal }) {
             <button class="btn wide" onClick={() => open({ kind: 'editFood', meal, name: '' })}>
               + {t('createFood')}
             </button>
-            <p class="small">
-              <a href={status === 'notFound' ? offAddUrl(code) : offProductUrl(code)} target="_blank" rel="noopener">
-                {status === 'notFound' ? t('offAdd') : t('offComplete')}
-              </a>{' '}
-              <span class="muted">{t('offHelpNote')}</span>
-            </p>
+            {/* Built from the code that was looked up, not the (editable) field. */}
+            {navigator.onLine && (
+              <p class="small">
+                <a href={status === 'notFound' ? offAddUrl(lastCode) : offProductUrl(lastCode)} target="_blank" rel="noopener noreferrer">
+                  {status === 'notFound' ? t('offAdd') : t('offComplete')}
+                </a>{' '}
+                <span class="muted">{t('offHelpNote')}</span>
+              </p>
+            )}
           </>
         )}
         <form

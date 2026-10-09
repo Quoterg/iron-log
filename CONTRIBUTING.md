@@ -26,7 +26,8 @@ corepack enable && pnpm install
 pnpm dev            # http://localhost:5173
 pnpm test           # unit tests (Vitest)
 pnpm build          # type check, build, size budget
-pnpm exec playwright test   # end-to-end, on a throttled "old phone"
+pnpm e2e            # end-to-end on an emulated Moto G4 with 4× CPU throttle (after a build)
+pnpm lighthouse     # Lighthouse CI on dist/ (mobile, slow 4G); gates in lighthouserc.json
 ```
 
 Rules that keep the app fast on old phones (see `docs/ARCHITECTURE.md`):
