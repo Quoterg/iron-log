@@ -32,8 +32,9 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 
 ## Phase 2 — Cronometer depth
 
-- [x] **M8 Profile-based targets** — Age, weight, height, activity → energy need
-  (Mifflin-St Jeor / NNR PAL); NNR 2023 age bands (18–24, 25–50, 51–70, 71+),
+- [x] **M8 Profile-based targets** — Age, weight, height, body fat %, activity → energy need
+  as on tdeecalculator.net (Katch–McArdle with body fat %, else Mifflin–St Jeor; activity
+  1.2–1.9 — owner's choice, M8.1); NNR 2023 age bands (18–24, 25–50, 51–70, 71+),
   pregnancy/lactation, post-menopause iron. Unit tests against NNR tables.
 - [x] **M9 Target editor** — Per-nutrient min/max overrides, macro targets in g or E%,
   presets (NNR default, high-protein, low-carb, keto), reset to defaults.

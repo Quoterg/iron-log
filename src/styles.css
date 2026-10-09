@@ -226,3 +226,9 @@ table.targets input[readonly] { color: var(--muted); }
 table.targets tr.changed th { font-weight: 600; }
 
 .block { display: block; }
+
+.notice {
+  display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; padding: 10px 12px;
+  border: 1px solid var(--carbs); border-radius: 8px; background: var(--track);
+}
+.notice p { flex: 1; margin: 0; }

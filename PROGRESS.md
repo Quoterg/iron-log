@@ -7,6 +7,20 @@ Keep entries short — this file is read at the start of every session.
 
 **M10 Recipes** (see docs/ROADMAP.md).
 
+## 2026-10-09 — M8.1 Energy formula = tdeecalculator.net (interactive session)
+
+Owner request: energy need as on tdeecalculator.net.
+- `bmr()`: Katch–McArdle (370 + 21.6 × lean mass) when body fat % is given, else Mifflin–St Jeor;
+  TDEE = BMR × multiplier, whole kcal. Matches the site exactly for 4 recorded cases (unit tests).
+- Activity levels are now the site's five (1.2 sedentary default for new profiles … 1.9 athlete).
+  Settings got a `version` (2): older settings migrate once on load and are saved — unset level
+  (= NNR 1.6) → moderate 1.55, others to the nearest level; if the automatic target changed, a
+  one-time notice asks the user to check their activity level. Backups snap levels the same way.
+- Manual energy input now steps by 1 kcal (automatic values are whole kcal, not tens).
+- Profile gets an optional "Fettprocent" field (3–70 %, decimal) and shows which formula is used.
+- NNR pregnancy/lactation energy is still added on top. Docs: docs/NNR-SOURCES.md → Energy.
+- Tests: 61 unit, 18 Playwright (stable over --repeat-each=2; build + Lighthouse in CI).
+
 ## 2026-10-09 — M9 Target editor (interactive session)
 
 Done:

@@ -27,7 +27,14 @@ export interface Settings {
   macroPreset?: MacroPreset;
   /** Energy-percent ranges when macroPreset is 'custom'. */
   macroPct?: MacroPct;
+  /** Format version of these settings (absent = before 2: NNR-style activity levels). */
+  version?: number;
+  /** One-time notice: the automatic energy target changed with the new formula. */
+  energyNotice?: boolean;
 }
+
+/** Current settings format version. */
+export const SETTINGS_VERSION = 2;
 
 /** A food the user created. Deleting only hides it, so past diary entries still resolve. */
 export interface CustomFood extends Food {

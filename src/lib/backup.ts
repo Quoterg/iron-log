@@ -1,7 +1,7 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
-import { MEALS, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type Usage, type UserServings } from './db';
+import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type Usage, type UserServings } from './db';
 import { foodName, NUTRIENTS, type Food } from './nutrients';
-import { normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
+import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
 
 export const BACKUP_FORMAT = 'iron-log-backup';
@@ -114,15 +114,17 @@ function settings(x: unknown): Settings | undefined {
   if (inRange(p.age, 18, 110) && Number.isInteger(p.age)) profile.age = p.age as number;
   if (inRange(p.weightKg, 30, 300)) profile.weightKg = Math.round((p.weightKg as number) * 10) / 10;
   if (inRange(p.heightCm, 120, 230) && Number.isInteger(p.heightCm)) profile.heightCm = p.heightCm as number;
+  if (inRange(p.bodyFatPct, 3, 70)) profile.bodyFatPct = Math.round((p.bodyFatPct as number) * 10) / 10;
   // Only the activity levels the UI offers, so the shown level always matches the energy estimate.
-  if (inRange(p.pal, 1.2, 2.5)) profile.pal = snapPal(p.pal as number);
-  // Automatic energy only when the data it needs survived validation.
-  if (p.kcalAuto === true && profile.age && profile.weightKg && profile.heightCm) profile.kcalAuto = true;
+  if (inRange(p.pal, 1, 2.5)) profile.pal = snapPal(p.pal as number);
+  // Automatic energy only when the data a formula needs survived validation.
+  if (p.kcalAuto === true && energyNeed(profile) != null) profile.kcalAuto = true;
   if (['none', 'pregnant1', 'pregnant2', 'pregnant3', 'lactating'].includes(p.status as string)) {
     profile.status = p.status as Settings['profile']['status'];
   }
   if (typeof p.menstruating === 'boolean') profile.menstruating = p.menstruating;
-  const out: Settings = { lang: x.lang, profile, targetOverrides: overrides };
+  // Imported profiles are already in the current format (activity snapped above).
+  const out: Settings = { lang: x.lang, profile, targetOverrides: overrides, version: SETTINGS_VERSION };
   if (['nnr', 'highProtein', 'lowCarb', 'keto', 'custom'].includes(x.macroPreset as string)) {
     out.macroPreset = x.macroPreset as Settings['macroPreset'];
   }

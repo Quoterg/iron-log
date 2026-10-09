@@ -6,7 +6,7 @@ import { getFoods, setCustomFoods, setUserBoosts } from './lib/foods';
 import { fetchProduct } from './lib/off';
 import { lang } from './lib/i18n';
 import type { Food, NutrientVector, Serving } from './lib/nutrients';
-import { computeTargets, DEFAULT_PROFILE, normalizeOverrides, type Target } from './lib/targets';
+import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 
 export type View = 'diary' | 'nutrients' | 'settings';
@@ -27,6 +27,7 @@ export const settings = signal<Settings>({
   lang: lang.value,
   profile: DEFAULT_PROFILE,
   targetOverrides: {},
+  version: db.SETTINGS_VERSION,
 });
 
 export const targets = computed<Record<string, Target>>(() => computeTargets(settings.value));
@@ -110,7 +111,15 @@ export async function loadSettings(): Promise<void> {
   const s = await db.getSettings();
   if (s) {
     // Older versions stored overrides as plain min numbers.
-    settings.value = { ...s, targetOverrides: normalizeOverrides(s.targetOverrides) };
+    let next: Settings = { ...s, targetOverrides: normalizeOverrides(s.targetOverrides) };
+    if ((s.version ?? 1) < db.SETTINGS_VERSION) {
+      // One-time move to tdeecalculator.net's activity levels; saved once, and the user is told
+      // if their automatic energy target changed.
+      const { profile, kcalChanged } = migrateEnergyProfile(s.profile);
+      next = { ...next, profile, version: db.SETTINGS_VERSION, ...(kcalChanged ? { energyNotice: true } : {}) };
+      await db.saveSettings(next);
+    }
+    settings.value = next;
     lang.value = s.lang;
   }
 }
