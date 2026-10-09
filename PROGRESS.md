@@ -5,10 +5,23 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M15b Supplement schedules**, then **M20b In-app Open Food Facts upload** (needs the owner's OK:
-it means storing an OFF login on the device) (see docs/ROADMAP.md). Waiting on the owner: **M19b** (first signed Android build — keep the
+**M20b In-app Open Food Facts upload** (approved by the owner), then M18c's remaining screen-reader
+pass (see docs/ROADMAP.md). Waiting on the owner: **M19b** (first signed Android build — keep the
 keystore — and assetlinks), **M18c** (native-speaker review of da/de/fi/so; screen-reader pass),
 and a real two-phone test of sync (M17).
+
+## 2026-10-09 — M15b Supplement schedules (interactive session)
+
+Done:
+- Daily supplements can be limited to weekdays (chips Mon–Sun, in the UI language) and given a
+  time of day (morning, midday, evening, night). The diary's checklist shows a day's scheduled
+  supplements, as-needed ones and anything already taken, ordered by time of day.
+- Stored as optional `days` (0 = Monday) and `time` on the supplement: old data and backups are
+  unchanged; backups and sync (same validator) check them — tested — and all seven days is stored
+  as "every day".
+- Reminders: not built — a web app can't schedule notifications while closed without a server.
+- Strings in all six languages. Tests: weekday/schedule logic, backup validation, e2e (today off →
+  not on the checklist; back on → shown with its time; no days refused).
 
 ## 2026-10-09 — M16b Amino acids (interactive session)
 

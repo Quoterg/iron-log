@@ -50,7 +50,9 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [x] **M14 Activity** — Exercise log (MET table, kcal burned), optional adding of burned
   energy to the day's target; water intake.
 - [x] **M15 Supplements** — Supplements with per-unit nutrients, daily dose checklist, quick log.
-- [ ] **M15b Supplement schedules** — Weekdays / times of day / reminders for supplements.
+- [x] **M15b Supplement schedules** — Weekdays and time of day for daily supplements. Reminders
+  aren't possible for a web app without a server (browsers can't schedule notifications for a
+  closed app), so the checklist itself is the reminder.
 - [x] **M16 More nutrients** — Vitamin K, B5, biotin, copper, manganese (USDA) and DPA (SLV/USDA)
   with NNR 2023 targets; nutrient detail pages (target, your top sources, richest foods).
 - [x] **M16b Amino acids** — The 9 essential amino acids (Met+Cys and Phe+Tyr combined) from USDA,
