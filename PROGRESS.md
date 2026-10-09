@@ -5,9 +5,18 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M18d Screen-reader pass** (manual), then new milestones (see docs/ROADMAP.md). Waiting on the
-owner: **M19b** (first signed Android build — keep the keystore — and assetlinks). A two-phone
-test of sync (M17) is not needed yet (owner, 2026-10-09).
+Nothing scheduled — the roadmap is done; awaiting the owner. Optional when the owner wants it:
+**M19c** (Play / F-Droid listings). M18d (screen-reader pass) is deferred until someone reports an
+issue.
+
+## 2026-10-09 — M19b Android app (interactive session)
+
+- The owner built and signed the first APK with Bubblewrap (key kept by the owner, not in the
+  repository). Two fixes were needed in `android/twa-manifest.json`: `splashScreenFadeOutDuration`
+  (missing → broken build.gradle) and `minSdkVersion` 24 (androidbrowserhelper 2.7 needs Android 7).
+- `assetlinks.json` with the upload key's fingerprint is live on the user site and verified via
+  Google's Digital Asset Links API, so the app opens without a browser bar. The fingerprint is
+  also in twa-manifest.json for future builds.
 
 ## 2026-10-09 — M18c Language review (interactive session)
 

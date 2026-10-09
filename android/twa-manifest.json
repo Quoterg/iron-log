@@ -24,7 +24,9 @@
   "isChromeOSOnly": false,
   "isMetaQuest": false,
   "orientation": "portrait",
-  "fingerprints": [],
+  "fingerprints": [
+    { "name": "upload key", "value": "F9:FF:C7:18:F1:E9:E9:F7:C2:F0:94:53:ED:8E:FB:D5:7C:39:F3:DF:C5:6A:1E:D2:E8:0C:0B:E0:19:23:DC:4F" }
+  ],
   "appVersionCode": 1,
   "appVersionName": "1.0.0",
   "signingKey": { "path": "./android.keystore", "alias": "ironlog" },
