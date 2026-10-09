@@ -25,23 +25,28 @@ const paste = async (page: Page, code: string) => {
 
 /** A backup with `n` diary entries on a past day, imported through the app (so it's tracked). */
 const importHistory = async (page: Page, n: number) => {
-  page.on('dialog', (d) => d.accept());
+  page.on('dialog', (d) => d.accept()); // accepts the import's confirm() — the reload depends on it
   const entries = Array.from({ length: n }, (_, i) => ({
     id: `hist-${i}`, date: '2026-01-15', meal: 'lunch', foodRef: 'slv:1', grams: 100, createdAt: 1000 + i,
   }));
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  // The import reloads the app: wait for that reload itself, not just any 'load' state (which the
+  // page is already in) — otherwise the next clicks land mid-reload on a slow runner.
+  const reloaded = page.waitForEvent('load', { timeout: 15_000 }); // a failed import fails fast
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'history.json',
     mimeType: 'application/json',
     buffer: Buffer.from(JSON.stringify({ format: 'iron-log-backup', version: 1, entries })),
   });
-  await page.waitForLoadState('load');
+  await reloaded;
+  await expect(page.locator('.meal').first()).toBeVisible(); // a reload always opens the diary
 };
 
 test('two devices pair with codes and end up with each other’s data, in batches', async ({ browser }) => {
   test.slow();
   const a = await (await browser.newContext()).newPage();
   const b = await (await browser.newContext()).newPage();
+  for (const [n, p] of [['A', a], ['B', b]] as const) p.on('console', (m) => m.type() === 'error' && console.log(n, m.text()));
   await a.goto('./');
   await b.goto('./');
 
