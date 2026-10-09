@@ -5,7 +5,31 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M15 Supplements** (see docs/ROADMAP.md).
+**M16 More nutrients** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M15 Supplements (interactive session)
+
+Done:
+- Supplements are custom foods with `supplement: { unit, perDay }`. Amounts are entered per unit
+  (tablett, kapsel, ml…); one unit is stored as 1 g, so per-100 g = per-unit × 100 and logging,
+  totals, reports, search and backups work unchanged. Backups validate the supplement field.
+- Diary card "Kosttillskott": daily supplements (perDay > 0) get a checkbox that logs the daily
+  dose (unticking removes the day's entries); as-needed ones (perDay 0) get "+1". Their entries
+  show in this card, not under meals. Tapping a taken row opens the entry; otherwise the editor.
+- Lazy supplement editor (3 KB): vitamins, minerals and EPA/DHA first, the rest behind "show all".
+  Search shows a "Tillskott" badge.
+- Tests: 97 unit, 28 Playwright. Initial JS 35.2 KB gzip (+0.9 KB; ≈ 5 KB headroom left).
+
+- Review fixes: deleted supplements keep their history in the card (never moved to a meal);
+  "edit food" for a supplement always opens the supplement editor, and saving keeps its
+  supplement info; the name opens the editor and the taken amount opens the entry; unticking
+  removes only the latest daily dose; CSV labels supplement rows "Kosttillskott"; nutrient inputs
+  in the editor are uncontrolled (no re-render per keystroke).
+
+Known limitations: the schedule is "units per day" only (M15b: weekdays, times). Entries are
+stored under breakfast internally (shown in the supplement card and labelled in CSV). An app
+version from before M15 importing a newer backup would treat supplements as plain foods (×100
+values) — the PWA updates itself, so this only affects an old copy that was never reopened online.
 
 ## 2026-10-09 — M14 Activity (interactive session)
 

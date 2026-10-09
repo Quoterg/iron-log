@@ -4,6 +4,7 @@ import type { Food, Serving } from './nutrients';
 import { MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
 import type { StoredRecipe } from './recipes';
+import type { SupplementInfo } from './supplements';
 import type { MacroPct, MacroPreset, Profile, TargetOverride } from './targets';
 
 export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -58,6 +59,8 @@ export interface CustomFood extends Food {
   createdAt: number;
   updatedAt: number;
   deleted?: boolean;
+  /** Set for supplements (values per unit, see lib/supplements.ts). */
+  supplement?: SupplementInfo;
 }
 
 /** How the user uses a food: drives "recent", favourites and search ranking. */

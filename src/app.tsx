@@ -9,7 +9,7 @@ import { Nutrients } from './components/Nutrients';
 import { ScanSheet } from './components/ScanSheet';
 import { lazyView } from './lazy';
 import { stack, top, type Screen } from './nav';
-import { date, loadDay, view, type View } from './state';
+import { date, loadDay, supplementRefs, view, type View } from './state';
 
 const TABS: View[] = ['diary', 'nutrients', 'body', 'settings'];
 
@@ -26,6 +26,7 @@ const PREFETCH: Partial<Record<View, () => void>> = {
 };
 export const contributorsView = lazyView(() => import('./components/Contributors'));
 export const activityView = lazyView(() => import('./components/ActivitySheet'));
+export const supplementView = lazyView(() => import('./components/SupplementEditor'));
 
 export function App() {
   const s = top.value;
@@ -77,6 +78,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
         <FoodDetail foodRef={s.ref} meal={s.meal} entryId={s.entryId} ingredient={s.ingredient} ingredientIndex={s.ingredientIndex} />
       );
     case 'editFood':
+      // Supplements have per-unit values: never edit them as per-100 g foods.
+      if (s.ref && supplementRefs.value.has(s.ref)) return <supplementView.Lazy foodRef={s.ref} />;
       return <FoodEditor foodRef={s.ref} name={s.name} meal={s.meal} />;
     case 'copy':
       return <CopySheet meal={s.meal} />;
@@ -90,6 +93,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <contributorsView.Lazy nutrient={s.key} from={s.from} to={s.to} />;
     case 'activity':
       return <activityView.Lazy />;
+    case 'supplement':
+      return <supplementView.Lazy foodRef={s.ref} />;
   }
 }
 

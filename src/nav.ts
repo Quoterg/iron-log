@@ -21,7 +21,9 @@ export type Screen =
   /** Top foods for one nutrient over a date range. */
   | { kind: 'contributors'; key: string; from: string; to: string }
   /** Log exercise for the selected day. */
-  | { kind: 'activity' };
+  | { kind: 'activity' }
+  /** Create or edit a supplement. */
+  | { kind: 'supplement'; ref?: string };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

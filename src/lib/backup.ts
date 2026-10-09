@@ -59,6 +59,13 @@ function customFood(x: unknown): CustomFood {
   ) {
     const f: CustomFood = { ref: x.ref, sv: x.sv, en: x.en, per100g: x.per100g, createdAt: x.createdAt, updatedAt: x.updatedAt };
     if (x.deleted === true) f.deleted = true;
+    if (x.supplement !== undefined) {
+      const s = x.supplement;
+      if (!isObj(s) || !isStr(s.unit, 30) || !s.unit.trim() || !isNum(s.perDay) || s.perDay < 0 || s.perDay > 100) {
+        throw new BackupError('customFood');
+      }
+      f.supplement = { unit: s.unit, perDay: s.perDay };
+    }
     return f;
   }
   throw new BackupError('customFood');
@@ -254,7 +261,13 @@ export function parseBackup(text: string): AllData {
  * Diary as CSV, one row per entry with all nutrients for the logged amount.
  * Swedish uses ";" and decimal comma (what Excel expects in a Swedish locale).
  */
-export function toCsv(entries: Entry[], foods: Map<string, Food>, lang: 'sv' | 'en', mealName: (m: string) => string): string {
+export function toCsv(
+  entries: Entry[],
+  foods: Map<string, Food>,
+  lang: 'sv' | 'en',
+  mealName: (m: string) => string,
+  supplementRefs: ReadonlySet<string> = new Set(),
+): string {
   const sep = lang === 'sv' ? ';' : ',';
   const num = (n: number) => {
     const s = String(Math.round(n * 1000) / 1000);
@@ -273,7 +286,8 @@ export function toCsv(entries: Entry[], foods: Map<string, Food>, lang: 'sv' | '
       const f = foods.get(e.foodRef);
       const v = e.snap ?? f?.per100g; // as logged, for recipes
       const amounts = v ? scale(v, e.grams).map((x, i) => (v[i] == null ? '' : num(x))) : NUTRIENTS.map(() => '');
-      return [e.date, mealName(e.meal), f ? foodName(f, lang) : e.foodRef, num(e.grams), ...amounts];
+      const meal = supplementRefs.has(e.foodRef) ? (lang === 'sv' ? 'Kosttillskott' : 'Supplements') : mealName(e.meal);
+      return [e.date, meal, f ? foodName(f, lang) : e.foodRef, num(e.grams), ...amounts];
     });
   const BOM = '﻿'; // so Excel opens UTF-8 (å, ä, ö) correctly
   return BOM + [head, ...rows].map((r) => r.map((c) => cell(c, sep)).join(sep)).join('\r\n') + '\r\n';
