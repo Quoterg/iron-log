@@ -4,8 +4,8 @@ import { dataLangOf } from './nutrients';
 
 export type Lang = 'sv' | 'en' | 'da' | 'fi' | 'de' | 'so';
 
-/** The language picker, in this order. A new, unreviewed translation can be marked `beta: true`. */
-export const LANGS: { code: Lang; name: string; beta?: true }[] = [
+/** The language picker, in this order. */
+export const LANGS: { code: Lang; name: string }[] = [
   { code: 'sv', name: 'Svenska' },
   { code: 'en', name: 'English' },
   { code: 'da', name: 'Dansk' },

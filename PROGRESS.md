@@ -5,8 +5,9 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M18d Screen-reader pass** (manual), then new milestones (see docs/ROADMAP.md).
-Waiting on the owner: **M19b** (first signed Android build — keep the keystore — and assetlinks).
+**M20b In-app Open Food Facts upload** is in review (PR #29). Then **M18d Screen-reader pass**
+(manual). Waiting on the owner: **M19b** (first signed Android build — keep the keystore — and
+assetlinks). A two-phone test of sync (M17) is not needed yet (owner, 2026-10-09).
 
 ## 2026-10-09 — M18c Language review (interactive session)
 

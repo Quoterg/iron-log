@@ -1,5 +1,5 @@
-// Somali (Soomaali). Machine-assisted, reviewed and approved by the project owner (2026-10-09); improvements
-// from native speakers are welcome. Missing strings fall back to English.
+// Somali (Soomaali). Machine-assisted, reviewed and approved by the project owner; improvements from
+// native speakers are welcome. Missing strings fall back to English.
 // Food names are shown in English (foods only have Swedish/English names). Loaded on demand.
 import type { LangPack } from '../i18n';
 

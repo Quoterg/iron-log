@@ -1,5 +1,5 @@
-// Danish (dansk). Machine-assisted, reviewed and approved by the project owner (2026-10-09); improvements
-// from native speakers are welcome. Missing strings fall back to English.
+// Danish (dansk). Machine-assisted, reviewed and approved by the project owner; improvements from
+// native speakers are welcome. Missing strings fall back to English.
 // Food and activity names fall back to Swedish where missing. Loaded on demand.
 import type { LangPack } from '../i18n';
 
