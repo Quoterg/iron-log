@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { Meal } from '../lib/db';
-import { lang, parseNum, t } from '../lib/i18n';
+import { decimalComma, nutrientName, parseNum, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS, type NutrientVector } from '../lib/nutrients';
 import { estimateKcal } from '../lib/totals';
 import { back, replaceTop } from '../nav';
@@ -45,7 +45,7 @@ export function FoodEditor(props: { foodRef?: string; name?: string; meal?: Meal
     return (
       <label key={key} class={invalid(key) ? 'field error' : 'field'}>
         <span>
-          {n[lang.value]} ({n.unit})
+          {nutrientName(n)} ({n.unit})
         </span>
         <input
           type="text"
@@ -112,5 +112,5 @@ export function FoodEditor(props: { foodRef?: string; name?: string; meal?: Meal
 function toText(v: number | null | undefined): string {
   if (v == null) return '';
   const s = String(v);
-  return lang.value === 'sv' ? s.replace('.', ',') : s;
+  return decimalComma() ? s.replace('.', ',') : s;
 }

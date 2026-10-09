@@ -1,4 +1,4 @@
-import { fmt, lang, t, type Lang } from '../lib/i18n';
+import { fmt, type Lang, lang, LANGS, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { open } from '../nav';
 import { activeSources, customFoods, recipes, settings, updateSettings } from '../state';
@@ -100,13 +100,16 @@ function General() {
           value={s.lang}
           onChange={(e) => void updateSettings({ lang: (e.currentTarget as HTMLSelectElement).value as Lang })}
         >
-          <option value="sv">Svenska</option>
-          <option value="en">English</option>
+          {LANGS.map((l) => (
+            <option key={l.code} value={l.code}>
+              {l.beta ? `${l.name} (beta)` : l.name}
+            </option>
+          ))}
         </select>
       </label>
       <p class="muted small">
-        {t('privacy')} <a href={lang.value === 'en' ? 'privacy.html#en' : 'privacy.html'}>{t('privacyPolicy')}</a> ·{' '}
-        <a href={lang.value === 'en' ? 'about.html#en' : 'about.html'}>{t('aboutApp')}</a>
+        {t('privacy')} <a href={lang.value === 'sv' ? 'privacy.html' : 'privacy.html#en'}>{t('privacyPolicy')}</a> ·{' '}
+        <a href={lang.value === 'sv' ? 'about.html' : 'about.html#en'}>{t('aboutApp')}</a>
       </p>
       <p class="muted small">{t('attribution')}</p>
       <fieldset class="sources">

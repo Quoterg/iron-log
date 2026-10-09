@@ -1,5 +1,5 @@
 import { entryVector, MEALS, type Entry } from '../lib/db';
-import { fmt, fmtAmount, lang, t, unitLabel } from '../lib/i18n';
+import { activityName, fmt, fmtAmount, lang, nutrientName, t, unitLabel } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
@@ -26,7 +26,7 @@ export function Diary() {
           {(['protein', 'carbs', 'fat'] as const).map((k) => (
             <div class={`macro m-${k}`} key={k}>
               <span class="macro-val num">{fmt(g(k))} g</span>
-              <span class="macro-lbl">{NUTRIENTS[NUTRIENT_INDEX[k]][lang.value]}</span>
+              <span class="macro-lbl">{nutrientName(NUTRIENTS[NUTRIENT_INDEX[k]])}</span>
               <span class="macro-pct num">{Math.round(split[k] * 100)} E%</span>
             </div>
           ))}
@@ -107,7 +107,8 @@ function ActivityCard() {
           {dayActivities.value.map((a) => {
             const types = activityTypes.value;
             // Unknown id (e.g. from a backup made with another release): show the id itself.
-            const name = types ? (types.find((x) => x.id === a.type)?.[lang.value] ?? a.type) : '…';
+            const type = types?.find((x) => x.id === a.type);
+            const name = types ? (type ? activityName(type) : a.type) : '…';
             return (
               <li key={a.id} class="ingredient">
                 <span class="entry entry-static">

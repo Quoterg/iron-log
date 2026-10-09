@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { niceScale, type Point } from '../lib/body';
-import { fmtAmount, lang, t } from '../lib/i18n';
+import { fmtAmount, locale, t } from '../lib/i18n';
 
 const W = 320;
 const H = 150;
@@ -9,7 +9,7 @@ const PAD = { top: 10, right: 12, bottom: 22, left: 34 };
 const DAY = 86_400_000;
 const time = (d: string) => Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10));
 const shortDate = (d: string, withYear = false) =>
-  new Date(time(d)).toLocaleDateString(lang.value === 'sv' ? 'sv-SE' : 'en-GB', {
+  new Date(time(d)).toLocaleDateString(locale(), {
     day: 'numeric',
     month: 'short',
     ...(withYear ? { year: 'numeric' } : {}),

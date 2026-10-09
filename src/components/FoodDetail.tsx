@@ -1,7 +1,7 @@
 import { useRef, useState } from 'preact/hooks';
 import { databaseOf, offProductUrl, reportUrl } from '../lib/contribute';
 import { MEALS, type Meal } from '../lib/db';
-import { fmt, fmtAmount, lang, parseNum, t, unitLabel } from '../lib/i18n';
+import { decimalComma, fmt, fmtAmount, lang, parseNum, t, unitLabel } from '../lib/i18n';
 import { GRAMS, initialAmount, servingsFor, toGrams } from '../lib/servings';
 import { foodName, NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { scale } from '../lib/totals';
@@ -26,7 +26,7 @@ import { Sheet } from './Sheet';
 const QUICK_GRAMS = [25, 50, 100, 150, 200, 300];
 const QUICK_QTY = [0.5, 1, 2, 3];
 
-const numText = (n: number) => String(n).replace('.', lang.value === 'sv' ? ',' : '.');
+const numText = (n: number) => String(n).replace('.', decimalComma() ? ',' : '.');
 
 /**
  * A food with all its nutrients for the chosen amount. Adds a new entry (`meal`)

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'preact/hooks';
-import { inputNum, lang, parseNum, t } from '../lib/i18n';
+import { inputNum, nutrientName, parseNum, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS, type NutrientVector } from '../lib/nutrients';
 import { per100gToPerUnit, perUnitToPer100g } from '../lib/supplements';
 import { estimateKcal } from '../lib/totals';
@@ -66,7 +66,7 @@ export default function SupplementEditor(props: { foodRef?: string }) {
     return (
       <label key={key} class={bad.has(key) ? 'field error' : 'field'}>
         <span>
-          {n[lang.value]} ({n.unit})
+          {nutrientName(n)} ({n.unit})
         </span>
         <input
           type="text"

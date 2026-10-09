@@ -1,5 +1,6 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
 import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type SyncStore, type Usage, type UserServings } from './db';
+import { isLang } from './i18n';
 import { foodName, NUTRIENTS, type Food } from './nutrients';
 import { MAX_ACTIVITY_KCAL, MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
@@ -190,7 +191,7 @@ function servings(x: unknown): UserServings {
 function settings(x: unknown): Settings | undefined {
   if (!isObj(x) || !isObj(x.profile)) return undefined;
   const p = x.profile;
-  if ((x.lang !== 'sv' && x.lang !== 'en') || (p.sex !== 'female' && p.sex !== 'male') || !isNum(p.kcal)) {
+  if (!isLang(x.lang) || (p.sex !== 'female' && p.sex !== 'male') || !isNum(p.kcal)) {
     return undefined; // settings are optional: ignore rather than reject the whole backup
   }
   // Accepts both the old `{ key: min }` and the current `{ key: { min, max } }` shape.

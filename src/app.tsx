@@ -1,5 +1,5 @@
 import { addDays, isoDate } from './lib/db';
-import { lang, t } from './lib/i18n';
+import { locale, t } from './lib/i18n';
 import { CopySheet } from './components/CopySheet';
 import { Diary } from './components/Diary';
 import { FoodDetail } from './components/FoodDetail';
@@ -124,7 +124,7 @@ function dayLabel(d: string): string {
   if (d === addDays(today, -1)) return t('yesterday');
   if (d === addDays(today, 1)) return t('tomorrow');
   const [y, m, day] = d.split('-').map(Number);
-  return new Date(y, m - 1, day).toLocaleDateString(lang.value === 'sv' ? 'sv-SE' : 'en-GB', {
+  return new Date(y, m - 1, day).toLocaleDateString(locale(), {
     weekday: 'short',
     day: 'numeric',
     month: 'short',

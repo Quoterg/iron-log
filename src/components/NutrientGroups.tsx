@@ -1,4 +1,4 @@
-import { lang, t } from '../lib/i18n';
+import { nutrientName, t } from '../lib/i18n';
 import { NUTRIENTS, type NutrientGroup } from '../lib/nutrients';
 import { targets } from '../state';
 import { Bar } from './Bar';
@@ -30,12 +30,12 @@ export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; on
             group.includes(n.group) ? (
               onSelect ? (
                 <button key={n.key} class="bar-btn" onClick={() => onSelect(n.key)}>
-                  <Bar label={n[lang.value]} amount={amounts[i]} unit={n.unit} target={tg[n.key]} unknown={known?.[i] === false} />
+                  <Bar label={nutrientName(n)} amount={amounts[i]} unit={n.unit} target={tg[n.key]} unknown={known?.[i] === false} />
                 </button>
               ) : (
                 <Bar
                   key={n.key}
-                  label={n[lang.value]}
+                  label={nutrientName(n)}
                   amount={amounts[i]}
                   unit={n.unit}
                   target={tg[n.key]}

@@ -1,9 +1,24 @@
 import { signal } from '@preact/signals';
 
-export type Lang = 'sv' | 'en';
+import { dataLangOf } from './nutrients';
+
+export type Lang = 'sv' | 'en' | 'da' | 'fi' | 'de' | 'so';
+
+/** The language picker, in this order. Machine-assisted translations are marked beta until reviewed. */
+export const LANGS: { code: Lang; name: string; beta?: true }[] = [
+  { code: 'sv', name: 'Svenska' },
+  { code: 'en', name: 'English' },
+  { code: 'da', name: 'Dansk', beta: true },
+  { code: 'de', name: 'Deutsch', beta: true },
+  { code: 'fi', name: 'Suomi', beta: true },
+  { code: 'so', name: 'Soomaali', beta: true },
+];
+
+export const isLang = (x: unknown): x is Lang => LANGS.some((l) => l.code === x);
 
 const sv = {
   appName: 'Iron Log',
+  carbsAbbr: 'K',
   today: 'Idag',
   yesterday: 'Igår',
   tomorrow: 'Imorgon',
@@ -251,268 +266,70 @@ const sv = {
   resetTargetsConfirm: 'Återställa alla mål till NNR 2023?',
 };
 
-type Dict = typeof sv;
+export type Dict = typeof sv;
 
-const en: Dict = {
-  appName: 'Iron Log',
-  today: 'Today',
-  yesterday: 'Yesterday',
-  tomorrow: 'Tomorrow',
-  prevDay: 'Previous day',
-  nextDay: 'Next day',
-  breakfast: 'Breakfast',
-  lunch: 'Lunch',
-  dinner: 'Dinner',
-  snack: 'Snacks',
-  addFood: 'Add',
-  searchPlaceholder: 'Search foods, e.g. oats',
-  noResults: 'No results',
-  loadingFoods: 'Loading foods…',
-  amount: 'Amount',
-  grams: 'g',
-  add: 'Add',
-  cancel: 'Cancel',
-  remove: 'Remove',
-  close: 'Close',
-  per100g: 'per 100 g',
-  diary: 'Diary',
-  body: 'Body',
-  bodyWeight: 'Weight',
-  bodyFat: 'Body fat',
-  bodyWaist: 'Waist',
-  logBody: 'Log measurements',
-  bodySaved: 'Saved.',
-  bodyInvalid: 'Check the date and values (no future dates; weight 20–400 kg, fat 2–75 %, waist 30–250 cm).',
-  noBodyData: 'No measurements yet. Your latest weight also updates your profile.',
-  range: 'Time range',
-  range30: '30 days',
-  range90: '90 days',
-  range365: '1 year',
-  rangeAll: 'All',
-  measurement: 'Measurement',
-  measurements: 'measurements',
-  latest: 'latest',
-  trend7: '7-day trend',
-  chartHint: 'Point at the chart or use the arrow keys for values.',
-  showTable: 'Show as table',
-  hideTable: 'Hide table',
-  nutrients: 'Nutrients',
-  settings: 'Settings',
-  energy: 'Energy',
-  macros: 'Macronutrients',
-  carbsDetail: 'Carbohydrates',
-  lipids: 'Fats',
-  vitamins: 'Vitamins',
-  minerals: 'Minerals',
-  other: 'Other',
-  target: 'Target',
-  limit: 'Max',
-  language: 'Language',
-  sex: 'Sex',
-  female: 'Female',
-  male: 'Male',
-  dailyEnergy: 'Daily energy need (kcal)',
-  targetsNote: 'Targets follow the Nordic Nutrition Recommendations (NNR 2023) for your age and life stage.',
-  emptyDay: 'Nothing logged yet. Tap “Add” on a meal.',
-  attribution: 'Food data: Swedish Food Agency food composition database (CC BY 4.0).',
-  privacy: 'All data is stored only on this device.',
-  copy: 'Copy',
-  offAdd: 'Add this product to Open Food Facts',
-  offComplete: 'Add the nutrition facts on Open Food Facts',
-  offHelpNote: 'The page opens in your browser. Once the product is there, everyone finds it next time.',
-  offFix: 'Correct or complete on Open Food Facts',
-  reportError: 'Report a data error',
-  privacyPolicy: 'Privacy',
-  aboutApp: 'About Iron Log',
-  back: 'Back',
-  save: 'Save',
-  meal: 'Meal',
-  date: 'Date',
-  changeFood: 'Change food',
-  createFood: 'Create custom food',
-  editFood: 'Edit food',
-  myFoods: 'My foods',
-  noCustomFoods: 'You have no custom foods yet. Create one from search.',
-  name: 'Name',
-  nutrientsPer100g: 'Nutrition per 100 g',
-  nutrientsForAmount: 'Nutrition for this amount',
-  showAllNutrients: 'Show all nutrients',
-  supplements: 'Supplements',
-  supplementBadge: 'Supplement',
-  newSupplement: 'New supplement',
-  editSupplement: 'Edit supplement',
-  supplementUnit: 'Unit',
-  supplementUnitDefault: 'tablet',
-  supplementPerDay: 'Per day',
-  supplementPerDayHint: 'With a daily amount the supplement gets a checkbox in the diary. 0 = as needed.',
-  supplementPerUnit: 'Content per {unit}',
-  supplementTaken: 'Taken',
-  perDayShort: 'day',
-  kcalHint: 'Leave empty to calculate from protein, carbs, fat and fibre.',
-  sourceSlv: 'Source: Swedish Food Agency food composition database (CC BY 4.0).',
-  sourceCustom: 'Source: your custom food.',
-  confirmDeleteFood: 'Delete this food? It disappears from search but stays in your diary.',
-  customBadge: 'Custom',
-  nameRequired: 'Enter a name.',
-  invalidNumber: 'Invalid number.',
-  favourites: 'Favourites',
-  recent: 'Recent',
-  addFavourite: '☆ Favourite',
-  isFavourite: '★ Favourite',
-  copyMeal: 'Copy meal',
-  copyDay: 'Copy whole day',
-  toDate: 'To date',
-  toMeal: 'To meal',
-  sameMeal: 'Same meals',
-  searchHint: 'Tip: foods you have logged or marked as favourite show up here.',
-  yourData: 'Your data',
-  exportBackup: 'Export backup (JSON)',
-  exportCsv: 'Export diary as spreadsheet (CSV)',
-  importBackup: 'Import backup',
-  importConfirm: 'Import {n} entries and {f} custom foods? Existing data is kept; items with the same id are replaced.',
-  importDone: 'Import finished.',
-  importFailed: 'The file could not be imported: it is not a valid Iron Log backup.',
-  deleteAll: 'Delete all data',
-  deleteAllConfirm: 'Delete ALL data on this device (diary, custom foods, settings)? This cannot be undone. Export a backup first. Data on devices you sync with is not affected and comes back if you sync again.',
-  storagePersistent: 'Storage is protected: the browser will not clear your data automatically.',
-  storageNotPersistent: 'The browser may clear your data when space runs low. Install the app and export backups regularly.',
-  installApp: 'Install the app',
-  installIosHint: 'Install on iPhone: tap the Share button and choose “Add to Home Screen”.',
-  unit: 'Measure',
-  addServing: '+ Custom measure',
-  servingName: 'Measure name',
-  servingGrams: 'Weight (g)',
-  servingNameHint: 'e.g. my bowl',
-  scanBarcode: 'Scan barcode',
-  barcode: 'Barcode',
-  lookUp: 'Look up',
-  barcodeBadge: 'Barcode',
-  scanStarting: 'Starting the camera…',
-  scanHint: 'Point the camera at the barcode.',
-  scanNoCamera: 'The camera is not available. Type the barcode below.',
-  scanLooking: 'Looking up the product…',
-  scanNotFound: 'The product is not in Open Food Facts. You can create it as a custom food.',
-  scanNoData: 'The product has no nutrition data in Open Food Facts. You can create it as a custom food.',
-  scanNetwork: 'Could not reach Open Food Facts. Check your connection and try again.',
-  scanInvalid: 'Invalid barcode (8, 12, 13 or 14 digits).',
-  offPrivacy: 'Only the barcode is sent to Open Food Facts. Found products are saved on this device.',
-  sourceOff: 'Source: Open Food Facts (ODbL), barcode',
-  attributionOff: 'Product data: Open Food Facts (ODbL).',
-  attributionUsda: 'US food data: USDA FoodData Central (public domain).',
-  foodDatabases: 'Food databases in search',
-  sourceNameSlv: 'Swedish Food Agency (Sweden, Swedish names)',
-  sourceNameUsda: 'USDA (USA, English names, about 8,000 foods)',
-  sourceUsda: 'Source: USDA FoodData Central (public domain).',
-  sourcesUnavailable: '{list} could not be loaded (offline?). Search shows the other foods and retries automatically.',
-  profile: 'Profile',
-  age: 'Age',
-  weightKg: 'Weight (kg)',
-  heightCm: 'Height (cm)',
-  activity: 'Activity level',
-  palSedentary: 'Sedentary (office job)',
-  palLight: 'Light exercise (1–2 days/week)',
-  palModerate: 'Moderate exercise (3–5 days/week)',
-  palHeavy: 'Heavy exercise (6–7 days/week)',
-  palAthlete: 'Athlete (2× per day)',
-  bodyFatPct: 'Body fat % (optional)',
-  energyNotice: 'Energy needs are now calculated as on tdeecalculator.net (Katch–McArdle with body fat %, otherwise Mifflin–St Jeor) with new activity levels. Your automatic energy target has changed – please check your activity level.',
-  ok: 'OK',
-  formulaKatch: 'Calculated with Katch–McArdle (lean body mass), like tdeecalculator.net.',
-  formulaMifflin: 'Calculated with Mifflin–St Jeor, like tdeecalculator.net. Enter body fat % to use Katch–McArdle.',
-  lifeStage: 'Life stage',
-  statusNone: 'Not pregnant or breastfeeding',
-  pregnant1: 'Pregnant, trimester 1',
-  pregnant2: 'Pregnant, trimester 2',
-  pregnant3: 'Pregnant, trimester 3',
-  lactating: 'Breastfeeding',
-  menstruating: 'Menstruating (affects iron needs)',
-  kcalAuto: 'Calculate energy needs automatically',
-  kcalAutoHint: 'Enter age, weight and height – or weight and body fat % – to calculate energy needs.',
-  kcalEstimate: 'Estimated energy need',
-  weightBeforePregnancy: 'Weight before pregnancy (kg)',
-  lactationNote: 'The extra energy applies to exclusive breastfeeding (first 6 months).',
-  loading: 'Loading…',
-  activityLog: 'Activity',
-  addActivity: 'Add activity',
-  activityType: 'Activity',
-  minutes: 'Minutes',
-  activityNote: 'Estimate: (MET − 1) × your weight × time, i.e. energy on top of resting (already part of your energy need).',
-  activityNoWeight: 'Estimated for {kg} kg – enter your weight in the profile for a better estimate.',
-  water: 'Water',
-  addBurnedToTarget: 'Add energy burned in activities to the day’s energy target',
-  targetInclActivity: 'Target includes {kcal} kcal from activity.',
-  periodLabel: 'Period',
-  periodDay: 'Day',
-  period7: '7 days',
-  period30: '30 days',
-  averageNote: 'Average per logged day ({n} of {d} days have entries).',
-  streak: 'You have logged {n} days in a row.',
-  insights: 'Worth a look',
-  lowNutrients: 'Below 70% of target',
-  overLimit: 'Over the limit',
-  topSources: 'Top sources',
-  noSources: 'No foods with this nutrient in the period.',
-  richestFoods: 'Richest in the food database',
-  richestNote: 'Per 100 g – spices and dried foods can top the list.',
-  noRichest: 'No foods in the selected databases have values for this.',
-  noTarget: 'no target',
-  createRecipe: 'Create recipe',
-  editRecipe: 'Edit recipe',
-  myRecipes: 'My recipes',
-  noRecipes: 'You have no recipes yet.',
-  servings: 'Servings',
-  ingredients: 'Ingredients',
-  ingredient: 'Ingredient',
-  noIngredients: 'Add at least one ingredient.',
-  addIngredient: 'Add ingredient',
-  addToRecipe: 'Add to recipe',
-  cookedWeight: 'Weight after cooking (g, optional)',
-  cookedWeightHint: 'Weigh the finished dish for more accurate values – water boils off or is absorbed. Leave empty to use the ingredients’ weight.',
-  perPortion: 'Per serving',
-  portionShort: 'serving',
-  ingredientsMissing: 'Some ingredients have no nutrition data (e.g. a deleted food). Remove or replace them before saving.',
-  recipeEditNote: 'Changes apply to new log entries – days you have already logged keep their values.',
-  servingsInvalid: 'Enter between 0.5 and 1000 servings.',
-  draftFound: 'You have an unsaved draft for this recipe.',
-  restore: 'Restore',
-  discard: 'Discard',
-  recipeBadge: 'Recipe',
-  sourceRecipe: 'Source: your recipe (calculated from its ingredients).',
-  confirmDeleteRecipe: 'Delete this recipe? It disappears from search but stays in your diary.',
-  adjustTargets: 'Adjust targets',
-  macroDistribution: 'Energy distribution (E%)',
-  preset: 'Preset',
-  preset_nnr: 'NNR 2023 (recommended)',
-  preset_highProtein: 'High protein',
-  preset_lowCarb: 'Low carb',
-  preset_keto: 'Keto',
-  preset_custom: 'Custom',
-  minPct: 'Min %',
-  maxPct: 'Max %',
-  customHint: 'Choose “Custom” to change the percentages (it starts from the current split and does not follow later age changes).',
-  invalidTarget: 'Invalid value for {name}: enter a number from 0 and keep the target at or below the max.',
-  invalidPct: 'Invalid percentage for {name}: 0–100 and min at most max.',
-  conflictNote: 'Your value is ignored because it contradicts the preset.',
-  loadFailed: 'Could not load. Check your connection.',
-  retry: 'Try again',
-  pctSumWarning: 'The ranges cannot add up to 100% – check min and max.',
-  perNutrient: 'Targets per nutrient',
-  perNutrientHint: 'Leave empty to use the default (shown in grey). Target is a minimum, max is an upper limit.',
-  resetTargets: 'Reset all targets',
-  resetTargetsConfirm: 'Reset all targets to NNR 2023?',
+/**
+ * A language. Swedish is built in; the others load on demand (one small chunk each), so a new
+ * language costs nothing in the first bundle. Missing strings fall back to English, then Swedish.
+ */
+export interface LangPack {
+  strings: Partial<Dict>;
+  /** Nutrient names by key (Swedish and English come from nutrients.json). */
+  nutrients?: Record<string, string>;
+  /** Activity names by id (Swedish and English come from activity-types.ts). */
+  activities?: Record<string, string>;
+  /** Household measures by stored name (Swedish and English: UNIT_LABELS below). */
+  units?: Record<string, string>;
+}
+
+const LOADERS: Record<Exclude<Lang, 'sv'>, () => Promise<{ default: LangPack }>> = {
+  en: () => import('./lang/en'),
+  da: () => import('./lang/da'),
+  fi: () => import('./lang/fi'),
+  de: () => import('./lang/de'),
+  so: () => import('./lang/so'),
 };
 
-const dicts: Record<Lang, Dict> = { sv, en };
+const packs = new Map<Lang, LangPack>([['sv', { strings: sv }]]);
 
+/** Load a language (and English, its fallback). Call before switching `lang` to it. */
+export async function loadLang(l: Lang): Promise<void> {
+  const need: Exclude<Lang, 'sv'>[] = l === 'sv' ? [] : l === 'en' ? ['en'] : [l, 'en'];
+  await Promise.all(need.filter((x) => !packs.has(x)).map(async (x) => void packs.set(x, (await LOADERS[x]()).default)));
+}
+
+
+/** The browser's language if we have it; Norwegian reads Swedish; anything else gets English. */
 export function detectLang(): Lang {
-  const l = typeof navigator === 'undefined' ? '' : navigator.language?.toLowerCase();
-  return l?.startsWith('en') ? 'en' : 'sv';
+  const l = (typeof navigator === 'undefined' ? '' : (navigator.language ?? '')).toLowerCase().slice(0, 2);
+  if (isLang(l)) return l;
+  if (l === 'nb' || l === 'nn' || l === 'no' || !l) return 'sv';
+  return 'en';
 }
 
 export const lang = signal<Lang>(detectLang());
 
 export function t(key: keyof Dict): string {
-  return dicts[lang.value][key];
+  return packs.get(lang.value)?.strings[key] ?? packs.get('en')?.strings[key] ?? sv[key];
+}
+
+const LOCALES: Record<Lang, string> = { sv: 'sv-SE', en: 'en-GB', da: 'da-DK', fi: 'fi-FI', de: 'de-DE', so: 'so-SO' };
+
+/** BCP 47 locale for dates and numbers. */
+export const locale = (): string => LOCALES[lang.value];
+
+/** Which food-data names to show (foods only have Swedish and English names). */
+export const dataLang = (): 'sv' | 'en' => dataLangOf(lang.value);
+
+/** Whether this language writes decimals with a comma (1,5) — inputs accept both anyway. */
+export const decimalComma = (): boolean => fmt(1.5, 1).includes(',');
+
+export function nutrientName(n: { key: string; sv: string; en: string }): string {
+  return packs.get(lang.value)?.nutrients?.[n.key] ?? n[dataLang()];
+}
+
+export function activityName(a: { id: string; sv: string; en: string }): string {
+  return packs.get(lang.value)?.activities?.[a.id] ?? a[dataLang()];
 }
 
 const formatters = new Map<string, Intl.NumberFormat>();
@@ -522,7 +339,7 @@ export function fmt(n: number, digits = 0): string {
   const k = `${lang.value}:${digits}`;
   let f = formatters.get(k);
   if (!f) {
-    f = new Intl.NumberFormat(lang.value === 'sv' ? 'sv-SE' : 'en-GB', { maximumFractionDigits: digits });
+    f = new Intl.NumberFormat(locale(), { maximumFractionDigits: digits });
     formatters.set(k, f);
   }
   return f.format(n);
@@ -544,13 +361,15 @@ const UNIT_LABELS: Record<string, [sv: string, en: string]> = {
 
 /** Display name of a household measure; user-defined names are shown as typed. */
 export function unitLabel(name: string): string {
+  const own = packs.get(lang.value)?.units?.[name];
+  if (own) return own;
   const l = UNIT_LABELS[name];
-  return l ? l[lang.value === 'sv' ? 0 : 1] : name;
+  return l ? l[dataLang() === 'sv' ? 0 : 1] : name;
 }
 
 /** A number as typed into an input: decimal comma in Swedish (matches what parseNum accepts). */
 export function inputNum(n: number): string {
-  return lang.value === 'sv' ? String(n).replace('.', ',') : String(n);
+  return decimalComma() ? String(n).replace('.', ',') : String(n);
 }
 
 /** Parse a user-typed number; accepts decimal comma ("1,5"). NaN when empty or invalid. */

@@ -2,7 +2,7 @@ import { render } from 'preact';
 import { App, bodyView, contributorsView, recipeEditorView, settingsView, targetEditorView } from './app';
 import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
-import { lang } from './lib/i18n';
+import { lang, loadLang } from './lib/i18n';
 import { initNav } from './nav';
 import { date, loadDay, loadLibrary, loadServings, loadSettings, loadUsage } from './state';
 import './styles.css';
@@ -11,6 +11,7 @@ async function start() {
   initNav();
   captureInstallPrompt();
   await loadSettings();
+  await loadLang(lang.value); // only Swedish is built in; other languages are a small chunk each
   document.documentElement.lang = lang.value;
   // Small local tables, loaded before first render so every screen starts with complete data
   // (custom foods are also needed to resolve diary entries, including deleted ones).

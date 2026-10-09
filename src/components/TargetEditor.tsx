@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { fmt, fmtAmount, inputNum, lang, parseNum, t } from '../lib/i18n';
+import { fmt, fmtAmount, inputNum, nutrientName, parseNum, t } from '../lib/i18n';
 import { NUTRIENTS, type NutrientGroup } from '../lib/nutrients';
 import {
   computeTargets,
@@ -18,7 +18,7 @@ import { Sheet } from './Sheet';
 const MACROS: MacroKey[] = ['protein', 'carbs', 'fat'];
 const PRESETS: MacroPreset[] = ['nnr', 'highProtein', 'lowCarb', 'keto', 'custom'];
 const GROUPS: NutrientGroup[] = ['energy', 'macro', 'carb', 'lipid', 'vitamin', 'mineral', 'other'];
-const label = (key: string) => NUTRIENTS.find((n) => n.key === key)![lang.value];
+const label = (key: string) => nutrientName(NUTRIENTS.find((n) => n.key === key)!);
 
 /** Adjust targets: macro preset / custom E% ranges, and min/max for any nutrient. */
 export default function TargetEditor() {
@@ -154,7 +154,7 @@ export default function TargetEditor() {
               return (
                 <tr key={n.key} class={overrides[n.key] ? 'changed' : ''}>
                   <th scope="row">
-                    {n[lang.value]} <span class="muted">({n.unit})</span>
+                    {nutrientName(n)} <span class="muted">({n.unit})</span>
                     {conflicts.has(n.key) && <span class="small warn block">{t('conflictNote')}</span>}
                   </th>
                   {(['min', 'max'] as const).map((b) => (
@@ -162,7 +162,7 @@ export default function TargetEditor() {
                       <input
                         type="text"
                         inputMode="decimal"
-                        aria-label={`${n[lang.value]} ${b === 'min' ? t('target') : t('limit')}`}
+                        aria-label={`${nutrientName(n)} ${b === 'min' ? t('target') : t('limit')}`}
                         value={o[b] == null ? '' : inputNum(o[b]!)}
                         aria-invalid={error?.key === n.key || conflicts.has(n.key)}
                         placeholder={d?.[b] == null ? '–' : fmtAmount(d[b]!)}

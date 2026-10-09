@@ -4,7 +4,7 @@ import * as db from './lib/db';
 import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db';
 import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
 import { fetchProduct } from './lib/off';
-import { lang } from './lib/i18n';
+import { lang, loadLang } from './lib/i18n';
 import type { Food, NutrientVector, Serving } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
@@ -168,10 +168,11 @@ export async function loadSettings(): Promise<void> {
 
 /** Databases searched: the user's choice, else by language (Swedish → Swedish data only). */
 export function activeSources(s: Settings): Source[] {
-  return s.sources?.length ? s.sources : s.lang === 'en' ? ['slv', 'usda'] : ['slv'];
+  return s.sources?.length ? s.sources : s.lang === 'sv' ? ['slv'] : ['slv', 'usda'];
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<void> {
+  if (patch.lang) await loadLang(patch.lang); // strings first, so the switch is instant and complete
   settings.value = { ...settings.value, ...patch };
   setSources(activeSources(settings.value));
   lang.value = settings.value.lang;
