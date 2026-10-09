@@ -27,10 +27,26 @@ the app). Why not a custom domain or another host: it would cost money, and movi
 new origin would leave every user's data behind (browser storage is per origin). The app, its
 URL and the package id `io.github.quoterg.ironlog` stay as they are.
 
+**Shared-origin rule (important):** every GitHub Pages site of the account is the same origin,
+`https://quoterg.github.io`, and browser storage (IndexedDB, localStorage, service workers) is per
+origin, not per path. Any script on any page there could read or wipe users' food logs. So:
+
+- The user-site repo holds only static files: `.nojekyll`, `index.html` (a plain
+  `<meta http-equiv="refresh">` link — no script, no service worker), `README.md` and
+  `.well-known/assetlinks.json`. Never add JavaScript, third-party embeds or user content to it.
+- Don't enable GitHub Pages on any other repo of this account (checked 2026-10-09: only
+  `iron-log` and `Quoterg.github.io` publish Pages). A future project needing Pages goes on another
+  account or a custom domain.
+- The app's service worker scope stays `/iron-log/` — never widen it to `/`, or it would intercept
+  the user site and `/.well-known/assetlinks.json`. Likewise `startUrl` stays `/iron-log/`.
+
 To finish (first signed build):
 
-1. `cd android && bubblewrap build` — creates the signing key on first run. Keep `android.keystore`
-   and its passwords safe and out of git; losing it means the app can never be updated.
+1. `cd android && bubblewrap build` — creates the upload key on first run. `android/*.keystore`
+   is git-ignored. Back up the keystore and its passwords outside the repo (e.g. a password
+   manager's file attachment plus an offline copy). Enrol in **Play App Signing** when creating
+   the Play listing: Google then holds the app-signing key and a lost upload key can be reset;
+   without it, losing the keystore means the app can never be updated.
 2. `bubblewrap fingerprint generateAssetLinks` → commit the resulting `assetlinks.json` to the
    user-site repo as `.well-known/assetlinks.json`. When publishing on Play with Play App Signing,
    add Play's app-signing SHA-256 fingerprint to the same file.

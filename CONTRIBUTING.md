@@ -38,6 +38,9 @@ Rules that keep the app fast on old phones (see `docs/ARCHITECTURE.md`):
 - Data files are content-hashed and listed in `src/lib/sources.json`; rebuild them with the
   `data:*` scripts, then `pnpm data:build-top` (the nutrient page's precomputed top foods).
 - Tests for logic (Vitest) and for user flows (Playwright) come with the change.
+- The app shares the origin `https://quoterg.github.io` with the account's user site: never add
+  scripts there, never enable Pages on other repos of the account, and keep the service-worker
+  scope at `/iron-log/` (details: `android/README.md`).
 
 ## Translations
 

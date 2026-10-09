@@ -6,11 +6,14 @@ Keep entries short — this file is read at the start of every session.
 ## Next up
 
 **M20b In-app Open Food Facts upload**, then **M16b Amino acids** and **M17** (see docs/ROADMAP.md).
+Also open: **M19b** — first signed Android build + assetlinks (needs the owner to keep the keystore).
 
 ## 2026-10-09 — M19b decisions (interactive session)
 
 - Android verification host: the free GitHub user site **Quoterg/Quoterg.github.io** (created; has
-  `.nojekyll`, forwards `/` to the app; build verified: root and /iron-log/ return 200). No custom
+  `.nojekyll`, forwards `/` to the app with a plain meta refresh; checked 2026-10-09 that root and
+  /iron-log/ return 200). Shared-origin rule (no scripts on the user site, no other Pages repos,
+  SW scope stays /iron-log/) in android/README.md and CONTRIBUTING.md. No custom
   domain (cost) and no move to another host (users' on-device data is per origin).
   Package id stays `io.github.quoterg.ironlog`. Steps to finish: android/README.md.
 - Play data safety: declare conservatively (barcode shared with Open Food Facts for app

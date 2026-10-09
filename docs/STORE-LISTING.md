@@ -60,12 +60,14 @@ What actually leaves the device:
 |---|---|---|---|
 | Barcode lookup | Open Food Facts (world.openfoodfacts.org) | the barcode; the IP address (as any request) | only when the user scans or types a barcode |
 | App and food-data files | GitHub Pages (quoterg.github.io) | the IP address (as any request) | loading/updating the app |
-| Links the user taps (OFF pages, GitHub issues) | those websites, in the browser | whatever the user does there | only on tap; leaves the app |
+
+Not declared: links the user taps (Open Food Facts pages, GitHub issues) open those websites in
+the browser; nothing is sent by the app itself.
 
 What we declare on the form:
 
 - **Does your app collect or share any of the required user data types? Yes.**
-- **App activity → "Other user-generated content" / in-app search** (the scanned barcode):
+- **App activity → In-app search history** (the scanned or typed barcode is a product lookup):
   *collected* (sent off the device) and *shared* with Open Food Facts. Processed ephemerally: no
   (we can't promise how OFF logs requests). Required: no — optional, only when the user scans.
   Purpose: **App functionality**. Not used for tracking, ads or analytics; not linked to an
@@ -79,9 +81,13 @@ What we declare on the form:
 - **Deletion:** users can delete all their data in the app (Settings → Your data). We hold none.
 - Privacy policy URL: https://quoterg.github.io/iron-log/privacy.html
 
+The privacy policy (`public/privacy.html`) states the same: the barcode and the IP address go to
+Open Food Facts on a lookup, GitHub Pages sees the IP address, camera frames never leave the device.
+
 Re-check this section against Play's current definitions before each submission (they change), and
-whenever a feature sends anything new off the device (e.g. M17 sync, M20b uploads). This is our
-reading of the rules, not legal advice.
+whenever a feature sends anything new off the device (e.g. M17 sync, M20b uploads):
+https://support.google.com/googleplay/android-developer/answer/10787469 ("Provide information for
+Google Play's Data safety section"). This is our reading of the rules, not legal advice.
 
 ## Graphics checklist
 
