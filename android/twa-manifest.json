@@ -11,6 +11,7 @@
   "navigationDividerColor": "#1f7a4d",
   "navigationDividerColorDark": "#121513",
   "backgroundColor": "#f6f7f5",
+  "splashScreenFadeOutDuration": 300,
   "enableNotifications": false,
   "startUrl": "/iron-log/",
   "iconUrl": "https://quoterg.github.io/iron-log/icon-512.png",
@@ -18,7 +19,9 @@
   "webManifestUrl": "https://quoterg.github.io/iron-log/manifest.webmanifest",
   "fallbackType": "customtabs",
   "features": {},
-  "alphaDependencies": { "enabled": false },
+  "alphaDependencies": {
+    "enabled": false
+  },
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
@@ -26,7 +29,10 @@
   "fingerprints": [],
   "appVersionCode": 1,
   "appVersionName": "1.0.0",
-  "signingKey": { "path": "./android.keystore", "alias": "ironlog" },
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "ironlog"
+  },
   "generatorApp": "bubblewrap-cli",
   "shortcuts": [],
   "minSdkVersion": 21
