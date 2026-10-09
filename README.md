@@ -35,6 +35,7 @@ GitHub Pages automatically.
 ## Data sources
 
 - Livsmedelsverket, *Livsmedelsdatabasen* — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- [Open Food Facts](https://world.openfoodfacts.org/) (barcode lookups) — [ODbL](https://opendatacommons.org/licenses/odbl/1-0/)
 - Nordic Nutrition Recommendations 2023 — reference intakes for daily targets
 
 ## License

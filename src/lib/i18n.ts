@@ -94,6 +94,21 @@ const sv = {
   servingName: 'Namn på måttet',
   servingGrams: 'Vikt (g)',
   servingNameHint: 't.ex. min skål',
+  scanBarcode: 'Skanna streckkod',
+  barcode: 'Streckkod',
+  lookUp: 'Sök',
+  barcodeBadge: 'Streckkod',
+  scanStarting: 'Startar kameran…',
+  scanHint: 'Rikta kameran mot streckkoden.',
+  scanNoCamera: 'Kameran är inte tillgänglig. Skriv in streckkoden nedan.',
+  scanLooking: 'Söker produkten…',
+  scanNotFound: 'Produkten finns inte i Open Food Facts. Du kan skapa den som eget livsmedel.',
+  scanNoData: 'Produkten saknar näringsvärden i Open Food Facts. Du kan skapa den som eget livsmedel.',
+  scanNetwork: 'Kunde inte nå Open Food Facts. Kontrollera anslutningen och försök igen.',
+  scanInvalid: 'Ogiltig streckkod (8, 12, 13 eller 14 siffror).',
+  offPrivacy: 'Endast streckkoden skickas till Open Food Facts. Hittade produkter sparas på enheten.',
+  sourceOff: 'Källa: Open Food Facts (ODbL), streckkod',
+  attributionOff: 'Produktdata: Open Food Facts (ODbL).',
 };
 
 type Dict = typeof sv;
@@ -190,6 +205,21 @@ const en: Dict = {
   servingName: 'Measure name',
   servingGrams: 'Weight (g)',
   servingNameHint: 'e.g. my bowl',
+  scanBarcode: 'Scan barcode',
+  barcode: 'Barcode',
+  lookUp: 'Look up',
+  barcodeBadge: 'Barcode',
+  scanStarting: 'Starting the camera…',
+  scanHint: 'Point the camera at the barcode.',
+  scanNoCamera: 'The camera is not available. Type the barcode below.',
+  scanLooking: 'Looking up the product…',
+  scanNotFound: 'The product is not in Open Food Facts. You can create it as a custom food.',
+  scanNoData: 'The product has no nutrition data in Open Food Facts. You can create it as a custom food.',
+  scanNetwork: 'Could not reach Open Food Facts. Check your connection and try again.',
+  scanInvalid: 'Invalid barcode (8, 12, 13 or 14 digits).',
+  offPrivacy: 'Only the barcode is sent to Open Food Facts. Found products are saved on this device.',
+  sourceOff: 'Source: Open Food Facts (ODbL), barcode',
+  attributionOff: 'Product data: Open Food Facts (ODbL).',
 };
 
 const dicts: Record<Lang, Dict> = { sv, en };
@@ -228,6 +258,7 @@ const UNIT_LABELS: Record<string, [sv: string, en: string]> = {
   kopp: ['kopp', 'cup'],
   portion: ['portion', 'serving'],
   smörgås: ['på smörgås', 'on a sandwich'],
+  förpackning: ['förpackning', 'package'],
 };
 
 /** Display name of a household measure; user-defined names are shown as typed. */

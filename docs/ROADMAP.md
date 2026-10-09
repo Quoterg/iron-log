@@ -26,7 +26,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   "storage is persistent" status, delete-all. Prompt to install to home screen (iOS hint).
 - [x] **M6 Serving sizes** — Household units per food (st, dl, msk, tsk, portion, skiva) from a
   curated table for common SLV foods + user-defined servings; amount picker supports units.
-- [ ] **M7 Barcode scanning** — Open Food Facts lookup by barcode (typed or scanned), mapped to
+- [x] **M7 Barcode scanning** — Open Food Facts lookup by barcode (typed or scanned), mapped to
   the nutrient vector, cached locally. Camera scanning via `BarcodeDetector` where available,
   lazily loaded WASM fallback (zxing-wasm) only when the scanner opens. Attribution (ODbL).
 

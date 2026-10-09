@@ -8,6 +8,7 @@ const data: AllData = {
   customFoods: [{ ref: 'custom:a', sv: 'Proteinpulver', en: null, per100g: [380, 75], createdAt: 1, updatedAt: 1 }],
   usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true, lastUnit: 'skopa', lastQty: 2 }],
   servings: [{ foodRef: 'custom:a', servings: [{ name: 'skopa', g: 25 }] }],
+  offFoods: [{ ref: 'off:7310865004703', sv: 'Yoghurt (Arla)', en: null, per100g: [100], fetchedAt: 3, units: [{ name: 'portion', g: 150 }] }],
   settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: 12 } },
 };
 

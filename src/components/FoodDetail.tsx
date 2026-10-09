@@ -204,7 +204,9 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
           {t('nutrientsForAmount')} ({fmtAmount(valid ? g : 0)} g)
         </h3>
         <NutrientGroups amounts={amounts} known={food.per100g.map((v) => v != null)} />
-        <p class="muted small">{isCustom ? t('sourceCustom') : t('sourceSlv')}</p>
+        <p class="muted small">
+          {isCustom ? t('sourceCustom') : ref.startsWith('off:') ? `${t('sourceOff')} ${ref.slice(4)}.` : t('sourceSlv')}
+        </p>
       </div>
     </Sheet>
   );

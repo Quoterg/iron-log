@@ -1,8 +1,9 @@
 // App-wide reactive state (Preact signals) and the actions that change it.
 import { computed, signal } from '@preact/signals';
 import * as db from './lib/db';
-import type { CustomFood, Entry, Meal, Settings, Usage } from './lib/db';
+import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db';
 import { getFoods, setCustomFoods, setUserBoosts } from './lib/foods';
+import { fetchProduct } from './lib/off';
 import { lang } from './lib/i18n';
 import type { Food, NutrientVector, Serving } from './lib/nutrients';
 import { DEFAULT_PROFILE, nnrTargets, type Target } from './lib/targets';
@@ -18,6 +19,8 @@ export const foods = signal<Map<string, Food>>(new Map());
 export const customFoods = signal<CustomFood[]>([]);
 /** Per-food usage (count, last amount, favourite), by food ref. */
 export const usage = signal<Map<string, Usage>>(new Map());
+/** Products looked up on Open Food Facts (cached locally). */
+export const offFoods = signal<OffFood[]>([]);
 /** The user's own household measures, by food ref. */
 export const userServings = signal<Map<string, Serving[]>>(new Map());
 export const settings = signal<Settings>({
@@ -130,16 +133,40 @@ export async function loadCustomFoods(): Promise<void> {
   syncCustomFoods();
 }
 
+/** Hand the user's own foods (custom + scanned products) to search and to the foods map. */
 function syncCustomFoods() {
-  const list = customFoods.value;
-  setCustomFoods(list.filter((f) => !f.deleted).map(toFood), list.map(toFood));
+  const custom = customFoods.value;
+  const off = offFoods.value.map(toFood);
+  setCustomFoods([...custom.filter((f) => !f.deleted).map(toFood), ...off], [...custom.map(toFood), ...off]);
   const map = new Map(foods.value);
-  for (const f of list) map.set(f.ref, toFood(f));
+  for (const f of custom) map.set(f.ref, toFood(f));
+  for (const f of off) map.set(f.ref, f);
   foods.value = map;
 }
 
-function toFood({ ref, sv, en, per100g }: CustomFood): Food {
-  return { ref, sv, en, per100g };
+function toFood({ ref, sv, en, per100g, units }: Food): Food {
+  return units ? { ref, sv, en, per100g, units } : { ref, sv, en, per100g };
+}
+
+export async function loadOffFoods(): Promise<void> {
+  offFoods.value = await db.listOffFoods();
+  syncCustomFoods();
+}
+
+/**
+ * Find a product by barcode: the local cache first (works offline), else Open Food Facts.
+ * Throws OffError ('notFound' | 'network' | 'noData').
+ */
+export async function lookupBarcode(code: string): Promise<Food> {
+  const ref = `off:${code}`;
+  const cached = offFoods.value.find((f) => f.ref === ref) ?? (await db.getOffFood(ref));
+  if (cached) return toFood(cached);
+  const food = await fetchProduct(code);
+  const off: OffFood = { ...food, fetchedAt: Date.now() };
+  offFoods.value = [...offFoods.value.filter((f) => f.ref !== ref), off];
+  syncCustomFoods();
+  await db.putOffFood(off);
+  return food;
 }
 
 /** Create (no ref) or update a custom food. Returns its ref. */

@@ -11,7 +11,9 @@ export type Screen =
   /** Create (no ref) or edit a custom food. `meal` continues to adding it afterwards. */
   | { kind: 'editFood'; ref?: string; name?: string; meal?: Meal }
   /** Copy the shown day's entries (or one meal's) to another date/meal. */
-  | { kind: 'copy'; meal?: Meal };
+  | { kind: 'copy'; meal?: Meal }
+  /** Scan or type a barcode, then continue to the food screen for `meal`. */
+  | { kind: 'scan'; meal: Meal };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);
