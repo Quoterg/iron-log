@@ -32,7 +32,7 @@ describe('body log in state and storage', () => {
 
   it('import keeps the newer measurement for a day', async () => {
     const db = await import('./db');
-    const empty = { entries: [], customFoods: [], usage: [], servings: [], offFoods: [], recipes: [] };
+    const empty = { entries: [], customFoods: [], usage: [], servings: [], offFoods: [], recipes: [], activities: [], water: [] };
     await db.putBody({ date: '2026-01-01', weightKg: 75, updatedAt: 10 });
     await db.importAll({ ...empty, body: [{ date: '2026-01-01', weightKg: 99, updatedAt: 5 }] });
     expect((await db.listBody()).find((b) => b.date === '2026-01-01')?.weightKg).toBe(75);

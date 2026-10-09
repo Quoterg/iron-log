@@ -167,6 +167,14 @@ export function ProfileForm() {
         </p>
       )}
       {estimate && <p class="muted small">{p.bodyFatPct != null && p.weightKg ? t('formulaKatch') : t('formulaMifflin')}</p>}
+      <label class="check">
+        <input
+          type="checkbox"
+          checked={!!settings.value.addBurnedToTarget}
+          onChange={(e) => void updateSettings({ addBurnedToTarget: (e.currentTarget as HTMLInputElement).checked })}
+        />
+        {t('addBurnedToTarget')}
+      </label>
       <button type="button" class="btn wide" onClick={() => open({ kind: 'targets' })}>
         {t('adjustTargets')}
       </button>

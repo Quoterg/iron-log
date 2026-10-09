@@ -1,6 +1,7 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
 import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type Usage, type UserServings } from './db';
 import { foodName, NUTRIENTS, type Food } from './nutrients';
+import { MAX_ACTIVITY_KCAL, MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
 import { padVector, type StoredRecipe } from './recipes';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
@@ -136,6 +137,26 @@ function body(x: unknown): BodyEntry {
   throw new BackupError('body');
 }
 
+function activity(x: unknown): Activity {
+  if (
+    isObj(x) && isStr(x.id, 100) && isStr(x.date) && DATE.test(x.date) &&
+    // Any id: a later release may rename or drop activities, and old backups must still restore.
+    isStr(x.type, 50) && x.type !== '' &&
+    isNum(x.minutes) && x.minutes > 0 && x.minutes <= 1440 && isNum(x.kcal) && x.kcal >= 0 && x.kcal <= MAX_ACTIVITY_KCAL &&
+    isNum(x.createdAt)
+  ) {
+    return { id: x.id, date: x.date, type: x.type as string, minutes: x.minutes, kcal: x.kcal, createdAt: x.createdAt };
+  }
+  throw new BackupError('activity');
+}
+
+function water(x: unknown): Water {
+  if (isObj(x) && isStr(x.date) && DATE.test(x.date) && isNum(x.ml) && x.ml >= 0 && x.ml <= MAX_WATER_ML) {
+    return { date: x.date, ml: x.ml };
+  }
+  throw new BackupError('water');
+}
+
 function usage(x: unknown): Usage {
   if (isObj(x) && isStr(x.foodRef, 200) && isNum(x.count) && isNum(x.lastUsed) && isNum(x.lastGrams)) {
     const u: Usage = { foodRef: x.foodRef, count: x.count, lastUsed: x.lastUsed, lastGrams: x.lastGrams };
@@ -191,6 +212,7 @@ function settings(x: unknown): Settings | undefined {
   const pct = normalizeMacroPct(x.macroPct);
   if (pct) out.macroPct = pct;
   if (out.macroPreset === 'custom' && !pct) out.macroPreset = 'nnr';
+  if (x.addBurnedToTarget === true) out.addBurnedToTarget = true;
   if (Array.isArray(x.sources)) {
     const src = (['slv', 'usda'] as const).filter((s) => (x.sources as unknown[]).includes(s));
     if (src.length) out.sources = src;
@@ -222,6 +244,8 @@ export function parseBackup(text: string): AllData {
     offFoods: list('offFoods').map(offFood),
     recipes: list('recipes').map(recipe),
     body: list('body').map(body),
+    activities: list('activities').map(activity),
+    water: list('water').map(water),
     settings: settings(raw.settings),
   };
 }

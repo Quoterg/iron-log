@@ -7,6 +7,8 @@ import { fetchProduct } from './lib/off';
 import { lang } from './lib/i18n';
 import type { Food, NutrientVector, Serving } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
+import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
+import type { ActivityType } from './lib/activity-types';
 import type { BodyEntry } from './lib/body';
 import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
@@ -37,7 +39,28 @@ export const settings = signal<Settings>({
   version: db.SETTINGS_VERSION,
 });
 
-export const targets = computed<Record<string, Target>>(() => computeTargets(settings.value));
+/** The selected day's exercise and water (loaded with the day). */
+export const dayActivities = signal<Activity[]>([]);
+/** Activity names, loaded on demand — only days with activities need them. */
+export const activityTypes = signal<ActivityType[] | null>(null);
+let typesLoading = false;
+function loadActivityTypes(): void {
+  if (activityTypes.value || typesLoading) return;
+  typesLoading = true;
+  void import('./lib/activity-types').then(
+    (m) => void (activityTypes.value = m.ACTIVITIES),
+    () => void (typesLoading = false), // offline before the chunk was cached: retry on the next load
+  );
+}
+export const dayWater = signal(0);
+export const burnedToday = computed(() => dayActivities.value.reduce((s, a) => s + a.kcal, 0));
+
+export const targets = computed<Record<string, Target>>(() => {
+  const t = computeTargets(settings.value);
+  // Optional: eat back the day's exercise energy.
+  if (settings.value.addBurnedToTarget && t.kcal?.min) t.kcal = { ...t.kcal, min: t.kcal.min + burnedToday.value };
+  return t;
+});
 
 /** Nutrient totals for the selected day, in NUTRIENTS order. */
 export const dayTotals = computed(() =>
@@ -53,9 +76,12 @@ let loadSeq = 0;
 export async function loadDay(d: string): Promise<void> {
   date.value = d;
   const seq = ++loadSeq;
-  const list = await db.entriesFor(d);
+  const [list, acts, water] = await Promise.all([db.entriesFor(d), db.activitiesFor(d), db.waterFor(d)]);
   if (seq !== loadSeq) return;
   entries.value = list;
+  dayActivities.value = acts.sort((a, b) => a.createdAt - b.createdAt);
+  if (acts.length) loadActivityTypes();
+  dayWater.value = water;
   if (list.length) await ensureFoods(list.map((e) => e.foodRef));
 }
 
@@ -402,4 +428,31 @@ export async function saveBody(e: BodyEntry): Promise<void> {
   if (weightKg !== p.weightKg || bodyFatPct !== p.bodyFatPct) {
     await updateSettings({ profile: withEnergy({ ...p, weightKg, bodyFatPct }) });
   }
+}
+
+// --- Activity & water ---
+
+export async function addActivity(type: string, met: number, minutes: number): Promise<void> {
+  const kcal = burnedKcal(met, settings.value.profile.weightKg ?? DEFAULT_WEIGHT_KG, minutes);
+  const a: Activity = { id: db.newId(), date: date.value, type, minutes, kcal, createdAt: Date.now() };
+  dayActivities.value = [...dayActivities.value, a];
+  loadActivityTypes();
+  await db.putActivity(a);
+  // A day load that read the store before this write must not drop the new activity.
+  if (date.value === a.date && !dayActivities.value.some((x) => x.id === a.id)) {
+    dayActivities.value = [...dayActivities.value, a];
+  }
+}
+
+export async function removeActivity(id: string): Promise<void> {
+  dayActivities.value = dayActivities.value.filter((a) => a.id !== id);
+  await db.deleteActivity(id);
+}
+
+/** Add (or remove, with a negative amount) water for the selected day; never below 0. */
+export async function addWater(ml: number): Promise<void> {
+  const d = date.value;
+  dayWater.value = Math.max(0, dayWater.value + ml); // instant feedback
+  const total = await db.changeWater(d, ml); // the stored total is the truth
+  if (date.value === d) dayWater.value = total;
 }

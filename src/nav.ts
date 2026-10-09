@@ -19,7 +19,9 @@ export type Screen =
   /** Create (no ref) or edit a recipe. `meal` continues to logging it afterwards. */
   | { kind: 'recipe'; ref?: string; meal?: Meal }
   /** Top foods for one nutrient over a date range. */
-  | { kind: 'contributors'; key: string; from: string; to: string };
+  | { kind: 'contributors'; key: string; from: string; to: string }
+  /** Log exercise for the selected day. */
+  | { kind: 'activity' };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

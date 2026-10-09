@@ -47,7 +47,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   (no chart library); trend line (moving average).
 - [x] **M13 Reports & insights** — Day/week/month averages per nutrient, "top contributors"
   for any nutrient, nutrient-gap highlights vs. targets, simple streaks.
-- [ ] **M14 Activity** — Exercise log (MET table, kcal burned), optional adding of burned
+- [x] **M14 Activity** — Exercise log (MET table, kcal burned), optional adding of burned
   energy to the day's target; water intake.
 - [ ] **M15 Supplements** — Supplements with per-unit nutrients, daily schedules, quick log.
 - [ ] **M16 More nutrients** — Add the remaining SLV/USDA nutrients (vitamin K, B5, biotin,

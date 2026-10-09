@@ -3,7 +3,9 @@ import { fmt, fmtAmount, lang, t, unitLabel } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
-import { dayTotals, entries, foods, targets } from '../state';
+import {
+  activityTypes, addWater, burnedToday, dayActivities, dayTotals, dayWater, entries, foods, removeActivity, settings, targets,
+} from '../state';
 import { Bar } from './Bar';
 
 export function Diary() {
@@ -16,6 +18,9 @@ export function Diary() {
     <>
       <section class="card summary">
         <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} />
+        {settings.value.addBurnedToTarget && burnedToday.value > 0 && (
+          <p class="muted small">{t('targetInclActivity').replace('{kcal}', fmt(burnedToday.value))}</p>
+        )}
         <div class="macros">
           {(['protein', 'carbs', 'fat'] as const).map((k) => (
             <div class={`macro m-${k}`} key={k}>
@@ -62,6 +67,8 @@ export function Diary() {
           </section>
         );
       })}
+      <ActivityCard />
+      <WaterCard />
       {entries.value.length === 0 ? (
         <p class="muted center">{t('emptyDay')}</p>
       ) : (
@@ -81,4 +88,57 @@ function name(e: Entry): string {
 function entryKcal(e: Entry): number {
   const v = entryVector(e, foods.value);
   return v ? (value(v, 'kcal') * e.grams) / 100 : 0;
+}
+
+function ActivityCard() {
+  return (
+    <section class="card">
+      <header class="meal-head">
+        <h2>{t('activityLog')}</h2>
+        <span class="num muted">{burnedToday.value ? `−${fmt(burnedToday.value)} kcal` : ''}</span>
+        <button class="btn small" onClick={() => open({ kind: 'activity' })}>
+          + {t('add')}
+        </button>
+      </header>
+      {dayActivities.value.length > 0 && (
+        <ul class="entries">
+          {dayActivities.value.map((a) => {
+            const types = activityTypes.value;
+            // Unknown id (e.g. from a backup made with another release): show the id itself.
+            const name = types ? (types.find((x) => x.id === a.type)?.[lang.value] ?? a.type) : '…';
+            return (
+              <li key={a.id} class="ingredient">
+                <span class="entry entry-static">
+                  <span class="entry-name">{name}</span>
+                  <span class="num muted">{fmt(a.minutes)} min</span>
+                  <span class="num">{fmt(a.kcal)} kcal</span>
+                </span>
+                <button class="btn small" aria-label={`${t('remove')} ${name}`} onClick={() => void removeActivity(a.id)}>
+                  ×
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function WaterCard() {
+  return (
+    <section class="card">
+      <header class="meal-head">
+        <h2>{t('water')}</h2>
+        <span class="num">{fmt(dayWater.value / 1000, 2)} l</span>
+      </header>
+      <div class="chips">
+        <button class="chip" onClick={() => void addWater(200)}>+{fmt(2)} dl</button>
+        <button class="chip" onClick={() => void addWater(500)}>+{fmt(5)} dl</button>
+        <button class="chip" disabled={dayWater.value === 0} onClick={() => void addWater(-200)}>
+          −{fmt(2)} dl
+        </button>
+      </div>
+    </section>
+  );
 }

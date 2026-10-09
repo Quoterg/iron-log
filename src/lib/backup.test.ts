@@ -9,6 +9,8 @@ const data: AllData = {
   usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true, lastUnit: 'skopa', lastQty: 2 }],
   servings: [{ foodRef: 'custom:a', servings: [{ name: 'skopa', g: 25 }] }],
   body: [{ date: '2026-10-08', weightKg: 80.4, waistCm: 90, updatedAt: 3 }],
+  activities: [{ id: 'a1', date: '2026-10-08', type: 'run10', minutes: 30, kcal: 308, createdAt: 4 }],
+  water: [{ date: '2026-10-08', ml: 1500 }],
   recipes: [
     {
       ref: 'recipe:r1', name: 'Gröt', ingredients: [{ foodRef: 'slv:1', grams: 100, unit: 'dl', qty: 3 }],
