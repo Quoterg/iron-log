@@ -33,7 +33,7 @@ describe('recipes', () => {
     expect(n.per100g[k('kcal')]).toBe(150);
     expect(n.portionG).toBe(205);
     // A portion has the same energy either way: half the recipe.
-    expect(((n.per100g[k('kcal')] ?? 0) * n.portionG) / 100).toBeCloseTo(307.5, 0);
+    expect(((n.per100g[k('kcal')] ?? 0) * n.portionG) / 100).toBeCloseTo(307.5, 2);
   });
 
   it('reports ingredients that cannot be resolved', () => {

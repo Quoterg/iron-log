@@ -22,10 +22,17 @@ Done:
   The draft is discarded when the editor closes. A recipe can't contain itself.
 - Recipes in search ("Recept" badge), Settings → "Mina recept", create from a meal's search
   (continues to logging), "Redigera recept" from the food screen.
-- Tests: 65 unit, 20 Playwright (stable over --repeat-each=3). Initial JS 29.2 KB gzip.
+- Review fixes (reviewer agent on PR #12): logged recipe entries keep a nutrition snapshot
+  (`Entry.snap`, used by totals/diary/CSV), so editing a recipe never rewrites past days; each
+  ingredient stores a per-100 g snapshot and saving is blocked if any ingredient has no data;
+  recipes can't be ingredients (worker `excludePrefix`, over-fetch); import keeps the newer
+  recipe/custom food by `updatedAt`; short vectors padded; unsaved drafts are stashed in
+  sessionStorage with restore/discard; `nav.backTo('recipe')`; fractional servings; one library
+  sync at startup (`loadLibrary`); memoised editor nutrition.
+- Tests: 69 unit, 20 Playwright (stable over --repeat-each=2). Initial JS 29.8 KB gzip.
 
-Known gaps: editing a recipe (or a custom food it uses) changes past diary entries that use it,
-like custom foods; ingredient foods changed later aren't propagated until the recipe is saved again.
+Known gaps: custom foods still update past entries when edited (intended for fixing typos);
+ingredient foods changed later are only picked up when the recipe is saved again.
 
 ## 2026-10-09 — M8.1 Energy formula = tdeecalculator.net (interactive session)
 

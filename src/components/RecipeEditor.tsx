@@ -1,13 +1,34 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { Meal } from '../lib/db';
 import { fmt, fmtAmount, inputNum, lang, parseNum, t, unitLabel } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX } from '../lib/nutrients';
 import { recipeNutrition } from '../lib/recipes';
 import { scale } from '../lib/totals';
 import { back, open, replaceTop } from '../nav';
-import { deleteRecipe, ensureFoods, foods, recipeDraft, recipes, saveRecipe } from '../state';
+import { deleteRecipe, ensureFoods, foods, recipeDraft, recipes, saveRecipe, type RecipeDraft } from '../state';
 import { NutrientGroups } from './NutrientGroups';
 import { Sheet } from './Sheet';
+
+const DRAFT_KEY = 'iron-log:recipeDraft';
+
+/** Unsaved drafts survive closing the editor (Back, swipe) for this browser session. */
+function loadStashed(key: string): RecipeDraft | null {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? 'null') as { key: string; draft: RecipeDraft } | null;
+    return s && s.key === key ? s.draft : null;
+  } catch {
+    return null;
+  }
+}
+
+function stash(key: string, draft: RecipeDraft | null) {
+  try {
+    if (draft) sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ key, draft }));
+    else sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // storage unavailable (private mode): drafts just aren't kept
+  }
+}
 
 /**
  * Create (no ref) or edit a recipe. The draft lives in `recipeDraft` so that adding an
@@ -15,37 +36,61 @@ import { Sheet } from './Sheet';
  */
 export default function RecipeEditor({ recipeRef, meal }: { recipeRef?: string; meal?: Meal }) {
   const existing = recipeRef ? recipes.value.find((r) => r.ref === recipeRef) : undefined;
+  const key = recipeRef ?? 'new';
   const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [servingsError, setServingsError] = useState(false);
+  const [stashed, setStashed] = useState<RecipeDraft | null>(null);
+  const initial = useRef('');
+  const saved = useRef(false);
 
-  // A fresh draft when the editor opens; discarded when it closes (cancel = no changes). The
-  // editor stays mounted under the ingredient sheets, so adding ingredients keeps the draft.
+  // A fresh draft when the editor opens. On close, an unsaved, changed draft is stashed for the
+  // session and offered next time (the editor stays mounted under the ingredient sheets).
   useEffect(() => {
-    recipeDraft.value = existing
+    const fresh: RecipeDraft = existing
       ? { ref: existing.ref, name: existing.name, ingredients: existing.ingredients, servings: existing.servings, cookedWeightG: existing.cookedWeightG }
       : { name: '', ingredients: [], servings: 1 };
-    return () => void (recipeDraft.value = null);
+    recipeDraft.value = fresh;
+    initial.current = JSON.stringify(fresh);
+    setStashed(loadStashed(key));
+    return () => {
+      const d = recipeDraft.value;
+      if (!saved.current && d && JSON.stringify(d) !== initial.current) stash(key, d);
+      recipeDraft.value = null;
+    };
   }, [recipeRef]);
 
   const d = recipeDraft.value;
   // Resolve ingredient foods (the food database may still be loading).
+  const refsKey = d?.ingredients.map((i) => i.foodRef).join() ?? '';
   useEffect(() => {
     if (d) void ensureFoods(d.ingredients.map((i) => i.foodRef));
-  }, [d?.ingredients.map((i) => i.foodRef).join()]);
-  if (!d) return null;
+  }, [refsKey]);
 
-  const set = (patch: Partial<typeof d>) => (recipeDraft.value = { ...d, ...patch });
-  const n = recipeNutrition(d, foods.value);
-  const perPortion = scale(n.per100g, n.portionG);
+  // Recomputed only when the recipe's contents change — not on every keystroke in the name field.
+  const n = useMemo(
+    () => (d ? recipeNutrition(d, foods.value) : null),
+    [d?.ingredients, d?.servings, d?.cookedWeightG, foods.value],
+  );
+  const perPortion = useMemo(() => (n ? scale(n.per100g, n.portionG) : []), [n]);
+  const groups = useMemo(
+    () => (n ? <NutrientGroups amounts={perPortion} known={n.per100g.map((v) => v != null)} /> : null),
+    [perPortion],
+  );
+  if (!d || !n) return null;
+
+  const set = (patch: Partial<RecipeDraft>) => (recipeDraft.value = { ...d, ...patch });
   const nameMissing = !d.name.trim();
   const noIngredients = d.ingredients.length === 0;
+  const missing = n.missing.length > 0;
 
   const save = async () => {
     setSubmitted(true);
-    if (nameMissing || noIngredients || busy) return;
+    if (nameMissing || noIngredients || missing || busy) return;
     setBusy(true);
     const ref = await saveRecipe(d);
-    recipeDraft.value = null;
+    saved.current = true;
+    stash(key, null);
     // From a meal's search: continue to logging it.
     if (!existing && meal) replaceTop({ kind: 'food', ref, meal });
     else back();
@@ -54,6 +99,32 @@ export default function RecipeEditor({ recipeRef, meal }: { recipeRef?: string; 
   return (
     <Sheet title={existing ? t('editRecipe') : t('createRecipe')}>
       <div class="pad form">
+        {stashed && (
+          <div class="notice" role="status">
+            <p class="small">{t('draftFound')}</p>
+            <button
+              type="button"
+              class="btn small"
+              onClick={() => {
+                recipeDraft.value = stashed;
+                setStashed(null);
+                stash(key, null);
+              }}
+            >
+              {t('restore')}
+            </button>
+            <button
+              type="button"
+              class="btn small"
+              onClick={() => {
+                setStashed(null);
+                stash(key, null);
+              }}
+            >
+              {t('discard')}
+            </button>
+          </div>
+        )}
         <label class={submitted && nameMissing ? 'field error' : 'field'}>
           <span>{t('name')}</span>
           <input
@@ -68,16 +139,20 @@ export default function RecipeEditor({ recipeRef, meal }: { recipeRef?: string; 
           {t('servings')}
           <input
             type="text"
-            inputMode="numeric"
-            value={String(d.servings)}
+            inputMode="decimal"
+            value={inputNum(d.servings)}
+            aria-invalid={servingsError}
             onChange={(e) => {
               const el = e.currentTarget as HTMLInputElement;
               const v = parseNum(el.value);
-              if (Number.isInteger(v) && v >= 1 && v <= 1000) set({ servings: v });
-              else el.value = String(d.servings);
+              const ok = v >= 0.5 && v <= 1000;
+              setServingsError(!ok);
+              if (ok) set({ servings: Math.round(v * 10) / 10 });
+              else el.value = inputNum(d.servings);
             }}
           />
         </label>
+        {servingsError && <p class="error-text">{t('servingsInvalid')}</p>}
 
         <h3>{t('ingredients')}</h3>
         {noIngredients && <p class={submitted ? 'error-text' : 'muted small'}>{t('noIngredients')}</p>}
@@ -135,12 +210,17 @@ export default function RecipeEditor({ recipeRef, meal }: { recipeRef?: string; 
               {fmt(perPortion[NUTRIENT_INDEX.kcal])} kcal · {fmtAmount(n.portionG)} g · Protein{' '}
               {fmtAmount(perPortion[NUTRIENT_INDEX.protein])} g
             </p>
-            {n.missing.length > 0 && <p class="small warn">{t('ingredientsMissing')}</p>}
+            {missing && (
+              <p class="error-text" role="alert">
+                {t('ingredientsMissing')}
+              </p>
+            )}
           </>
         )}
+        {existing && <p class="muted small">{t('recipeEditNote')}</p>}
 
         <div class="actions">
-          <button class="btn primary" disabled={busy} onClick={() => void save()}>
+          <button class="btn primary" disabled={busy || missing} onClick={() => void save()}>
             {t('save')}
           </button>
           {existing && !existing.deleted && (
@@ -148,8 +228,8 @@ export default function RecipeEditor({ recipeRef, meal }: { recipeRef?: string; 
               class="btn danger"
               onClick={async () => {
                 if (!confirm(t('confirmDeleteRecipe'))) return;
+                saved.current = true;
                 await deleteRecipe(existing.ref);
-                recipeDraft.value = null;
                 back();
               }}
             >
@@ -158,11 +238,7 @@ export default function RecipeEditor({ recipeRef, meal }: { recipeRef?: string; 
           )}
         </div>
       </div>
-      {!noIngredients && (
-        <div class="pad">
-          <NutrientGroups amounts={perPortion} known={n.per100g.map((v) => v != null)} />
-        </div>
-      )}
+      {!noIngredients && <div class="pad">{groups}</div>}
     </Sheet>
   );
 }

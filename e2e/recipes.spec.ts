@@ -61,16 +61,38 @@ test('create a recipe, edit an ingredient, set cooked weight, and log a portion'
   await page.getByRole('button', { name: 'Redigera recept' }).click();
   await expect(page.getByLabel('Namn')).toHaveValue('Gröt');
   await expect(page.locator('.ingredient')).toHaveCount(2);
+
+  // Editing the recipe doesn't change the day already logged.
+  await page.getByLabel('Antal portioner').fill('1');
+  await page.getByLabel('Antal portioner').blur();
+  await page.getByRole('button', { name: 'Spara', exact: true }).click();
+  await page.getByRole('button', { name: /Tillbaka/ }).click();
+  await expect(meal(page, 0).locator('.entry')).toContainText(/Gröt.*280 kcal/);
 });
 
-test('a cancelled new recipe is discarded', async ({ page }) => {
+test('an unsaved draft can be restored or discarded; ingredients cannot be recipes', async ({ page }) => {
   await page.goto('./');
   await settingsTab(page);
   await page.getByRole('button', { name: '+ Skapa recept' }).click();
   await page.getByLabel('Namn').fill('Halvfärdig');
   await page.getByRole('button', { name: /Tillbaka/ }).click();
   await page.getByRole('button', { name: '+ Skapa recept' }).click();
+  // Starts empty, but offers the unsaved draft.
   await expect(page.getByLabel('Namn')).toHaveValue('');
+  await page.getByRole('button', { name: 'Återställ' }).click();
+  await expect(page.getByLabel('Namn')).toHaveValue('Halvfärdig');
+  await page.getByRole('button', { name: /Tillbaka/ }).click();
+  await page.getByRole('button', { name: '+ Skapa recept' }).click();
+  await page.getByRole('button', { name: 'Kasta' }).click();
+  await expect(page.getByText(/osparat utkast/)).toHaveCount(0);
+  await expect(page.getByLabel('Namn')).toHaveValue('');
+
+  // Ingredient search leaves out recipes (here: the SLV food "Gröt" is fine, recipes are not).
+  await page.getByRole('button', { name: /Lägg till ingrediens/ }).click();
+  await page.getByPlaceholder(/Sök livsmedel/).fill('gröt');
+  await expect(page.locator('.result').first()).toBeVisible();
+  await expect(page.locator('.result', { hasText: 'Recept' })).toHaveCount(0);
+  await page.getByRole('button', { name: /Tillbaka/ }).click();
   // Saving needs a name and an ingredient.
   await page.getByRole('button', { name: 'Spara', exact: true }).click();
   await expect(page.getByText('Ange ett namn.')).toBeVisible();

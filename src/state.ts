@@ -39,8 +39,8 @@ export const targets = computed<Record<string, Target>>(() => computeTargets(set
 export const dayTotals = computed(() =>
   sum(
     entries.value.flatMap((e) => {
-      const f = foods.value.get(e.foodRef);
-      return f ? [scale(f.per100g, e.grams)] : [];
+      const v = db.entryVector(e, foods.value);
+      return v ? [scale(v, e.grams)] : [];
     }),
   ),
 );
@@ -72,6 +72,8 @@ export interface Amount {
 
 export async function addEntry(meal: Meal, food: Food, amount: Amount): Promise<void> {
   const e: Entry = { id: db.newId(), date: date.value, meal, foodRef: food.ref, createdAt: Date.now(), ...measure(amount) };
+  // Recipes can be edited later; keep what was eaten as logged.
+  if (food.ref.startsWith('recipe:')) e.snap = food.per100g;
   foods.value = new Map(foods.value).set(food.ref, food);
   entries.value = [...entries.value, e];
   await db.putEntry(e);
@@ -96,12 +98,16 @@ export async function updateEntry(id: string, patch: EntryPatch): Promise<void> 
     delete next.qty;
   }
   if (amount) Object.assign(next, measure(amount));
+  if (patch.foodRef) {
+    await ensureFoods([patch.foodRef]);
+    delete next.snap;
+    if (patch.foodRef.startsWith('recipe:')) next.snap = foods.value.get(patch.foodRef)?.per100g;
+  }
   // Moving to another day removes it from the day on screen.
   entries.value =
     next.date === date.value
       ? entries.value.map((x) => (x.id === id ? next : x))
       : entries.value.filter((x) => x.id !== id);
-  if (patch.foodRef) await ensureFoods([patch.foodRef]);
   await db.putEntry(next);
 }
 
@@ -136,8 +142,15 @@ export async function updateSettings(patch: Partial<Settings>): Promise<void> {
 
 // --- Custom foods ---
 
-export async function loadCustomFoods(): Promise<void> {
-  customFoods.value = await db.listCustomFoods();
+/**
+ * Load the user's own foods (custom foods, scanned products, recipes) in parallel and hand them to
+ * search once — one Map copy and one worker message instead of one per table.
+ */
+export async function loadLibrary(): Promise<void> {
+  const [custom, off, rec] = await Promise.all([db.listCustomFoods(), db.listOffFoods(), db.listRecipes()]);
+  customFoods.value = custom;
+  offFoods.value = off;
+  recipes.value = rec;
   syncCustomFoods();
 }
 
@@ -160,11 +173,6 @@ function syncCustomFoods() {
 
 function toFood({ ref, sv, en, per100g, units }: Food): Food {
   return units ? { ref, sv, en, per100g, units } : { ref, sv, en, per100g };
-}
-
-export async function loadOffFoods(): Promise<void> {
-  offFoods.value = await db.listOffFoods();
-  syncCustomFoods();
 }
 
 /**
@@ -304,11 +312,6 @@ export async function addServing(ref: string, s: Serving): Promise<void> {
 
 // --- Recipes ---
 
-export async function loadRecipes(): Promise<void> {
-  recipes.value = await db.listRecipes();
-  syncCustomFoods();
-}
-
 export type RecipeDraft = Pick<Recipe, 'name' | 'ingredients' | 'servings' | 'cookedWeightG'> & { ref?: string };
 
 /** The recipe being edited (shared by the editor and the add-ingredient flow). */
@@ -317,13 +320,20 @@ export const recipeDraft = signal<RecipeDraft | null>(null);
 /** Create (no ref) or update a recipe; nutrition is computed from the ingredients now. Returns its ref. */
 export async function saveRecipe(draft: RecipeDraft): Promise<string> {
   await ensureFoods(draft.ingredients.map((i) => i.foodRef));
-  const n = recipeNutrition(draft, foods.value);
+  // Snapshot each ingredient's values so it can't silently drop out later.
+  const ingredients = draft.ingredients.map((i) => {
+    const per100g = foods.value.get(i.foodRef)?.per100g ?? i.per100g;
+    return per100g ? { ...i, per100g } : i;
+  });
+  const n = recipeNutrition({ ...draft, ingredients }, foods.value);
+  // Never store under-counted nutrition (the editor blocks this too).
+  if (n.missing.length) throw new Error(`Recipe ingredients without data: ${n.missing.join(', ')}`);
   const now = Date.now();
   const prev = draft.ref ? recipes.value.find((r) => r.ref === draft.ref) : undefined;
   const r: StoredRecipe = {
     ref: prev?.ref ?? `recipe:${db.newId()}`,
     name: draft.name.trim(),
-    ingredients: draft.ingredients,
+    ingredients,
     servings: draft.servings,
     createdAt: prev?.createdAt ?? now,
     updatedAt: now,

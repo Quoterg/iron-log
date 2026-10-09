@@ -8,6 +8,12 @@ export interface Ingredient {
   /** The household measure it was entered in (display only; grams is the source of truth). */
   unit?: string;
   qty?: number;
+  /**
+   * The food's per-100 g values when the recipe was last saved. Used when the food itself can't be
+   * resolved (e.g. a deleted custom food or a product not cached), so an ingredient never silently
+   * drops out of the recipe.
+   */
+  per100g?: NutrientVector;
 }
 
 export interface Recipe {
@@ -59,12 +65,13 @@ export function recipeNutrition(
   let rawG = 0;
   for (const ing of r.ingredients) {
     rawG += ing.grams;
-    const f = foods.get(ing.foodRef);
-    if (!f) {
+    // Prefer the live food (picks up corrections on re-save), else the saved snapshot.
+    const per100g = foods.get(ing.foodRef)?.per100g ?? ing.per100g;
+    if (!per100g) {
       missing.push(ing.foodRef);
       continue;
     }
-    f.per100g.forEach((v, i) => {
+    per100g.forEach((v, i) => {
       if (v == null) return;
       known[i] = true;
       total[i] += (v * ing.grams) / 100;
@@ -80,7 +87,7 @@ export function recipeToFood(r: Recipe, n: Pick<RecipeNutrition, 'per100g' | 'po
   return {
     ref: r.ref,
     sv: r.name,
-    en: null,
+    en: null, // the user's own name, shown as typed in both languages
     per100g: n.per100g,
     units: [
       { name: 'portion', g: Math.round(n.portionG * 10) / 10 },
@@ -90,5 +97,10 @@ export function recipeToFood(r: Recipe, n: Pick<RecipeNutrition, 'per100g' | 'po
 }
 
 function round(x: number) {
-  return x === 0 ? 0 : Number(x.toPrecision(4));
+  return x === 0 ? 0 : Number(x.toPrecision(6));
+}
+
+/** Pad a nutrient vector from an older version (fewer nutrients) with unknowns. */
+export function padVector(v: NutrientVector): NutrientVector {
+  return v.length >= NUTRIENTS.length ? v : [...v, ...NUTRIENTS.map(() => null)].slice(0, NUTRIENTS.length);
 }

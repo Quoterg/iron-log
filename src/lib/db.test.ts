@@ -24,5 +24,7 @@ describe('IndexedDB upgrade v1 → v3', () => {
     const foods = await db.listCustomFoods();
     expect(foods.map((f) => f.ref).sort()).toEqual(['custom:a', 'custom:b']);
     expect(foods.find((f) => f.ref === 'custom:b')?.deleted).toBe(true);
+    // v5 → v6 added the recipes store (empty after upgrade).
+    expect(await db.listRecipes()).toEqual([]);
   });
 });

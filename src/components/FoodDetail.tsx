@@ -4,7 +4,8 @@ import { fmt, fmtAmount, lang, parseNum, t, unitLabel } from '../lib/i18n';
 import { GRAMS, initialAmount, servingsFor, toGrams } from '../lib/servings';
 import { foodName, NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { scale } from '../lib/totals';
-import { back, backBy, closeAll, open } from '../nav';
+import { back, backTo, closeAll, open } from '../nav';
+import { entryVector } from '../lib/db';
 import {
   addEntry,
   addServing,
@@ -66,7 +67,9 @@ export function FoodDetail(props: {
   const g = toGrams(unit, qty, servings);
   const valid = g > 0 && g < 100000;
   const amount = unit === GRAMS ? { grams: g } : { grams: g, unit, qty };
-  const amounts = scale(food.per100g, valid ? g : 0);
+  // An entry shows what was logged (a recipe's values at the time), not the current recipe.
+  const per100g = (entry && entryVector(entry, foods.value)) || food.per100g;
+  const amounts = scale(per100g, valid ? g : 0);
   const isCustom = ref.startsWith('custom:');
 
   const submit = async (e: Event) => {
@@ -82,8 +85,8 @@ export function FoodDetail(props: {
         else list.push(ing);
         recipeDraft.value = { ...d, ingredients: list };
       }
-      // Back to the recipe editor: past the search when adding, one step when editing.
-      backBy(props.ingredientIndex != null ? 1 : 2);
+      // Back to the recipe editor, wherever it is in the stack.
+      backTo('recipe');
     } else if (entry) {
       await updateEntry(entry.id, { amount, meal, date: day });
       back();
@@ -194,7 +197,7 @@ export function FoodDetail(props: {
         </div>
         <p class="num preview">
           {unit !== GRAMS && valid && `≈ ${fmtAmount(g)} g · `}
-          {fmt(amounts[NUTRIENT_INDEX.kcal])} kcal · {fmt(value(food.per100g, 'kcal'))} kcal / 100 g
+          {fmt(amounts[NUTRIENT_INDEX.kcal])} kcal · {fmt(value(per100g, 'kcal'))} kcal / 100 g
         </p>
         <div class="actions">
           <button type="submit" class="btn primary" disabled={!valid}>
@@ -234,7 +237,7 @@ export function FoodDetail(props: {
         <h3>
           {t('nutrientsForAmount')} ({fmtAmount(valid ? g : 0)} g)
         </h3>
-        <NutrientGroups amounts={amounts} known={food.per100g.map((v) => v != null)} />
+        <NutrientGroups amounts={amounts} known={per100g.map((v) => v != null)} />
         <p class="muted small">
           {isCustom
             ? t('sourceCustom')

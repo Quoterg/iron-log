@@ -84,7 +84,9 @@ self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
   try {
     await ready;
     if (req.type === 'search') {
-      res = { id: req.id, foods: search(indexFor(req.lang), req.query, 40).map((i) => all[i]) };
+      const ex = req.excludePrefix;
+      const hits = search(indexFor(req.lang), req.query, ex ? 200 : 40).map((i) => all[i]);
+      res = { id: req.id, foods: (ex ? hits.filter((f) => !f.ref.startsWith(ex)) : hits).slice(0, 40) };
     } else {
       res = { id: req.id, foods: req.refs.map((r) => byRef.get(r)).filter((f): f is Food => !!f) };
     }

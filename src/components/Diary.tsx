@@ -1,4 +1,4 @@
-import { MEALS, type Entry } from '../lib/db';
+import { entryVector, MEALS, type Entry } from '../lib/db';
 import { fmt, fmtAmount, lang, t, unitLabel } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
@@ -79,6 +79,6 @@ function name(e: Entry): string {
 }
 
 function entryKcal(e: Entry): number {
-  const f = foods.value.get(e.foodRef);
-  return f ? (value(f.per100g, 'kcal') * e.grams) / 100 : 0;
+  const v = entryVector(e, foods.value);
+  return v ? (value(v, 'kcal') * e.grams) / 100 : 0;
 }

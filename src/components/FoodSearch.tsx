@@ -4,7 +4,7 @@ import { searchFoods } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
 import { back, open } from '../nav';
-import { ensureFoods, favourites, foods, recent, recipeDraft, updateEntry } from '../state';
+import { ensureFoods, favourites, foods, recent, updateEntry } from '../state';
 import type { Usage } from '../lib/db';
 import { Sheet } from './Sheet';
 
@@ -33,7 +33,8 @@ export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIng
     let live = true;
     setLoading(true);
     const h = setTimeout(async () => {
-      const r = await searchFoods(query, lang.value);
+      // Ingredients can't be recipes (avoids stale nested recipes and cycles).
+      const r = await searchFoods(query, lang.value, pickIngredient ? 'recipe:' : undefined);
       if (live) {
         setResults(r);
         setLoading(false);
@@ -45,8 +46,8 @@ export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIng
     };
   }, [query]);
 
-  // A recipe can't contain itself.
-  const allowed = (f: Food) => !(pickIngredient && f.ref === recipeDraft.value?.ref);
+  // Ingredients can't be recipes (the worker already excludes them; quick lists are filtered here).
+  const allowed = (f: Food) => !(pickIngredient && f.ref.startsWith('recipe:'));
 
   const pick = (f: Food) => {
     foods.value = new Map(foods.value).set(f.ref, f);
@@ -85,8 +86,8 @@ export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIng
         <ul class="results">{results.filter(allowed).map((f) => row(f, pick))}</ul>
       ) : query.trim() ? null : (
         <>
-          <QuickList title={t('favourites')} list={favourites.value} pick={pick} />
-          <QuickList title={t('recent')} list={recent.value} pick={pick} />
+          <QuickList title={t('favourites')} list={favourites.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} />
+          <QuickList title={t('recent')} list={recent.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} />
           {quick.length === 0 && <p class="muted center small pad">{t('searchHint')}</p>}
         </>
       )}

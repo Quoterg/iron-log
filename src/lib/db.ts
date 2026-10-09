@@ -18,6 +18,16 @@ export interface Entry {
   /** Household measure the user logged with, e.g. 2 × "st" (grams stays the source of truth). */
   unit?: string;
   qty?: number;
+  /**
+   * Per-100 g values when logged, for foods whose values can change later (recipes): editing a
+   * recipe must not rewrite past days.
+   */
+  snap?: (number | null)[];
+}
+
+/** Nutrient values (per 100 g) to use for an entry: its snapshot if any, else the food's current ones. */
+export function entryVector(e: Entry, foods: Map<string, Food>): (number | null)[] | undefined {
+  return e.snap ?? foods.get(e.foodRef)?.per100g;
 }
 
 export interface Settings {
@@ -149,11 +159,19 @@ export async function exportAll(): Promise<AllData> {
 /** Upsert everything in one transaction: items with the same id/ref are replaced, others kept. */
 export async function importAll(data: AllData): Promise<void> {
   const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'kv'], 'readwrite');
+  // Recipes and custom foods: keep whichever version is newer (an old backup must not undo edits).
+  const newest = async <S extends 'recipes' | 'customFoods'>(store: S, items: Schema[S]['value'][]) => {
+    const os = tx.objectStore(store);
+    for (const item of items) {
+      const cur = await os.get(item.ref);
+      if (!cur || cur.updatedAt <= item.updatedAt) await os.put(item);
+    }
+  };
   const puts: Promise<unknown>[] = [
-    ...data.recipes.map((r) => tx.objectStore('recipes').put(r)),
+    newest('recipes', data.recipes),
+    newest('customFoods', data.customFoods),
     ...data.offFoods.map((f) => tx.objectStore('offFoods').put(f)),
     ...data.entries.map((e) => tx.objectStore('entries').put(e)),
-    ...data.customFoods.map((f) => tx.objectStore('customFoods').put(f)),
     ...data.usage.map((u) => tx.objectStore('usage').put(u)),
     ...data.servings.map((s) => tx.objectStore('servings').put(s)),
   ];

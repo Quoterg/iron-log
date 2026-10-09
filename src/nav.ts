@@ -36,10 +36,16 @@ export function back(): void {
   if (stack.value.length) history.back();
 }
 
-/** Close the top `n` sheets. */
-export function backBy(n: number): void {
-  const k = Math.min(n, stack.value.length);
-  if (k) history.go(-k);
+/** Close sheets until the nearest one of `kind` is on top (no-op if there is none). */
+export function backTo(kind: Screen['kind']): void {
+  const s = stack.value;
+  for (let i = s.length - 1; i >= 0; i--) {
+    if (s[i].kind === kind) {
+      const n = s.length - 1 - i;
+      if (n) history.go(-n);
+      return;
+    }
+  }
 }
 
 export function closeAll(): void {
