@@ -68,6 +68,7 @@ const sv = {
   lipids: 'Fetter',
   vitamins: 'Vitaminer',
   minerals: 'Mineraler',
+  aminoAcids: 'Essentiella aminosyror',
   other: 'Övrigt',
   target: 'Mål',
   limit: 'Max',

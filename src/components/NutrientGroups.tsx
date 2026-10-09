@@ -3,7 +3,7 @@ import { NUTRIENTS, type NutrientGroup } from '../lib/nutrients';
 import { targets } from '../state';
 import { Bar } from './Bar';
 
-type Title = 'macros' | 'carbsDetail' | 'lipids' | 'vitamins' | 'minerals' | 'other';
+type Title = 'macros' | 'carbsDetail' | 'lipids' | 'vitamins' | 'minerals' | 'aminoAcids' | 'other';
 
 const GROUPS: { group: NutrientGroup[]; title: Title }[] = [
   { group: ['energy', 'macro'], title: 'macros' },
@@ -11,6 +11,7 @@ const GROUPS: { group: NutrientGroup[]; title: Title }[] = [
   { group: ['lipid'], title: 'lipids' },
   { group: ['vitamin'], title: 'vitamins' },
   { group: ['mineral'], title: 'minerals' },
+  { group: ['amino'], title: 'aminoAcids' },
   { group: ['other'], title: 'other' },
 ];
 

@@ -53,7 +53,9 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [ ] **M15b Supplement schedules** — Weekdays / times of day / reminders for supplements.
 - [x] **M16 More nutrients** — Vitamin K, B5, biotin, copper, manganese (USDA) and DPA (SLV/USDA)
   with NNR 2023 targets; nutrient detail pages (target, your top sources, richest foods).
-- [ ] **M16b Amino acids** — Essential amino acids from USDA, with protein-quality hints.
+- [x] **M16b Amino acids** — The 9 essential amino acids (Met+Cys and Phe+Tyr combined) from USDA,
+  targets per kg body weight (WHO/FAO/UNU 2007); low ones show up in the Nutrients tab's "worth a
+  look" like any other nutrient.
 
 ## Phase 3 — Everywhere
 

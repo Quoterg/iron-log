@@ -5,10 +5,24 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M20b In-app Open Food Facts upload**, then **M16b Amino acids**, **M15b Supplement schedules**
-(see docs/ROADMAP.md). Waiting on the owner: **M19b** (first signed Android build — keep the
+**M15b Supplement schedules**, then **M20b In-app Open Food Facts upload** (needs the owner's OK:
+it means storing an OFF login on the device) (see docs/ROADMAP.md). Waiting on the owner: **M19b** (first signed Android build — keep the
 keystore — and assetlinks), **M18c** (native-speaker review of da/de/fi/so; screen-reader pass),
 and a real two-phone test of sync (M17).
+
+## 2026-10-09 — M16b Amino acids (interactive session)
+
+Done:
+- Nine essential amino acids (histidine, isoleucine, leucine, lysine, methionine + cysteine,
+  phenylalanine + tyrosine, threonine, tryptophan, valine) from USDA, in a new "Essential amino
+  acids" group on the Nutrients tab; names in all six languages.
+- Targets per kg body weight from WHO/FAO/UNU 2007 (NNR 2023 has none); without a profile weight
+  there's no target. Low amino acids appear in "worth a look" like other nutrients — the protein-
+  quality hint.
+- USDA data rebuilt: now 5 files (each < 190 KB gzip; +~70 KB for users who enable USDA). SLV
+  unchanged in size (no amino acids; trailing unknowns are omitted). Top-foods file rebuilt.
+- Tests: targets by weight, real values (egg leucine, Met+Cys sum), > 4,000 foods with leucine.
+  Initial JS 34.7 KB gzip (+0.3 KB: nutrient definitions).
 
 ## 2026-10-09 — M18b Languages (interactive session)
 

@@ -76,3 +76,14 @@ owner), reproduced exactly:
   +0.3 / +1.2 / +2.3 MJ per day (trimester 1/2/3) and +2.0 MJ per day for exclusive breastfeeding
   (DTU Food's 2025 summary of NNR 2023, secondary source). These assume **pre-pregnancy weight**,
   which is what the app asks for while pregnant.
+
+## Essential amino acids (not in NNR 2023)
+
+NNR 2023 sets no amino-acid targets, so the app uses the adult requirements of WHO/FAO/UNU 2007,
+"Protein and amino acid requirements in human nutrition" (WHO Technical Report Series 935),
+table 23, in mg per kg body weight per day: histidine 10, isoleucine 20, leucine 39, lysine 30,
+methionine + cysteine 15, phenylalanine + tyrosine 25, threonine 15, tryptophan 4, valine 26.
+Targets need the profile weight (none without it); no pregnancy/lactation adjustment yet.
+Food values: USDA FoodData Central (nutrients 1210–1221; Met+Cys and Phe+Tyr are summed only when
+both parts are reported). Livsmedelsverket's database has no amino acids, so Swedish foods show
+them as unknown.

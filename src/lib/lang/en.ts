@@ -55,6 +55,7 @@ const strings: Dict = {
   lipids: 'Fats',
   vitamins: 'Vitamins',
   minerals: 'Minerals',
+  aminoAcids: 'Essential amino acids',
   other: 'Other',
   target: 'Target',
   limit: 'Max',
