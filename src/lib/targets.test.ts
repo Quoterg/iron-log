@@ -1,11 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { ageBand, energyNeed, nnrTargets, withEnergy, type Profile } from './targets';
+import { ageBand, energyNeed, nnrTargets, snapPal, withEnergy, type Profile } from './targets';
 
 const woman = (p: Partial<Profile> = {}): Profile => ({ sex: 'female', kcal: 2000, ...p });
 const man = (p: Partial<Profile> = {}): Profile => ({ sex: 'male', kcal: 2500, ...p });
 const min = (p: Profile, key: string) => nnrTargets(p)[key].min;
 
 describe('NNR 2023 targets by age, sex and life stage', () => {
+  it('switches age band exactly at 25, 51 and 71', () => {
+    expect([24, 25, 50, 51, 70, 71].map(ageBand)).toEqual(['18-24', '25-50', '25-50', '51-70', '51-70', '71+']);
+  });
+
+  it('pregnancy values do not depend on age (NNR gives one set per trimester)', () => {
+    expect(min(woman({ age: 52, status: 'pregnant2' }), 'iron')).toBe(25);
+    expect(min(woman({ age: 52, status: 'pregnant2' }), 'vitE')).toBe(11);
+  });
+
   it('uses the 25–50 band when age is unknown', () => {
     expect(ageBand(undefined)).toBe('25-50');
     expect(min(woman(), 'calcium')).toBe(950);
@@ -65,9 +74,15 @@ describe('energy need', () => {
     expect(energyNeed(man({ age: 40 }))).toBeNull();
   });
 
-  it('applies to kcal only when automatic', () => {
+  it('applies to kcal only when automatic, and turns automatic off when data is missing', () => {
     const p = woman({ age: 30, weightKg: 60, heightCm: 165 });
     expect(withEnergy(p).kcal).toBe(2000);
     expect(withEnergy({ ...p, kcalAuto: true }).kcal).toBe(2110);
+    const missing = withEnergy({ ...p, kcalAuto: true, weightKg: undefined, kcal: 2110 });
+    expect(missing).toMatchObject({ kcalAuto: false, kcal: 2110 });
+  });
+
+  it('snaps activity levels to the ones the UI offers', () => {
+    expect([1.2, 1.5, 1.51, 1.75, 2.5].map(snapPal)).toEqual([1.4, 1.6, 1.6, 1.8, 2.0]);
   });
 });

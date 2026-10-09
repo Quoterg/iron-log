@@ -1,6 +1,9 @@
-import { fmt, t } from '../lib/i18n';
+import { fmt, parseNum, t } from '../lib/i18n';
 import { defaultKcal, energyNeed, PAL_LEVELS, withEnergy, type Profile, type Sex, type Status } from '../lib/targets';
+import { lang as langSignal } from '../lib/i18n';
 import { settings, updateSettings } from '../state';
+
+const lang = () => langSignal.value;
 
 const PAL_LABEL: Record<number, 'palLow' | 'palAverage' | 'palActive' | 'palVeryActive'> = {
   1.4: 'palLow',
@@ -15,21 +18,32 @@ export function ProfileForm() {
   const save = (patch: Partial<Profile>) => void updateSettings({ profile: withEnergy({ ...p, ...patch }) });
   const estimate = energyNeed(p);
 
-  /** Number field that commits on change when within range (else reverts). */
-  const num = (key: 'age' | 'weightKg' | 'heightCm', label: string, min: number, max: number) => (
+  const pregnant = p.sex === 'female' && (p.status ?? 'none').startsWith('pregnant');
+
+  /**
+   * Number field that commits on change when valid (else reverts). Text + inputmode so phones
+   * show the right keypad and a decimal comma works for weight.
+   */
+  const num = (key: 'age' | 'weightKg' | 'heightCm', label: string, min: number, max: number, decimals: boolean) => (
     <label>
       {label}
       <input
-        type="number"
-        inputMode="numeric"
-        min={min}
-        max={max}
-        value={p[key] ?? ''}
+        type="text"
+        inputMode={decimals ? 'decimal' : 'numeric'}
+        value={p[key] == null ? '' : String(p[key]).replace('.', decimals ? (lang() === 'sv' ? ',' : '.') : '.')}
         onChange={(e) => {
           const el = e.currentTarget as HTMLInputElement;
-          const v = el.value === '' ? undefined : Number(el.value);
-          if (v === undefined || (v >= min && v <= max)) save({ [key]: v });
-          else el.value = String(p[key] ?? '');
+          const v = el.value.trim() === '' ? undefined : parseNum(el.value);
+          const ok = v === undefined || (v >= min && v <= max && (decimals || Number.isInteger(v)));
+          if (!ok) {
+            el.value = p[key] == null ? '' : String(p[key]);
+            return;
+          }
+          const rounded = v === undefined ? undefined : Math.round(v * 10) / 10;
+          const patch: Partial<Profile> = { [key]: rounded };
+          // Crossing 51: let the age-based menstruation default apply again.
+          if (key === 'age' && (p.age ?? 0) < 51 !== (rounded ?? 0) < 51) patch.menstruating = undefined;
+          save(patch);
         }}
       />
     </label>
@@ -52,9 +66,9 @@ export function ProfileForm() {
         </select>
       </label>
       <div class="grid2">
-        {num('age', t('age'), 18, 110)}
-        {num('weightKg', t('weightKg'), 30, 300)}
-        {num('heightCm', t('heightCm'), 120, 230)}
+        {num('age', t('age'), 18, 110, false)}
+        {num('weightKg', pregnant ? t('weightBeforePregnancy') : t('weightKg'), 30, 300, true)}
+        {num('heightCm', t('heightCm'), 120, 230, false)}
         <label>
           {t('activity')}
           <select value={String(p.pal ?? 1.6)} onChange={(e) => save({ pal: Number((e.currentTarget as HTMLSelectElement).value) })}>
@@ -78,6 +92,7 @@ export function ProfileForm() {
               <option value="lactating">{t('lactating')}</option>
             </select>
           </label>
+          {p.status === 'lactating' && <p class="muted small">{t('lactationNote')}</p>}
           {(p.status ?? 'none') === 'none' && (
             <label class="check">
               <input
@@ -107,12 +122,14 @@ export function ProfileForm() {
           inputMode="numeric"
           min="800"
           max="6000"
-          step="50"
+          step="10"
           value={p.kcal}
           readOnly={!!p.kcalAuto}
           onChange={(e) => {
-            const kcal = parseInt((e.currentTarget as HTMLInputElement).value, 10);
+            const el = e.currentTarget as HTMLInputElement;
+            const kcal = parseInt(el.value, 10);
             if (kcal >= 800 && kcal <= 6000) save({ kcal });
+            else el.value = String(p.kcal);
           }}
         />
       </label>

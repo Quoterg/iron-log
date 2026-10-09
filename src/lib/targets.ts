@@ -1,8 +1,11 @@
 // Daily targets from the Nordic Nutrition Recommendations 2023 (NNR 2023).
 // RI = recommended intake, AI = adequate intake. Values per sex, age band (18–24, 25–50,
-// 51–70, 71+), pregnancy trimester and lactation, as tabulated by Helsedirektoratet's NNR 2023
-// summary (tables 8–12): https://www.helsedirektoratet.no/rapporter/referanseverdier-for-energi-og-naeringsstoffer
-// Official report: https://pub.norden.org/nord2023-003/ — users can override every value.
+// 51–70, 71+), pregnancy trimester and lactation.
+// Source: Helsedirektoratet, "Referanseverdier for energi og næringsstoffer" — NNR 2023 values,
+// vitamins and minerals tables 8–12 (retrieved 2026-10-09):
+// https://www.helsedirektoratet.no/rapporter/referanseverdier-for-energi-og-naeringsstoffer
+// These mirror NNR 2023 (pub.norden.org/nord2023-003) tables 12–15; see docs/NNR-SOURCES.md for
+// which rows were cross-checked against the Nordic report. Users can override every value.
 
 export type Sex = 'female' | 'male';
 export type Status = 'none' | 'pregnant1' | 'pregnant2' | 'pregnant3' | 'lactating';
@@ -30,6 +33,11 @@ export interface Target {
 }
 
 export const PAL_LEVELS = [1.4, 1.6, 1.8, 2.0] as const;
+
+/** The nearest supported activity level (keeps imported values in sync with the UI). */
+export function snapPal(x: number): number {
+  return PAL_LEVELS.reduce((best, v) => (Math.abs(v - x) < Math.abs(best - x) ? v : best), 1.6);
+}
 export const DEFAULT_PROFILE: Profile = { sex: 'female', kcal: 2000 };
 
 export function defaultKcal(sex: Sex): number {
@@ -53,16 +61,20 @@ export function energyNeed(p: Profile): number | null {
   return Math.round((bmr * (p.pal ?? 1.6) + extra) / 10) * 10;
 }
 
-/** The profile with `kcal` recomputed when energy is automatic and enough data is known. */
+/**
+ * The profile with `kcal` recomputed when energy is automatic. If the body data needed for the
+ * estimate is missing, automatic mode is switched off (keeping the last value) instead of
+ * silently showing a stale number.
+ */
 export function withEnergy(p: Profile): Profile {
   if (!p.kcalAuto) return p;
   const kcal = energyNeed(p);
-  return kcal ? { ...p, kcal } : p;
+  return kcal ? { ...p, kcal } : { ...p, kcalAuto: false };
 }
 
 type Pair = [female: number, male: number];
 
-/** Adults 25–50 (the reference band). */
+/** Adults 25–50 (the reference band). Helsedirektoratet tables 8–11, "25–50 år" columns. */
 const BASE: Record<string, Pair> = {
   vitA: [700, 800],
   vitD: [10, 10],
@@ -82,14 +94,18 @@ const BASE: Record<string, Pair> = {
   selenium: [75, 90],
 };
 
-/** Differences from BASE by age band. */
+/** Differences from BASE by age band. Helsedirektoratet tables 8–11, "18–24", "51–70" and ">70 år" columns. */
 const BY_AGE: Record<'18-24' | '51-70' | '71+', Partial<Record<string, Pair>>> = {
   '18-24': { calcium: [1000, 1000], phosphorus: [550, 550] },
   '51-70': { vitE: [9, 11], zinc: [9.5, 12.4] },
   '71+': { vitA: [650, 750], vitD: [20, 20], vitE: [9, 11], vitB6: [1.6, 1.7], zinc: [9.3, 12.1], selenium: [75, 85] },
 };
 
-/** Pregnancy (by trimester) and lactation, replacing the female values. */
+/**
+ * Pregnancy (by trimester) and lactation, replacing the female values. Helsedirektoratet tables
+ * 8–11, "Gravide" and "Ammende" columns. Calcium/iron/zinc for trimester 1 and lactation, and
+ * folate in pregnancy, cross-checked against NNR 2023 table 14 and the folate chapter.
+ */
 const BY_STATUS: Record<Exclude<Status, 'none'>, Partial<Record<string, number>>> = {
   pregnant1: { vitA: 750, vitE: 10, riboflavin: 1.6, vitB6: 1.6, folate: 600, vitB12: 4.5, vitC: 105, calcium: 950, phosphorus: 520, iron: 24, zinc: 9.7, iodine: 175, selenium: 80 },
   pregnant2: { vitA: 750, vitE: 11, riboflavin: 1.7, vitB6: 1.8, folate: 600, vitB12: 4.5, vitC: 105, calcium: 950, phosphorus: 520, iron: 25, zinc: 12.1, iodine: 200, selenium: 85 },

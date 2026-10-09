@@ -128,6 +128,8 @@ const sv = {
   kcalAuto: 'Räkna ut energibehovet automatiskt',
   kcalAutoHint: 'Fyll i ålder, vikt och längd för att räkna ut energibehovet.',
   kcalEstimate: 'Uppskattat energibehov',
+  weightBeforePregnancy: 'Vikt före graviditeten (kg)',
+  lactationNote: 'Energitillägget gäller vid helamning (första 6 månaderna).',
 };
 
 type Dict = typeof sv;
@@ -258,6 +260,8 @@ const en: Dict = {
   kcalAuto: 'Calculate energy needs automatically',
   kcalAutoHint: 'Enter age, weight and height to calculate energy needs.',
   kcalEstimate: 'Estimated energy need',
+  weightBeforePregnancy: 'Weight before pregnancy (kg)',
+  lactationNote: 'The extra energy applies to exclusive breastfeeding (first 6 months).',
 };
 
 const dicts: Record<Lang, Dict> = { sv, en };
