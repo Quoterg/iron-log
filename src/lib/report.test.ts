@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Entry } from './db';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
-import { averagePerDay, contributors, dailyTotals, gaps, streak } from './report';
+import { averagePerDay, contributors, dailyTotals, gaps, knownNutrients, streak } from './report';
 
 function food(ref: string, values: Record<string, number>): Food {
   const v = NUTRIENTS.map(() => null as number | null);
@@ -40,6 +40,19 @@ describe('reports', () => {
     const c = contributors(entries, foods, I('iron'));
     expect(c.map((x) => x.foodRef)).toEqual(['slv:bread', 'slv:spinach']); // 6 mg vs 2.7 mg
     expect(c[0].share).toBeCloseTo(6 / 8.7);
+  });
+
+  it('never reports a nutrient no food in the period has data for as a gap', () => {
+    const avg = averagePerDay(dailyTotals(entries, foods));
+    const known = knownNutrients(entries, foods);
+    expect(known[I('iron')]).toBe(true);
+    expect(known[I('iodine')]).toBe(false); // neither food reports iodine
+    const g = gaps(avg, { iron: { min: 15, max: null }, iodine: { min: 150, max: null } }, known);
+    expect(g.low.map((x) => x.key)).toEqual(['iron']);
+  });
+
+  it('streak works across the October DST change', () => {
+    expect(streak(new Set(['2026-10-24', '2026-10-25', '2026-10-26']), '2026-10-26')).toBe(3);
   });
 
   it('counts the logging streak, tolerating an empty today', () => {

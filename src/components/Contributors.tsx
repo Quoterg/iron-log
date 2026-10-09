@@ -3,17 +3,22 @@ import { entriesBetween, type Entry } from '../lib/db';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
 import { contributors } from '../lib/report';
-import { ensureFoods, foods } from '../state';
+import { ensureFoods, entries as dayEntries, foods, periodCache } from '../state';
 import { Sheet } from './Sheet';
 
 /** Which foods gave the most of one nutrient over a period. Loaded lazily. */
 export default function Contributors({ nutrient, from, to }: { nutrient: string; from: string; to: string }) {
-  const [list, setList] = useState<Entry[] | null>(null);
+  // Reuse what the Nutrients tab already loaded (no second query, no loading flash).
+  const cached = periodCache.value?.key === `${from}|${to}` ? periodCache.value.entries : from === to ? dayEntries.value : null;
+  const [list, setList] = useState<Entry[] | null>(cached);
   useEffect(() => {
+    if (cached) return;
+    let live = true;
     void entriesBetween(from, to).then(async (e) => {
       await ensureFoods(e.map((x) => x.foodRef));
-      setList(e);
+      if (live) setList(e);
     });
+    return () => void (live = false);
   }, [nutrient, from, to]);
 
   const n = NUTRIENTS[NUTRIENT_INDEX[nutrient]];

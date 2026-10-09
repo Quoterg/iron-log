@@ -21,7 +21,13 @@ Done:
   unique dates read via a key cursor on the date index (no entries loaded).
 - `src/lib/report.ts` (pure): dailyTotals, averagePerDay, gaps, contributors, streak; uses entry
   snapshots for recipes. `db.entriesBetween` (index range), `db.loggedDates`.
-- Tests: 82 unit, 26 Playwright. Initial JS 32.7 KB gzip.
+- Review fixes (reviewer agent on PR #15): nutrients no logged food reports are "unknown" (shown
+  as –, never a 0 % gap — `knownNutrients`); switching period clears the old numbers first; streak
+  has a race guard and walks dates backwards from today with a reverse key cursor, stopping at the
+  first gap (`recentLoggedDates`); the sources sheet reuses the period's entries (`periodCache`);
+  report math memoised; over-limit list capped and tappable.
+- Tests: 85 unit (+ unknown nutrients, DST streak, range/streak queries), 26 Playwright.
+  Initial JS 32.9 KB gzip.
 
 ## 2026-10-09 — M12 Body log & charts (interactive session)
 

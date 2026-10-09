@@ -11,6 +11,9 @@ import type { BodyEntry } from './lib/body';
 import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 
+/** Entries of the period the Nutrients tab loaded last, reused by the sources sheet. */
+export const periodCache = signal<{ key: string; entries: Entry[] } | null>(null);
+
 export type View = 'diary' | 'nutrients' | 'body' | 'settings';
 
 export const view = signal<View>('diary');

@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'preact/hooks';
-import { addDays, entriesBetween, isoDate, loggedDates, type Entry } from '../lib/db';
+import { useEffect, useMemo, useState } from 'preact/hooks';
+import { addDays, entriesBetween, isoDate, recentLoggedDates, type Entry } from '../lib/db';
 import { fmt, lang, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
-import { averagePerDay, dailyTotals, gaps, streak } from '../lib/report';
+import { averagePerDay, dailyTotals, gaps, knownNutrients, streak } from '../lib/report';
 import { open } from '../nav';
-import { date, dayTotals, ensureFoods, entries as dayEntries, foods, targets } from '../state';
+import { date, dayTotals, ensureFoods, entries as dayEntries, foods, periodCache, targets } from '../state';
 import { NutrientGroups } from './NutrientGroups';
 
 const PERIODS = [1, 7, 30] as const;
@@ -22,22 +22,40 @@ export function Nutrients() {
   const from = addDays(to, -(period - 1));
 
   useEffect(() => {
-    void loggedDates().then((d) => setDays(streak(d, isoDate(new Date()))));
+    let live = true;
+    const today = isoDate(new Date());
+    void recentLoggedDates(today).then((d) => live && setDays(streak(d, today)));
+    return () => void (live = false);
   }, [dayEntries.value.length]);
 
   useEffect(() => {
-    if (period === 1) return setPeriodEntries(null);
+    // Never show the previous period's numbers under the new period's label.
+    setPeriodEntries(null);
+    if (period === 1) return;
     let live = true;
     void entriesBetween(from, to).then(async (list) => {
       await ensureFoods(list.map((e) => e.foodRef));
-      if (live) setPeriodEntries(list);
+      if (!live) return;
+      periodCache.value = { key: `${from}|${to}`, entries: list };
+      setPeriodEntries(list);
     });
     return () => void (live = false);
   }, [period, to, dayEntries.value]);
 
-  const perDay = period === 1 ? null : periodEntries && dailyTotals(periodEntries, foods.value);
-  const amounts = period === 1 ? dayTotals.value : perDay ? averagePerDay(perDay) : null;
-  const g = amounts && period !== 1 && perDay?.size ? gaps(amounts, targets.value) : null;
+  const report = useMemo(() => {
+    // With no entries everything is simply 0 of target; "unknown" only means no logged food reports it.
+    const known = (list: Entry[]) => (list.length ? knownNutrients(list, foods.value) : undefined);
+    if (period === 1) return { amounts: dayTotals.value, known: known(dayEntries.value), perDay: null };
+    if (!periodEntries) return null;
+    const perDay = dailyTotals(periodEntries, foods.value);
+    return { amounts: averagePerDay(perDay), known: known(periodEntries), perDay };
+  }, [period, periodEntries, dayTotals.value, dayEntries.value, foods.value]);
+  const amounts = report?.amounts ?? null;
+  const perDay = report?.perDay ?? null;
+  const g = useMemo(
+    () => (report && period !== 1 && perDay?.size ? gaps(report.amounts, targets.value, report.known) : null),
+    [report, targets.value],
+  );
   const label = (key: string) => NUTRIENTS[NUTRIENT_INDEX[key]][lang.value];
 
   return (
@@ -73,13 +91,21 @@ export function Nutrients() {
           )}
           {g.high.length > 0 && (
             <p class="small warn">
-              <b>{t('overLimit')}:</b> {g.high.map((x) => `${label(x.key)} ${fmt(x.ratio * 100)} %`).join(', ')}
+              <b>{t('overLimit')}:</b>{' '}
+              {g.high.slice(0, 6).map((x, i) => (
+                <span key={x.key}>
+                  {i > 0 && ', '}
+                  <button class="link inline" onClick={() => open({ kind: 'contributors', key: x.key, from, to })}>
+                    {label(x.key)} {fmt(x.ratio * 100)} %
+                  </button>
+                </span>
+              ))}
             </p>
           )}
         </section>
       )}
       {amounts ? (
-        <NutrientGroups amounts={amounts} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
+        <NutrientGroups amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
       ) : (
         <p class="muted center">{t('loading')}</p>
       )}

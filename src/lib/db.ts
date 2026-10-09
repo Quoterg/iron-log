@@ -265,12 +265,21 @@ export async function entriesBetween(from: string, to: string): Promise<Entry[]>
   return (await db()).getAllFromIndex('entries', 'date', IDBKeyRange.bound(from, to));
 }
 
-/** Every date with at least one entry (unique index keys only — no entries are loaded). */
-export async function loggedDates(): Promise<Set<string>> {
+/**
+ * Logged dates walking back from `today` (unique index keys only — no entries loaded), stopping at
+ * the first gap of more than one day: enough for the streak, O(streak) instead of O(history).
+ */
+export async function recentLoggedDates(today: string): Promise<Set<string>> {
   const out = new Set<string>();
-  let cur = await (await db()).transaction('entries').store.index('date').openKeyCursor(null, 'nextunique');
+  const index = (await db()).transaction('entries').store.index('date');
+  let cur = await index.openKeyCursor(IDBKeyRange.upperBound(today), 'prevunique');
+  let expected = today;
   while (cur) {
-    out.add(cur.key);
+    const d = cur.key;
+    // Allow "today not logged yet": the first expected day may be today or yesterday.
+    if (d !== expected && !(out.size === 0 && d === addDays(today, -1))) break;
+    out.add(d);
+    expected = addDays(d, -1);
     cur = await cur.continue();
   }
   return out;

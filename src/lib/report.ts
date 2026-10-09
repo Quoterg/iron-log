@@ -16,6 +16,16 @@ export function dailyTotals(entries: Entry[], foods: Map<string, Food>): Map<str
   return out;
 }
 
+/**
+ * Which nutrients have at least one known (non-null) value among the entries. A nutrient no food
+ * in the period reports (e.g. iodine for many USDA/custom foods) is unknown — not 0 % of target.
+ */
+export function knownNutrients(entries: Entry[], foods: Map<string, Food>): boolean[] {
+  const known = NUTRIENTS.map(() => false);
+  for (const e of entries) entryVector(e, foods)?.forEach((x, i) => x != null && (known[i] = true));
+  return known;
+}
+
 /** Average per *logged* day — days without any entries aren't counted as zero intake. */
 export function averagePerDay(days: Map<string, number[]>): number[] {
   const avg = NUTRIENTS.map(() => 0);
@@ -34,12 +44,18 @@ export interface Gap {
  * Nutrients clearly below their target (< `below`, default 70 %) and above their upper limit,
  * worst first. Energy is left out (it has its own bar).
  */
-export function gaps(amounts: number[], targets: Record<string, Target>, below = 0.7): { low: Gap[]; high: Gap[] } {
+export function gaps(
+  amounts: number[],
+  targets: Record<string, Target>,
+  known?: boolean[],
+  below = 0.7,
+): { low: Gap[]; high: Gap[] } {
   const low: Gap[] = [];
   const high: Gap[] = [];
   NUTRIENTS.forEach((n, i) => {
     const t = targets[n.key];
-    if (!t || n.key === 'kcal') return;
+    // Unknown nutrients (no food in the period reports them) are not gaps.
+    if (!t || n.key === 'kcal' || known?.[i] === false) return;
     if (t.min && amounts[i] < t.min * below) low.push({ key: n.key, ratio: amounts[i] / t.min });
     if (t.max != null && amounts[i] > t.max) high.push({ key: n.key, ratio: amounts[i] / t.max });
   });
