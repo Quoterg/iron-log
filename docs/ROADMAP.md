@@ -45,7 +45,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   setting; keep each file within budget; source badges in results.
 - [x] **M12 Body log & charts** — Weight, body fat, waist; tiny hand-written SVG charts
   (no chart library); trend line (moving average).
-- [ ] **M13 Reports & insights** — Day/week/month averages per nutrient, "top contributors"
+- [x] **M13 Reports & insights** — Day/week/month averages per nutrient, "top contributors"
   for any nutrient, nutrient-gap highlights vs. targets, simple streaks.
 - [ ] **M14 Activity** — Exercise log (MET table, kcal burned), optional adding of burned
   energy to the day's target; water intake.

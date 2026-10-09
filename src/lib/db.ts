@@ -260,6 +260,22 @@ export async function putCustomFood(f: CustomFood): Promise<void> {
   await (await db()).put('customFoods', f);
 }
 
+/** All entries from `from` to `to` (inclusive, YYYY-MM-DD) via the date index. */
+export async function entriesBetween(from: string, to: string): Promise<Entry[]> {
+  return (await db()).getAllFromIndex('entries', 'date', IDBKeyRange.bound(from, to));
+}
+
+/** Every date with at least one entry (unique index keys only — no entries are loaded). */
+export async function loggedDates(): Promise<Set<string>> {
+  const out = new Set<string>();
+  let cur = await (await db()).transaction('entries').store.index('date').openKeyCursor(null, 'nextunique');
+  while (cur) {
+    out.add(cur.key);
+    cur = await cur.continue();
+  }
+  return out;
+}
+
 export async function entriesFor(date: string): Promise<Entry[]> {
   const list = await (await db()).getAllFromIndex('entries', 'date', date);
   return list.sort((a, b) => a.createdAt - b.createdAt);

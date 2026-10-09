@@ -5,7 +5,23 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M13 Reports & insights** (see docs/ROADMAP.md).
+**M14 Activity** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M13 Reports & insights (interactive session)
+
+Done:
+- Nutrients tab: period chips Dagen / 7 dagar / 30 dagar (ending on the selected date). Periods
+  show the **average per logged day** (days without entries aren't counted as zero) with "N av D
+  dagar har registreringar".
+- "Att tänka på" card (periods only — a half-logged day would flag everything): nutrients below
+  70 % of target (worst first, tap → sources) and anything over its limit.
+- Tap any nutrient → "Största källor" sheet (lazy, 0.6 KB gzip): top 10 foods for that nutrient
+  in the period, amount and share.
+- Logging streak ("Du har loggat N dagar i rad"), counting from yesterday if today is still empty;
+  unique dates read via a key cursor on the date index (no entries loaded).
+- `src/lib/report.ts` (pure): dailyTotals, averagePerDay, gaps, contributors, streak; uses entry
+  snapshots for recipes. `db.entriesBetween` (index range), `db.loggedDates`.
+- Tests: 82 unit, 26 Playwright. Initial JS 32.7 KB gzip.
 
 ## 2026-10-09 — M12 Body log & charts (interactive session)
 
