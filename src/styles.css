@@ -216,3 +216,13 @@ input[type='date'] { border: 1px solid var(--line); border-radius: 8px; backgrou
 .form label.check { flex-direction: row; align-items: center; gap: 10px; color: var(--text); }
 .form label.check input { width: 22px; height: 22px; min-height: 0; }
 .form input[readonly] { color: var(--muted); }
+
+table.targets { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 12px; }
+table.targets th, table.targets td { padding: 4px 4px 4px 0; text-align: left; font-size: 0.9rem; vertical-align: middle; }
+table.targets thead th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+table.targets tbody th { font-weight: 400; overflow-wrap: anywhere; width: 42%; }
+table.targets input { width: 100%; min-width: 0; padding: 8px; min-height: 40px; }
+table.targets input[readonly] { color: var(--muted); }
+table.targets tr.changed th { font-weight: 600; }
+
+.block { display: block; }

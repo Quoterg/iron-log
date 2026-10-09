@@ -5,7 +5,8 @@ import { customFoods, settings, updateSettings } from '../state';
 import { ProfileForm } from './ProfileForm';
 import { YourData } from './YourData';
 
-export function Settings() {
+/** Loaded lazily (see app.tsx): not needed for the first screen. */
+export default function Settings() {
   return (
     <>
       <ProfileForm />

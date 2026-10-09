@@ -1,6 +1,6 @@
 import { render } from 'preact';
-import { App } from './app';
-import { captureInstallPrompt } from './components/YourData';
+import { App, settingsView, targetEditorView } from './app';
+import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang } from './lib/i18n';
 import { initNav } from './nav';
@@ -18,7 +18,16 @@ async function start() {
   render(<App />, document.getElementById('app')!);
   await loadDay(date.value);
   // Load the food database in the background once the diary is on screen.
-  requestIdleCallbackShim(warmUp);
+  requestIdleCallbackShim(() => {
+    // Food database first (search needs it); then the split-out screens, so the service worker
+    // has them for offline use without competing with the food download on a slow connection.
+    void warmUp()
+      .catch(() => {})
+      .then(() => {
+        void settingsView.prefetch();
+        void targetEditorView.prefetch();
+      });
+  });
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);
   }

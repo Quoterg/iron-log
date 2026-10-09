@@ -9,7 +9,7 @@ const data: AllData = {
   usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true, lastUnit: 'skopa', lastQty: 2 }],
   servings: [{ foodRef: 'custom:a', servings: [{ name: 'skopa', g: 25 }] }],
   offFoods: [{ ref: 'off:7310865004703', sv: 'Yoghurt (Arla)', en: null, per100g: [100], fetchedAt: 3, units: [{ name: 'portion', g: 150 }] }],
-  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: 12 } },
+  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } } },
 };
 
 describe('backup', () => {
@@ -37,7 +37,7 @@ describe('backup', () => {
     const b = makeBackup({ ...data, settings: { lang: 'xx' } as never });
     expect(parseBackup(JSON.stringify(b)).settings).toBeUndefined();
     const c = makeBackup({ ...data, settings: { ...data.settings!, targetOverrides: { iron: 12, evil: 1, zinc: -1 } as never } });
-    expect(parseBackup(JSON.stringify(c)).settings?.targetOverrides).toEqual({ iron: 12 });
+    expect(parseBackup(JSON.stringify(c)).settings?.targetOverrides).toEqual({ iron: { min: 12 } });
   });
 });
 
@@ -58,6 +58,21 @@ describe('profile import', () => {
     const p = withProfile({ sex: 'male', kcal: 2500, age: 30.5, heightCm: 500, status: 'astronaut', pal: 1.5 });
     expect(p).toEqual({ sex: 'male', kcal: 2500, pal: 1.6 });
     expect(withProfile({ sex: 'male', kcal: 2500, age: 12 })?.age).toBeUndefined();
+  });
+
+  it('round-trips macro presets and custom ranges; invalid custom falls back to NNR', () => {
+    const settingsOf = (extra: object) =>
+      parseBackup(
+        JSON.stringify({
+          ...makeBackup(data),
+          settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: {}, ...extra },
+        }),
+      ).settings;
+    const pct = { protein: [30, 40], carbs: [20, 40], fat: [25, 45] };
+    expect(settingsOf({ macroPreset: 'custom', macroPct: pct })).toMatchObject({ macroPreset: 'custom', macroPct: pct });
+    expect(settingsOf({ macroPreset: 'keto' })?.macroPreset).toBe('keto');
+    expect(settingsOf({ macroPreset: 'custom', macroPct: { protein: [50, 10] } })?.macroPreset).toBe('nnr');
+    expect(settingsOf({ macroPreset: 'carnivore' })?.macroPreset).toBeUndefined();
   });
 
   it('keeps automatic energy only with the data it needs', () => {

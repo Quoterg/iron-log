@@ -1,7 +1,7 @@
 // User data lives on the device, in IndexedDB. Nothing is sent anywhere.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Food, Serving } from './nutrients';
-import type { Profile } from './targets';
+import type { MacroPct, MacroPreset, Profile, TargetOverride } from './targets';
 
 export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 export const MEALS: Meal[] = ['breakfast', 'lunch', 'dinner', 'snack'];
@@ -22,8 +22,11 @@ export interface Entry {
 export interface Settings {
   lang: 'sv' | 'en';
   profile: Profile;
-  /** User overrides of target min values, by nutrient key. */
-  targetOverrides: Record<string, number>;
+  /** User overrides of target min/max, by nutrient key. */
+  targetOverrides: Record<string, TargetOverride>;
+  macroPreset?: MacroPreset;
+  /** Energy-percent ranges when macroPreset is 'custom'. */
+  macroPct?: MacroPct;
 }
 
 /** A food the user created. Deleting only hides it, so past diary entries still resolve. */

@@ -13,7 +13,9 @@ export type Screen =
   /** Copy the shown day's entries (or one meal's) to another date/meal. */
   | { kind: 'copy'; meal?: Meal }
   /** Scan or type a barcode, then continue to the food screen for `meal`. */
-  | { kind: 'scan'; meal: Meal };
+  | { kind: 'scan'; meal: Meal }
+  /** Adjust macro preset and per-nutrient targets. */
+  | { kind: 'targets' };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

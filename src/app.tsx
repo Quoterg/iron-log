@@ -7,11 +7,15 @@ import { FoodEditor } from './components/FoodEditor';
 import { FoodSearch } from './components/FoodSearch';
 import { Nutrients } from './components/Nutrients';
 import { ScanSheet } from './components/ScanSheet';
-import { Settings } from './components/Settings';
+import { lazyView } from './lazy';
 import { stack, top, type Screen } from './nav';
 import { date, loadDay, view, type View } from './state';
 
 const TABS: View[] = ['diary', 'nutrients', 'settings'];
+
+// Not needed for the first screen: split out and prefetched when idle (main.tsx).
+export const settingsView = lazyView(() => import('./components/Settings'));
+export const targetEditorView = lazyView(() => import('./components/TargetEditor'));
 
 export function App() {
   const s = top.value;
@@ -23,11 +27,17 @@ export function App() {
         <main>
           {view.value === 'diary' && <Diary />}
           {view.value === 'nutrients' && <Nutrients />}
-          {view.value === 'settings' && <Settings />}
+          {view.value === 'settings' && <settingsView.Lazy />}
         </main>
         <nav class="tabs">
           {TABS.map((v) => (
-            <button key={v} class={view.value === v ? 'active' : ''} onClick={() => (view.value = v)}>
+            <button
+              key={v}
+              class={view.value === v ? 'active' : ''}
+              // Start loading Settings on touch, before the click lands.
+              onPointerDown={v === 'settings' ? () => void settingsView.prefetch() : undefined}
+              onClick={() => (view.value = v)}
+            >
               {t(v)}
             </button>
           ))}
@@ -57,6 +67,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <CopySheet meal={s.meal} />;
     case 'scan':
       return <ScanSheet meal={s.meal} />;
+    case 'targets':
+      return <targetEditorView.Lazy />;
   }
 }
 
