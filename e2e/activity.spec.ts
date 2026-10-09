@@ -12,7 +12,7 @@ test('log exercise and water; optionally add burned energy to the target', async
   await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
 
   // Running 10 km/h for 30 min at 70 kg: (9.8 − 1) × 70 × 0.5 = 308 kcal.
-  await card(page, 'Aktivitet').getByRole('button', { name: /Lägg till/ }).click();
+  await card(page, 'Aktivitet').getByRole('button', { name: '+ Lägg till', exact: true }).click();
   await page.getByLabel('Aktivitet', { exact: true }).selectOption('run10');
   await page.getByRole('button', { name: '30 min', exact: true }).click();
   await expect(page.locator('.preview')).toContainText('308 kcal');

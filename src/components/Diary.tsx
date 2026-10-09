@@ -3,18 +3,12 @@ import { fmt, fmtAmount, lang, t, unitLabel } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
-import { signal } from '@preact/signals';
-import type { ActivityType } from '../lib/activity-types';
-import { addWater, burnedToday, dayActivities, dayTotals, dayWater, entries, foods, removeActivity, settings, targets } from '../state';
+import {
+  activityTypes, addWater, burnedToday, dayActivities, dayTotals, dayWater, entries, foods, removeActivity, settings, targets,
+} from '../state';
 import { Bar } from './Bar';
 
-/** Activity names, loaded on demand (only days with activities need them). */
-const activityTypes = signal<ActivityType[] | null>(null);
-const loadActivityTypes = () =>
-  void import('../lib/activity-types').then((m) => void (activityTypes.value = m.ACTIVITIES));
-
 export function Diary() {
-  if (dayActivities.value.length && !activityTypes.value) loadActivityTypes();
   const tot = dayTotals.value;
   const g = (k: string) => tot[NUTRIENT_INDEX[k]];
   const tg = targets.value;
@@ -73,47 +67,8 @@ export function Diary() {
           </section>
         );
       })}
-      <section class="card">
-        <header class="meal-head">
-          <h2>{t('activityLog')}</h2>
-          <span class="num muted">{burnedToday.value ? `−${fmt(burnedToday.value)} kcal` : ''}</span>
-          <button class="btn small" onClick={() => open({ kind: 'activity' })}>
-            + {t('addFood')}
-          </button>
-        </header>
-        {dayActivities.value.length > 0 && (
-          <ul class="entries">
-            {dayActivities.value.map((a) => {
-              const type = activityTypes.value?.find((x) => x.id === a.type);
-              return (
-                <li key={a.id} class="ingredient">
-                  <span class="entry entry-static">
-                    <span class="entry-name">{type ? type[lang.value] : '…'}</span>
-                    <span class="num muted">{a.minutes} min</span>
-                    <span class="num">{fmt(a.kcal)} kcal</span>
-                  </span>
-                  <button class="btn small" aria-label={`${t('remove')} ${type?.[lang.value] ?? ''}`} onClick={() => void removeActivity(a.id)}>
-                    ×
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-      <section class="card">
-        <header class="meal-head">
-          <h2>{t('water')}</h2>
-          <span class="num">{fmt(dayWater.value / 1000, 2)} l</span>
-        </header>
-        <div class="chips">
-          <button class="chip" onClick={() => void addWater(200)}>+2 dl</button>
-          <button class="chip" onClick={() => void addWater(500)}>+5 dl</button>
-          <button class="chip" disabled={dayWater.value === 0} onClick={() => void addWater(-200)}>
-            −2 dl
-          </button>
-        </div>
-      </section>
+      <ActivityCard />
+      <WaterCard />
       {entries.value.length === 0 ? (
         <p class="muted center">{t('emptyDay')}</p>
       ) : (
@@ -133,4 +88,57 @@ function name(e: Entry): string {
 function entryKcal(e: Entry): number {
   const v = entryVector(e, foods.value);
   return v ? (value(v, 'kcal') * e.grams) / 100 : 0;
+}
+
+function ActivityCard() {
+  return (
+    <section class="card">
+      <header class="meal-head">
+        <h2>{t('activityLog')}</h2>
+        <span class="num muted">{burnedToday.value ? `−${fmt(burnedToday.value)} kcal` : ''}</span>
+        <button class="btn small" onClick={() => open({ kind: 'activity' })}>
+          + {t('add')}
+        </button>
+      </header>
+      {dayActivities.value.length > 0 && (
+        <ul class="entries">
+          {dayActivities.value.map((a) => {
+            const types = activityTypes.value;
+            // Unknown id (e.g. from a backup made with another release): show the id itself.
+            const name = types ? (types.find((x) => x.id === a.type)?.[lang.value] ?? a.type) : '…';
+            return (
+              <li key={a.id} class="ingredient">
+                <span class="entry entry-static">
+                  <span class="entry-name">{name}</span>
+                  <span class="num muted">{fmt(a.minutes)} min</span>
+                  <span class="num">{fmt(a.kcal)} kcal</span>
+                </span>
+                <button class="btn small" aria-label={`${t('remove')} ${name}`} onClick={() => void removeActivity(a.id)}>
+                  ×
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function WaterCard() {
+  return (
+    <section class="card">
+      <header class="meal-head">
+        <h2>{t('water')}</h2>
+        <span class="num">{fmt(dayWater.value / 1000, 2)} l</span>
+      </header>
+      <div class="chips">
+        <button class="chip" onClick={() => void addWater(200)}>+{fmt(2)} dl</button>
+        <button class="chip" onClick={() => void addWater(500)}>+{fmt(5)} dl</button>
+        <button class="chip" disabled={dayWater.value === 0} onClick={() => void addWater(-200)}>
+          −{fmt(2)} dl
+        </button>
+      </div>
+    </section>
+  );
 }

@@ -14,8 +14,9 @@ export default function ActivitySheet() {
   const [minutesText, setMinutesText] = useState('30');
   const [busy, setBusy] = useState(false);
   const a = ACTIVITIES.find((x) => x.id === type)!;
-  const minutes = parseNum(minutesText);
-  const valid = minutes > 0 && minutes <= 1440;
+  // Whole minutes are stored; validate and preview exactly that (0.4 min would store 0).
+  const minutes = Math.round(parseNum(minutesText));
+  const valid = minutes >= 1 && minutes <= 1440;
   const weight = settings.value.profile.weightKg;
   const kcal = valid ? burnedKcal(a.met, weight ?? DEFAULT_WEIGHT_KG, minutes) : 0;
 
@@ -27,7 +28,7 @@ export default function ActivitySheet() {
           e.preventDefault();
           if (!valid || busy) return;
           setBusy(true);
-          await addActivity(a.id, a.met, Math.round(minutes));
+          await addActivity(a.id, a.met, minutes);
           back();
         }}
       >

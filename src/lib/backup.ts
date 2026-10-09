@@ -1,8 +1,7 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
 import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type Usage, type UserServings } from './db';
 import { foodName, NUTRIENTS, type Food } from './nutrients';
-import type { Activity, Water } from './activity';
-import { ACTIVITIES } from './activity-types';
+import { MAX_ACTIVITY_KCAL, MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
 import { padVector, type StoredRecipe } from './recipes';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
@@ -140,8 +139,11 @@ function body(x: unknown): BodyEntry {
 
 function activity(x: unknown): Activity {
   if (
-    isObj(x) && isStr(x.id, 100) && isStr(x.date) && DATE.test(x.date) && ACTIVITIES.some((a) => a.id === x.type) &&
-    isNum(x.minutes) && x.minutes > 0 && x.minutes <= 1440 && isNum(x.kcal) && x.kcal >= 0 && x.kcal < 20000 && isNum(x.createdAt)
+    isObj(x) && isStr(x.id, 100) && isStr(x.date) && DATE.test(x.date) &&
+    // Any id: a later release may rename or drop activities, and old backups must still restore.
+    isStr(x.type, 50) && x.type !== '' &&
+    isNum(x.minutes) && x.minutes > 0 && x.minutes <= 1440 && isNum(x.kcal) && x.kcal >= 0 && x.kcal <= MAX_ACTIVITY_KCAL &&
+    isNum(x.createdAt)
   ) {
     return { id: x.id, date: x.date, type: x.type as string, minutes: x.minutes, kcal: x.kcal, createdAt: x.createdAt };
   }
@@ -149,7 +151,7 @@ function activity(x: unknown): Activity {
 }
 
 function water(x: unknown): Water {
-  if (isObj(x) && isStr(x.date) && DATE.test(x.date) && isNum(x.ml) && x.ml >= 0 && x.ml <= 20000) {
+  if (isObj(x) && isStr(x.date) && DATE.test(x.date) && isNum(x.ml) && x.ml >= 0 && x.ml <= MAX_WATER_ML) {
     return { date: x.date, ml: x.ml };
   }
   throw new BackupError('water');

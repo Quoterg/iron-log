@@ -21,6 +21,15 @@ Done:
   burned energy and the diary says so.
 - Add-activity sheet is lazy (0.7 KB gzip). Tests: 87 unit, 27 Playwright. Initial JS 34.2 KB gzip
   (≈ 6 KB headroom left — keep new first-screen code small or lazy).
+- Review fixes: whole minutes validated as stored (0.4 min can't create an unrestorable backup);
+  backups accept unknown activity ids (shown by id); water changes are one IndexedDB transaction.
+
+Known limitations (deliberate, for now):
+- "Add burned energy" raises only the diary's target for that day; reports and range views compare
+  against the plain target.
+- Import merges: water keeps the larger daily total (an older backup can undo a −2 dl correction);
+  activities, like entries, are put back even if deleted since the backup.
+- Water is not in the CSV export, and there is no water goal or unit setting yet.
 
 ## 2026-10-09 — M13 Reports & insights (interactive session)
 

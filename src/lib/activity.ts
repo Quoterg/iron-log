@@ -1,6 +1,10 @@
 // Exercise and water: energy burned, and the stored records. The activity table itself lives in
 // activity-types.ts (loaded only when needed — it isn't part of the first screen).
 
+/** Sanity limits for stored (and imported) records. */
+export const MAX_ACTIVITY_KCAL = 20000;
+export const MAX_WATER_ML = 20000;
+
 /** Weight assumed when the profile has none (shown to the user). */
 export const DEFAULT_WEIGHT_KG = 70;
 

@@ -1,7 +1,7 @@
 // User data lives on the device, in IndexedDB. Nothing is sent anywhere.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Food, Serving } from './nutrients';
-import type { Activity, Water } from './activity';
+import { MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
 import type { StoredRecipe } from './recipes';
 import type { MacroPct, MacroPreset, Profile, TargetOverride } from './targets';
@@ -258,8 +258,14 @@ export async function waterFor(date: string): Promise<number> {
   return (await (await db()).get('water', date))?.ml ?? 0;
 }
 
-export async function putWater(w: Water): Promise<void> {
-  await (await db()).put('water', w);
+/** Add `deltaMl` (may be negative) to a day's water in one transaction; returns the new total. */
+export async function changeWater(date: string, deltaMl: number): Promise<number> {
+  const tx = (await db()).transaction('water', 'readwrite');
+  const cur = (await tx.store.get(date))?.ml ?? 0;
+  const ml = Math.min(MAX_WATER_ML, Math.max(0, cur + deltaMl));
+  await tx.store.put({ date, ml });
+  await tx.done;
+  return ml;
 }
 
 export async function listBody(): Promise<BodyEntry[]> {
