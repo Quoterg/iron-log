@@ -104,5 +104,14 @@ The owner's choice (2026-10-09): no server, no account. Two of the user's device
 - **"Radera all data" is device-local**: it clears the log too, so a later sync copies the paired
   device's data back. Wiping a phone before giving it away must never delete the data on the
   user's other devices; the confirmation says so.
-- **Wire size.** A first sync is one big `changes` message (a year of history: a few MB); M17b's
-  transport splits messages into parts below the data-channel message limit.
+- **Pairing (`src/lib/pair.ts`, `SyncSheet`, lazy).** Device A creates a WebRTC offer, B scans
+  it and shows its answer, A scans that: two QR codes (or pasted text), each the full session
+  description, deflate-compressed + base64url (~600 characters). `iceServers: []` — no STUN/TURN,
+  so nothing reaches a third party and both devices must share a network (guest networks with
+  client isolation won't work). The data channel is DTLS-encrypted and the codes carry each
+  side's certificate fingerprint, so only the device that scanned the code can connect.
+- **Wire.** Messages (hello with protocol version → summary → changes → done) are JSON split into
+  ~16 KB parts (data channels cap message size; a first sync can be several MB), with
+  back-pressure on the channel's buffer. After a sync with changes the app reloads.
+- **Bundle.** The sync screen, its strings (`strings-sync.ts`), the QR encoder (`uqr`, MIT) and
+  the engine load only when opened; QR scanning reuses the barcode scanner (`qr_code` format).

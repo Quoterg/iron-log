@@ -281,3 +281,5 @@ table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom
 
 .entry-static { cursor: default; }
 .supp-check { width: 1.5rem; height: 1.5rem; margin: 0 .5rem 0 0; flex: none; accent-color: var(--accent); }
+.sync-code svg { display: block; width: 100%; max-width: 360px; margin: 8px auto; border-radius: 8px; }
+.sync-code textarea { width: 100%; font: 0.75rem/1.3 monospace; word-break: break-all; }

@@ -13,13 +13,14 @@ interface NativeDetectorCtor {
   getSupportedFormats(): Promise<string[]>;
 }
 
-export async function createDetector(): Promise<Detector> {
+/** Product barcodes by default; the sync screen asks for ['qr_code']. */
+export async function createDetector(formats: string[] = FORMATS): Promise<Detector> {
   const Native = (globalThis as { BarcodeDetector?: NativeDetectorCtor }).BarcodeDetector;
   if (Native) {
     try {
       const supported = await Native.getSupportedFormats();
-      const formats = FORMATS.filter((f) => supported.includes(f));
-      if (formats.length) return new Native({ formats });
+      const usable = formats.filter((f) => supported.includes(f));
+      if (usable.length) return new Native({ formats: usable });
     } catch {
       // fall through to WASM
     }
@@ -31,5 +32,5 @@ export async function createDetector(): Promise<Detector> {
   prepareZXingModule({
     overrides: { locateFile: (path: string, prefix: string) => (path.endsWith('.wasm') ? wasmUrl : prefix + path) },
   });
-  return new BarcodeDetector({ formats: FORMATS as never });
+  return new BarcodeDetector({ formats: formats as never });
 }

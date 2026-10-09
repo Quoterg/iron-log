@@ -4,6 +4,7 @@ import { open } from '../nav';
 import { activeSources, customFoods, recipes, settings, updateSettings } from '../state';
 import { ProfileForm } from './ProfileForm';
 import { YourData } from './YourData';
+import { ts } from '../lib/strings-sync';
 
 /** Loaded lazily (see app.tsx): not needed for the first screen. */
 export default function Settings() {
@@ -13,8 +14,21 @@ export default function Settings() {
       <MyFoods />
       <MyRecipes />
       <General />
+      <SyncCard />
       <YourData />
     </>
+  );
+}
+
+function SyncCard() {
+  return (
+    <section class="card">
+      <h2>{ts('syncTitle')}</h2>
+      <p class="muted small">{ts('syncCardIntro')}</p>
+      <button class="btn wide" onClick={() => open({ kind: 'sync' })}>
+        {ts('syncStart')}
+      </button>
+    </section>
   );
 }
 

@@ -23,7 +23,9 @@ export type Screen =
   /** Log exercise for the selected day. */
   | { kind: 'activity' }
   /** Create or edit a supplement. */
-  | { kind: 'supplement'; ref?: string };
+  | { kind: 'supplement'; ref?: string }
+  /** Sync with another of the user's devices. */
+  | { kind: 'sync' };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

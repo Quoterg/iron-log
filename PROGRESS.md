@@ -5,9 +5,27 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M17b Pairing** (device-to-device sync UI: QR + WebRTC; the engine is M17a),
-then **M18b Languages** (da, fi, de, so), M20b, M16b (see docs/ROADMAP.md).
+**M18b Languages** (da, fi, de, so), M20b, M16b (see docs/ROADMAP.md).
 Also open: **M19b** — first signed Android build + assetlinks (needs the owner to keep the keystore).
+
+## 2026-10-09 — M17b Pairing (interactive session)
+
+Done:
+- Settings → "Synka med en annan enhet": device A shows a QR code, B scans it (camera, or paste the
+  code as text) and shows its answer, A scans that; the devices then sync directly and the app
+  reloads. Fixed, translated messages for unreadable codes, version mismatch and no connection.
+- `src/lib/pair.ts`: compressed codes (~600 characters → a QR a phone reads from a screen),
+  WebRTC data channel with no STUN/TURN (same network only, nothing to third parties), messages in
+  ~16 KB parts with back-pressure, protocol version check. QR rendering with `uqr` (MIT, lazy);
+  scanning reuses the barcode scanner with the `qr_code` format.
+- Sync strings live in `src/lib/strings-sync.ts`, loaded with the lazy screens (they cost 1 KB
+  gzip in the first bundle otherwise). Privacy policy and data-safety notes cover sync.
+- Tests: unit (codes, framing, protocol over an in-memory channel with 300+ records); e2e with two
+  browser contexts syncing over a real WebRTC connection; garbled code refused; axe + 200 % on
+  the sync screens. 123 unit, 86 Playwright and Lighthouse pass. Initial JS 36.8 KB gzip.
+
+Not verified on real phones yet (the owner should try two phones on the same Wi-Fi): camera QR
+scanning of the dense code, and networks that block device-to-device traffic.
 
 ## 2026-10-09 — M17a Sync engine (interactive session)
 
