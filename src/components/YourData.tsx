@@ -1,23 +1,9 @@
-import { signal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { BackupError, makeBackup, parseBackup, toCsv } from '../lib/backup';
 import { clearAll, exportAll, importAll, isoDate } from '../lib/db';
 import { getFoods } from '../lib/foods';
 import { lang, t } from '../lib/i18n';
-
-interface InstallPromptEvent extends Event {
-  prompt(): Promise<void>;
-}
-
-/** Set when the browser offers "install app" (Android Chrome); see main.tsx. */
-export const installPrompt = signal<InstallPromptEvent | null>(null);
-
-export function captureInstallPrompt(): void {
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    installPrompt.value = e as InstallPromptEvent;
-  });
-}
+import { installPrompt } from '../lib/install';
 
 function download(name: string, text: string, type: string) {
   const url = URL.createObjectURL(new Blob([text], { type }));

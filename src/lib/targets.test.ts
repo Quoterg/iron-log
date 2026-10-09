@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { ageBand, energyNeed, nnrTargets, snapPal, withEnergy, type Profile } from './targets';
+import {
+  ageBand,
+  computeTargets,
+  energyNeed,
+  nnrTargets,
+  normalizeMacroPct,
+  normalizeOverrides,
+  snapPal,
+  withEnergy,
+  type Profile,
+} from './targets';
 
 const woman = (p: Partial<Profile> = {}): Profile => ({ sex: 'female', kcal: 2000, ...p });
 const man = (p: Partial<Profile> = {}): Profile => ({ sex: 'male', kcal: 2500, ...p });
@@ -84,5 +94,42 @@ describe('energy need', () => {
 
   it('snaps activity levels to the ones the UI offers', () => {
     expect([1.2, 1.5, 1.51, 1.75, 2.5].map(snapPal)).toEqual([1.4, 1.6, 1.6, 1.8, 2.0]);
+  });
+});
+
+describe('adjusted targets (presets and overrides)', () => {
+  const profile = woman({ kcal: 2000 });
+
+  it('keto: carbs at most 5 E% (25 g), no minimum; fat 70–80 E%', () => {
+    const t = computeTargets({ profile, macroPreset: 'keto' });
+    expect(t.carbs).toEqual({ min: null, max: 25 });
+    expect(t.fat).toEqual({ min: 156, max: 178 });
+  });
+
+  it('custom ranges, and per-nutrient min/max overrides win', () => {
+    const t = computeTargets({
+      profile,
+      macroPreset: 'custom',
+      macroPct: { protein: [30, 40], carbs: [30, 40], fat: [20, 40] },
+      targetOverrides: { protein: { min: 140 }, iron: { min: 18 }, salt: { max: 4 }, vitC: { max: 500 } },
+    });
+    expect(t.protein).toEqual({ min: 140, max: 200 });
+    expect(t.iron).toEqual({ min: 18, max: null });
+    expect(t.salt).toEqual({ min: null, max: 4 });
+    expect(t.vitC).toEqual({ min: 95, max: 500 });
+  });
+
+  it('migrates the old { key: min } override format and drops invalid entries', () => {
+    expect(normalizeOverrides({ iron: 12, zinc: { min: 10, max: 40 }, bad: -1, inverted: { min: 5, max: 1 } })).toEqual({
+      iron: { min: 12 },
+      zinc: { min: 10, max: 40 },
+    });
+    expect(normalizeOverrides(undefined)).toEqual({});
+  });
+
+  it('validates custom macro ranges', () => {
+    expect(normalizeMacroPct({ protein: [10, 20], carbs: [45, 60], fat: [25, 40] })).not.toBeNull();
+    expect(normalizeMacroPct({ protein: [30, 20], carbs: [45, 60], fat: [25, 40] })).toBeNull();
+    expect(normalizeMacroPct({ protein: [10, 120], carbs: [45, 60], fat: [25, 40] })).toBeNull();
   });
 });

@@ -1,7 +1,7 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
 import { MEALS, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type Usage, type UserServings } from './db';
 import { foodName, NUTRIENTS, type Food } from './nutrients';
-import { snapPal } from './targets';
+import { normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
 
 export const BACKUP_FORMAT = 'iron-log-backup';
@@ -105,12 +105,10 @@ function settings(x: unknown): Settings | undefined {
   if ((x.lang !== 'sv' && x.lang !== 'en') || (p.sex !== 'female' && p.sex !== 'male') || !isNum(p.kcal)) {
     return undefined; // settings are optional: ignore rather than reject the whole backup
   }
-  const overrides: Record<string, number> = {};
-  if (isObj(x.targetOverrides)) {
-    for (const [k, v] of Object.entries(x.targetOverrides)) {
-      if (NUTRIENTS.some((n) => n.key === k) && isNum(v) && v >= 0) overrides[k] = v;
-    }
-  }
+  // Accepts both the old `{ key: min }` and the current `{ key: { min, max } }` shape.
+  const overrides = Object.fromEntries(
+    Object.entries(normalizeOverrides(x.targetOverrides)).filter(([k]) => NUTRIENTS.some((n) => n.key === k)),
+  );
   const profile: Settings['profile'] = { sex: p.sex, kcal: p.kcal };
   const inRange = (v: unknown, lo: number, hi: number) => isNum(v) && v >= lo && v <= hi;
   if (inRange(p.age, 18, 110) && Number.isInteger(p.age)) profile.age = p.age as number;
@@ -124,7 +122,14 @@ function settings(x: unknown): Settings | undefined {
     profile.status = p.status as Settings['profile']['status'];
   }
   if (typeof p.menstruating === 'boolean') profile.menstruating = p.menstruating;
-  return { lang: x.lang, profile, targetOverrides: overrides };
+  const out: Settings = { lang: x.lang, profile, targetOverrides: overrides };
+  if (['nnr', 'highProtein', 'lowCarb', 'keto', 'custom'].includes(x.macroPreset as string)) {
+    out.macroPreset = x.macroPreset as Settings['macroPreset'];
+  }
+  const pct = normalizeMacroPct(x.macroPct);
+  if (pct) out.macroPct = pct;
+  if (out.macroPreset === 'custom' && !pct) out.macroPreset = 'nnr';
+  return out;
 }
 
 /** Parse and validate a backup file. Throws BackupError on anything unexpected (nothing is imported). */

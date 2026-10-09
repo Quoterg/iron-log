@@ -35,7 +35,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [x] **M8 Profile-based targets** — Age, weight, height, activity → energy need
   (Mifflin-St Jeor / NNR PAL); NNR 2023 age bands (18–24, 25–50, 51–70, 71+),
   pregnancy/lactation, post-menopause iron. Unit tests against NNR tables.
-- [ ] **M9 Target editor** — Per-nutrient min/max overrides, macro targets in g or E%,
+- [x] **M9 Target editor** — Per-nutrient min/max overrides, macro targets in g or E%,
   presets (NNR default, high-protein, low-carb, keto), reset to defaults.
 - [ ] **M10 Recipes** — Recipes from ingredients, servings, cooked yield/weight change;
   log by serving or grams; recipe nutrient summary.

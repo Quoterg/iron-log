@@ -1,6 +1,7 @@
 import { fmt, parseNum, t } from '../lib/i18n';
 import { defaultKcal, energyNeed, PAL_LEVELS, withEnergy, type Profile, type Sex, type Status } from '../lib/targets';
 import { lang as langSignal } from '../lib/i18n';
+import { open } from '../nav';
 import { settings, updateSettings } from '../state';
 
 const lang = () => langSignal.value;
@@ -138,6 +139,9 @@ export function ProfileForm() {
           {t('kcalEstimate')}: {fmt(estimate)} kcal
         </p>
       )}
+      <button type="button" class="btn wide" onClick={() => open({ kind: 'targets' })}>
+        {t('adjustTargets')}
+      </button>
       <p class="muted small">{t('targetsNote')}</p>
     </section>
   );

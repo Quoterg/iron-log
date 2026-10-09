@@ -115,6 +115,11 @@ const BY_STATUS: Record<Exclude<Status, 'none'>, Partial<Record<string, number>>
 
 const KCAL_PER_G = { protein: 4, carbs: 4, fat: 9 } as const;
 
+/** NNR 2023 energy-percent ranges for the macronutrients (protein 15–20 E% for >65). */
+export function nnrMacroPct(age?: number): Record<'protein' | 'carbs' | 'fat', [number, number]> {
+  return { protein: [(age ?? 0) > 65 ? 15 : 10, 20], carbs: [45, 60], fat: [25, 40] };
+}
+
 export function ageBand(age?: number): '18-24' | '25-50' | '51-70' | '71+' {
   if (!age || (age >= 25 && age <= 50)) return '25-50';
   if (age < 25) return '18-24';
@@ -131,14 +136,14 @@ export function nnrTargets(p: Profile): Record<string, Target> {
     min: lo == null ? null : Math.round((p.kcal * lo) / 100 / KCAL_PER_G[key]),
     max: hi == null ? null : Math.round((p.kcal * hi) / 100 / KCAL_PER_G[key]),
   });
-  const older = (p.age ?? 0) > 65;
+  const pct = nnrMacroPct(p.age);
 
   const t: Record<string, Target> = {
     kcal: { min: p.kcal, max: null },
     // Older adults (>65): 15–20 E% protein (NNR 2023, Box 8 as corrected).
-    protein: ePct('protein', older ? 15 : 10, 20),
-    carbs: ePct('carbs', 45, 60),
-    fat: ePct('fat', 25, 40),
+    protein: ePct('protein', ...pct.protein),
+    carbs: ePct('carbs', ...pct.carbs),
+    fat: ePct('fat', ...pct.fat),
     fibre: { min: p.sex === 'male' ? 35 : 25, max: null },
     satFat: { min: null, max: Math.round((p.kcal * 0.1) / 9) },
     addedSugar: { min: null, max: Math.round((p.kcal * 0.1) / 4) },
@@ -163,6 +168,93 @@ export function nnrTargets(p: Profile): Record<string, Target> {
 
 function round1(x: number) {
   return Math.round(x * 10) / 10;
+}
+
+// --- User adjustments: macro presets and per-nutrient overrides (M9) ---
+
+export type MacroKey = 'protein' | 'carbs' | 'fat';
+export type Range = [min: number, max: number];
+export type MacroPct = Record<MacroKey, Range>;
+export type MacroPreset = 'nnr' | 'highProtein' | 'lowCarb' | 'keto' | 'custom';
+
+/** Energy-percent ranges for the presets (NNR = the profile's NNR 2023 ranges). */
+export const MACRO_PRESETS: Record<Exclude<MacroPreset, 'nnr' | 'custom'>, MacroPct> = {
+  highProtein: { protein: [25, 35], carbs: [35, 50], fat: [25, 35] },
+  lowCarb: { protein: [20, 30], carbs: [10, 25], fat: [45, 65] },
+  keto: { protein: [15, 25], carbs: [0, 5], fat: [70, 80] },
+};
+
+/** A user override for one nutrient; a missing bound keeps the default. */
+export interface TargetOverride {
+  min?: number;
+  max?: number;
+}
+
+export interface TargetSettings {
+  profile: Profile;
+  macroPreset?: MacroPreset;
+  macroPct?: MacroPct;
+  targetOverrides?: Record<string, TargetOverride>;
+}
+
+/** Macro E% ranges in effect (null = the NNR defaults from the profile). */
+export function macroRanges(s: TargetSettings): MacroPct | null {
+  const preset = s.macroPreset ?? 'nnr';
+  if (preset === 'nnr') return null;
+  if (preset === 'custom') return s.macroPct ?? null;
+  return MACRO_PRESETS[preset];
+}
+
+/** Final targets: NNR defaults for the profile → macro preset → the user's per-nutrient overrides. */
+export function computeTargets(s: TargetSettings): Record<string, Target> {
+  const t = nnrTargets(s.profile);
+  const ranges = macroRanges(s);
+  if (ranges) {
+    for (const key of ['protein', 'carbs', 'fat'] as const) {
+      const [lo, hi] = ranges[key];
+      const g = (pct: number) => Math.round((s.profile.kcal * pct) / 100 / KCAL_PER_G[key]);
+      t[key] = { min: lo > 0 ? g(lo) : null, max: g(hi) };
+    }
+  }
+  for (const [key, o] of Object.entries(s.targetOverrides ?? {})) {
+    const base = t[key] ?? { min: null, max: null };
+    t[key] = { min: o.min ?? base.min, max: o.max ?? base.max };
+  }
+  return t;
+}
+
+/** Old settings stored overrides as `{ key: minNumber }`; convert to `{ key: { min } }`. */
+export function normalizeOverrides(x: unknown): Record<string, TargetOverride> {
+  const out: Record<string, TargetOverride> = {};
+  if (typeof x !== 'object' || x === null) return out;
+  for (const [k, v] of Object.entries(x as Record<string, unknown>)) {
+    const ok = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 0;
+    if (ok(v)) out[k] = { min: v };
+    else if (typeof v === 'object' && v !== null) {
+      const { min, max } = v as { min?: unknown; max?: unknown };
+      const o: TargetOverride = {};
+      if (ok(min)) o.min = min;
+      if (ok(max)) o.max = max;
+      if (o.min !== undefined && o.max !== undefined && o.min > o.max) continue;
+      if (o.min !== undefined || o.max !== undefined) out[k] = o;
+    }
+  }
+  return out;
+}
+
+/** Validate a custom macro range set (0–100, min ≤ max); null if invalid. */
+export function normalizeMacroPct(x: unknown): MacroPct | null {
+  if (typeof x !== 'object' || x === null) return null;
+  const r = x as Record<string, unknown>;
+  const out = {} as MacroPct;
+  for (const k of ['protein', 'carbs', 'fat'] as const) {
+    const v = r[k];
+    if (!Array.isArray(v) || v.length !== 2) return null;
+    const [lo, hi] = v;
+    if (typeof lo !== 'number' || typeof hi !== 'number' || !(lo >= 0 && hi <= 100 && lo <= hi)) return null;
+    out[k] = [lo, hi];
+  }
+  return out;
 }
 
 /** Fraction (0..∞) of the target reached; null when the nutrient has no lower target. */

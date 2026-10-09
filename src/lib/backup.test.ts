@@ -9,7 +9,7 @@ const data: AllData = {
   usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true, lastUnit: 'skopa', lastQty: 2 }],
   servings: [{ foodRef: 'custom:a', servings: [{ name: 'skopa', g: 25 }] }],
   offFoods: [{ ref: 'off:7310865004703', sv: 'Yoghurt (Arla)', en: null, per100g: [100], fetchedAt: 3, units: [{ name: 'portion', g: 150 }] }],
-  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: 12 } },
+  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } } },
 };
 
 describe('backup', () => {
@@ -37,7 +37,7 @@ describe('backup', () => {
     const b = makeBackup({ ...data, settings: { lang: 'xx' } as never });
     expect(parseBackup(JSON.stringify(b)).settings).toBeUndefined();
     const c = makeBackup({ ...data, settings: { ...data.settings!, targetOverrides: { iron: 12, evil: 1, zinc: -1 } as never } });
-    expect(parseBackup(JSON.stringify(c)).settings?.targetOverrides).toEqual({ iron: 12 });
+    expect(parseBackup(JSON.stringify(c)).settings?.targetOverrides).toEqual({ iron: { min: 12 } });
   });
 });
 

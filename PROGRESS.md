@@ -5,7 +5,22 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M9 Target editor** (see docs/ROADMAP.md).
+**M10 Recipes** (see docs/ROADMAP.md).
+
+## 2026-10-09 — M9 Target editor (interactive session)
+
+Done:
+- "Anpassa mål" sheet (`TargetEditor.tsx`, from the Nutrients tab and the profile): macro presets
+  (NNR 2023, high protein 25–35 E% P, low carb 10–25 E% C, keto ≤ 5 E% C / 70–80 E% F, custom),
+  custom E% ranges with grams shown, and min/max per nutrient (placeholders show the default incl.
+  preset). Reset all. Energy stays in the profile.
+- `targets.ts`: `computeTargets()` = NNR for the profile → macro preset → per-nutrient overrides;
+  overrides are now `{ min?, max? }`; old `{ key: min }` settings and backups are migrated
+  (`normalizeOverrides`). Backup validates preset and custom ranges.
+- Performance (reviewer note on PR #8): Settings and the target editor are split out with a tiny
+  `lazyView()` (no preact/compat) and prefetched when idle so the service worker caches them
+  (offline e2e test). Initial JS 28.4 → 26.6 KB gzip.
+- Tests: 51 unit, 17 Playwright (incl. offline split chunks, no-overflow on the editor).
 
 ## 2026-10-09 — M8 Profile-based targets (interactive session)
 

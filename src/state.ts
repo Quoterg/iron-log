@@ -6,7 +6,7 @@ import { getFoods, setCustomFoods, setUserBoosts } from './lib/foods';
 import { fetchProduct } from './lib/off';
 import { lang } from './lib/i18n';
 import type { Food, NutrientVector, Serving } from './lib/nutrients';
-import { DEFAULT_PROFILE, nnrTargets, type Target } from './lib/targets';
+import { computeTargets, DEFAULT_PROFILE, normalizeOverrides, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 
 export type View = 'diary' | 'nutrients' | 'settings';
@@ -29,12 +29,7 @@ export const settings = signal<Settings>({
   targetOverrides: {},
 });
 
-export const targets = computed<Record<string, Target>>(() => {
-  const s = settings.value;
-  const t = nnrTargets(s.profile);
-  for (const [k, min] of Object.entries(s.targetOverrides)) t[k] = { ...t[k], min };
-  return t;
-});
+export const targets = computed<Record<string, Target>>(() => computeTargets(settings.value));
 
 /** Nutrient totals for the selected day, in NUTRIENTS order. */
 export const dayTotals = computed(() =>
@@ -114,7 +109,8 @@ export async function removeEntry(id: string): Promise<void> {
 export async function loadSettings(): Promise<void> {
   const s = await db.getSettings();
   if (s) {
-    settings.value = s;
+    // Older versions stored overrides as plain min numbers.
+    settings.value = { ...s, targetOverrides: normalizeOverrides(s.targetOverrides) };
     lang.value = s.lang;
   }
 }
