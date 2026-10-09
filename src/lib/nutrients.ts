@@ -20,12 +20,20 @@ export const NUTRIENT_INDEX: Record<string, number> = Object.fromEntries(
 /** Per-100 g nutrient values in NUTRIENTS order; null = not analysed. */
 export type NutrientVector = (number | null)[];
 
+/** A household measure, e.g. 1 "st" (piece) = 55 g. */
+export interface Serving {
+  name: string;
+  g: number;
+}
+
 export interface Food {
   /** `<source>:<id>`, e.g. `slv:123`, `custom:<uuid>`. */
   ref: string;
   sv: string;
   en: string | null;
   per100g: NutrientVector;
+  /** Built-in household measures (approximate), from data/units.json. */
+  units?: Serving[];
 }
 
 export function foodName(food: Food, lang: string): string {

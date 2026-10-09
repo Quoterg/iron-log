@@ -4,7 +4,7 @@ import { captureInstallPrompt } from './components/YourData';
 import { warmUp } from './lib/foods';
 import { lang } from './lib/i18n';
 import { initNav } from './nav';
-import { date, loadCustomFoods, loadDay, loadSettings, loadUsage } from './state';
+import { date, loadCustomFoods, loadDay, loadServings, loadSettings, loadUsage } from './state';
 import './styles.css';
 
 async function start() {
@@ -12,10 +12,10 @@ async function start() {
   captureInstallPrompt();
   await loadSettings();
   document.documentElement.lang = lang.value;
+  // Small local tables, loaded before first render so every screen starts with complete data
+  // (custom foods are also needed to resolve diary entries, including deleted ones).
+  await Promise.all([loadCustomFoods(), loadUsage(), loadServings()]);
   render(<App />, document.getElementById('app')!);
-  // Custom foods first: diary entries may reference them, including deleted ones.
-  await loadCustomFoods();
-  await loadUsage();
   await loadDay(date.value);
   // Load the food database in the background once the diary is on screen.
   requestIdleCallbackShim(warmUp);

@@ -1,5 +1,5 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
-import { MEALS, type AllData, type CustomFood, type Entry, type Settings, type Usage } from './db';
+import { MEALS, type AllData, type CustomFood, type Entry, type Settings, type Usage, type UserServings } from './db';
 import { foodName, NUTRIENTS, type Food } from './nutrients';
 import { scale } from './totals';
 
@@ -28,7 +28,13 @@ function entry(x: unknown): Entry {
     isObj(x) && isStr(x.id, 100) && isStr(x.date) && DATE.test(x.date) && MEALS.includes(x.meal as never) &&
     isStr(x.foodRef, 200) && isNum(x.grams) && x.grams > 0 && x.grams < 100000 && isNum(x.createdAt)
   ) {
-    return { id: x.id, date: x.date, meal: x.meal as Entry['meal'], foodRef: x.foodRef, grams: x.grams, createdAt: x.createdAt };
+    const e: Entry = { id: x.id, date: x.date, meal: x.meal as Entry['meal'], foodRef: x.foodRef, grams: x.grams, createdAt: x.createdAt };
+    if (x.unit !== undefined || x.qty !== undefined) {
+      if (!isStr(x.unit, 50) || !isNum(x.qty) || x.qty <= 0) throw new BackupError('entry');
+      e.unit = x.unit;
+      e.qty = x.qty;
+    }
+    return e;
   }
   throw new BackupError('entry');
 }
@@ -50,9 +56,23 @@ function usage(x: unknown): Usage {
   if (isObj(x) && isStr(x.foodRef, 200) && isNum(x.count) && isNum(x.lastUsed) && isNum(x.lastGrams)) {
     const u: Usage = { foodRef: x.foodRef, count: x.count, lastUsed: x.lastUsed, lastGrams: x.lastGrams };
     if (x.fav === true) u.fav = true;
+    if (isStr(x.lastUnit, 50) && isNum(x.lastQty) && x.lastQty > 0) {
+      u.lastUnit = x.lastUnit;
+      u.lastQty = x.lastQty;
+    }
     return u;
   }
   throw new BackupError('usage');
+}
+
+function servings(x: unknown): UserServings {
+  if (
+    isObj(x) && isStr(x.foodRef, 200) && Array.isArray(x.servings) && x.servings.length <= 50 &&
+    x.servings.every((s) => isObj(s) && isStr(s.name, 50) && s.name.trim() !== '' && isNum(s.g) && s.g > 0 && s.g < 100000)
+  ) {
+    return { foodRef: x.foodRef, servings: (x.servings as { name: string; g: number }[]).map(({ name, g }) => ({ name, g })) };
+  }
+  throw new BackupError('servings');
 }
 
 function settings(x: unknown): Settings | undefined {
@@ -90,6 +110,7 @@ export function parseBackup(text: string): AllData {
     entries: list('entries').map(entry),
     customFoods: list('customFoods').map(customFood),
     usage: list('usage').map(usage),
+    servings: list('servings').map(servings),
     settings: settings(raw.settings),
   };
 }

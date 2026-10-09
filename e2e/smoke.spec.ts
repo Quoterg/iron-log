@@ -17,6 +17,7 @@ test('log a food, see totals, survive reload and offline', async ({ page, contex
   await expect(first).toContainText(/havregryn/i);
   await first.click();
 
+  await page.getByLabel('Mått', { exact: true }).selectOption('g');
   await page.getByRole('button', { name: '50 g', exact: true }).click();
   await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
 

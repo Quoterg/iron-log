@@ -1,5 +1,5 @@
 import { MEALS, type Entry } from '../lib/db';
-import { fmt, fmtAmount, lang, t } from '../lib/i18n';
+import { fmt, fmtAmount, lang, t, unitLabel } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
@@ -46,7 +46,9 @@ export function Diary() {
                   <li key={e.id}>
                     <button class="entry" onClick={() => open({ kind: 'food', ref: e.foodRef, entryId: e.id })}>
                       <span class="entry-name">{name(e)}</span>
-                      <span class="num muted">{fmtAmount(e.grams)} g</span>
+                      <span class="num muted">
+                        {e.unit && e.qty ? `${fmtAmount(e.qty)} ${unitLabel(e.unit)}` : `${fmtAmount(e.grams)} g`}
+                      </span>
                       <span class="num">{fmt(entryKcal(e))} kcal</span>
                     </button>
                   </li>

@@ -1,11 +1,13 @@
 import { useRef, useState } from 'preact/hooks';
 import { MEALS, type Meal } from '../lib/db';
-import { fmt, fmtAmount, lang, parseNum, t } from '../lib/i18n';
+import { fmt, fmtAmount, lang, parseNum, t, unitLabel } from '../lib/i18n';
+import { GRAMS, initialAmount, servingsFor, toGrams } from '../lib/servings';
 import { foodName, NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { scale } from '../lib/totals';
 import { back, closeAll, open } from '../nav';
 import {
   addEntry,
+  addServing,
   date as currentDate,
   entries,
   foods,
@@ -13,11 +15,15 @@ import {
   toggleFavourite,
   updateEntry,
   usage,
+  userServings,
 } from '../state';
 import { NutrientGroups } from './NutrientGroups';
 import { Sheet } from './Sheet';
 
 const QUICK_GRAMS = [25, 50, 100, 150, 200, 300];
+const QUICK_QTY = [0.5, 1, 2, 3];
+
+const numText = (n: number) => String(n).replace('.', lang.value === 'sv' ? ',' : '.');
 
 /**
  * A food with all its nutrients for the chosen amount. Adds a new entry (`meal`)
@@ -29,18 +35,22 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
   const food = foods.value.get(ref);
 
   const used = usage.value.get(ref);
-  // New entries start from the amount you used last time for this food.
-  const [grams, setGrams] = useState(
-    String(entry?.grams ?? used?.lastGrams ?? 100).replace('.', lang.value === 'sv' ? ',' : '.'),
-  );
+  const servings = food ? servingsFor(food, userServings.value.get(ref)) : [];
+  // Start from the entry being edited, else the amount and measure used last time.
+  const [init] = useState(() => initialAmount(servings, entry, used));
+  const [unit, setUnit] = useState(init.unit);
+  const [qtyText, setQtyText] = useState(numText(init.qty));
+  const [adding, setAdding] = useState(false);
   const [meal, setMeal] = useState<Meal>(entry?.meal ?? props.meal ?? 'breakfast');
   const [day, setDay] = useState(entry?.date ?? currentDate.value);
   // Synchronous guard: a double tap on a slow phone must not log the food twice.
   const busy = useRef(false);
 
   if (!food) return <Sheet title="">{null}</Sheet>;
-  const g = parseNum(grams);
+  const qty = parseNum(qtyText);
+  const g = toGrams(unit, qty, servings);
   const valid = g > 0 && g < 100000;
+  const amount = unit === GRAMS ? { grams: g } : { grams: g, unit, qty };
   const amounts = scale(food.per100g, valid ? g : 0);
   const isCustom = ref.startsWith('custom:');
 
@@ -49,10 +59,10 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
     if (!valid || busy.current) return;
     busy.current = true;
     if (entry) {
-      await updateEntry(entry.id, { grams: g, meal, date: day });
+      await updateEntry(entry.id, { amount, meal, date: day });
       back();
     } else {
-      await addEntry(meal, food, g);
+      await addEntry(meal, food, amount);
       closeAll();
     }
   };
@@ -74,26 +84,65 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
             {used?.fav ? t('isFavourite') : t('addFavourite')}
           </button>
         </div>
-        <label>
-          {t('amount')}
-          <span class="amount-row">
+        <div class="amount-row">
+          <label>
+            {t('amount')}
             <input
               type="text"
               inputMode="decimal"
-              value={grams}
+              value={qtyText}
+              aria-label={t('amount')}
               aria-invalid={!valid}
-              onInput={(e) => setGrams((e.currentTarget as HTMLInputElement).value)}
+              onInput={(e) => setQtyText((e.currentTarget as HTMLInputElement).value)}
             />
-            g
-          </span>
-        </label>
-        <div class="chips">
-          {QUICK_GRAMS.map((q) => (
-            <button type="button" class="chip" key={q} onClick={() => setGrams(String(q))}>
-              {q} g
-            </button>
-          ))}
+          </label>
+          <label>
+            {t('unit')}
+            <select
+              aria-label={t('unit')}
+              value={unit}
+              onChange={(e) => {
+                const u = (e.currentTarget as HTMLSelectElement).value;
+                // Keep the same weight when switching to grams; start at 1 for a measure.
+                setQtyText(numText(u === GRAMS ? (valid ? g : 100) : 1));
+                setUnit(u);
+              }}
+            >
+              <option value={GRAMS}>g</option>
+              {servings.map((s) => (
+                <option key={s.name} value={s.name}>
+                  {unitLabel(s.name)} (≈ {fmtAmount(s.g)} g)
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
+        <div class="chips">
+          {unit === GRAMS
+            ? QUICK_GRAMS.map((q) => (
+                <button type="button" class="chip" key={q} onClick={() => setQtyText(String(q))}>
+                  {q} g
+                </button>
+              ))
+            : QUICK_QTY.map((q) => (
+                <button type="button" class="chip" key={q} onClick={() => setQtyText(numText(q))}>
+                  {q === 0.5 ? '½' : q} {unitLabel(unit)}
+                </button>
+              ))}
+          <button type="button" class="chip" onClick={() => setAdding(!adding)}>
+            {t('addServing')}
+          </button>
+        </div>
+        {adding && (
+          <ServingForm
+            onSave={async (s) => {
+              await addServing(ref, s);
+              setUnit(s.name);
+              setQtyText('1');
+              setAdding(false);
+            }}
+          />
+        )}
         <div class="row">
           <label>
             {t('meal')}
@@ -118,6 +167,7 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
           )}
         </div>
         <p class="num preview">
+          {unit !== GRAMS && valid && `≈ ${fmtAmount(g)} g · `}
           {fmt(amounts[NUTRIENT_INDEX.kcal])} kcal · {fmt(value(food.per100g, 'kcal'))} kcal / 100 g
         </p>
         <div class="actions">
@@ -157,5 +207,28 @@ export function FoodDetail(props: { foodRef: string; meal?: Meal; entryId?: stri
         <p class="muted small">{isCustom ? t('sourceCustom') : t('sourceSlv')}</p>
       </div>
     </Sheet>
+  );
+}
+
+/** Inline form for a custom measure, e.g. "min skål" = 300 g. Not a <form>: it sits inside one. */
+function ServingForm({ onSave }: { onSave: (s: { name: string; g: number }) => void }) {
+  const [name, setName] = useState('');
+  const [grams, setGrams] = useState('');
+  const g = parseNum(grams);
+  const ok = name.trim() !== '' && name.trim().length <= 50 && g > 0 && g < 100000;
+  return (
+    <div class="row serving-form">
+      <label>
+        {t('servingName')}
+        <input type="text" value={name} placeholder={t('servingNameHint')} maxLength={50} onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
+      </label>
+      <label>
+        {t('servingGrams')}
+        <input type="text" inputMode="decimal" value={grams} onInput={(e) => setGrams((e.currentTarget as HTMLInputElement).value)} />
+      </label>
+      <button type="button" class="btn" disabled={!ok} onClick={() => ok && onSave({ name: name.trim(), g })}>
+        {t('save')}
+      </button>
+    </div>
   );
 }

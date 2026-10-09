@@ -1,6 +1,6 @@
 // User data lives on the device, in IndexedDB. Nothing is sent anywhere.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Food } from './nutrients';
+import type { Food, Serving } from './nutrients';
 import type { Profile } from './targets';
 
 export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -14,6 +14,9 @@ export interface Entry {
   foodRef: string;
   grams: number;
   createdAt: number;
+  /** Household measure the user logged with, e.g. 2 × "st" (grams stays the source of truth). */
+  unit?: string;
+  qty?: number;
 }
 
 export interface Settings {
@@ -36,7 +39,15 @@ export interface Usage {
   count: number;
   lastUsed: number;
   lastGrams: number;
+  lastUnit?: string;
+  lastQty?: number;
   fav?: boolean;
+}
+
+/** The user's own measures for a food ("min skål" = 300 g). */
+export interface UserServings {
+  foodRef: string;
+  servings: Serving[];
 }
 
 interface Schema extends DBSchema {
@@ -44,12 +55,13 @@ interface Schema extends DBSchema {
   kv: { key: string; value: unknown };
   customFoods: { key: string; value: CustomFood };
   usage: { key: string; value: Usage };
+  servings: { key: string; value: UserServings };
 }
 
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('iron-log', 3, {
+  dbp ??= openDB<Schema>('iron-log', 4, {
     async upgrade(d, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
@@ -62,6 +74,7 @@ function db() {
         const all = await tx.objectStore('entries').getAll();
         for (const u of usageFromEntries(all)) await usage.put(u);
       }
+      if (oldVersion < 4) d.createObjectStore('servings', { keyPath: 'foodRef' });
     },
   });
   return dbp;
@@ -93,41 +106,53 @@ export interface AllData {
   entries: Entry[];
   customFoods: CustomFood[];
   usage: Usage[];
+  servings: UserServings[];
   settings?: Settings;
 }
 
 export async function exportAll(): Promise<AllData> {
   const d = await db();
-  const [entries, customFoods, usage, settings] = await Promise.all([
+  const [entries, customFoods, usage, servings, settings] = await Promise.all([
     d.getAll('entries'),
     d.getAll('customFoods'),
     d.getAll('usage'),
+    d.getAll('servings'),
     d.get('kv', 'settings') as Promise<Settings | undefined>,
   ]);
-  return { entries, customFoods, usage, settings };
+  return { entries, customFoods, usage, servings, settings };
 }
 
 /** Upsert everything in one transaction: items with the same id/ref are replaced, others kept. */
 export async function importAll(data: AllData): Promise<void> {
-  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'kv'], 'readwrite');
+  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'kv'], 'readwrite');
   const puts: Promise<unknown>[] = [
     ...data.entries.map((e) => tx.objectStore('entries').put(e)),
     ...data.customFoods.map((f) => tx.objectStore('customFoods').put(f)),
     ...data.usage.map((u) => tx.objectStore('usage').put(u)),
+    ...data.servings.map((s) => tx.objectStore('servings').put(s)),
   ];
   if (data.settings) puts.push(tx.objectStore('kv').put(data.settings, 'settings'));
   await Promise.all([...puts, tx.done]);
 }
 
 export async function clearAll(): Promise<void> {
-  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'kv'], 'readwrite');
+  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'kv'], 'readwrite');
   await Promise.all([
     tx.objectStore('entries').clear(),
     tx.objectStore('customFoods').clear(),
     tx.objectStore('usage').clear(),
+    tx.objectStore('servings').clear(),
     tx.objectStore('kv').clear(),
     tx.done,
   ]);
+}
+
+export async function listServings(): Promise<UserServings[]> {
+  return (await db()).getAll('servings');
+}
+
+export async function putServings(s: UserServings): Promise<void> {
+  await (await db()).put('servings', s);
 }
 
 export async function putEntries(list: Entry[]): Promise<void> {

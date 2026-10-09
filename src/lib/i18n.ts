@@ -89,6 +89,11 @@ const sv = {
   storageNotPersistent: 'Webbläsaren kan rensa dina data om utrymmet tar slut. Installera appen och exportera säkerhetskopior regelbundet.',
   installApp: 'Installera appen',
   installIosHint: 'Installera på iPhone: tryck på Dela-knappen och välj ”Lägg till på hemskärmen”.',
+  unit: 'Mått',
+  addServing: '+ Eget mått',
+  servingName: 'Namn på måttet',
+  servingGrams: 'Vikt (g)',
+  servingNameHint: 't.ex. min skål',
 };
 
 type Dict = typeof sv;
@@ -180,6 +185,11 @@ const en: Dict = {
   storageNotPersistent: 'The browser may clear your data when space runs low. Install the app and export backups regularly.',
   installApp: 'Install the app',
   installIosHint: 'Install on iPhone: tap the Share button and choose “Add to Home Screen”.',
+  unit: 'Measure',
+  addServing: '+ Custom measure',
+  servingName: 'Measure name',
+  servingGrams: 'Weight (g)',
+  servingNameHint: 'e.g. my bowl',
 };
 
 const dicts: Record<Lang, Dict> = { sv, en };
@@ -206,6 +216,24 @@ export function fmt(n: number, digits = 0): string {
     formatters.set(k, f);
   }
   return f.format(n);
+}
+
+const UNIT_LABELS: Record<string, [sv: string, en: string]> = {
+  st: ['st', 'pc'],
+  dl: ['dl', 'dl'],
+  msk: ['msk', 'tbsp'],
+  tsk: ['tsk', 'tsp'],
+  skiva: ['skiva', 'slice'],
+  glas: ['glas', 'glass'],
+  kopp: ['kopp', 'cup'],
+  portion: ['portion', 'serving'],
+  smörgås: ['på smörgås', 'on a sandwich'],
+};
+
+/** Display name of a household measure; user-defined names are shown as typed. */
+export function unitLabel(name: string): string {
+  const l = UNIT_LABELS[name];
+  return l ? l[lang.value === 'sv' ? 0 : 1] : name;
 }
 
 /** Parse a user-typed number; accepts decimal comma ("1,5"). NaN when empty or invalid. */
