@@ -30,5 +30,5 @@
   "signingKey": { "path": "./android.keystore", "alias": "ironlog" },
   "generatorApp": "bubblewrap-cli",
   "shortcuts": [],
-  "minSdkVersion": 21
+  "minSdkVersion": 24
 }
