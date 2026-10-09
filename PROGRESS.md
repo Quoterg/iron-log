@@ -5,7 +5,20 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M20b In-app Open Food Facts upload**, then **M16b Amino acids** and **M17** (see docs/ROADMAP.md).
+**M18b Languages** (da, fi, de, so), then M20b, M16b, M17 (see docs/ROADMAP.md).
+M17 direction (proposed, awaiting the owner): device-to-device sync first (QR + direct connection), no server.
+
+## 2026-10-09 — M18a Accessibility audit (interactive session)
+
+Done:
+- `e2e/a11y.spec.ts`: axe-core (WCAG 2.1 A/AA rules) on the diary, search, food, nutrients,
+  nutrient detail, body log with chart, settings, the activity/supplement/recipe sheets and the
+  privacy/about pages — in light and dark mode. 0 violations (dev dependency @axe-core/playwright).
+- 200 % text size (WCAG 1.4.4) at 360 px: long Swedish compounds ("Makronäringsämnen") widened the
+  page, so mobile browsers zoomed out and the tab bar ended up partly off-screen. Headings, labels,
+  paragraphs and food names now wrap/hyphenate (`overflow-wrap: break-word; hyphens: auto`).
+- M18 split: languages (Danish, Finnish, German, Somali — the owner's choice; Norwegian dropped)
+  move to M18b, with on-demand string loading and a manual screen-reader pass.
 
 ## 2026-10-09 — M20 Contribute back (interactive session)
 

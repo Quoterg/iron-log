@@ -59,8 +59,11 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 
 - [ ] **M17 Sync (optional, self-hostable)** — End-to-end encrypted sync: tiny server
   (Node + SQLite, Docker image), client key never leaves devices; app stays fully usable without.
-- [ ] **M18 Languages & accessibility** — Extract strings to JSON, add nb/da/fi/de; full
-  a11y audit (screen readers, contrast, font scaling 200%); RTL-safe CSS.
+- [x] **M18a Accessibility audit** — Automated axe-core audit (WCAG 2.1 A/AA) of every screen and
+  sheet in light and dark mode, 200 % text size without horizontal scrolling; kept as e2e tests.
+- [ ] **M18b Languages** — Strings per language, loaded on demand (only the active language in the
+  first bundle); add Danish, Finnish, German and Somali (all Latin script: no RTL work needed);
+  native-speaker review before calling them final; manual screen-reader pass (TalkBack/VoiceOver).
 - [x] **M19 App stores (prep)** — Privacy policy, landing page, store listing texts, F-Droid
   notes, Bubblewrap config and build guide.
 - [ ] **M19b App stores (publish)** — Decide domain and package id (permanent on Play), serve
