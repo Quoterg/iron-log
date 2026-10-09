@@ -5,7 +5,9 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M18b Languages** (da, fi, de, so), then M20b, M16b, M17 (see docs/ROADMAP.md).
+**M17 Device-to-device sync** (the owner's choice: QR + direct encrypted connection, no server),
+then **M18b Languages** (da, fi, de, so), M20b, M16b (see docs/ROADMAP.md).
+Also open: **M19b** — first signed Android build + assetlinks (needs the owner to keep the keystore).
 
 ## 2026-10-09 — M18a Accessibility audit (interactive session)
 
@@ -23,6 +25,18 @@ Done:
   Lighthouse accessibility is now an error gate at ≥ 0.95.
 - M18 split: languages (Danish, Finnish, German, Somali — the owner's choice; Norwegian dropped)
   move to M18b, with on-demand string loading and a manual screen-reader pass.
+
+## 2026-10-09 — M19b decisions (interactive session)
+
+- Android verification host: the free GitHub user site **Quoterg/Quoterg.github.io** (created; has
+  `.nojekyll`, forwards `/` to the app with a plain meta refresh; checked 2026-10-09 that root and
+  /iron-log/ return 200). Shared-origin rule (no scripts on the user site, no other Pages repos,
+  SW scope stays /iron-log/) in android/README.md and CONTRIBUTING.md. No custom
+  domain (cost) and no move to another host (users' on-device data is per origin).
+  Package id stays `io.github.quoterg.ironlog`. Steps to finish: android/README.md.
+- Play data safety: declare conservatively (barcode shared with Open Food Facts for app
+  functionality; IP address explained; health data never leaves the device) — reasoning in
+  docs/STORE-LISTING.md.
 
 ## 2026-10-09 — M20 Contribute back (interactive session)
 
