@@ -10,7 +10,7 @@ import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from '.
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
 import type { ActivityType } from './lib/activity-types';
 import type { BodyEntry } from './lib/body';
-import { supplementServings, type SupplementInfo } from './lib/supplements';
+import { supplementServings, UNIT_GRAMS, type SupplementInfo } from './lib/supplements';
 import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 
@@ -250,7 +250,8 @@ export async function saveCustomFood(input: {
     updatedAt: now,
     // Editing a deleted food (opened from an old diary entry) must not bring it back into search.
     ...(prev?.deleted ? { deleted: true } : {}),
-    ...(input.supplement ? { supplement: input.supplement } : {}),
+    // Saved from the plain food editor: stay a supplement (values are per unit).
+    ...((input.supplement ?? prev?.supplement) ? { supplement: input.supplement ?? prev!.supplement } : {}),
   };
   customFoods.value = prev
     ? customFoods.value.map((f) => (f.ref === food.ref ? food : f))
@@ -468,27 +469,35 @@ export async function addWater(ml: number): Promise<void> {
 
 // --- Supplements ---
 
-/** The user's supplements (custom foods measured per unit), alphabetical. */
+const collator = new Intl.Collator('sv');
+
+/** The user's supplements (custom foods measured per unit), alphabetical — deleted ones too. */
+const allSupplements = computed(() => customFoods.value.filter((f) => f.supplement).sort((a, b) => collator.compare(a.sv, b.sv)));
+
+/** Supplements for the diary card: current ones, plus deleted ones logged on the shown day. */
 export const supplements = computed(() =>
-  customFoods.value.filter((f) => f.supplement && !f.deleted).sort((a, b) => a.sv.localeCompare(b.sv, 'sv')),
+  allSupplements.value.filter((f) => !f.deleted || entries.value.some((e) => e.foodRef === f.ref)),
 );
 
 /** Refs of current supplements: their entries show in the supplement card, not under meals. */
-export const supplementRefs = computed(() => new Set(supplements.value.map((f) => f.ref)));
+export const supplementRefs = computed(() => new Set(allSupplements.value.map((f) => f.ref)));
 
 /** Quick log for the selected day: `qty` units of a supplement (1 unit is stored as 1 g). */
 export async function takeSupplement(ref: string, qty: number): Promise<void> {
   const f = customFoods.value.find((x) => x.ref === ref);
   if (!f?.supplement) return;
-  await addEntry('breakfast', toFood(f), { grams: qty, unit: f.supplement.unit, qty });
+  await addEntry('breakfast', toFood(f), { grams: qty * UNIT_GRAMS, unit: f.supplement.unit, qty });
 }
 
-/** Daily checklist: log the daily dose, or remove the day's entries for it again. */
+/**
+ * Daily checklist: log the daily dose, or remove it again. Unticking removes one entry only —
+ * the latest daily dose — so extra doses logged by hand stay.
+ */
 export async function toggleSupplementTaken(ref: string): Promise<void> {
+  const f = customFoods.value.find((x) => x.ref === ref);
+  const dose = f?.supplement?.perDay || 1;
   const taken = entries.value.filter((e) => e.foodRef === ref);
-  if (!taken.length) {
-    const f = customFoods.value.find((x) => x.ref === ref);
-    return takeSupplement(ref, f?.supplement?.perDay || 1);
-  }
-  for (const e of taken) await removeEntry(e.id);
+  if (!taken.length) return takeSupplement(ref, dose);
+  const last = [...taken].sort((a, b) => b.createdAt - a.createdAt);
+  await removeEntry((last.find((e) => e.qty === dose) ?? last[0]).id);
 }

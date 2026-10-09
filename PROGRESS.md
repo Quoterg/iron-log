@@ -18,10 +18,18 @@ Done:
   show in this card, not under meals. Tapping a taken row opens the entry; otherwise the editor.
 - Lazy supplement editor (3 KB): vitamins, minerals and EPA/DHA first, the rest behind "show all".
   Search shows a "Tillskott" badge.
-- Tests: 93 unit, 28 Playwright. Initial JS 35.1 KB gzip (+0.8 KB; ≈ 5 KB headroom left).
+- Tests: 97 unit, 28 Playwright. Initial JS 35.2 KB gzip (+0.9 KB; ≈ 5 KB headroom left).
 
-Known limitations: the schedule is "units per day" only (no weekdays or times); a supplement's
-entries are logged under breakfast internally (visible only if the supplement is deleted).
+- Review fixes: deleted supplements keep their history in the card (never moved to a meal);
+  "edit food" for a supplement always opens the supplement editor, and saving keeps its
+  supplement info; the name opens the editor and the taken amount opens the entry; unticking
+  removes only the latest daily dose; CSV labels supplement rows "Kosttillskott"; nutrient inputs
+  in the editor are uncontrolled (no re-render per keystroke).
+
+Known limitations: the schedule is "units per day" only (M15b: weekdays, times). Entries are
+stored under breakfast internally (shown in the supplement card and labelled in CSV). An app
+version from before M15 importing a newer backup would treat supplements as plain foods (×100
+values) — the PWA updates itself, so this only affects an old copy that was never reopened online.
 
 ## 2026-10-09 — M14 Activity (interactive session)
 

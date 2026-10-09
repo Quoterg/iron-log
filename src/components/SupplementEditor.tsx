@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { inputNum, lang, parseNum, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS, type NutrientVector } from '../lib/nutrients';
 import { per100gToPerUnit, perUnitToPer100g } from '../lib/supplements';
@@ -17,25 +17,36 @@ export default function SupplementEditor(props: { foodRef?: string }) {
   const [name, setName] = useState(existing?.sv ?? '');
   const [unit, setUnit] = useState(existing?.supplement?.unit ?? t('supplementUnitDefault'));
   const [perDayText, setPerDayText] = useState(inputNum(existing?.supplement?.perDay ?? 1));
-  const [vals, setVals] = useState<Record<string, string>>(() =>
+  // Raw text per nutrient, kept outside state: typing doesn't re-render the ~40 fields.
+  const vals = useRef<Record<string, string>>(
     Object.fromEntries(NUTRIENTS.map((n, i) => [n.key, perUnit[i] == null ? '' : inputNum(+perUnit[i]!.toPrecision(6))])),
   );
+  /** Fields shown as invalid (checked on blur and on save). */
+  const [bad, setBad] = useState<ReadonlySet<string>>(new Set());
   const [showAll, setShowAll] = useState(() => NUTRIENTS.some((n, i) => !isMain(n) && perUnit[i] != null));
   const [submitted, setSubmitted] = useState(false);
 
-  const parsed = Object.fromEntries(Object.entries(vals).map(([k, v]) => [k, parseNum(v)]));
-  const invalid = (k: string) => vals[k].trim() !== '' && !(parsed[k] >= 0);
+  const invalid = (k: string) => vals.current[k].trim() !== '' && !(parseNum(vals.current[k]) >= 0);
+  const check = (k: string) => {
+    if (invalid(k) === bad.has(k)) return;
+    const next = new Set(bad);
+    if (next.has(k)) next.delete(k);
+    else next.add(k);
+    setBad(next);
+  };
   const perDay = perDayText.trim() === '' ? 0 : parseNum(perDayText);
   const perDayInvalid = !(perDay >= 0 && perDay <= 100);
   const nameMissing = !name.trim();
   const unitMissing = !unit.trim();
-  const hasErrors = nameMissing || unitMissing || perDayInvalid || NUTRIENTS.some((n) => invalid(n.key));
+  const hasErrors = nameMissing || unitMissing || perDayInvalid || bad.size > 0;
 
   const save = async (e: Event) => {
     e.preventDefault();
     setSubmitted(true);
-    if (hasErrors) return;
-    const unitVals: NutrientVector = NUTRIENTS.map((n) => (vals[n.key].trim() === '' ? null : parsed[n.key]));
+    const invalidNow = new Set(NUTRIENTS.filter((n) => invalid(n.key)).map((n) => n.key));
+    setBad(invalidNow);
+    if (nameMissing || unitMissing || perDayInvalid || invalidNow.size) return;
+    const unitVals: NutrientVector = NUTRIENTS.map((n) => (vals.current[n.key].trim() === '' ? null : parseNum(vals.current[n.key])));
     const k = NUTRIENT_INDEX.kcal;
     if (unitVals[k] == null) {
       const num = (key: string) => unitVals[NUTRIENT_INDEX[key]] ?? 0;
@@ -53,16 +64,17 @@ export default function SupplementEditor(props: { foodRef?: string }) {
   const field = (key: string) => {
     const n = NUTRIENTS.find((x) => x.key === key)!;
     return (
-      <label key={key} class={invalid(key) ? 'field error' : 'field'}>
+      <label key={key} class={bad.has(key) ? 'field error' : 'field'}>
         <span>
           {n[lang.value]} ({n.unit})
         </span>
         <input
           type="text"
           inputMode="decimal"
-          value={vals[key]}
-          aria-invalid={invalid(key)}
-          onInput={(e) => setVals({ ...vals, [key]: (e.currentTarget as HTMLInputElement).value })}
+          defaultValue={vals.current[key]}
+          aria-invalid={bad.has(key)}
+          onInput={(e) => void (vals.current[key] = (e.currentTarget as HTMLInputElement).value)}
+          onBlur={() => check(key)}
         />
       </label>
     );

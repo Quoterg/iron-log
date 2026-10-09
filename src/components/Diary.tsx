@@ -148,6 +148,8 @@ function WaterCard() {
 /** Supplements: daily ones as a checklist (one tap logs the daily dose), the rest with "+1". */
 function SupplementCard() {
   const list = supplements.value;
+  const byRef = new Map<string, Entry[]>();
+  for (const e of entries.value) if (supplementRefs.value.has(e.foodRef)) byRef.set(e.foodRef, [...(byRef.get(e.foodRef) ?? []), e]);
   return (
     <section class="card">
       <header class="meal-head">
@@ -161,7 +163,7 @@ function SupplementCard() {
         <ul class="entries">
           {list.map((f) => {
             const s = f.supplement!;
-            const taken = entries.value.filter((e) => e.foodRef === f.ref);
+            const taken = byRef.get(f.ref) ?? [];
             const qty = taken.reduce((n, e) => n + (e.qty ?? e.grams), 0);
             return (
               <li key={f.ref} class="ingredient">
@@ -174,12 +176,17 @@ function SupplementCard() {
                     onChange={() => void toggleSupplementTaken(f.ref)}
                   />
                 )}
-                <button class="entry" onClick={() => open(taken.length ? { kind: 'food', ref: f.ref, entryId: taken[0].id } : { kind: 'supplement', ref: f.ref })}>
+                <button class="entry" onClick={() => open({ kind: 'supplement', ref: f.ref })}>
                   <span class="entry-name">{f.sv}</span>
-                  <span class="num muted">
-                    {taken.length ? `${fmtAmount(qty)} ${unitLabel(s.unit)}` : s.perDay ? `${fmtAmount(s.perDay)} ${unitLabel(s.unit)}/${t('perDayShort')}` : ''}
-                  </span>
+                  {!taken.length && (
+                    <span class="num muted">{s.perDay ? `${fmtAmount(s.perDay)} ${unitLabel(s.unit)}/${t('perDayShort')}` : ''}</span>
+                  )}
                 </button>
+                {taken.length > 0 && (
+                  <button class="btn small num" onClick={() => open({ kind: 'food', ref: f.ref, entryId: taken[taken.length - 1].id })}>
+                    {fmtAmount(qty)} {unitLabel(s.unit)}
+                  </button>
+                )}
                 {s.perDay === 0 && (
                   <button class="btn small" aria-label={`+1 ${unitLabel(s.unit)} ${f.sv}`} onClick={() => void takeSupplement(f.ref, 1)}>
                     +1

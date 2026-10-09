@@ -34,9 +34,10 @@ export function YourData() {
   };
 
   const exportCsv = async () => {
-    const { entries } = await exportAll();
+    const { entries, customFoods } = await exportAll();
     const foods = await getFoods(entries.map((e) => e.foodRef));
-    const csv = toCsv(entries, foods, lang.value, (m) => t(m as 'breakfast'));
+    const supps = new Set(customFoods.filter((f) => f.supplement).map((f) => f.ref));
+    const csv = toCsv(entries, foods, lang.value, (m) => t(m as 'breakfast'), supps);
     download(`iron-log-${stamp}.csv`, csv, 'text/csv;charset=utf-8');
   };
 

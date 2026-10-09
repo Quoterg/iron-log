@@ -261,7 +261,13 @@ export function parseBackup(text: string): AllData {
  * Diary as CSV, one row per entry with all nutrients for the logged amount.
  * Swedish uses ";" and decimal comma (what Excel expects in a Swedish locale).
  */
-export function toCsv(entries: Entry[], foods: Map<string, Food>, lang: 'sv' | 'en', mealName: (m: string) => string): string {
+export function toCsv(
+  entries: Entry[],
+  foods: Map<string, Food>,
+  lang: 'sv' | 'en',
+  mealName: (m: string) => string,
+  supplementRefs: ReadonlySet<string> = new Set(),
+): string {
   const sep = lang === 'sv' ? ';' : ',';
   const num = (n: number) => {
     const s = String(Math.round(n * 1000) / 1000);
@@ -280,7 +286,8 @@ export function toCsv(entries: Entry[], foods: Map<string, Food>, lang: 'sv' | '
       const f = foods.get(e.foodRef);
       const v = e.snap ?? f?.per100g; // as logged, for recipes
       const amounts = v ? scale(v, e.grams).map((x, i) => (v[i] == null ? '' : num(x))) : NUTRIENTS.map(() => '');
-      return [e.date, mealName(e.meal), f ? foodName(f, lang) : e.foodRef, num(e.grams), ...amounts];
+      const meal = supplementRefs.has(e.foodRef) ? (lang === 'sv' ? 'Kosttillskott' : 'Supplements') : mealName(e.meal);
+      return [e.date, meal, f ? foodName(f, lang) : e.foodRef, num(e.grams), ...amounts];
     });
   const BOM = '﻿'; // so Excel opens UTF-8 (å, ä, ö) correctly
   return BOM + [head, ...rows].map((r) => r.map((c) => cell(c, sep)).join(sep)).join('\r\n') + '\r\n';

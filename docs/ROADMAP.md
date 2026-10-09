@@ -49,7 +49,8 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   for any nutrient, nutrient-gap highlights vs. targets, simple streaks.
 - [x] **M14 Activity** — Exercise log (MET table, kcal burned), optional adding of burned
   energy to the day's target; water intake.
-- [x] **M15 Supplements** — Supplements with per-unit nutrients, daily schedules, quick log.
+- [x] **M15 Supplements** — Supplements with per-unit nutrients, daily dose checklist, quick log.
+- [ ] **M15b Supplement schedules** — Weekdays / times of day / reminders for supplements.
 - [ ] **M16 More nutrients** — Add the remaining SLV/USDA nutrients (vitamin K, B5, biotin,
   copper, manganese, amino acids where available) with NNR targets; nutrient detail pages.
 
