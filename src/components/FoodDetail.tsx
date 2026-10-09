@@ -1,4 +1,5 @@
 import { useRef, useState } from 'preact/hooks';
+import { databaseOf, offProductUrl, reportUrl } from '../lib/contribute';
 import { MEALS, type Meal } from '../lib/db';
 import { fmt, fmtAmount, lang, parseNum, t, unitLabel } from '../lib/i18n';
 import { GRAMS, initialAmount, servingsFor, toGrams } from '../lib/servings';
@@ -249,6 +250,20 @@ export function FoodDetail(props: {
                   ? t('sourceUsda')
                   : t('sourceSlv')}
         </p>
+        {/* Links to fix data need the network: hidden offline (no listener — re-checked on render). */}
+        {!navigator.onLine ? null : ref.startsWith('off:') ? (
+          <p class="small">
+            <a href={offProductUrl(ref.slice(4))} target="_blank" rel="noopener noreferrer">
+              {t('offFix')}
+            </a>
+          </p>
+        ) : food && databaseOf(ref) ? (
+          <p class="small">
+            <a href={reportUrl(ref, food.sv, food.en)} target="_blank" rel="noopener noreferrer">
+              {t('reportError')}
+            </a>
+          </p>
+        ) : null}
       </div>
     </Sheet>
   );

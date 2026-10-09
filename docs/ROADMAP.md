@@ -66,5 +66,8 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [ ] **M19b App stores (publish)** — Decide domain and package id (permanent on Play), serve
   `/.well-known/assetlinks.json` at the origin root, commit the generated Android project for
   F-Droid, first signed build.
-- [ ] **M20 Contribute back** — Submit missing products/photos to Open Food Facts from the app;
-  report data errors; contributor docs.
+- [x] **M20 Contribute back (links only)** — Submit missing products/photos to Open Food Facts from the app;
+  report data errors; contributor docs. (Done as links to OFF's own add/edit pages — no OFF
+  credentials pass through the app — plus prefilled GitHub issues and CONTRIBUTING.md.)
+- [ ] **M20b In-app Open Food Facts upload** — Submit nutrition facts and label photos via the
+  OFF write API from the scan flow (needs an OFF account login flow).

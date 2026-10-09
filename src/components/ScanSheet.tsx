@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Meal } from '../lib/db';
 import { t } from '../lib/i18n';
+import { offAddUrl, offProductUrl } from '../lib/contribute';
 import { isValidBarcode, OffError } from '../lib/off';
 import { open, replaceTop } from '../nav';
 import { lookupBarcode } from '../state';
@@ -103,9 +104,20 @@ export function ScanSheet({ meal }: { meal: Meal }) {
           {message[status] ?? cameraMessage[camera]}
         </p>
         {(status === 'notFound' || status === 'noData') && (
-          <button class="btn wide" onClick={() => open({ kind: 'editFood', meal, name: '' })}>
-            + {t('createFood')}
-          </button>
+          <>
+            <button class="btn wide" onClick={() => open({ kind: 'editFood', meal, name: '' })}>
+              + {t('createFood')}
+            </button>
+            {/* Built from the code that was looked up, not the (editable) field. */}
+            {navigator.onLine && (
+              <p class="small">
+                <a href={status === 'notFound' ? offAddUrl(lastCode) : offProductUrl(lastCode)} target="_blank" rel="noopener noreferrer">
+                  {status === 'notFound' ? t('offAdd') : t('offComplete')}
+                </a>{' '}
+                <span class="muted">{t('offHelpNote')}</span>
+              </p>
+            )}
+          </>
         )}
         <form
           class="row"
