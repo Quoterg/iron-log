@@ -6,7 +6,6 @@ Keep entries short — this file is read at the start of every session.
 ## Next up
 
 **M18b Languages** (da, fi, de, so), then M20b, M16b, M17 (see docs/ROADMAP.md).
-M17 direction (proposed, awaiting the owner): device-to-device sync first (QR + direct connection), no server.
 
 ## 2026-10-09 — M18a Accessibility audit (interactive session)
 
@@ -17,6 +16,10 @@ Done:
 - 200 % text size (WCAG 1.4.4) at 360 px: long Swedish compounds ("Makronäringsämnen") widened the
   page, so mobile browsers zoomed out and the tab bar ended up partly off-screen. Headings, labels,
   paragraphs and food names now wrap/hyphenate (`overflow-wrap: break-word; hyphens: auto`).
+- Review fixes: one test per screen (17 screens + 2 pages, each in light and dark), 200 % text on
+  all of them (found and fixed: the tab bar's "Inställningar" and long words/URLs on the static
+  pages); local dates in tests; failure messages list up to 3 nodes with axe's summary;
+  Lighthouse accessibility is now an error gate at ≥ 0.95.
 - M18 split: languages (Danish, Finnish, German, Somali — the owner's choice; Norwegian dropped)
   move to M18b, with on-demand string loading and a manual screen-reader pass.
 

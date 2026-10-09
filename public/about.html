@@ -11,7 +11,7 @@
 <style>
   :root { --bg: #f6f7f5; --card: #ffffff; --text: #1c211d; --muted: #646d66; --accent: #1f7a4d; --accent-text: #ffffff; color-scheme: light dark; }
   @media (prefers-color-scheme: dark) { :root { --bg: #121513; --card: #1b1f1c; --text: #e8ece9; --muted: #a3aca5; --accent: #4cc38a; --accent-text: #0d1a12; } }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow-wrap: break-word; hyphens: auto; }
   main { max-width: 44rem; margin: 0 auto; padding: 32px 16px 48px; }
   header { display: flex; align-items: center; gap: 12px; }
   header img { width: 56px; height: 56px; }
@@ -21,7 +21,7 @@
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 12px; margin: 24px 0; }
   .grid div { background: var(--card); border-radius: 12px; padding: 4px 16px 12px; }
   h2 { font-size: 1.1rem; }
-  a { color: var(--accent); }
+  a { color: var(--accent); overflow-wrap: anywhere; } /* long URLs must wrap at large text sizes */
   .muted { color: var(--muted); font-size: .9rem; }
 </style>
 </head>

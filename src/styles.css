@@ -49,8 +49,11 @@ body {
 }
 button, input, select { font: inherit; color: inherit; }
 h1, h2, h3 { margin: 0; font-weight: 600; }
-/* Long Swedish compounds (Makronäringsämnen) must wrap at large text sizes, not widen the page. */
-h1, h2, h3, p, label, .entry-name { overflow-wrap: break-word; hyphens: auto; }
+/* Long Swedish compounds (Makronäringsämnen) must wrap at large text sizes, not widen the page.
+   Hyphenation only where the long compounds are (headings, labels); paragraphs just wrap.
+   break-word (not anywhere) keeps whole words together unless a word alone is too wide. */
+h1, h2, h3, label { overflow-wrap: break-word; hyphens: auto; }
+p { overflow-wrap: break-word; }
 h1 { font-size: 1.15rem; }
 h2 { font-size: 1rem; }
 h3 { font-size: 1.05rem; margin-bottom: 12px; }
@@ -143,6 +146,8 @@ input[type='number'], input[type='text'], input[type='search'], select {
 }
 .tabs button {
   flex: 1; min-height: 56px; border: 0; background: none; color: var(--muted); cursor: pointer;
+  /* At large text sizes "Inställningar" must wrap, not push the bar wider than the screen. */
+  min-width: 0; padding: 4px 2px; overflow-wrap: break-word; hyphens: auto;
 }
 .tabs button.active { color: var(--accent); font-weight: 600; }
 
@@ -226,6 +231,7 @@ input[type='date'] { border: 1px solid var(--line); border-radius: 8px; backgrou
 table.targets { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 12px; }
 table.targets th, table.targets td { padding: 4px 4px 4px 0; text-align: left; font-size: 0.9rem; vertical-align: middle; }
 table.targets thead th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+/* anywhere (not break-word): table cells size to min-content, which break-word doesn't shrink. */
 table.targets tbody th { font-weight: 400; overflow-wrap: anywhere; width: 42%; }
 table.targets input { width: 100%; min-width: 0; padding: 8px; min-height: 40px; }
 table.targets input[readonly] { color: var(--muted); }

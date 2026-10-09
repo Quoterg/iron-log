@@ -12,7 +12,7 @@
     "assert": {
       "assertions": {
         "categories:performance": ["error", { "minScore": 0.9, "aggregationMethod": "median-run" }],
-        "categories:accessibility": ["warn", { "minScore": 0.9 }],
+        "categories:accessibility": ["error", { "minScore": 0.95 }],
         "first-contentful-paint": ["error", { "maxNumericValue": 1800, "aggregationMethod": "median-run" }],
         "largest-contentful-paint": ["error", { "maxNumericValue": 2500, "aggregationMethod": "median-run" }],
         "total-blocking-time": ["error", { "maxNumericValue": 200, "aggregationMethod": "median-run" }],
