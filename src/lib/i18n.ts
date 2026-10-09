@@ -133,7 +133,7 @@ const sv = {
   exportBackup: 'Exportera säkerhetskopia (JSON)',
   exportCsv: 'Exportera dagbok som kalkylark (CSV)',
   importBackup: 'Importera säkerhetskopia',
-  importConfirm: 'Importera {n} poster och {f} egna livsmedel? Befintliga data behålls; poster med samma id ersätts.',
+  importConfirm: 'Importera {n} poster och {f} egna livsmedel? Befintliga data behålls: bara det som saknas (eller är äldre här) läggs till.',
   importDone: 'Importen är klar.',
   importFailed: 'Filen kunde inte importeras: den är inte en giltig säkerhetskopia från Iron Log.',
   deleteAll: 'Radera all data',

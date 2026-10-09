@@ -1,0 +1,31 @@
+import { expect, test } from '@playwright/test';
+
+test('switching to a beta language loads it on demand, translates the app and survives a reload', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  const picker = page.getByLabel('Språk');
+  await expect(picker.locator('option')).toHaveText(['Svenska', 'English', 'Dansk (beta)', 'Deutsch (beta)', 'Suomi (beta)', 'Soomaali (beta)']);
+
+  await picker.selectOption('de');
+  await expect(page.getByRole('button', { name: 'Tagebuch', exact: true })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+
+  // Nutrient names and decimal comma in German; English food names (foods have sv/en names only).
+  await page.getByRole('button', { name: 'Nährstoffe', exact: true }).click();
+  await expect(page.getByText('Eisen', { exact: true })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Tagebuch', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Tagebuch', exact: true }).click();
+  await page.locator('.meal').first().getByRole('button', { name: 'Hinzufügen' }).click();
+  await page.getByPlaceholder(/Lebensmittel suchen/).fill('oats');
+  await expect(page.locator('.result').first()).toContainText(/oats/i);
+});
+
+test('Somali, the newest language, shows its own strings', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.getByLabel('Språk').selectOption('so');
+  await expect(page.getByRole('button', { name: 'Dejinta', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Buugga maalinlaha', exact: true })).toBeVisible();
+});

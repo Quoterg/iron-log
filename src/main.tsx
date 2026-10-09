@@ -11,7 +11,9 @@ async function start() {
   initNav();
   captureInstallPrompt();
   await loadSettings();
-  await loadLang(lang.value); // only Swedish is built in; other languages are a small chunk each
+  // Only Swedish is built in; other languages are a small chunk each (cached after first use).
+  // If it can't load (offline before it was ever cached), start anyway with the built-in strings.
+  await loadLang(lang.value).catch(() => {});
   document.documentElement.lang = lang.value;
   // Small local tables, loaded before first render so every screen starts with complete data
   // (custom foods are also needed to resolve diary entries, including deleted ones).

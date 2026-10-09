@@ -172,7 +172,8 @@ export function activeSources(s: Settings): Source[] {
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<void> {
-  if (patch.lang) await loadLang(patch.lang); // strings first, so the switch is instant and complete
+  // Strings first, so the switch is instant and complete; offline and never loaded → keep the current one.
+  if (patch.lang) await loadLang(patch.lang);
   settings.value = { ...settings.value, ...patch };
   setSources(activeSources(settings.value));
   lang.value = settings.value.lang;

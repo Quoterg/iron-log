@@ -166,4 +166,23 @@ test.describe('200 % text size, 360 px wide: no horizontal scrolling', () => {
       expect(await overflow(page)).toBeLessThanOrEqual(0);
     });
   }
+
+  // Long compounds in German and Finnish ("Nahrungsergänzungsmittel", "Kertatyydyttymättömät …").
+  for (const [code, tabs] of [
+    ['de', ['Nährstoffe', 'Körper', 'Einstellungen']],
+    ['fi', ['Ravintoaineet', 'Keho', 'Asetukset']],
+  ] as const) {
+    test(`main screens in ${code}`, async ({ page }) => {
+      await page.setViewportSize({ width: 360, height: 740 });
+      await page.goto('./');
+      await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+      await page.getByLabel('Språk').selectOption(code);
+      await expect(page.getByRole('button', { name: tabs[2], exact: true })).toBeVisible();
+      await big(page);
+      for (const name of tabs) {
+        await page.getByRole('button', { name, exact: true }).click();
+        expect(await overflow(page), name).toBeLessThanOrEqual(0);
+      }
+    });
+  }
 });

@@ -120,7 +120,7 @@ const strings: Dict = {
   exportBackup: 'Export backup (JSON)',
   exportCsv: 'Export diary as spreadsheet (CSV)',
   importBackup: 'Import backup',
-  importConfirm: 'Import {n} entries and {f} custom foods? Existing data is kept; items with the same id are replaced.',
+  importConfirm: 'Import {n} entries and {f} custom foods? Existing data is kept: only what is missing (or older here) is added.',
   importDone: 'Import finished.',
   importFailed: 'The file could not be imported: it is not a valid Iron Log backup.',
   deleteAll: 'Delete all data',

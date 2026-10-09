@@ -98,7 +98,11 @@ function General() {
         {t('language')}
         <select
           value={s.lang}
-          onChange={(e) => void updateSettings({ lang: (e.currentTarget as HTMLSelectElement).value as Lang })}
+          onChange={(e) => {
+            const sel = e.currentTarget as HTMLSelectElement;
+            // Offline and the language was never loaded: stay on the current one.
+            updateSettings({ lang: sel.value as Lang }).catch(() => (sel.value = s.lang));
+          }}
         >
           {LANGS.map((l) => (
             <option key={l.code} value={l.code}>

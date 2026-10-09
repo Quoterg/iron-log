@@ -44,7 +44,14 @@ Rules that keep the app fast on old phones (see `docs/ARCHITECTURE.md`):
 
 ## Translations
 
-Strings live in `src/lib/i18n.ts` (`sv` and `en`). More languages are planned (M18).
+Swedish is built into `src/lib/i18n.ts`; every other language is a pack in `src/lib/lang/<code>.ts`
+(UI strings, nutrient names, activity names, household units), loaded only when chosen. Danish,
+German, Finnish and Somali are machine-assisted and marked **beta** — a native speaker's review is
+the most valuable contribution there: fix wording in the pack, then remove `beta` from `LANGS` in
+i18n.ts. A new language: copy `lang/en.ts`, translate, add it to `Lang`, `LANGS`, `LOADERS` and
+`LOCALES` in i18n.ts and to `strings-sync.ts`; `src/lib/i18n.test.ts` checks keys, placeholders
+(`{n}` etc.) and coverage. Food names exist only in Swedish and English (`dataLangOf` in
+nutrients.ts picks which one a language shows).
 
 ## Reporting bugs
 

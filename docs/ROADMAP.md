@@ -70,9 +70,11 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   amount, edit entry, custom food editor, barcode scan, copy day, nutrients, nutrient detail,
   targets editor, body log with chart, settings (profile, sources, your data), activity sheet,
   supplement editor, recipe editor, privacy and about pages. Lighthouse accessibility ≥ 0.95 gates CI.
-- [ ] **M18b Languages** — Strings per language, loaded on demand (only the active language in the
-  first bundle); add Danish, Finnish, German and Somali (all Latin script: no RTL work needed);
-  native-speaker review before calling them final; manual screen-reader pass (TalkBack/VoiceOver).
+- [x] **M18b Languages** — Language packs loaded on demand (only Swedish in the first bundle);
+  Danish, German, Finnish and Somali (beta, machine-assisted) incl. nutrient, activity and unit
+  names; locale-aware numbers and dates.
+- [ ] **M18c Language review & screen readers** — Native-speaker review of da/de/fi/so (then drop
+  "beta"); manual TalkBack/VoiceOver pass.
 - [x] **M19 App stores (prep)** — Privacy policy, landing page, store listing texts, F-Droid
   notes, Bubblewrap config and build guide.
 - [ ] **M19b App stores (publish)**
