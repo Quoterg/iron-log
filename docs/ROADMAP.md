@@ -97,11 +97,13 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [x] **M20b In-app Open Food Facts upload** — From the scan flow: name, brand, the label's
   nutrition per 100 g and photos (front, nutrition table) go to Open Food Facts with the user's
   own OFF login (memory only, never stored); the product is then logged right away.
-- [ ] **M21 Security hardening** — From docs/SECURITY-REVIEW.md: S2 Content-Security-Policy (meta tag
-  in index.html, about.html, privacy.html; e2e fails on any CSP violation), S4 bounds on sync input
-  (smaller MAX_PARTS, summary size/values checked, batch count capped; tests), S5 supply chain
-  (`--frozen-lockfile` in CLAUDE.md and docs/ROUTINE.md, dependabot for npm + actions, SECURITY.md).
-- [ ] **M22 Own origin (needs owner decision: domain)** — S1 in docs/SECURITY-REVIEW.md: move the app
-  off the shared `quoterg.github.io` origin to its own domain, with a "move my data" path from the
-  old origin and a new Android build. If no domain is decided, write the question under "Needs
-  decision" in PROGRESS.md and stop.
+- [x] **M21a Content-Security-Policy** — S2 in docs/SECURITY-REVIEW.md: CSP meta tag in the app
+  (production builds) and the static pages; an e2e walk through the main flows fails on any violation.
+- [ ] **M21b Security housekeeping (low)** — S4 bounds on sync input (smaller MAX_PARTS, summary
+  size/values checked, batch count capped; tests), S5 supply chain (`--frozen-lockfile` in CLAUDE.md
+  and docs/ROUTINE.md, dependabot for npm + actions, SECURITY.md).
+- [ ] **M22 Own origin — deferred (owner decision, 2026-10-09)** — S1 in docs/SECURITY-REVIEW.md.
+  The owner keeps `quoterg.github.io` for now with safeguards (2FA on; never rename/delete the
+  account; no GitHub Pages on any other repo; user-site repo stays minimal — see CLAUDE.md). Revisit
+  before promoting the app widely: then move to its own origin (free GitHub organization or own
+  domain) with a "move my data" path and a new Android build. Don't start it without the owner.

@@ -5,10 +5,20 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M21 Security hardening** (see docs/SECURITY-REVIEW.md, S2/S4/S5) — do this before any other
-milestone. Then **M22 Own origin** once the owner has chosen a domain (S1, high). Optional when the
-owner wants it: **M19c** (Play / F-Droid listings). M18d (screen-reader pass) is deferred until
-someone reports an issue.
+**M21b Security housekeeping** (low: sync input bounds, supply chain). M22 (own origin) is deferred
+by the owner — don't start it. Optional when the owner wants it: **M19c** (Play / F-Droid). M18d
+(screen-reader pass) is deferred until someone reports an issue.
+
+## 2026-10-09 — M21a Content-Security-Policy (interactive session)
+
+- S2: strict CSP meta tag in production builds of the app (scripts/styles only from this site,
+  WebAssembly for the scanner fallback, network only to this site and Open Food Facts, no plugins,
+  base-uri/form-action locked) and in the static pages (no scripts at all). Dev builds have none
+  (the dev server injects inline styles).
+- e2e `csp.spec.ts` walks the main flows (log food, nutrients and detail, body chart, recipe
+  editor, export JSON/CSV, language switch, scan → Open Food Facts upload, sync code, static
+  pages) and fails on any `securitypolicyviolation`.
+- S1 decision (owner): keep `quoterg.github.io` for now with safeguards; written into CLAUDE.md.
 
 ## 2026-10-09 — M19b Android app (interactive session)
 

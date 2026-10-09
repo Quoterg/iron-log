@@ -38,4 +38,6 @@ const sv = {
 
 export type SyncKey = keyof typeof sv;
 
-export const ts = (key: SyncKey): string => packOf(lang.value)?.sync?.[key] ?? packOf('en')?.sync?.[key] ?? sv[key];
+// Swedish strings live here; other languages in their pack, falling back to English.
+export const ts = (key: SyncKey): string =>
+  lang.value === 'sv' ? sv[key] : (packOf(lang.value)?.sync?.[key] ?? packOf('en')?.sync?.[key] ?? sv[key]);
