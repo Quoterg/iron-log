@@ -30,6 +30,15 @@ test('profiles saved before the formula change are migrated once, with a notice'
   await expect(page.getByLabel('Energibehov per dag (kcal)')).toHaveValue('2046');
   await expect(page.getByLabel('Aktivitetsnivå')).toHaveValue('1.55');
   await page.getByRole('button', { name: 'OK', exact: true }).click();
+  // The dismissal is written to IndexedDB asynchronously; reload only once it is stored.
+  await page.waitForFunction(async () => {
+    const req = indexedDB.open('iron-log');
+    const db: IDBDatabase = await new Promise((ok) => (req.onsuccess = () => ok(req.result)));
+    const get = db.transaction('kv').objectStore('kv').get('settings');
+    const s = await new Promise<{ energyNotice?: boolean }>((ok) => (get.onsuccess = () => ok(get.result)));
+    db.close();
+    return s?.energyNotice === false;
+  });
   await page.reload();
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
   await expect(page.getByLabel('Aktivitetsnivå')).toHaveValue('1.55');
