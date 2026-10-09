@@ -167,17 +167,18 @@ export async function exportAll(): Promise<AllData> {
 export async function importAll(data: AllData): Promise<void> {
   const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'kv'], 'readwrite');
   // Recipes and custom foods: keep whichever version is newer (an old backup must not undo edits).
-  const newest = async <S extends 'recipes' | 'customFoods'>(store: S, items: Schema[S]['value'][]) => {
+  const newest = async <S extends 'recipes' | 'customFoods' | 'body'>(store: S, items: Schema[S]['value'][]) => {
     const os = tx.objectStore(store);
     for (const item of items) {
-      const cur = await os.get(item.ref);
-      if (!cur || cur.updatedAt <= item.updatedAt) await os.put(item);
+      const key = 'ref' in item ? item.ref : (item as BodyEntry).date;
+      const cur = await os.get(key);
+      if (!cur || cur.updatedAt <= item.updatedAt) await os.put(item as never);
     }
   };
   const puts: Promise<unknown>[] = [
     newest('recipes', data.recipes),
     newest('customFoods', data.customFoods),
-    ...data.body.map((b) => tx.objectStore('body').put(b)),
+    newest('body', data.body),
     ...data.offFoods.map((f) => tx.objectStore('offFoods').put(f)),
     ...data.entries.map((e) => tx.objectStore('entries').put(e)),
     ...data.usage.map((u) => tx.objectStore('usage').put(u)),

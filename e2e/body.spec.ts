@@ -53,6 +53,11 @@ test('body tab fits a 360 px phone', async ({ page }) => {
   await bodyTab(page);
   await logWeight(page, daysAgo(1), '70');
   await logWeight(page, daysAgo(0), '70,5');
+  // A future date is refused (it would otherwise become the "latest" weight).
+  await page.getByLabel('Datum').fill(daysAgo(-2));
+  await page.getByLabel('Vikt (kg)', { exact: true }).fill('60');
+  await page.getByRole('button', { name: 'Spara', exact: true }).click();
+  await expect(page.getByText(/inte framtida datum/)).toBeVisible();
   const { scroll, width } = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, width: innerWidth }));
   expect(scroll).toBeLessThanOrEqual(width);
 });

@@ -19,6 +19,12 @@ export const targetEditorView = lazyView(() => import('./components/TargetEditor
 export const recipeEditorView = lazyView(() => import('./components/RecipeEditor'));
 export const bodyView = lazyView(() => import('./components/BodyView'));
 
+/** Start loading a split-out tab on touch, before the click lands. */
+const PREFETCH: Partial<Record<View, () => void>> = {
+  settings: () => void settingsView.prefetch(),
+  body: () => void bodyView.prefetch(),
+};
+
 export function App() {
   const s = top.value;
   return (
@@ -40,7 +46,7 @@ export function App() {
               key={v}
               class={view.value === v ? 'active' : ''}
               // Start loading Settings on touch, before the click lands.
-              onPointerDown={v === 'settings' ? () => void settingsView.prefetch() : v === 'body' ? () => void bodyView.prefetch() : undefined}
+              onPointerDown={PREFETCH[v]}
               onClick={() => (view.value = v)}
             >
               {t(v)}

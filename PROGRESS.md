@@ -19,8 +19,14 @@ Done:
   arrow keys; "Visa som tabell" table view. Colours validated with the dataviz palette checker:
   light #1f7a4d / #3b6fb6, dark #36a56f / #5f8bd0 (CSS tokens `--chart-trend`, `--chart-point`).
 - Range chips 30 d / 90 d / 1 år / allt; the trend is computed over the full history.
-- Tests: 75 unit (moving average, ranges, ticks, backup), 25 Playwright (log → chart/table/keyboard,
-  profile update, 360 px fit). Initial JS 31.2 KB gzip.
+- Review fixes (reviewer agent on PR #14): import keeps the newer body entry per day; future
+  dates refused (form + `saveBody`); deleting the newest weigh-in falls back to the next newest
+  for the profile; "today" refreshes on visibility change; long histories draw ≤ 240 dots
+  (min/max per bucket), table rows render only when opened, nearest point by binary search,
+  series/trends memoised; year on axis labels for spans > 300 days. Found while testing: the
+  readout ↔ hint swap shifted the layout under the pointer (taps landed elsewhere) → fixed height.
+- Tests: 78 unit (+ body state: profile fallback, future date, import precedence), 25 Playwright.
+  Initial JS 31.3 KB gzip.
 
 ## 2026-10-09 — M11 Global food data (interactive session)
 

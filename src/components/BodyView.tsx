@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 import { lastDays, movingAverage, series, type BodyEntry, type BodyMetric } from '../lib/body';
 import { isoDate } from '../lib/db';
 import { inputNum, parseNum, t } from '../lib/i18n';
@@ -20,10 +20,21 @@ const RANGES: { days: number | null; label: 'range30' | 'range90' | 'range365' |
 /** The "Kropp" tab: log weight, body fat and waist; see trends. Loaded lazily. */
 export default function BodyView() {
   useEffect(() => void loadBody(), []);
-  const today = isoDate(new Date());
+  // "Today" moves on if the app stays open past midnight.
+  const [today, setToday] = useState(() => isoDate(new Date()));
+  useEffect(() => {
+    const refresh = () => document.visibilityState === 'visible' && setToday(isoDate(new Date()));
+    document.addEventListener('visibilitychange', refresh);
+    return () => document.removeEventListener('visibilitychange', refresh);
+  }, []);
   const [day, setDay] = useState(today);
   const [range, setRange] = useState<number | null>(90);
   const log = bodyLog.value;
+  // Series and trends depend only on the log; range chips just re-slice them.
+  const all = useMemo(
+    () => METRICS.map((m) => ({ m, all: log ? series(log, m.key) : [] })).map((x) => ({ ...x, trend: movingAverage(x.all) })),
+    [log],
+  );
   if (!log) return <p class="muted center">{t('loading')}</p>;
 
   const existing = log.find((e) => e.date === day);
@@ -41,10 +52,8 @@ export default function BodyView() {
           </button>
         ))}
       </div>
-      {METRICS.map((m) => {
-        const all = series(log, m.key);
+      {all.map(({ m, all, trend }) => {
         // Trend from the full history, so the window's first points still average real data.
-        const trend = movingAverage(all);
         const pts = lastDays(all, today, range);
         const tr = trend.slice(trend.length - pts.length);
         return pts.length ? (
@@ -69,6 +78,7 @@ function BodyForm({ day, existing, onDay, today }: { day: string; existing?: Bod
 
   const submit = async (e: Event) => {
     e.preventDefault();
+    if (day > today) return setError(true);
     const entry: BodyEntry = { date: day, updatedAt: Date.now() };
     for (const m of METRICS) {
       const text = vals[m.key].trim();

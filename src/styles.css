@@ -257,7 +257,7 @@ fieldset.sources legend { color: var(--muted); padding: 0; margin-bottom: 6px; }
 .chart .point { fill: var(--chart-point); stroke: var(--card); stroke-width: 2; }
 .chart .point.on { r: 6; }
 .chart .crosshair { stroke: var(--muted); stroke-width: 1; }
-.chart-tip { min-height: 1.4em; margin: 4px 0; font-size: 0.85rem; }
+.chart-tip { min-height: 2.9em; margin: 4px 0; font-size: 0.85rem; } /* fixed: readout ↔ hint swap must not shift layout */
 .chart details summary { cursor: pointer; color: var(--accent); min-height: 32px; }
 table.data { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }

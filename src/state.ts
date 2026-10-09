@@ -381,12 +381,16 @@ export async function loadBody(): Promise<void> {
  * profile's weight/body fat, so automatic energy follows your weight.
  */
 export async function saveBody(e: BodyEntry): Promise<void> {
+  // Never in the future: a future entry would become the "latest" weight.
+  if (e.date > db.isoDate(new Date())) throw new Error('Body entry in the future');
   await loadBody();
   const empty = e.weightKg == null && e.bodyFatPct == null && e.waistCm == null;
   const rest = (bodyLog.value ?? []).filter((x) => x.date !== e.date);
   bodyLog.value = empty ? rest : [...rest, e];
   if (empty) await db.deleteBody(e.date);
   else await db.putBody(e);
+  // The newest remaining measurement drives the profile (also after deleting the newest one).
+  // With no measurements left, the profile keeps what was typed there.
   const latest = (metric: 'weightKg' | 'bodyFatPct') =>
     (bodyLog.value ?? []).filter((x) => x[metric] != null).sort((a, b) => b.date.localeCompare(a.date))[0]?.[metric];
   const p = settings.value.profile;
