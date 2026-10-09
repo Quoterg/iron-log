@@ -63,5 +63,8 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   a11y audit (screen readers, contrast, font scaling 200%); RTL-safe CSS.
 - [ ] **M19 App stores** — Android Trusted Web Activity build (Bubblewrap), F-Droid notes,
   store listing texts, privacy policy, landing page.
-- [ ] **M20 Contribute back** — Submit missing products/photos to Open Food Facts from the app;
-  report data errors; contributor docs.
+- [x] **M20 Contribute back** — Submit missing products/photos to Open Food Facts from the app;
+  report data errors; contributor docs. (Done as links to OFF's own add/edit pages — no OFF
+  credentials pass through the app — plus prefilled GitHub issues and CONTRIBUTING.md.)
+- [ ] **M20b In-app Open Food Facts upload** — Submit nutrition facts and label photos via the
+  OFF write API from the scan flow (needs an OFF account login flow).

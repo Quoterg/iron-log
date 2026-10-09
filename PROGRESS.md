@@ -7,6 +7,22 @@ Keep entries short — this file is read at the start of every session.
 
 **M16b Amino acids**, then **M17** (see docs/ROADMAP.md).
 
+## 2026-10-09 — M20 Contribute back (interactive session)
+
+Done:
+- Scan finds nothing → link to Open Food Facts' "add product" page with the barcode; product
+  without nutrition facts → link to its OFF page. Barcode products' detail pages link to OFF to
+  correct or complete them. Everything happens on OFF's own website: no OFF credentials pass
+  through Iron Log.
+- Built-in foods (SLV/USDA): "Rapportera fel i livsmedelsdata" opens a prefilled GitHub issue
+  (food, ref, source, what's wrong, correct value + source).
+- CONTRIBUTING.md: food data (OFF, SLV/USDA errors, household measures, NNR rows), code setup,
+  performance rules, translations, bug reports.
+- In-app OFF upload (nutrition + photos via the OFF write API, needs an OFF login) split out as
+  **M20b**.
+- Tests: unit (link building, encoding), e2e (scan not found → OFF link; report link on an SLV
+  food). Initial JS 36.1 KB gzip (+0.5 KB: strings, link helpers in the food screen).
+
 ## 2026-10-09 — M16 More nutrients (interactive session)
 
 Done:
