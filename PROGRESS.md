@@ -20,7 +20,13 @@ Done:
 - Performance (reviewer note on PR #8): Settings and the target editor are split out with a tiny
   `lazyView()` (no preact/compat) and prefetched when idle so the service worker caches them
   (offline e2e test). Initial JS 28.4 → 26.6 KB gzip.
-- Tests: 51 unit, 17 Playwright (incl. offline split chunks, no-overflow on the editor).
+- Review fixes (reviewer agent on PR #9): an override bound that contradicts a later preset is
+  ignored and flagged (no "130 / 25 g"); rejected input shows a message; decimal comma in editor
+  inputs; lazy screens show "try again" if a chunk fails to load offline; override values capped
+  (`TARGET_MAX`) and prototype keys skipped on import; split chunks prefetch *after* the food
+  database, Settings also on touch of its tab.
+- Tests: 55 unit, 17 Playwright (run locally, stable over --repeat-each=2; also in CI).
+  Initial JS 27.1 KB gzip.
 
 ## 2026-10-09 — M8 Profile-based targets (interactive session)
 

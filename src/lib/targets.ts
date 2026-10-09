@@ -217,18 +217,47 @@ export function computeTargets(s: TargetSettings): Record<string, Target> {
     }
   }
   for (const [key, o] of Object.entries(s.targetOverrides ?? {})) {
-    const base = t[key] ?? { min: null, max: null };
-    t[key] = { min: o.min ?? base.min, max: o.max ?? base.max };
+    t[key] = mergeOverride(t[key] ?? { min: null, max: null }, o);
   }
   return t;
 }
 
+/**
+ * Apply an override to a default target. A bound that contradicts the other side (e.g. a carbs
+ * minimum of 130 g kept from before switching to keto's 25 g maximum) is ignored rather than
+ * producing an impossible target; `overrideConflicts` lets the editor point this out.
+ */
+export function mergeOverride(base: Target, o: TargetOverride): Target {
+  let min = o.min ?? base.min;
+  let max = o.max ?? base.max;
+  if (min != null && max != null && min > max) {
+    if (o.min !== undefined && o.max === undefined) min = base.min;
+    else if (o.max !== undefined && o.min === undefined) max = base.max;
+  }
+  return { min, max };
+}
+
+/** Override bounds that are ignored because they contradict the default's other bound. */
+export function overrideConflicts(s: TargetSettings): Set<string> {
+  const defaults = computeTargets({ ...s, targetOverrides: {} });
+  const out = new Set<string>();
+  for (const [key, o] of Object.entries(s.targetOverrides ?? {})) {
+    const m = mergeOverride(defaults[key] ?? { min: null, max: null }, o);
+    if ((o.min !== undefined && m.min !== o.min) || (o.max !== undefined && m.max !== o.max)) out.add(key);
+  }
+  return out;
+}
+
 /** Old settings stored overrides as `{ key: minNumber }`; convert to `{ key: { min } }`. */
+/** Largest value accepted for a target (UI and backup import share it). */
+export const TARGET_MAX = 1e6;
+
 export function normalizeOverrides(x: unknown): Record<string, TargetOverride> {
   const out: Record<string, TargetOverride> = {};
   if (typeof x !== 'object' || x === null) return out;
   for (const [k, v] of Object.entries(x as Record<string, unknown>)) {
-    const ok = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 0;
+    if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
+    const ok = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n < TARGET_MAX;
     if (ok(v)) out[k] = { min: v };
     else if (typeof v === 'object' && v !== null) {
       const { min, max } = v as { min?: unknown; max?: unknown };

@@ -60,6 +60,21 @@ describe('profile import', () => {
     expect(withProfile({ sex: 'male', kcal: 2500, age: 12 })?.age).toBeUndefined();
   });
 
+  it('round-trips macro presets and custom ranges; invalid custom falls back to NNR', () => {
+    const settingsOf = (extra: object) =>
+      parseBackup(
+        JSON.stringify({
+          ...makeBackup(data),
+          settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: {}, ...extra },
+        }),
+      ).settings;
+    const pct = { protein: [30, 40], carbs: [20, 40], fat: [25, 45] };
+    expect(settingsOf({ macroPreset: 'custom', macroPct: pct })).toMatchObject({ macroPreset: 'custom', macroPct: pct });
+    expect(settingsOf({ macroPreset: 'keto' })?.macroPreset).toBe('keto');
+    expect(settingsOf({ macroPreset: 'custom', macroPct: { protein: [50, 10] } })?.macroPreset).toBe('nnr');
+    expect(settingsOf({ macroPreset: 'carnivore' })?.macroPreset).toBeUndefined();
+  });
+
   it('keeps automatic energy only with the data it needs', () => {
     expect(withProfile({ sex: 'male', kcal: 2500, kcalAuto: true, age: 40 })?.kcalAuto).toBeUndefined();
   });

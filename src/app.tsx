@@ -31,7 +31,13 @@ export function App() {
         </main>
         <nav class="tabs">
           {TABS.map((v) => (
-            <button key={v} class={view.value === v ? 'active' : ''} onClick={() => (view.value = v)}>
+            <button
+              key={v}
+              class={view.value === v ? 'active' : ''}
+              // Start loading Settings on touch, before the click lands.
+              onPointerDown={v === 'settings' ? () => void settingsView.prefetch() : undefined}
+              onClick={() => (view.value = v)}
+            >
               {t(v)}
             </button>
           ))}

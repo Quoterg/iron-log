@@ -15,8 +15,12 @@ test('presets and per-nutrient targets change what the nutrients tab measures ag
   await nutrientsTab(page);
   await page.getByRole('button', { name: 'Anpassa mål' }).click();
 
+  // A carbs minimum set under NNR contradicts keto later: it is flagged and ignored.
+  await setField(page, 'Kolhydrater Mål', '130');
+
   // Keto: carbs capped at 5 E% = 25 g of 2000 kcal.
   await page.getByLabel('Förval').selectOption('keto');
+  await expect(page.getByText('Ditt eget värde ignoreras eftersom det motsäger förvalet.')).toBeVisible();
   await expect(page.getByLabel('Kolhydrater Max %')).toHaveValue('5');
   // Per-nutrient defaults reflect the preset (25 g carbs), not plain NNR.
   await expect(page.getByLabel('Kolhydrater Max', { exact: true })).toHaveAttribute('placeholder', '25');
@@ -24,9 +28,13 @@ test('presets and per-nutrient targets change what the nutrients tab measures ag
   // Own iron target and salt limit.
   await setField(page, 'Järn Mål', '18');
   await setField(page, 'Salt Max', '4');
-  // Invalid (min above the max) is rejected.
+  // Invalid (min above the max) is rejected, with a message.
   await setField(page, 'Natrium Mål', '9000');
   await expect(page.getByLabel('Natrium Mål', { exact: true })).toHaveValue('');
+  await expect(page.getByRole('alert')).toContainText('Ogiltigt värde för Natrium');
+  // Decimal comma is kept as typed.
+  await setField(page, 'Vitamin B12 Mål', '4,5');
+  await expect(page.getByLabel('Vitamin B12 Mål', { exact: true })).toHaveValue('4,5');
 
   await page.getByRole('button', { name: /Tillbaka/ }).click();
   await expect(target(page, 'Kolhydrater')).toContainText('/ 25 g');

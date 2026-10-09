@@ -6,6 +6,8 @@ import {
   nnrTargets,
   normalizeMacroPct,
   normalizeOverrides,
+  nnrMacroPct,
+  overrideConflicts,
   snapPal,
   withEnergy,
   type Profile,
@@ -125,6 +127,25 @@ describe('adjusted targets (presets and overrides)', () => {
       zinc: { min: 10, max: 40 },
     });
     expect(normalizeOverrides(undefined)).toEqual({});
+  });
+
+  it('ignores an override bound that contradicts a later preset (no impossible 130 / 25 g)', () => {
+    const s = { profile, macroPreset: 'keto' as const, targetOverrides: { carbs: { min: 130 }, iron: { min: 18 } } };
+    expect(computeTargets(s).carbs).toEqual({ min: null, max: 25 });
+    expect([...overrideConflicts(s)]).toEqual(['carbs']);
+    expect(computeTargets({ ...s, macroPreset: 'nnr' }).carbs).toEqual({ min: 130, max: 300 });
+  });
+
+  it('low carb rounds grams from E%; NNR protein is 15–20 E% over 65', () => {
+    expect(computeTargets({ profile, macroPreset: 'lowCarb' }).carbs).toEqual({ min: 50, max: 125 });
+    expect(nnrMacroPct(66).protein).toEqual([15, 20]);
+    expect(nnrMacroPct(65).protein).toEqual([10, 20]);
+  });
+
+  it('rejects huge or prototype-polluting override keys', () => {
+    const raw = JSON.parse('{"__proto__": {"min": 1}, "iron": {"min": 1e300}, "zinc": {"max": 40}}');
+    expect(normalizeOverrides(raw)).toEqual({ zinc: { max: 40 } });
+    expect(Object.getPrototypeOf(normalizeOverrides(raw))).toBe(Object.prototype);
   });
 
   it('validates custom macro ranges', () => {

@@ -19,10 +19,14 @@ async function start() {
   await loadDay(date.value);
   // Load the food database in the background once the diary is on screen.
   requestIdleCallbackShim(() => {
-    warmUp();
-    // Fetch split-out screens too, so the service worker has them for offline use.
-    void settingsView.prefetch();
-    void targetEditorView.prefetch();
+    // Food database first (search needs it); then the split-out screens, so the service worker
+    // has them for offline use without competing with the food download on a slow connection.
+    void warmUp()
+      .catch(() => {})
+      .then(() => {
+        void settingsView.prefetch();
+        void targetEditorView.prefetch();
+      });
   });
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);

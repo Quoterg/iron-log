@@ -224,3 +224,5 @@ table.targets tbody th { font-weight: 400; overflow-wrap: anywhere; width: 42%; 
 table.targets input { width: 100%; min-width: 0; padding: 8px; min-height: 40px; }
 table.targets input[readonly] { color: var(--muted); }
 table.targets tr.changed th { font-weight: 600; }
+
+.block { display: block; }

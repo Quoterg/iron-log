@@ -7,19 +7,40 @@ import { t } from './lib/i18n';
 
 export function lazyView<P extends object>(load: () => Promise<{ default: ComponentType<P> }>) {
   const comp = signal<ComponentType<P> | null>(null);
+  const failed = signal(false);
   let pending: Promise<void> | undefined;
   const prefetch = () =>
     (pending ??= load().then(
-      (m) => void (comp.value = m.default),
-      () => void (pending = undefined), // allow a retry, e.g. after coming back online
+      (m) => {
+        failed.value = false;
+        comp.value = m.default;
+      },
+      () => {
+        pending = undefined; // allow a retry, e.g. after coming back online
+        failed.value = true;
+      },
     ));
   function Lazy(props: P) {
     const C = comp.value;
-    if (!C) {
-      void prefetch();
-      return <p class="muted center">{t('loading')}</p>;
+    if (C) return <C {...props} />;
+    if (failed.value) {
+      return (
+        <div class="pad center">
+          <p class="muted">{t('loadFailed')}</p>
+          <button
+            class="btn"
+            onClick={() => {
+              failed.value = false; // show "Laddar…" while retrying
+              void prefetch();
+            }}
+          >
+            {t('retry')}
+          </button>
+        </div>
+      );
     }
-    return <C {...props} />;
+    void prefetch();
+    return <p class="muted center">{t('loading')}</p>;
   }
   return { Lazy, prefetch };
 }

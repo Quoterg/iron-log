@@ -73,8 +73,8 @@ function postCustom(w: Worker) {
 }
 
 /** Start loading the food database early (call after first paint). */
-export function warmUp(): void {
-  void call({ type: 'get', refs: [] });
+export function warmUp(): Promise<unknown> {
+  return call({ type: 'get', refs: [] });
 }
 
 /**

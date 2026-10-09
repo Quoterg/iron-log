@@ -141,7 +141,12 @@ const sv = {
   preset_custom: 'Egen fördelning',
   minPct: 'Min %',
   maxPct: 'Max %',
-  customHint: 'Ändra procenten genom att välja ”Egen fördelning”.',
+  customHint: 'Ändra procenten genom att välja ”Egen fördelning” (den utgår från nuvarande fördelning och följer inte med om din ålder ändras).',
+  invalidTarget: 'Ogiltigt värde för {name}: ange ett tal från 0 och se till att målet inte är högre än max.',
+  invalidPct: 'Ogiltig procent för {name}: 0–100 och min högst max.',
+  conflictNote: 'Ditt eget värde ignoreras eftersom det motsäger förvalet.',
+  loadFailed: 'Kunde inte ladda. Kontrollera anslutningen.',
+  retry: 'Försök igen',
   pctSumWarning: 'Intervallen går inte ihop till 100 % – kontrollera min och max.',
   perNutrient: 'Mål per näringsämne',
   perNutrientHint: 'Lämna tomt för att använda standardvärdet (visas i grått). Målet är ett minimum, max är en övre gräns.',
@@ -290,7 +295,12 @@ const en: Dict = {
   preset_custom: 'Custom',
   minPct: 'Min %',
   maxPct: 'Max %',
-  customHint: 'Choose “Custom” to change the percentages.',
+  customHint: 'Choose “Custom” to change the percentages (it starts from the current split and does not follow later age changes).',
+  invalidTarget: 'Invalid value for {name}: enter a number from 0 and keep the target at or below the max.',
+  invalidPct: 'Invalid percentage for {name}: 0–100 and min at most max.',
+  conflictNote: 'Your value is ignored because it contradicts the preset.',
+  loadFailed: 'Could not load. Check your connection.',
+  retry: 'Try again',
   pctSumWarning: 'The ranges cannot add up to 100% – check min and max.',
   perNutrient: 'Targets per nutrient',
   perNutrientHint: 'Leave empty to use the default (shown in grey). Target is a minimum, max is an upper limit.',
@@ -341,6 +351,11 @@ const UNIT_LABELS: Record<string, [sv: string, en: string]> = {
 export function unitLabel(name: string): string {
   const l = UNIT_LABELS[name];
   return l ? l[lang.value === 'sv' ? 0 : 1] : name;
+}
+
+/** A number as typed into an input: decimal comma in Swedish (matches what parseNum accepts). */
+export function inputNum(n: number): string {
+  return lang.value === 'sv' ? String(n).replace('.', ',') : String(n);
 }
 
 /** Parse a user-typed number; accepts decimal comma ("1,5"). NaN when empty or invalid. */

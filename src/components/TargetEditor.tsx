@@ -1,9 +1,12 @@
-import { fmt, fmtAmount, lang, parseNum, t } from '../lib/i18n';
+import { useState } from 'preact/hooks';
+import { fmt, fmtAmount, inputNum, lang, parseNum, t } from '../lib/i18n';
 import { NUTRIENTS, type NutrientGroup } from '../lib/nutrients';
 import {
   computeTargets,
   macroRanges,
   nnrMacroPct,
+  overrideConflicts,
+  TARGET_MAX,
   type MacroKey,
   type MacroPct,
   type MacroPreset,
@@ -27,6 +30,9 @@ export default function TargetEditor() {
   const overrides = s.targetOverrides;
   // The E% ranges shown: the preset's, or (for NNR / a fresh custom) the NNR ones from the profile.
   const shown: MacroPct = macroRanges(s) ?? nnrMacroPct(s.profile.age);
+  const conflicts = overrideConflicts(s);
+  // Feedback for rejected input (otherwise the value would just vanish).
+  const [error, setError] = useState<{ key: string; text: string } | null>(null);
 
   const setPreset = (p: MacroPreset) =>
     void updateSettings({ macroPreset: p, macroPct: p === 'custom' ? (s.macroPct ?? shown) : s.macroPct });
@@ -35,7 +41,11 @@ export default function TargetEditor() {
     const v = parseNum(text);
     const next: MacroPct = { ...shown, [key]: [...shown[key]] as [number, number] };
     next[key][i] = v;
-    if (!(v >= 0 && v <= 100 && next[key][0] <= next[key][1])) return void (el.value = String(shown[key][i]));
+    if (!(v >= 0 && v <= 100 && next[key][0] <= next[key][1])) {
+      el.value = inputNum(shown[key][i]);
+      return setError({ key: `${key}-pct`, text: t('invalidPct').replace('{name}', label(key)) });
+    }
+    setError(null);
     void updateSettings({ macroPreset: 'custom', macroPct: next });
   };
 
@@ -46,9 +56,13 @@ export default function TargetEditor() {
       const v = parseNum(text);
       const other = bound === 'min' ? (o.max ?? effective[key]?.max) : (o.min ?? effective[key]?.min);
       const ordered = other == null || (bound === 'min' ? v <= other : v >= other);
-      if (!(v >= 0 && v < 1e6 && ordered)) return void (el.value = o[bound] == null ? '' : String(o[bound]));
+      if (!(v >= 0 && v < TARGET_MAX && ordered)) {
+        el.value = o[bound] == null ? '' : inputNum(o[bound]!);
+        return setError({ key, text: t('invalidTarget').replace('{name}', label(key)) });
+      }
       o[bound] = v;
     }
+    setError(null);
     const next = { ...overrides };
     if (o.min === undefined && o.max === undefined) delete next[key];
     else next[key] = o;
@@ -95,7 +109,8 @@ export default function TargetEditor() {
                       type="text"
                       inputMode="decimal"
                       aria-label={`${label(k)} ${i === 0 ? t('minPct') : t('maxPct')}`}
-                      value={String(shown[k][i])}
+                      value={inputNum(shown[k][i])}
+                      aria-invalid={error?.key === `${k}-pct`}
                       readOnly={preset !== 'custom'}
                       onChange={(e) => setPct(k, i, (e.currentTarget as HTMLInputElement).value, e.currentTarget as HTMLInputElement)}
                     />
@@ -110,9 +125,19 @@ export default function TargetEditor() {
         </table>
         {preset !== 'custom' && <p class="muted small">{t('customHint')}</p>}
         {(sumMin > 100 || sumMax < 100) && <p class="small warn">{t('pctSumWarning')}</p>}
+        {error?.key.endsWith('-pct') && (
+          <p class="small warn" role="alert">
+            {error.text}
+          </p>
+        )}
 
         <h3>{t('perNutrient')}</h3>
         <p class="muted small">{t('perNutrientHint')}</p>
+        {error && !error.key.endsWith('-pct') && (
+          <p class="small warn" role="alert">
+            {error.text}
+          </p>
+        )}
         <table class="targets">
           <thead>
             <tr>
@@ -130,6 +155,7 @@ export default function TargetEditor() {
                 <tr key={n.key} class={overrides[n.key] ? 'changed' : ''}>
                   <th scope="row">
                     {n[lang.value]} <span class="muted">({n.unit})</span>
+                    {conflicts.has(n.key) && <span class="small warn block">{t('conflictNote')}</span>}
                   </th>
                   {(['min', 'max'] as const).map((b) => (
                     <td key={b}>
@@ -137,7 +163,8 @@ export default function TargetEditor() {
                         type="text"
                         inputMode="decimal"
                         aria-label={`${n[lang.value]} ${b === 'min' ? t('target') : t('limit')}`}
-                        value={o[b] == null ? '' : String(o[b])}
+                        value={o[b] == null ? '' : inputNum(o[b]!)}
+                        aria-invalid={error?.key === n.key || conflicts.has(n.key)}
                         placeholder={d?.[b] == null ? '–' : fmtAmount(d[b]!)}
                         onChange={(e) => setBound(n.key, b, (e.currentTarget as HTMLInputElement).value, e.currentTarget as HTMLInputElement)}
                       />
@@ -155,4 +182,3 @@ export default function TargetEditor() {
     </Sheet>
   );
 }
-
