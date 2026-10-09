@@ -28,6 +28,20 @@ Done:
 
 Not done (split out as M16b): amino acids.
 
+## 2026-10-09 — M19 App stores (interactive session)
+
+Done:
+- `public/privacy.html` (sv + en): no accounts, no tracking, data only on the device; what goes
+  over the network (app/data files from GitHub Pages; barcodes to Open Food Facts). Linked from
+  Settings next to the privacy line, with `public/about.html`, a static landing page.
+- `android/twa-manifest.json` (Bubblewrap) + `android/README.md`: build steps, signing key kept
+  out of version control (.gitignore). **Blocker before publishing:** Digital Asset Links must be
+  served at the origin root (`/.well-known/assetlinks.json`), which a project page under
+  quoterg.github.io/iron-log/ can't do — needs a custom domain or a `Quoterg.github.io` user site.
+- `docs/STORE-LISTING.md` (texts sv/en, category, rating, Play data-safety answers, graphics
+  checklist) and `docs/FDROID.md` (TWA caveats; PWA install as the no-store path).
+- Manifest: `id` and `categories`. e2e: both pages reachable from Settings, no overflow at 360 px.
+
 ## 2026-10-09 — M15 Supplements (interactive session)
 
 Done:

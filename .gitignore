@@ -7,3 +7,7 @@ playwright-report/
 *.log
 lhci-report/
 .lighthouseci/
+
+# Android signing key (never commit)
+android/*.keystore
+android/*.jks

@@ -90,7 +90,9 @@ function General() {
           <option value="en">English</option>
         </select>
       </label>
-      <p class="muted small">{t('privacy')}</p>
+      <p class="muted small">
+        {t('privacy')} <a href="privacy.html">{t('privacyPolicy')}</a> · <a href="about.html">{t('aboutApp')}</a>
+      </p>
       <p class="muted small">{t('attribution')}</p>
       <fieldset class="sources">
         <legend>{t('foodDatabases')}</legend>

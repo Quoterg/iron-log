@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iron Log – näringsdagbok</title>
+<meta name="description" content="Iron Log: en snabb, gratis näringsdagbok med öppen källkod. Energi, makron och mikronäringsämnen mot NNR 2023 – data stannar på din enhet.">
+<link rel="icon" href="icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f7a4d">
+<style>
+  :root { --bg: #f6f7f5; --card: #ffffff; --text: #1c211d; --muted: #646d66; --accent: #1f7a4d; --accent-text: #ffffff; color-scheme: light dark; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #121513; --card: #1b1f1c; --text: #e8ece9; --muted: #a3aca5; --accent: #4cc38a; --accent-text: #0d1a12; } }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 44rem; margin: 0 auto; padding: 32px 16px 48px; }
+  header { display: flex; align-items: center; gap: 12px; }
+  header img { width: 56px; height: 56px; }
+  h1 { font-size: 1.8rem; margin: 0; }
+  .lead { font-size: 1.1rem; }
+  .cta { display: inline-block; background: var(--accent); color: var(--accent-text); text-decoration: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; margin: 8px 0 4px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 12px; margin: 24px 0; }
+  .grid div { background: var(--card); border-radius: 12px; padding: 4px 16px 12px; }
+  h2 { font-size: 1.1rem; }
+  a { color: var(--accent); }
+  .muted { color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <header><img src="icon.svg" alt=""><h1>Iron Log</h1></header>
+  <p class="lead">En snabb, gratis näringsdagbok med öppen källkod. Logga maten och se energi, makron och ett 40-tal vitaminer, mineraler och fettsyror mot de nordiska näringsrekommendationerna (NNR 2023).</p>
+  <a class="cta" href="./">Öppna Iron Log</a>
+  <p class="muted">Fungerar i webbläsaren och kan installeras som app (”Lägg till på startskärmen”). Funkar offline.</p>
+
+  <div class="grid">
+    <div><h2>Svensk mat först</h2><p>Livsmedelsverkets databas med svenska namn och vanliga mått (dl, msk, st), plus USDA och Open Food Facts-streckkoder.</p></div>
+    <div><h2>Dina data stannar hos dig</h2><p>Inga konton, ingen spårning. Allt sparas på din enhet och kan exporteras eller raderas när du vill. <a href="privacy.html">Integritet</a></p></div>
+    <div><h2>Snabb på äldre mobiler</h2><p>Liten app (≈ 35 KB komprimerad JavaScript), sökning i en bakgrundstråd och testad med strypt processor.</p></div>
+    <div><h2>Mer än kalorier</h2><p>Recept, egna livsmedel, kosttillskott, vikt och midjemått med trend, aktiviteter, vatten och rapporter över luckor och källor.</p></div>
+  </div>
+
+  <h2>In English</h2>
+  <p>Iron Log is a fast, free, open-source nutrition tracker: energy, macros and around 40 micronutrients against the Nordic Nutrition Recommendations, with Swedish, USDA and Open Food Facts data. No accounts, no tracking – your data stays on your device. <a href="./">Open the app</a> · <a href="privacy.html#en">Privacy</a></p>
+
+  <p class="muted">Öppen källkod (AGPL-3.0): <a href="https://github.com/Quoterg/iron-log">github.com/Quoterg/iron-log</a> · Livsmedelsdata: Livsmedelsverket (CC BY 4.0), USDA FoodData Central (CC0), Open Food Facts (ODbL).</p>
+</main>
+</body>
+</html>
