@@ -5,10 +5,27 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M20b In-app Open Food Facts upload** (approved by the owner), then M18c's remaining screen-reader
-pass (see docs/ROADMAP.md). Waiting on the owner: **M19b** (first signed Android build — keep the
+M18c's remaining screen-reader pass (manual), then new milestones (see docs/ROADMAP.md). Waiting on the owner: **M19b** (first signed Android build — keep the
 keystore — and assetlinks), **M18c** (native-speaker review of da/de/fi/so; screen-reader pass),
 and a real two-phone test of sync (M17).
+
+## 2026-10-09 — M20b In-app Open Food Facts upload (interactive session)
+
+Done (approved by the owner):
+- Scan finds nothing (or no nutrition) → "Lägg till produkten på Open Food Facts" opens an in-app
+  form: name, brand, the EU label's 8 values per 100 g, photos of the front and the nutrition
+  table (shrunk to ≤ 1600 px JPEG before upload), the user's OFF username and password. The app
+  posts to OFF's write API (product_jqm2.pl, product_image_upload.pl — CORS-enabled, checked
+  against the staging server), then saves the product locally and opens it for logging.
+- The password is used for the upload only (cleared afterwards); only the username stays in memory
+  for the session (never IndexedDB, backups or sync). Plausibility checks before publishing
+  (macros ≤ 100 g, sugar ≤ carbs, sat. fat ≤ fat, sum ≤ 105 g, ≤ 900 kcal). Photos upload in
+  parallel, shrunk when chosen; a failed photo never undoes the product. Wrong
+  login, no network and refusals get clear messages; a refused photo doesn't undo the product.
+- The website link stays as a fallback. Upload-screen strings are lazy (strings-off.ts + `off`
+  sections in the packs). Privacy policy and data-safety notes describe the upload.
+- Tests: form fields, success with photos, login/refusal/network errors, refused photo; e2e scan →
+  upload (OFF mocked, wrong then right password) → log; axe + 200 % on the upload screen.
 
 ## 2026-10-09 — M15b Supplement schedules (interactive session)
 

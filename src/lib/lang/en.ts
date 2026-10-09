@@ -71,7 +71,8 @@ const strings: Dict = {
   copy: 'Copy',
   offAdd: 'Add this product to Open Food Facts',
   offComplete: 'Add the nutrition facts on Open Food Facts',
-  offHelpNote: 'The page opens in your browser. Once the product is there, everyone finds it next time.',
+  offHelpNote: 'Then everyone finds the product next time.',
+  offWebsite: 'Or do it on the Open Food Facts website',
   offFix: 'Correct or complete on Open Food Facts',
   reportError: 'Report a data error',
   privacyPolicy: 'Privacy',
@@ -296,5 +297,34 @@ const sync: Record<string, string> = {
   copied: 'Copied',
 };
 
-const pack: LangPack = { strings, sync };
+const off: Record<string, string> = {
+  offUploadTitle: 'Add to Open Food Facts',
+  offBrand: 'Brand',
+  offPhotos: 'Photos (recommended)',
+  offPhotoFront: 'The front',
+  offPhotoNutrition: 'The nutrition table',
+  offAccount: 'Your Open Food Facts account',
+  offUser: 'Username',
+  offPassword: 'Password',
+  offLoginNote: 'The password is used only for this upload and never stored.',
+  offCreateAccount: 'Create an account (free)',
+  offPublishNote: 'The data and photos are published openly on Open Food Facts (ODbL / CC BY-SA) for everyone to use.',
+  offUploadSend: 'Send and add',
+  offUploading: 'Sending…',
+  offUploadLogin: 'Wrong Open Food Facts username or password.',
+  offUploadNetwork: 'Could not reach Open Food Facts. Check your connection and try again.',
+  offUploadRejected: 'Open Food Facts did not accept the product. Check the details or use the website.',
+  offUploadInvalid: 'One of the nutrition values is not a valid number.',
+  offContinue: 'Continue',
+  offPhotosFailed: 'The product was added, but {n} photo(s) did not arrive. You can add them on the Open Food Facts website.',
+  offCheckKcal: 'The energy looks too high (over 900 kcal per 100 g). Is it in kJ?',
+  offCheckSum: 'Fat, carbohydrates, protein, fibre and salt add up to more than 100 g – check the decimals.',
+  offCheckParts: 'Sugars cannot be more than carbohydrates, nor saturated fat more than fat.',
+  offCheckMacros: 'No nutrient can be more than 100 g per 100 g – check the decimals.',
+  offMissingLogin: 'Fill in your Open Food Facts username and password.',
+  offMissingKcal: 'Fill in the energy (kcal per 100 g) from the label.',
+  offMissingName: 'Fill in the product name.',
+};
+
+const pack: LangPack = { strings, sync, off };
 export default pack;

@@ -235,11 +235,16 @@ export async function lookupBarcode(code: string): Promise<Food> {
   const cached = offFoods.value.find((f) => f.ref === ref) ?? (await db.getOffFood(ref));
   if (cached) return toFood(cached);
   const food = await fetchProduct(code);
+  await rememberOffFood(food);
+  return food;
+}
+
+/** Keep an Open Food Facts product on this device (searchable, works offline). */
+export async function rememberOffFood(food: Food): Promise<void> {
   const off: OffFood = { ...food, fetchedAt: Date.now() };
-  offFoods.value = [...offFoods.value.filter((f) => f.ref !== ref), off];
+  offFoods.value = [...offFoods.value.filter((f) => f.ref !== food.ref), off];
   syncCustomFoods();
   await db.putOffFood(off);
-  return food;
 }
 
 /** Create (no ref) or update a custom food. Returns its ref. */

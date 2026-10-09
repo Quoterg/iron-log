@@ -68,6 +68,10 @@ developer or third party receives it. Re-check this against Play's definitions b
 Also not declared: links the user taps (Open Food Facts pages, GitHub issues) open those websites in
 the browser; nothing is sent by the app itself.
 
+Also user-initiated (M20b): adding a product to Open Food Facts sends what the user enters (product
+name, brand, nutrition), the photos they take and their own OFF username/password to Open Food
+Facts, where the product data and photos are published openly.
+
 What we declare on the form:
 
 - **Does your app collect or share any of the required user data types? Yes.**
@@ -76,6 +80,9 @@ What we declare on the form:
   (we can't promise how OFF logs requests). Required: no — optional, only when the user scans.
   Purpose: **App functionality**. Not used for tracking, ads or analytics; not linked to an
   identity (no accounts).
+- **Photos and user-generated content** (product photos and details the user chooses to add to Open
+  Food Facts): *shared* with Open Food Facts, optional, user-initiated, purpose App functionality.
+  The OFF login is sent with it (needed to publish) and never stored.
 - **IP address:** not a data type of its own on the form. It is seen by Open Food Facts and GitHub
   Pages as part of any web request; we don't use it to derive location, so "Location" is not
   declared. This is stated in the privacy policy and here, so the reasoning is public.

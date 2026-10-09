@@ -37,14 +37,16 @@ describe('language packs', () => {
     });
   }
 
-  it('every pack has every sync-screen string, with its placeholders', async () => {
-    const en = (await import('./lang/en')).default.sync!;
-    for (const code of ['da', 'de', 'fi', 'so'] as const) {
-      const sync = (await import(`./lang/${code}.ts`)).default.sync as Record<string, string>;
-      expect(Object.keys(sync).sort(), code).toEqual(Object.keys(en).sort());
-      for (const k of Object.keys(en)) expect(placeholders(sync[k]), `${code}.${k}`).toEqual(placeholders(en[k]));
-    }
-  });
+  for (const section of ['sync', 'off'] as const) {
+    it(`every pack has every ${section}-screen string, with its placeholders`, async () => {
+      const en = (await import('./lang/en')).default[section]!;
+      for (const code of ['da', 'de', 'fi', 'so'] as const) {
+        const own = (await import(`./lang/${code}.ts`)).default[section] as Record<string, string>;
+        expect(Object.keys(own).sort(), code).toEqual(Object.keys(en).sort());
+        for (const k of Object.keys(en)) expect(placeholders(own[k]), `${code}.${k}`).toEqual(placeholders(en[k]));
+      }
+    });
+  }
 
   it('loads a language on demand and falls back to English for missing strings', async () => {
     const i18n = await import('./i18n');
