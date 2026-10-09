@@ -85,13 +85,24 @@ Nutrients are stored as a fixed-order vector keyed by EuroFIR component codes
 The owner's choice (2026-10-09): no server, no account. Two of the user's devices connect directly
 (WebRTC; pairing by QR code in M17b) and exchange changes; nothing is stored anywhere else.
 
-- **Change tracking (`meta` store, DB v9).** Every write and delete in `src/lib/db.ts` also writes
+- **Change log (`meta` store, DB v9).** Every write and delete in `src/lib/db.ts` also writes
   `meta[`${store}:${key}`] = { mt, del? }` in the same transaction — `mt` is the change time,
-  `del` a tombstone so deletions sync instead of records coming back. Record formats (and backups)
-  are unchanged. Records from before v9 have no meta and count as changed at time 0.
-- **Engine (`src/lib/sync.ts`, lazy).** Both devices send a summary (key → mt), then each sends
-  what the other lacks or has older; applying keeps whichever change is newest (ties keep the local
-  copy). Incoming records go through the backup validators and must match their key; anything
-  invalid aborts the sync before a single write.
-- **Semantics.** Last write wins per record, by wall clock. A backup restore counts as a fresh
-  change. `usage` (ranking counts) also syncs last-write-wins, which may lose a few counts.
+  `del` a tombstone so deletions sync instead of records coming back. The v9 upgrade stamps all
+  existing records, so the log covers everything. Record formats (and backups) are unchanged.
+- **Engine (`src/lib/sync.ts`, lazy).** Both devices send a summary read from the log (key → mt),
+  then each sends what the other lacks or has older (records read once per store); applying keeps
+  whichever change is newest. Ties keep the local copy, record or deletion alike. Incoming records
+  go through the backup validators and must match their key; anything invalid aborts the sync
+  before a single write. Change times from the other device are capped at 5 minutes ahead.
+- **Merge details.** `usage` keeps the larger count (counts add up on both devices). Settings sync,
+  except the device-local `lang`, `sources` and `energyNotice`.
+- **Tombstones** are pruned after 90 days. Trade-off: a device that hasn't synced for longer can
+  bring back records deleted elsewhere.
+- **Backup restore** only adds missing records (or newer versions of recipes, custom foods, body
+  entries) and never writes over a later deletion; restored records keep their own time, so an
+  old backup can't override newer data on a paired device. Restored settings count as a change now.
+- **"Radera all data" is device-local**: it clears the log too, so a later sync copies the paired
+  device's data back. Wiping a phone before giving it away must never delete the data on the
+  user's other devices; the confirmation says so.
+- **Wire size.** A first sync is one big `changes` message (a year of history: a few MB); M17b's
+  transport splits messages into parts below the data-channel message limit.

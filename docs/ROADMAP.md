@@ -63,7 +63,8 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   - [x] **M17a Sync engine** — change tracking (`meta` store with tombstones, DB v9) on every
     write, transport-agnostic merge (newest change wins), validation of incoming records.
   - [ ] **M17b Pairing** — "Synka" screen: QR offer/answer exchange (camera or pasted code),
-    WebRTC data channel on the same network (no STUN server), progress, reload of state after sync.
+    WebRTC data channel on the same network (no STUN server), messages split into parts (a first
+    sync is several MB; data channels cap message size), progress, reload of state after sync.
 - [x] **M18a Accessibility audit** — axe-core (WCAG 2.1 A/AA) in light and dark mode, and 200 %
   text size at 360 px without horizontal scrolling, on: diary (empty/first run), food search, food
   amount, edit entry, custom food editor, barcode scan, copy day, nutrients, nutrient detail,

@@ -113,6 +113,19 @@ export interface Meta {
 
 export const metaKey = (store: SyncStore, key: string) => `${store}:${key}`;
 
+/** Where each synced store keeps its key (kv is keyed explicitly: only 'settings'). */
+export const KEY_PATH: Record<Exclude<SyncStore, 'kv'>, string> = {
+  entries: 'id',
+  customFoods: 'ref',
+  usage: 'foodRef',
+  servings: 'foodRef',
+  offFoods: 'ref',
+  recipes: 'ref',
+  body: 'date',
+  activities: 'id',
+  water: 'date',
+};
+
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
@@ -137,8 +150,16 @@ function db() {
         d.createObjectStore('activities', { keyPath: 'id' }).createIndex('date', 'date');
         d.createObjectStore('water', { keyPath: 'date' });
       }
-      // Records from before v9 have no meta: they count as changed at time 0 (any synced edit wins).
-      if (oldVersion < 9) d.createObjectStore('meta');
+      if (oldVersion < 9) {
+        // Stamp every existing record now, so the change log covers everything (sync reads only
+        // the log) and devices holding different pre-v9 versions of a record still converge.
+        const meta = d.createObjectStore('meta');
+        const mt = Date.now();
+        for (const store of SYNC_STORES) {
+          const keys = store === 'kv' ? ((await tx.objectStore('kv').get('settings')) ? ['settings'] : []) : await tx.objectStore(store).getAllKeys();
+          for (const key of keys) await meta.put({ mt }, metaKey(store, String(key)));
+        }
+      }
     },
   });
   return dbp;
@@ -220,51 +241,62 @@ export async function exportAll(): Promise<AllData> {
   return { entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, settings };
 }
 
-/** Upsert everything in one transaction: items with the same id/ref are replaced, others kept. */
+/**
+ * Restore a backup in one transaction. A restore only adds what is missing or older here: it never
+ * writes over a newer local copy or over a later deletion, and restored records keep their own
+ * change time (not "now") — so restoring an old backup can't undo newer edits, here or, via sync,
+ * on a paired device.
+ */
 export async function importAll(data: AllData): Promise<void> {
   const tx = (await db()).transaction([...SYNC_STORES, 'meta'], 'readwrite');
-  // Imported records count as changed now (the user chose to restore them), so they sync onwards.
-  const mt = Date.now();
-  const stamp = (store: SyncStore, key: string) => tx.objectStore('meta').put({ mt }, metaKey(store, key));
-  // Recipes and custom foods: keep whichever version is newer (an old backup must not undo edits).
-  const newest = async <S extends 'recipes' | 'customFoods' | 'body'>(store: S, items: Schema[S]['value'][]) => {
-    const os = tx.objectStore(store);
-    for (const item of items) {
-      const key = 'ref' in item ? item.ref : (item as BodyEntry).date;
-      const cur = await os.get(key);
-      if (!cur || cur.updatedAt <= item.updatedAt) {
-        await os.put(item as never);
-        await stamp(store, key);
-      }
-    }
+  const meta = tx.objectStore('meta');
+  const restore = async <S extends SyncStore>(
+    store: S,
+    item: Schema[S]['value'],
+    key: string,
+    mt: number,
+    replaces: (cur: Schema[S]['value']) => boolean = () => false,
+  ) => {
+    const m = await meta.get(metaKey(store, key));
+    if (m?.del && m.mt >= mt) return; // deleted after this copy was made
+    const os = tx.objectStore(store) as unknown as { get(k: string): Promise<Schema[S]['value'] | undefined>; put(v: unknown, k?: string): Promise<unknown> };
+    const cur = await os.get(key);
+    if (cur !== undefined && !replaces(cur)) return;
+    await os.put(item, store === 'kv' ? key : undefined);
+    await meta.put({ mt: Math.max(mt, m && !m.del ? m.mt : 0) }, metaKey(store, key));
   };
-  const plain = <S extends 'activities' | 'offFoods' | 'entries' | 'usage' | 'servings'>(store: S, items: Schema[S]['value'][]) =>
-    items.map(async (item) => {
-      const k = await (tx.objectStore(store) as unknown as { put(v: unknown): Promise<IDBValidKey> }).put(item);
-      await stamp(store, String(k));
-    });
   const puts: Promise<unknown>[] = [
-    newest('recipes', data.recipes),
-    newest('customFoods', data.customFoods),
-    newest('body', data.body),
-    ...plain('activities', data.activities),
-    // Water: the larger total wins (a day only ever adds up).
+    // Recipes, custom foods, body: the newer version wins (an old backup must not undo edits).
+    ...data.recipes.map((r) => restore('recipes', r, r.ref, r.updatedAt, (cur) => cur.updatedAt < r.updatedAt)),
+    ...data.customFoods.map((f) => restore('customFoods', f, f.ref, f.updatedAt, (cur) => cur.updatedAt < f.updatedAt)),
+    ...data.body.map((b) => restore('body', b, b.date, b.updatedAt, (cur) => cur.updatedAt < b.updatedAt)),
+    // Water: the larger total wins (a day only ever adds up). Raising a total here is a change now;
+    // a day that was missing keeps time 0, so a paired device's own value for it wins.
     ...data.water.map(async (w) => {
       const cur = await tx.objectStore('water').get(w.date);
-      if (!cur || cur.ml < w.ml) {
-        await tx.objectStore('water').put(w);
-        await stamp('water', w.date);
-      }
+      if (cur && cur.ml >= w.ml) return;
+      await tx.objectStore('water').put(w);
+      await meta.put({ mt: cur ? Date.now() : 0 }, metaKey('water', w.date));
     }),
-    ...plain('offFoods', data.offFoods),
-    ...plain('entries', data.entries),
-    ...plain('usage', data.usage),
-    ...plain('servings', data.servings),
+    // The rest: added when missing, kept when present.
+    ...data.entries.map((e) => restore('entries', e, e.id, e.createdAt)),
+    ...data.activities.map((a) => restore('activities', a, a.id, a.createdAt)),
+    ...data.offFoods.map((f) => restore('offFoods', f, f.ref, f.fetchedAt)),
+    ...data.usage.map((u) => restore('usage', u, u.foodRef, u.lastUsed)),
+    ...data.servings.map((sv) => restore('servings', sv, sv.foodRef, 0)),
   ];
-  if (data.settings) puts.push(tx.objectStore('kv').put(data.settings, 'settings').then(() => stamp('kv', 'settings')));
+  // Settings from a backup replace this device's (the user chose to restore them).
+  if (data.settings) {
+    puts.push(tx.objectStore('kv').put(data.settings, 'settings').then(() => meta.put({ mt: Date.now() }, metaKey('kv', 'settings'))));
+  }
   await Promise.all([...puts, tx.done]);
 }
 
+/**
+ * Erase this device. Device-local on purpose: the change log is cleared too, so a later sync with a
+ * paired device copies its data back (like reinstalling) — wiping a phone before giving it away must
+ * never delete the data on the user's other devices.
+ */
 export async function clearAll(): Promise<void> {
   const tx = (await db()).transaction([...SYNC_STORES, 'meta'], 'readwrite');
   await Promise.all([

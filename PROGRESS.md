@@ -17,11 +17,17 @@ Done:
 - `src/lib/sync.ts` (lazy, not in the first bundle): `summarize` / `changesFor` / `applyChanges`.
   Newest change wins, ties keep the local copy; incoming records are validated with the backup
   validators (`SYNC_VALIDATORS`) and must match their key, or the sync aborts before any write.
+- Review fixes: backup restore never resurrects deletions or overrides newer data (records keep
+  their own time); "Radera all data" stays device-local (confirmation says paired devices keep
+  their data); the v9 upgrade stamps existing records (summary reads only the log); remote change
+  times capped at +5 min; tombstones pruned after 90 days; usage keeps the larger count; lang,
+  sources and energyNotice stay per device; records read once per store; summary not computed twice.
 - Design notes: docs/ARCHITECTURE.md → "Device-to-device sync".
 - Tests: two simulated devices with separate databases syncing over a JSON wire — union, deletions
   don't return, conflicts in both directions, edit vs deletion, settings/water/pre-v9 records,
-  invalid or mislabelled records rejected atomically, a backup restore syncs onwards.
-  114 unit, 84 Playwright and Lighthouse pass. Initial JS 36.5 KB gzip (+0.2 KB: change tracking).
+  invalid or mislabelled records rejected atomically, restores vs deletions, v8→v9 upgrade, clock
+  cap, tombstone pruning, usage/settings merging, 3,000 records (0.7 s).
+  120 unit, 84 Playwright and Lighthouse pass. Initial JS 36.7 KB gzip (+0.4 KB: change tracking).
 
 ## 2026-10-09 — M18a Accessibility audit (interactive session)
 
