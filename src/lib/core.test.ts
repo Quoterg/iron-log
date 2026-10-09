@@ -90,8 +90,9 @@ describe('USDA food data', () => {
     const egg = foods.find((f) => f[1] === 'Egg, whole, raw, fresh')!;
     expect(egg[3 + NUTRIENT_INDEX.leucine]).toBeCloseTo(1.09, 1); // USDA SR: 1.086 g/100 g
     expect(egg[3 + NUTRIENT_INDEX.methCys]).toBeCloseTo(0.38 + 0.27, 1); // 0.380 + 0.272
+    // Most USDA foods report amino acids (a share, so a data refresh doesn't break the test).
     const withLeucine = foods.filter((f) => Number(f[3 + NUTRIENT_INDEX.leucine] ?? 0) > 0).length;
-    expect(withLeucine).toBeGreaterThan(4000);
+    expect(withLeucine / foods.length).toBeGreaterThan(0.5);
   });
 });
 

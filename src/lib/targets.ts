@@ -158,9 +158,11 @@ const KCAL_PER_G = { protein: 4, carbs: 4, fat: 9 } as const;
 /**
  * Essential amino acids for adults, mg per kg body weight per day: WHO/FAO/UNU 2007, "Protein and
  * amino acid requirements in human nutrition" (WHO TRS 935), table 23. NNR 2023 sets none.
- * Needs the profile weight; without it there is no target.
+ * Only for non-pregnant, non-lactating adults with a plausible weight (30–300 kg; the body log
+ * accepts a wider range): children need more per kg, and pregnancy/lactation values aren't set here
+ * — no target rather than a wrong one.
  */
-export const AMINO_MG_PER_KG: Record<string, number> = {
+const AMINO_MG_PER_KG: Record<string, number> = {
   histidine: 10,
   isoleucine: 20,
   leucine: 39,
@@ -220,8 +222,10 @@ export function nnrTargets(p: Profile): Record<string, Target> {
     t.iron = { min: menstruating ? 15 : band === '71+' ? 7 : 8, max: null };
   }
   if (status !== 'none') for (const [key, v] of Object.entries(BY_STATUS[status])) t[key] = { min: v!, max: null };
-  if (p.weightKg) {
-    for (const [key, mg] of Object.entries(AMINO_MG_PER_KG)) t[key] = { min: round1((mg * p.weightKg) / 1000), max: null };
+  const w = p.weightKg;
+  if (w && w >= 30 && w <= 300 && (p.age == null || p.age >= 18) && status === 'none') {
+    // Whole mg first, then g with one decimal (avoids float artefacts like 1.0499999).
+    for (const [key, mg] of Object.entries(AMINO_MG_PER_KG)) t[key] = { min: Math.round(Math.round(mg * w) / 100) / 10, max: null };
   }
   return t;
 }

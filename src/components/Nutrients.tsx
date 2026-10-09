@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { addDays, entriesBetween, isoDate, recentLoggedDates, type Entry } from '../lib/db';
 import { fmt, nutrientName, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
-import { averagePerDay, dailyTotals, gaps, knownNutrients, streak } from '../lib/report';
+import { averagePerDay, coverage, dailyTotals, gaps, knownNutrients, MIN_COVERAGE, streak } from '../lib/report';
 import { open } from '../nav';
 import { date, dayTotals, ensureFoods, entries as dayEntries, foods, periodCache, targets } from '../state';
 import { NutrientGroups } from './NutrientGroups';
@@ -45,15 +45,17 @@ export function Nutrients() {
   const report = useMemo(() => {
     // With no entries everything is simply 0 of target; "unknown" only means no logged food reports it.
     const known = (list: Entry[]) => (list.length ? knownNutrients(list, foods.value) : undefined);
-    if (period === 1) return { amounts: dayTotals.value, known: known(dayEntries.value), perDay: null };
+    if (period === 1) return { amounts: dayTotals.value, known: known(dayEntries.value), covered: undefined, perDay: null };
     if (!periodEntries) return null;
     const perDay = dailyTotals(periodEntries, foods.value);
-    return { amounts: averagePerDay(perDay), known: known(periodEntries), perDay };
+    // Shortfalls are only listed for nutrients the period's food mostly reports (see coverage()).
+    const covered = coverage(periodEntries, foods.value).map((c) => c >= MIN_COVERAGE);
+    return { amounts: averagePerDay(perDay), known: known(periodEntries), covered, perDay };
   }, [period, periodEntries, dayTotals.value, dayEntries.value, foods.value]);
   const amounts = report?.amounts ?? null;
   const perDay = report?.perDay ?? null;
   const g = useMemo(
-    () => (report && period !== 1 && perDay?.size ? gaps(report.amounts, targets.value, report.known) : null),
+    () => (report && period !== 1 && perDay?.size ? gaps(report.amounts, targets.value, report.covered) : null),
     [report, targets.value],
   );
   const label = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
