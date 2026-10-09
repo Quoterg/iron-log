@@ -1,4 +1,5 @@
-// User data lives on the device, in IndexedDB. Nothing is sent anywhere.
+// User data lives on the device, in IndexedDB. Nothing is sent anywhere (device-to-device sync,
+// lib/sync.ts, only runs when the user pairs two of their own devices).
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Food, Serving } from './nutrients';
 import { MAX_WATER_ML, type Activity, type Water } from './activity';
@@ -96,12 +97,39 @@ interface Schema extends DBSchema {
   body: { key: string; value: BodyEntry };
   activities: { key: string; value: Activity; indexes: { date: string } };
   water: { key: string; value: Water };
+  /** Sync bookkeeping: `${store}:${key}` → when the record last changed, or was deleted. */
+  meta: { key: string; value: Meta };
 }
+
+/** The stores that sync between devices (kv: only the 'settings' key exists). */
+export type SyncStore = 'entries' | 'customFoods' | 'usage' | 'servings' | 'offFoods' | 'recipes' | 'body' | 'activities' | 'water' | 'kv';
+export const SYNC_STORES: SyncStore[] = ['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'activities', 'water', 'kv'];
+
+/** Last change of a record (ms since epoch); `del` marks a deletion so it can't come back on sync. */
+export interface Meta {
+  mt: number;
+  del?: true;
+}
+
+export const metaKey = (store: SyncStore, key: string) => `${store}:${key}`;
+
+/** Where each synced store keeps its key (kv is keyed explicitly: only 'settings'). */
+export const KEY_PATH: Record<Exclude<SyncStore, 'kv'>, string> = {
+  entries: 'id',
+  customFoods: 'ref',
+  usage: 'foodRef',
+  servings: 'foodRef',
+  offFoods: 'ref',
+  recipes: 'ref',
+  body: 'date',
+  activities: 'id',
+  water: 'date',
+};
 
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('iron-log', 8, {
+  dbp ??= openDB<Schema>('iron-log', 9, {
     async upgrade(d, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
@@ -122,9 +150,43 @@ function db() {
         d.createObjectStore('activities', { keyPath: 'id' }).createIndex('date', 'date');
         d.createObjectStore('water', { keyPath: 'date' });
       }
+      if (oldVersion < 9) {
+        // Stamp every existing record now, so the change log covers everything (sync reads only
+        // the log) and devices holding different pre-v9 versions of a record still converge.
+        const meta = d.createObjectStore('meta');
+        const mt = Date.now();
+        for (const store of SYNC_STORES) {
+          const keys = store === 'kv' ? ((await tx.objectStore('kv').get('settings')) ? ['settings'] : []) : await tx.objectStore(store).getAllKeys();
+          for (const key of keys) await meta.put({ mt }, metaKey(store, String(key)));
+        }
+      }
     },
   });
   return dbp;
+}
+
+/** The database, for the sync engine (lib/sync.ts). Everything else goes through the functions here. */
+export const openDb = () => db();
+
+/**
+ * Write records and record the change for sync, in one transaction. Every write to a synced store
+ * goes through here (or stamps meta itself), so sync can never miss a change.
+ */
+async function put<S extends SyncStore>(store: S, values: Schema[S]['value'][], key?: string): Promise<void> {
+  const tx = (await db()).transaction([store, 'meta'], 'readwrite');
+  const mt = Date.now();
+  const os = tx.objectStore(store) as unknown as { put(v: unknown, k?: string): Promise<IDBValidKey> };
+  const writes = values.map(async (v) => {
+    const k = await os.put(v, key);
+    await tx.objectStore('meta').put({ mt }, metaKey(store, String(k)));
+  });
+  await Promise.all([...writes, tx.done]);
+}
+
+/** Delete a record and leave a tombstone, so the deletion syncs instead of the record coming back. */
+async function del(store: SyncStore, key: string): Promise<void> {
+  const tx = (await db()).transaction([store, 'meta'], 'readwrite');
+  await Promise.all([tx.objectStore(store).delete(key), tx.objectStore('meta').put({ mt: Date.now(), del: true }, metaKey(store, key)), tx.done]);
 }
 
 export function usageFromEntries(entries: Entry[]): Usage[] {
@@ -146,7 +208,7 @@ export async function listUsage(): Promise<Usage[]> {
 }
 
 export async function putUsage(u: Usage): Promise<void> {
-  await (await db()).put('usage', u);
+  await put('usage', [u]);
 }
 
 export interface AllData {
@@ -179,46 +241,66 @@ export async function exportAll(): Promise<AllData> {
   return { entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, settings };
 }
 
-/** Upsert everything in one transaction: items with the same id/ref are replaced, others kept. */
+/**
+ * Restore a backup in one transaction. A restore only adds what is missing or older here: it never
+ * writes over a newer local copy or over a later deletion, and restored records keep their own
+ * change time (not "now") — so restoring an old backup can't undo newer edits, here or, via sync,
+ * on a paired device.
+ */
 export async function importAll(data: AllData): Promise<void> {
-  const tx = (await db()).transaction(
-    ['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'activities', 'water', 'kv'],
-    'readwrite',
-  );
-  // Recipes and custom foods: keep whichever version is newer (an old backup must not undo edits).
-  const newest = async <S extends 'recipes' | 'customFoods' | 'body'>(store: S, items: Schema[S]['value'][]) => {
-    const os = tx.objectStore(store);
-    for (const item of items) {
-      const key = 'ref' in item ? item.ref : (item as BodyEntry).date;
-      const cur = await os.get(key);
-      if (!cur || cur.updatedAt <= item.updatedAt) await os.put(item as never);
-    }
+  const tx = (await db()).transaction([...SYNC_STORES, 'meta'], 'readwrite');
+  const meta = tx.objectStore('meta');
+  const restore = async <S extends SyncStore>(
+    store: S,
+    item: Schema[S]['value'],
+    key: string,
+    mt: number,
+    replaces: (cur: Schema[S]['value']) => boolean = () => false,
+  ) => {
+    const m = await meta.get(metaKey(store, key));
+    if (m?.del && m.mt >= mt) return; // deleted after this copy was made
+    const os = tx.objectStore(store) as unknown as { get(k: string): Promise<Schema[S]['value'] | undefined>; put(v: unknown, k?: string): Promise<unknown> };
+    const cur = await os.get(key);
+    if (cur !== undefined && !replaces(cur)) return;
+    await os.put(item, store === 'kv' ? key : undefined);
+    await meta.put({ mt: Math.max(mt, m && !m.del ? m.mt : 0) }, metaKey(store, key));
   };
   const puts: Promise<unknown>[] = [
-    newest('recipes', data.recipes),
-    newest('customFoods', data.customFoods),
-    newest('body', data.body),
-    ...data.activities.map((a) => tx.objectStore('activities').put(a)),
-    // Water: the larger total wins (a day only ever adds up).
+    // Recipes, custom foods, body: the newer version wins (an old backup must not undo edits).
+    ...data.recipes.map((r) => restore('recipes', r, r.ref, r.updatedAt, (cur) => cur.updatedAt < r.updatedAt)),
+    ...data.customFoods.map((f) => restore('customFoods', f, f.ref, f.updatedAt, (cur) => cur.updatedAt < f.updatedAt)),
+    ...data.body.map((b) => restore('body', b, b.date, b.updatedAt, (cur) => cur.updatedAt < b.updatedAt)),
+    // Water: the larger total wins (a day only ever adds up). Raising a total here is a change now;
+    // a day that was missing keeps time 0, so a paired device's own value for it wins.
     ...data.water.map(async (w) => {
       const cur = await tx.objectStore('water').get(w.date);
-      if (!cur || cur.ml < w.ml) await tx.objectStore('water').put(w);
+      if (cur && cur.ml >= w.ml) return;
+      await tx.objectStore('water').put(w);
+      await meta.put({ mt: cur ? Date.now() : 0 }, metaKey('water', w.date));
     }),
-    ...data.offFoods.map((f) => tx.objectStore('offFoods').put(f)),
-    ...data.entries.map((e) => tx.objectStore('entries').put(e)),
-    ...data.usage.map((u) => tx.objectStore('usage').put(u)),
-    ...data.servings.map((s) => tx.objectStore('servings').put(s)),
+    // The rest: added when missing, kept when present.
+    ...data.entries.map((e) => restore('entries', e, e.id, e.createdAt)),
+    ...data.activities.map((a) => restore('activities', a, a.id, a.createdAt)),
+    ...data.offFoods.map((f) => restore('offFoods', f, f.ref, f.fetchedAt)),
+    ...data.usage.map((u) => restore('usage', u, u.foodRef, u.lastUsed)),
+    ...data.servings.map((sv) => restore('servings', sv, sv.foodRef, 0)),
   ];
-  if (data.settings) puts.push(tx.objectStore('kv').put(data.settings, 'settings'));
+  // Settings from a backup replace this device's (the user chose to restore them).
+  if (data.settings) {
+    puts.push(tx.objectStore('kv').put(data.settings, 'settings').then(() => meta.put({ mt: Date.now() }, metaKey('kv', 'settings'))));
+  }
   await Promise.all([...puts, tx.done]);
 }
 
+/**
+ * Erase this device. Device-local on purpose: the change log is cleared too, so a later sync with a
+ * paired device copies its data back (like reinstalling) — wiping a phone before giving it away must
+ * never delete the data on the user's other devices.
+ */
 export async function clearAll(): Promise<void> {
-  const tx = (await db()).transaction(
-    ['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'activities', 'water', 'kv'],
-    'readwrite',
-  );
+  const tx = (await db()).transaction([...SYNC_STORES, 'meta'], 'readwrite');
   await Promise.all([
+    tx.objectStore('meta').clear(),
     tx.objectStore('activities').clear(),
     tx.objectStore('water').clear(),
     tx.objectStore('body').clear(),
@@ -242,7 +324,7 @@ export async function getOffFood(ref: string): Promise<OffFood | undefined> {
 }
 
 export async function putOffFood(f: OffFood): Promise<void> {
-  await (await db()).put('offFoods', f);
+  await put('offFoods', [f]);
 }
 
 export async function activitiesFor(date: string): Promise<Activity[]> {
@@ -250,11 +332,11 @@ export async function activitiesFor(date: string): Promise<Activity[]> {
 }
 
 export async function putActivity(a: Activity): Promise<void> {
-  await (await db()).put('activities', a);
+  await put('activities', [a]);
 }
 
 export async function deleteActivity(id: string): Promise<void> {
-  await (await db()).delete('activities', id);
+  await del('activities', id);
 }
 
 export async function waterFor(date: string): Promise<number> {
@@ -263,10 +345,11 @@ export async function waterFor(date: string): Promise<number> {
 
 /** Add `deltaMl` (may be negative) to a day's water in one transaction; returns the new total. */
 export async function changeWater(date: string, deltaMl: number): Promise<number> {
-  const tx = (await db()).transaction('water', 'readwrite');
-  const cur = (await tx.store.get(date))?.ml ?? 0;
+  const tx = (await db()).transaction(['water', 'meta'], 'readwrite');
+  const cur = (await tx.objectStore('water').get(date))?.ml ?? 0;
   const ml = Math.min(MAX_WATER_ML, Math.max(0, cur + deltaMl));
-  await tx.store.put({ date, ml });
+  await tx.objectStore('water').put({ date, ml });
+  await tx.objectStore('meta').put({ mt: Date.now() }, metaKey('water', date));
   await tx.done;
   return ml;
 }
@@ -276,11 +359,11 @@ export async function listBody(): Promise<BodyEntry[]> {
 }
 
 export async function putBody(e: BodyEntry): Promise<void> {
-  await (await db()).put('body', e);
+  await put('body', [e]);
 }
 
 export async function deleteBody(date: string): Promise<void> {
-  await (await db()).delete('body', date);
+  await del('body', date);
 }
 
 export async function listRecipes(): Promise<StoredRecipe[]> {
@@ -288,7 +371,7 @@ export async function listRecipes(): Promise<StoredRecipe[]> {
 }
 
 export async function putRecipe(r: StoredRecipe): Promise<void> {
-  await (await db()).put('recipes', r);
+  await put('recipes', [r]);
 }
 
 export async function listServings(): Promise<UserServings[]> {
@@ -296,12 +379,11 @@ export async function listServings(): Promise<UserServings[]> {
 }
 
 export async function putServings(s: UserServings): Promise<void> {
-  await (await db()).put('servings', s);
+  await put('servings', [s]);
 }
 
 export async function putEntries(list: Entry[]): Promise<void> {
-  const tx = (await db()).transaction('entries', 'readwrite');
-  await Promise.all([...list.map((e) => tx.store.put(e)), tx.done]);
+  await put('entries', list);
 }
 
 export async function getEntry(id: string): Promise<Entry | undefined> {
@@ -313,7 +395,7 @@ export async function listCustomFoods(): Promise<CustomFood[]> {
 }
 
 export async function putCustomFood(f: CustomFood): Promise<void> {
-  await (await db()).put('customFoods', f);
+  await put('customFoods', [f]);
 }
 
 /** All entries from `from` to `to` (inclusive, YYYY-MM-DD) via the date index. */
@@ -347,11 +429,11 @@ export async function entriesFor(date: string): Promise<Entry[]> {
 }
 
 export async function putEntry(e: Entry): Promise<void> {
-  await (await db()).put('entries', e);
+  await put('entries', [e]);
 }
 
 export async function deleteEntry(id: string): Promise<void> {
-  await (await db()).delete('entries', id);
+  await del('entries', id);
 }
 
 export async function getSettings(): Promise<Settings | undefined> {
@@ -359,7 +441,7 @@ export async function getSettings(): Promise<Settings | undefined> {
 }
 
 export async function saveSettings(s: Settings): Promise<void> {
-  await (await db()).put('kv', s, 'settings');
+  await put('kv', [s], 'settings');
 }
 
 export function newId(): string {

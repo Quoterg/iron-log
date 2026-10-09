@@ -1,5 +1,5 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
-import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type Usage, type UserServings } from './db';
+import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type SyncStore, type Usage, type UserServings } from './db';
 import { foodName, NUTRIENTS, type Food } from './nutrients';
 import { MAX_ACTIVITY_KCAL, MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
@@ -226,6 +226,24 @@ function settings(x: unknown): Settings | undefined {
   }
   return out;
 }
+
+/** Validators for single records arriving by device-to-device sync: the same rules as a backup. */
+export const SYNC_VALIDATORS: Record<SyncStore, (x: unknown) => unknown> = {
+  entries: entry,
+  customFoods: customFood,
+  usage,
+  servings,
+  offFoods: offFood,
+  recipes: recipe,
+  body,
+  activities: activity,
+  water,
+  kv: (x) => {
+    const s = settings(x);
+    if (!s) throw new BackupError('settings');
+    return s;
+  },
+};
 
 /** Parse and validate a backup file. Throws BackupError on anything unexpected (nothing is imported). */
 export function parseBackup(text: string): AllData {
