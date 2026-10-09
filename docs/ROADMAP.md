@@ -61,8 +61,11 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   (Node + SQLite, Docker image), client key never leaves devices; app stays fully usable without.
 - [ ] **M18 Languages & accessibility** — Extract strings to JSON, add nb/da/fi/de; full
   a11y audit (screen readers, contrast, font scaling 200%); RTL-safe CSS.
-- [ ] **M19 App stores** — Android Trusted Web Activity build (Bubblewrap), F-Droid notes,
-  store listing texts, privacy policy, landing page.
+- [x] **M19 App stores (prep)** — Privacy policy, landing page, store listing texts, F-Droid
+  notes, Bubblewrap config and build guide.
+- [ ] **M19b App stores (publish)** — Decide domain and package id (permanent on Play), serve
+  `/.well-known/assetlinks.json` at the origin root, commit the generated Android project for
+  F-Droid, first signed build.
 - [x] **M20 Contribute back (links only)** — Submit missing products/photos to Open Food Facts from the app;
   report data errors; contributor docs. (Done as links to OFF's own add/edit pages — no OFF
   credentials pass through the app — plus prefilled GitHub issues and CONTRIBUTING.md.)

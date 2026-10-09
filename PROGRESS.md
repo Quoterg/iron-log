@@ -28,6 +28,26 @@ Done:
   product link, OFF product → fix link, SLV food → report link, custom food → no report link.
   Initial JS 36.1 KB gzip (+0.5 KB: strings, link helpers in the food screen).
 
+## 2026-10-09 — M19 App stores, prep (interactive session)
+
+Done:
+- `public/privacy.html` (sv + en): no accounts, no tracking, data only on the device; what goes
+  over the network (app/data files from GitHub Pages; barcodes to Open Food Facts). Linked from
+  Settings next to the privacy line, with `public/about.html`, a static landing page.
+- `android/twa-manifest.json` (Bubblewrap) + `android/README.md`: build steps, signing key kept
+  out of version control (.gitignore). **Blocker before publishing:** Digital Asset Links must be
+  served at the origin root (`/.well-known/assetlinks.json`), which a project page under
+  quoterg.github.io/iron-log/ can't do — needs a custom domain or a `Quoterg.github.io` user site.
+- `docs/STORE-LISTING.md` (texts sv/en, category, rating, Play data-safety answers, graphics
+  checklist) and `docs/FDROID.md` (TWA caveats; PWA install as the no-store path).
+- Manifest: `id`, `categories`, a dedicated maskable icon (`icon-maskable-512.png`, full-bleed;
+  artwork inside the safe zone). The service worker precaches both static pages (offline on
+  first use). Privacy covers the camera (on-device only) and IP addresses seen by OFF/GitHub.
+- Publishing is split out as **M19b** (domain + package id decision, assetlinks, Android project
+  for F-Droid, first build) — needs the owner's decision on the domain.
+- Tests: 104 unit, 31 Playwright (pages reachable in sv and en, `#en` targets, served as their own
+  pages and not the app shell, available offline after the first app load). Initial JS 35.6 KB.
+
 ## 2026-10-09 — M16 More nutrients (interactive session)
 
 Done:

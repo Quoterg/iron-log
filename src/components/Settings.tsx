@@ -1,4 +1,4 @@
-import { fmt, t, type Lang } from '../lib/i18n';
+import { fmt, lang, t, type Lang } from '../lib/i18n';
 import { NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { open } from '../nav';
 import { activeSources, customFoods, recipes, settings, updateSettings } from '../state';
@@ -90,7 +90,10 @@ function General() {
           <option value="en">English</option>
         </select>
       </label>
-      <p class="muted small">{t('privacy')}</p>
+      <p class="muted small">
+        {t('privacy')} <a href={lang.value === 'en' ? 'privacy.html#en' : 'privacy.html'}>{t('privacyPolicy')}</a> ·{' '}
+        <a href={lang.value === 'en' ? 'about.html#en' : 'about.html'}>{t('aboutApp')}</a>
+      </p>
       <p class="muted small">{t('attribution')}</p>
       <fieldset class="sources">
         <legend>{t('foodDatabases')}</legend>

@@ -11,5 +11,14 @@ for (const size of [192, 512]) {
   await page.screenshot({ path: `public/icon-${size}.png`, omitBackground: true });
   await page.close();
 }
+// Maskable: full-bleed background (launchers apply their own shape); the artwork already sits
+// inside the 80 % safe zone (ring radius 172 of 256).
+{
+  const page = await browser.newPage({ viewport: { width: 512, height: 512 } });
+  const full = svg.replace(' rx="96"', '').replace('<svg ', '<svg width="512" height="512" ');
+  await page.setContent(`<body style="margin:0">${full}</body>`);
+  await page.screenshot({ path: 'public/icon-maskable-512.png' });
+  await page.close();
+}
 await browser.close();
-console.log('Wrote public/icon-192.png, public/icon-512.png');
+console.log('Wrote public/icon-192.png, public/icon-512.png, public/icon-maskable-512.png');
