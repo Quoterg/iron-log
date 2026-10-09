@@ -39,7 +39,7 @@
   { "key": "sodium", "slv": "NA", "unit": "mg", "group": "mineral", "sv": "Natrium", "en": "Sodium" },
   { "key": "salt", "slv": "NACL", "unit": "g", "group": "mineral", "sv": "Salt", "en": "Salt" },
   { "key": "dpa", "slv": "F22:5", "unit": "g", "group": "lipid", "sv": "DPA", "en": "DPA" },
-  { "key": "vitK", "slv": "", "unit": "µg", "group": "vitamin", "sv": "Vitamin K", "en": "Vitamin K" },
+  { "key": "vitK", "slv": "", "unit": "µg", "group": "vitamin", "sv": "Vitamin K (K1)", "en": "Vitamin K (K1)" },
   { "key": "pantothenic", "slv": "", "unit": "mg", "group": "vitamin", "sv": "Pantotensyra (B5)", "en": "Pantothenic acid (B5)" },
   { "key": "biotin", "slv": "", "unit": "µg", "group": "vitamin", "sv": "Biotin", "en": "Biotin" },
   { "key": "copper", "slv": "", "unit": "mg", "group": "mineral", "sv": "Koppar", "en": "Copper" },

@@ -5,6 +5,7 @@
 import { buildEntry, search, type SearchEntry } from '../lib/search';
 import type { Food } from '../lib/nutrients';
 import type { WorkerRequest, WorkerResponse } from '../lib/foods';
+import { rowToFood } from '../lib/food-row';
 
 interface FoodsFile {
   /** Nutrient keys in vector order; rows may be shorter (trailing unknowns left out). */
@@ -39,9 +40,9 @@ async function loadFile(url: string): Promise<Food[]> {
   const units = data.units ?? {};
   for (const r of data.popular ?? []) popular.add(r);
   const n = data.keys.length;
-  return data.foods.map(([ref, sv, en, ...per100g]) => {
-    while (per100g.length < n) per100g.push(null);
-    const f: Food = { ref, sv, en, per100g };
+  return data.foods.map((row) => {
+    const f = rowToFood(row, n);
+    const ref = f.ref;
     const u = units[ref];
     if (u) f.units = u.map(([name, g]) => ({ name, g }));
     return f;
@@ -79,22 +80,6 @@ function rebuild() {
  * others: search uses whatever loaded, and reports which sources are unavailable. A failed source
  * is retried on the next request.
  */
-/** Top `n` built-in foods by one nutrient per 100 g: one pass, a small sorted list (no full sort). */
-function richest(index: number, n: number): Food[] {
-  const top: Food[] = [];
-  const v = (f: Food) => f.per100g[index] ?? 0;
-  for (let i = 0; i < builtInCount; i++) {
-    const f = all[i];
-    const x = v(f);
-    if (x <= 0 || (top.length === n && x <= v(top[n - 1]))) continue;
-    let j = top.length < n ? top.length : n - 1;
-    while (j > 0 && v(top[j - 1]) < x) j--;
-    top.splice(j, 0, f);
-    if (top.length > n) top.pop();
-  }
-  return top;
-}
-
 async function ready(): Promise<string[]> {
   const results = await Promise.allSettled(enabled.map(loadSource));
   return enabled.filter((_, i) => results[i].status === 'rejected');
@@ -161,9 +146,6 @@ self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
       const ex = req.excludePrefix;
       const hits = search(indexFor(req.lang), req.query, ex ? 200 : 40).map((i) => all[i]);
       res = { id: req.id, foods: (ex ? hits.filter((f) => !f.ref.startsWith(ex)) : hits).slice(0, 40), failed };
-    } else if (req.type === 'top') {
-      const failed = await ready();
-      res = { id: req.id, foods: richest(req.index, req.n), failed };
     } else {
       const failed = await loadFor(req.refs);
       res = { id: req.id, foods: req.refs.map((r) => byRef.get(r)).filter((f): f is Food => !!f), failed };

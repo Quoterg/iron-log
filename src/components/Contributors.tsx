@@ -2,10 +2,9 @@ import { useEffect, useState } from 'preact/hooks';
 import { entriesBetween, type Entry } from '../lib/db';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
-import { richestFoods } from '../lib/foods';
-import type { Food } from '../lib/nutrients';
 import { contributors } from '../lib/report';
-import { ensureFoods, entries as dayEntries, foods, periodCache, targets } from '../state';
+import { richestFoods, type TopRow } from '../lib/top';
+import { activeSources, ensureFoods, entries as dayEntries, foods, periodCache, settings, targets } from '../state';
 import { open } from '../nav';
 import { Sheet } from './Sheet';
 
@@ -17,10 +16,11 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
   // Reuse what the Nutrients tab already loaded (no second query, no loading flash).
   const cached = periodCache.value?.key === `${from}|${to}` ? periodCache.value.entries : from === to ? dayEntries.value : null;
   const [list, setList] = useState<Entry[] | null>(cached);
-  const [rich, setRich] = useState<Food[] | null>(null);
+  const [rich, setRich] = useState<TopRow[] | null>(null);
   useEffect(() => {
     let live = true;
-    void richestFoods(NUTRIENT_INDEX[nutrient]).then(
+    setRich(null);
+    void richestFoods(nutrient, activeSources(settings.value)).then(
       (r) => live && setRich(r),
       () => live && setRich([]),
     );
@@ -65,13 +65,14 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
         </ul>
         <h3>{t('richestFoods')}</h3>
         {!rich && <p class="muted">{t('loading')}</p>}
+        {rich?.length === 0 && <p class="muted">{t('noRichest')}</p>}
         <ul class="entries">
-          {rich?.map((f) => (
-            <li key={f.ref}>
-              <button class="entry" onClick={() => open({ kind: 'food', ref: f.ref })}>
-                <span class="entry-name">{foodName(f, lang.value)}</span>
+          {rich?.map(([ref, sv, en, value]) => (
+            <li key={ref}>
+              <button class="entry" onClick={() => open({ kind: 'food', ref })}>
+                <span class="entry-name">{lang.value === 'en' ? (en ?? sv) : sv}</span>
                 <span class="num">
-                  {fmtAmount(f.per100g[NUTRIENT_INDEX[nutrient]] ?? 0)} {n.unit}
+                  {fmtAmount(value)} {n.unit}
                 </span>
               </button>
             </li>

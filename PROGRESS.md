@@ -5,7 +5,7 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M17** (see docs/ROADMAP.md).
+**M16b Amino acids**, then **M17** (see docs/ROADMAP.md).
 
 ## 2026-10-09 — M16 More nutrients (interactive session)
 
@@ -18,7 +18,12 @@ Done:
 - Data files leave out trailing unknown values (the worker pads rows to the file's `keys`):
   SLV +0.5 KB gzip for DPA, the six new columns cost ≈ nothing; USDA still 4 files < 190 KB.
 - Nutrient detail page (tap a nutrient on the Nutrients tab): target, the period's top sources,
-  and the 10 richest database foods per 100 g (worker: one-pass top-k, no full sort).
+  and the 10 richest database foods per 100 g. Those come from `data/top.<hash>.json`
+  (14 KB gzip, `scripts/build-top.mjs`, one-pass top-k), so the page never loads the databases.
+  Run `pnpm data:build-top` after rebuilding SLV/USDA data (a unit test checks it's current).
+- Vitamin K is K1 only in the data (labelled "Vitamin K (K1)"); K2-rich foods under-report.
+- Foods without data for a nutrient: when no logged food reports it, the nutrient shows as
+  unknown ("–"), not as a shortfall (M13 logic) — so SLV-only days show "–" for the new ones.
 - Tests: 99 unit, 28 Playwright. Initial JS 35.5 KB gzip.
 
 Not done (split out as M16b): amino acids.
