@@ -59,8 +59,17 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 
 - [ ] **M17 Sync (optional, self-hostable)** — End-to-end encrypted sync: tiny server
   (Node + SQLite, Docker image), client key never leaves devices; app stays fully usable without.
-- [ ] **M18 Languages & accessibility** — Extract strings to JSON, add nb/da/fi/de; full
-  a11y audit (screen readers, contrast, font scaling 200%); RTL-safe CSS.
+  **Decided (owner, 2026-10-09): device-to-device sync** — QR code + direct encrypted WebRTC
+  connection between two devices, no server, no account. Own-cloud file sync or a server only later
+  if needed.
+- [x] **M18a Accessibility audit** — axe-core (WCAG 2.1 A/AA) in light and dark mode, and 200 %
+  text size at 360 px without horizontal scrolling, on: diary (empty/first run), food search, food
+  amount, edit entry, custom food editor, barcode scan, copy day, nutrients, nutrient detail,
+  targets editor, body log with chart, settings (profile, sources, your data), activity sheet,
+  supplement editor, recipe editor, privacy and about pages. Lighthouse accessibility ≥ 0.95 gates CI.
+- [ ] **M18b Languages** — Strings per language, loaded on demand (only the active language in the
+  first bundle); add Danish, Finnish, German and Somali (all Latin script: no RTL work needed);
+  native-speaker review before calling them final; manual screen-reader pass (TalkBack/VoiceOver).
 - [x] **M19 App stores (prep)** — Privacy policy, landing page, store listing texts, F-Droid
   notes, Bubblewrap config and build guide.
 - [ ] **M19b App stores (publish)**
