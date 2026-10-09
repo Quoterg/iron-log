@@ -82,14 +82,15 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [ ] **M18d Screen-reader pass** — Manual TalkBack/VoiceOver walk-through of the main flows.
 - [x] **M19 App stores (prep)** — Privacy policy, landing page, store listing texts, F-Droid
   notes, Bubblewrap config and build guide.
-- [ ] **M19b App stores (publish)**
+- [x] **M19b App stores (publish)**
   - Done: domain/package id decided (free user site quoterg.github.io serves the root; package
     `io.github.quoterg.ironlog`); data-safety answers decided (conservative, docs/STORE-LISTING.md).
   - Done (2026-10-09): first signed build by the owner (upload key kept by the owner);
     `https://quoterg.github.io/.well-known/assetlinks.json` live with its fingerprint, verified
     with Google's Digital Asset Links API; minSdk 24 (Android 7.0).
-  - Left (optional): Play listing (one-time fee) with Play App Signing — then add Play's
-    app-signing fingerprint to assetlinks.json; commit the generated Android project for F-Droid.
+- [ ] **M19c Store listings (optional, owner's choice)** — Google Play (one-time fee) with Play App
+  Signing, then add Play's app-signing fingerprint to assetlinks.json; and/or F-Droid (commit the
+  generated Android project).
 - [x] **M20 Contribute back (links only)** — Submit missing products/photos to Open Food Facts from the app;
   report data errors; contributor docs. (Done as links to OFF's own add/edit pages — no OFF
   credentials pass through the app — plus prefilled GitHub issues and CONTRIBUTING.md.)

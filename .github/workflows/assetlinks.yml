@@ -1,0 +1,25 @@
+# The Android app opens without a browser bar only while this file is served, with our key's
+# fingerprint, from the user site (Quoterg/Quoterg.github.io — another repo, so nothing here would
+# notice if it changed). Checked weekly and on demand.
+name: Android asset links
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: assetlinks.json is served with the app's package and upload-key fingerprint
+        run: |
+          set -euo pipefail
+          url=https://quoterg.github.io/.well-known/assetlinks.json
+          body=$(curl -fsS "$url")
+          echo "$body"
+          echo "$body" | grep -q '"package_name": "io.github.quoterg.ironlog"'
+          echo "$body" | grep -q 'F9:FF:C7:18:F1:E9:E9:F7:C2:F0:94:53:ED:8E:FB:D5:7C:39:F3:DF:C5:6A:1E:D2:E8:0C:0B:E0:19:23:DC:4F'

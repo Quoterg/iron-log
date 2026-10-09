@@ -55,6 +55,13 @@ To finish (first signed build):
 
 Without the file the app still works, but shows a browser address bar (Custom Tabs fallback).
 
+**Live since 2026-10-09:** https://quoterg.github.io/.well-known/assetlinks.json — package
+`io.github.quoterg.ironlog`, upload-key SHA-256
+`F9:FF:C7:18:F1:E9:E9:F7:C2:F0:94:53:ED:8E:FB:D5:7C:39:F3:DF:C5:6A:1E:D2:E8:0C:0B:E0:19:23:DC:4F`
+(also in `twa-manifest.json` → `fingerprints`). `.github/workflows/assetlinks.yml` checks weekly
+that it's still served. With Play App Signing, Play re-signs the app with its own key: add that
+key's fingerprint to the same file, or the Play build shows the browser bar.
+
 ## Notes
 
 - Package id `io.github.quoterg.ironlog` is final (it can't be changed after the first Play upload).

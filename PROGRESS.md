@@ -5,8 +5,9 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-Optional, owner's choice: a Play Store listing (one-time fee) or F-Droid (commit the generated
-Android project). M18d (screen-reader pass) is deferred until someone reports an issue.
+Nothing scheduled — the roadmap is done; awaiting the owner. Optional when the owner wants it:
+**M19c** (Play / F-Droid listings). M18d (screen-reader pass) is deferred until someone reports an
+issue.
 
 ## 2026-10-09 — M19b Android app (interactive session)
 
