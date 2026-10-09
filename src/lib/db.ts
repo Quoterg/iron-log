@@ -1,6 +1,7 @@
 // User data lives on the device, in IndexedDB. Nothing is sent anywhere.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Food, Serving } from './nutrients';
+import type { BodyEntry } from './body';
 import type { StoredRecipe } from './recipes';
 import type { MacroPct, MacroPreset, Profile, TargetOverride } from './targets';
 
@@ -86,12 +87,13 @@ interface Schema extends DBSchema {
   servings: { key: string; value: UserServings };
   offFoods: { key: string; value: OffFood };
   recipes: { key: string; value: StoredRecipe };
+  body: { key: string; value: BodyEntry };
 }
 
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('iron-log', 6, {
+  dbp ??= openDB<Schema>('iron-log', 7, {
     async upgrade(d, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
@@ -107,6 +109,7 @@ function db() {
       if (oldVersion < 4) d.createObjectStore('servings', { keyPath: 'foodRef' });
       if (oldVersion < 5) d.createObjectStore('offFoods', { keyPath: 'ref' });
       if (oldVersion < 6) d.createObjectStore('recipes', { keyPath: 'ref' });
+      if (oldVersion < 7) d.createObjectStore('body', { keyPath: 'date' });
     },
   });
   return dbp;
@@ -141,26 +144,28 @@ export interface AllData {
   servings: UserServings[];
   offFoods: OffFood[];
   recipes: StoredRecipe[];
+  body: BodyEntry[];
   settings?: Settings;
 }
 
 export async function exportAll(): Promise<AllData> {
   const d = await db();
-  const [entries, customFoods, usage, servings, offFoods, recipes, settings] = await Promise.all([
+  const [entries, customFoods, usage, servings, offFoods, recipes, body, settings] = await Promise.all([
     d.getAll('entries'),
     d.getAll('customFoods'),
     d.getAll('usage'),
     d.getAll('servings'),
     d.getAll('offFoods'),
     d.getAll('recipes'),
+    d.getAll('body'),
     d.get('kv', 'settings') as Promise<Settings | undefined>,
   ]);
-  return { entries, customFoods, usage, servings, offFoods, recipes, settings };
+  return { entries, customFoods, usage, servings, offFoods, recipes, body, settings };
 }
 
 /** Upsert everything in one transaction: items with the same id/ref are replaced, others kept. */
 export async function importAll(data: AllData): Promise<void> {
-  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'kv'], 'readwrite');
+  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'kv'], 'readwrite');
   // Recipes and custom foods: keep whichever version is newer (an old backup must not undo edits).
   const newest = async <S extends 'recipes' | 'customFoods'>(store: S, items: Schema[S]['value'][]) => {
     const os = tx.objectStore(store);
@@ -172,6 +177,7 @@ export async function importAll(data: AllData): Promise<void> {
   const puts: Promise<unknown>[] = [
     newest('recipes', data.recipes),
     newest('customFoods', data.customFoods),
+    ...data.body.map((b) => tx.objectStore('body').put(b)),
     ...data.offFoods.map((f) => tx.objectStore('offFoods').put(f)),
     ...data.entries.map((e) => tx.objectStore('entries').put(e)),
     ...data.usage.map((u) => tx.objectStore('usage').put(u)),
@@ -182,8 +188,9 @@ export async function importAll(data: AllData): Promise<void> {
 }
 
 export async function clearAll(): Promise<void> {
-  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'kv'], 'readwrite');
+  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'kv'], 'readwrite');
   await Promise.all([
+    tx.objectStore('body').clear(),
     tx.objectStore('recipes').clear(),
     tx.objectStore('offFoods').clear(),
     tx.objectStore('entries').clear(),
@@ -205,6 +212,18 @@ export async function getOffFood(ref: string): Promise<OffFood | undefined> {
 
 export async function putOffFood(f: OffFood): Promise<void> {
   await (await db()).put('offFoods', f);
+}
+
+export async function listBody(): Promise<BodyEntry[]> {
+  return (await db()).getAll('body');
+}
+
+export async function putBody(e: BodyEntry): Promise<void> {
+  await (await db()).put('body', e);
+}
+
+export async function deleteBody(date: string): Promise<void> {
+  await (await db()).delete('body', date);
 }
 
 export async function listRecipes(): Promise<StoredRecipe[]> {

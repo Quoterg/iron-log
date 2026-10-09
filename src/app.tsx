@@ -11,12 +11,13 @@ import { lazyView } from './lazy';
 import { stack, top, type Screen } from './nav';
 import { date, loadDay, view, type View } from './state';
 
-const TABS: View[] = ['diary', 'nutrients', 'settings'];
+const TABS: View[] = ['diary', 'nutrients', 'body', 'settings'];
 
 // Not needed for the first screen: split out and prefetched when idle (main.tsx).
 export const settingsView = lazyView(() => import('./components/Settings'));
 export const targetEditorView = lazyView(() => import('./components/TargetEditor'));
 export const recipeEditorView = lazyView(() => import('./components/RecipeEditor'));
+export const bodyView = lazyView(() => import('./components/BodyView'));
 
 export function App() {
   const s = top.value;
@@ -24,10 +25,13 @@ export function App() {
     <>
       {/* Stays rendered under the full-screen sheet so its scroll position survives. */}
       <div aria-hidden={!!s}>
-        <header class="top">{view.value === 'settings' ? <h1>{t('settings')}</h1> : <DateNav />}</header>
+        <header class="top">
+          {view.value === 'settings' || view.value === 'body' ? <h1>{t(view.value)}</h1> : <DateNav />}
+        </header>
         <main>
           {view.value === 'diary' && <Diary />}
           {view.value === 'nutrients' && <Nutrients />}
+          {view.value === 'body' && <bodyView.Lazy />}
           {view.value === 'settings' && <settingsView.Lazy />}
         </main>
         <nav class="tabs">
@@ -36,7 +40,7 @@ export function App() {
               key={v}
               class={view.value === v ? 'active' : ''}
               // Start loading Settings on touch, before the click lands.
-              onPointerDown={v === 'settings' ? () => void settingsView.prefetch() : undefined}
+              onPointerDown={v === 'settings' ? () => void settingsView.prefetch() : v === 'body' ? () => void bodyView.prefetch() : undefined}
               onClick={() => (view.value = v)}
             >
               {t(v)}

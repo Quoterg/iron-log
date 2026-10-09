@@ -67,7 +67,7 @@ describe('recipes in state and storage', () => {
     const db = await import('./db');
     const base = { ref: 'recipe:imp', name: 'Ny', ingredients: [], servings: 1, createdAt: 1, per100g: [], portionG: 1, totalG: 1 };
     await db.putRecipe({ ...base, updatedAt: 10 });
-    const empty = { entries: [], customFoods: [], usage: [], servings: [], offFoods: [] };
+    const empty = { entries: [], customFoods: [], usage: [], servings: [], offFoods: [], body: [] };
     await db.importAll({ ...empty, recipes: [{ ...base, name: 'Gammal', updatedAt: 5 }] });
     expect((await db.listRecipes()).find((r) => r.ref === 'recipe:imp')?.name).toBe('Ny');
     await db.importAll({ ...empty, recipes: [{ ...base, name: 'Nyare', updatedAt: 20 }] });

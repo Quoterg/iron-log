@@ -7,10 +7,11 @@ import { fetchProduct } from './lib/off';
 import { lang } from './lib/i18n';
 import type { Food, NutrientVector, Serving } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
-import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, type Target } from './lib/targets';
+import type { BodyEntry } from './lib/body';
+import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 
-export type View = 'diary' | 'nutrients' | 'settings';
+export type View = 'diary' | 'nutrients' | 'body' | 'settings';
 
 export const view = signal<View>('diary');
 export const date = signal(db.isoDate(new Date()));
@@ -364,4 +365,34 @@ export async function deleteRecipe(ref: string): Promise<void> {
   recipes.value = recipes.value.map((x) => (x.ref === ref ? next : x));
   syncCustomFoods();
   await db.putRecipe(next);
+}
+
+// --- Body log ---
+
+/** Body measurements, loaded when the Body tab opens (not needed for the first screen). */
+export const bodyLog = signal<BodyEntry[] | null>(null);
+
+export async function loadBody(): Promise<void> {
+  bodyLog.value ??= await db.listBody();
+}
+
+/**
+ * Save a day's measurements (empty → delete the day). The latest measurement also updates the
+ * profile's weight/body fat, so automatic energy follows your weight.
+ */
+export async function saveBody(e: BodyEntry): Promise<void> {
+  await loadBody();
+  const empty = e.weightKg == null && e.bodyFatPct == null && e.waistCm == null;
+  const rest = (bodyLog.value ?? []).filter((x) => x.date !== e.date);
+  bodyLog.value = empty ? rest : [...rest, e];
+  if (empty) await db.deleteBody(e.date);
+  else await db.putBody(e);
+  const latest = (metric: 'weightKg' | 'bodyFatPct') =>
+    (bodyLog.value ?? []).filter((x) => x[metric] != null).sort((a, b) => b.date.localeCompare(a.date))[0]?.[metric];
+  const p = settings.value.profile;
+  const weightKg = latest('weightKg') ?? p.weightKg;
+  const bodyFatPct = latest('bodyFatPct') ?? p.bodyFatPct;
+  if (weightKg !== p.weightKg || bodyFatPct !== p.bodyFatPct) {
+    await updateSettings({ profile: withEnergy({ ...p, weightKg, bodyFatPct }) });
+  }
 }

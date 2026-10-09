@@ -43,7 +43,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 - [x] **M11 Global food data** — USDA FoodData Central (Foundation + SR Legacy, public domain)
   mapped to the same nutrient keys; data split per source and loaded by language/region
   setting; keep each file within budget; source badges in results.
-- [ ] **M12 Body log & charts** — Weight, body fat, waist; tiny hand-written SVG charts
+- [x] **M12 Body log & charts** — Weight, body fat, waist; tiny hand-written SVG charts
   (no chart library); trend line (moving average).
 - [ ] **M13 Reports & insights** — Day/week/month averages per nutrient, "top contributors"
   for any nutrient, nutrient-gap highlights vs. targets, simple streaks.

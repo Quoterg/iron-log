@@ -1,6 +1,7 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
 import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type Usage, type UserServings } from './db';
 import { foodName, NUTRIENTS, type Food } from './nutrients';
+import type { BodyEntry } from './body';
 import { padVector, type StoredRecipe } from './recipes';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
@@ -120,6 +121,21 @@ function recipe(x: unknown): StoredRecipe {
   throw new BackupError('recipe');
 }
 
+function body(x: unknown): BodyEntry {
+  const opt = (v: unknown, lo: number, hi: number) => v === undefined || (isNum(v) && v >= lo && v <= hi);
+  if (
+    isObj(x) && isStr(x.date) && DATE.test(x.date) && isNum(x.updatedAt) &&
+    opt(x.weightKg, 20, 400) && opt(x.bodyFatPct, 2, 75) && opt(x.waistCm, 30, 250)
+  ) {
+    const b: BodyEntry = { date: x.date, updatedAt: x.updatedAt };
+    if (x.weightKg !== undefined) b.weightKg = x.weightKg as number;
+    if (x.bodyFatPct !== undefined) b.bodyFatPct = x.bodyFatPct as number;
+    if (x.waistCm !== undefined) b.waistCm = x.waistCm as number;
+    return b;
+  }
+  throw new BackupError('body');
+}
+
 function usage(x: unknown): Usage {
   if (isObj(x) && isStr(x.foodRef, 200) && isNum(x.count) && isNum(x.lastUsed) && isNum(x.lastGrams)) {
     const u: Usage = { foodRef: x.foodRef, count: x.count, lastUsed: x.lastUsed, lastGrams: x.lastGrams };
@@ -205,6 +221,7 @@ export function parseBackup(text: string): AllData {
     servings: list('servings').map(servings),
     offFoods: list('offFoods').map(offFood),
     recipes: list('recipes').map(recipe),
+    body: list('body').map(body),
     settings: settings(raw.settings),
   };
 }
