@@ -71,7 +71,8 @@ const strings: Dict = {
   copy: 'Copy',
   offAdd: 'Add this product to Open Food Facts',
   offComplete: 'Add the nutrition facts on Open Food Facts',
-  offHelpNote: 'The page opens in your browser. Once the product is there, everyone finds it next time.',
+  offHelpNote: 'Then everyone finds the product next time.',
+  offWebsite: 'Or do it on the Open Food Facts website',
   offFix: 'Correct or complete on Open Food Facts',
   reportError: 'Report a data error',
   privacyPolicy: 'Privacy',
@@ -296,5 +297,25 @@ const sync: Record<string, string> = {
   copied: 'Copied',
 };
 
-const pack: LangPack = { strings, sync };
+const off: Record<string, string> = {
+  offUploadTitle: 'Add to Open Food Facts',
+  offBrand: 'Brand',
+  offPhotos: 'Photos (recommended)',
+  offPhotoFront: 'The front',
+  offPhotoNutrition: 'The nutrition table',
+  offAccount: 'Your Open Food Facts account',
+  offUser: 'Username',
+  offPassword: 'Password',
+  offLoginNote: 'Used only for this upload and never stored on the device.',
+  offCreateAccount: 'Create an account (free)',
+  offPublishNote: 'The data and photos are published openly on Open Food Facts (ODbL / CC BY-SA) for everyone to use.',
+  offUploadSend: 'Send and add',
+  offUploading: 'Sending…',
+  offUploadLogin: 'Wrong Open Food Facts username or password.',
+  offUploadNetwork: 'Could not reach Open Food Facts. Check your connection and try again.',
+  offUploadRejected: 'Open Food Facts did not accept the product. Check the details or use the website.',
+  offUploadInvalid: 'Fill in name, energy (kcal), username and password – with valid numbers only.',
+};
+
+const pack: LangPack = { strings, sync, off };
 export default pack;

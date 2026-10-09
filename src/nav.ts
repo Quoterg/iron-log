@@ -25,7 +25,9 @@ export type Screen =
   /** Create or edit a supplement. */
   | { kind: 'supplement'; ref?: string }
   /** Sync with another of the user's devices. */
-  | { kind: 'sync' };
+  | { kind: 'sync' }
+  /** Add or complete a product on Open Food Facts. */
+  | { kind: 'offUpload'; code: string; meal: Meal };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

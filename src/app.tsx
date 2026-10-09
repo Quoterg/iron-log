@@ -28,6 +28,7 @@ export const contributorsView = lazyView(() => import('./components/Contributors
 export const activityView = lazyView(() => import('./components/ActivitySheet'));
 export const supplementView = lazyView(() => import('./components/SupplementEditor'));
 export const syncView = lazyView(() => import('./components/SyncSheet'));
+export const offUploadView = lazyView(() => import('./components/OffUploadSheet'));
 
 export function App() {
   const s = top.value;
@@ -98,6 +99,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <supplementView.Lazy foodRef={s.ref} />;
     case 'sync':
       return <syncView.Lazy />;
+    case 'offUpload':
+      return <offUploadView.Lazy code={s.code} meal={s.meal} />;
   }
 }
 
