@@ -111,23 +111,32 @@ export interface Progress {
 }
 
 /**
- * The sync protocol; both devices run the same steps, so it doesn't matter who started. Changes go
+ * The sync protocol. After the hello (the first device opens), both run the same steps. Changes go
  * in batches, each applied (atomically) as it arrives. Returns how many records this device
  * received and sent; `onApplied` fires after every batch that changed something.
  */
 export async function runSync(
   ch: Channel,
+  role: 'first' | 'second',
   onStep: (p: Progress) => void = () => {},
   onApplied: (n: number) => void = () => {},
 ): Promise<{ received: number; sent: number; stores: SyncStore[] }> {
   const want = async <T extends SyncMsg['t']>(t: T): Promise<Extract<SyncMsg, { t: T }>> => {
     const m = await ch.next();
-    if (m.t !== t) throw new PairError('protocol');
+    if (m.t !== t) {
+      const e = new PairError('protocol');
+      e.message = `expected ${t}, got ${String((m as { t?: unknown }).t)}`;
+      throw e;
+    }
     return m as Extract<SyncMsg, { t: T }>;
   };
   onStep({ step: 'hello' });
-  await ch.send({ t: 'hello', v: VERSION });
+  // The device that showed the first code speaks first; the other answers only once it has heard
+  // from it. A message sent the moment one side opens can be lost while the other side is still
+  // opening — after the first device's hello, both are open.
+  if (role === 'first') await ch.send({ t: 'hello', v: VERSION });
   if ((await want('hello')).v !== VERSION) throw new PairError('version');
+  if (role === 'second') await ch.send({ t: 'hello', v: VERSION });
 
   onStep({ step: 'summary' });
   const summary = await summarize();
@@ -249,12 +258,18 @@ export interface Pairing {
 export const WAIT_FOR_PEER_MS = 5 * 60_000;
 export const CONNECT_MS = 30_000;
 
-const openOf = (dc: RTCDataChannel): Promise<Channel> =>
-  new Promise((ok, no) => {
-    if (dc.readyState === 'open') return ok(channelOf(dc));
-    dc.onopen = () => ok(channelOf(dc));
+/**
+ * Listen from the moment the channel exists, not from 'open': the other device may send its first
+ * message before this side's 'open' event fires, and a message with no listener is lost.
+ */
+const openOf = (dc: RTCDataChannel): Promise<Channel> => {
+  const ch = channelOf(dc);
+  return new Promise((ok, no) => {
+    if (dc.readyState === 'open') return ok(ch);
+    dc.onopen = () => ok(ch);
     dc.onerror = () => no(new PairError('closed'));
   });
+};
 
 /**
  * Device A: create the first code. Call `allowLocalAddresses()` first where possible: without a
@@ -286,14 +301,15 @@ export async function startOffer(): Promise<Pairing> {
 export async function answerOffer(offerCode: string): Promise<Pairing> {
   const offer = await decodeSignal(offerCode, 'offer');
   const pc = new RTCPeerConnection({ iceServers: [] });
-  const channel = new Promise<RTCDataChannel>((ok) => (pc.ondatachannel = (ev) => ok(ev.channel)));
+  // Wrap the channel synchronously as it arrives (see openOf): no message can slip in between.
+  const channel = new Promise<Channel>((ok, no) => (pc.ondatachannel = (ev) => openOf(ev.channel).then(ok, no)));
   await pc.setRemoteDescription(offer);
   await pc.setLocalDescription(await pc.createAnswer());
   await gathered(pc);
   return {
     code: await encodeSignal(pc.localDescription!),
     // Device A still has to scan this answer: same allowance as A's.
-    open: withTimeout(channel.then(openOf), WAIT_FOR_PEER_MS),
+    open: withTimeout(channel, WAIT_FOR_PEER_MS),
     close: () => pc.close(),
   };
 }

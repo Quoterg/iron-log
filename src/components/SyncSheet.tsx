@@ -39,18 +39,20 @@ export default function SyncSheet() {
   const live = (n: number) => n === attempt.current;
   const fail = (n: number, e: unknown) => {
     if (!live(n)) return;
+    console.error('sync failed', e instanceof PairError ? `${e.kind}: ${e.message}` : e); // for bug reports
     pairing.current?.close();
     setStep({ s: 'error', kind: e instanceof PairError ? e.kind : 'other', saved: saved.current > 0 });
   };
 
   /** Once the channel is open: sync, then show the result. */
-  const sync = async (n: number, p: Pairing) => {
+  const sync = async (n: number, p: Pairing, role: 'first' | 'second') => {
     try {
       const ch = await p.open;
       if (!live(n)) return;
       setStep({ s: 'syncing', progress: { step: 'hello' } });
       const r = await runSync(
         ch,
+        role,
         (pr) => live(n) && setStep({ s: 'syncing', progress: pr }),
         (count) => (saved.current = count),
       );
@@ -71,7 +73,7 @@ export default function SyncSheet() {
       if (!live(n)) return p.close();
       pairing.current = p;
       setStep({ s: 'showOffer', p });
-      void sync(n, p);
+      void sync(n, p, 'first');
     } catch (e) {
       fail(n, e);
     }
@@ -85,7 +87,7 @@ export default function SyncSheet() {
       if (!live(n)) return p.close();
       pairing.current = p;
       setStep({ s: 'showAnswer', p });
-      void sync(n, p);
+      void sync(n, p, 'second');
     } catch (e) {
       fail(n, e);
     }

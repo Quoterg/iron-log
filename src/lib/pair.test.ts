@@ -114,8 +114,8 @@ describe('sync protocol over a channel', () => {
     const [chA, chB] = linked(a, b);
     const steps: string[] = [];
     const [ra, rb] = await Promise.all([
-      a.pair.runSync(chA, (p) => p.step === 'applying' && steps.push(`${p.done}/${p.total}`)),
-      b.pair.runSync(chB),
+      a.pair.runSync(chA, 'first', (p) => p.step === 'applying' && steps.push(`${p.done}/${p.total}`)),
+      b.pair.runSync(chB, 'second'),
     ]);
     expect(ra).toEqual({ received: 1200, sent: 1, stores: ['entries'] });
     expect(rb).toEqual({ received: 1, sent: 1200, stores: ['entries'] });
@@ -129,7 +129,7 @@ describe('sync protocol over a channel', () => {
     const b = await device();
     await a.db.putEntry(entry('a1'));
     const [chA, chB] = linked(a, b, { closeAfterDone: true });
-    const [, rb] = await Promise.all([a.pair.runSync(chA), b.pair.runSync(chB)]);
+    const [, rb] = await Promise.all([a.pair.runSync(chA, 'first'), b.pair.runSync(chB, 'second')]);
     expect(rb.received).toBe(1);
   });
 
@@ -137,6 +137,7 @@ describe('sync protocol over a channel', () => {
     const a = await device();
     const { runSync } = a.pair;
     const fake: Channel = { send: async () => {}, next: async () => ({ t: 'hello', v: 1 }), flush: async () => {} };
-    await expect(runSync(fake)).rejects.toMatchObject({ kind: 'version' });
+    await expect(runSync(fake, 'first')).rejects.toMatchObject({ kind: 'version' });
+    await expect(runSync(fake, 'second')).rejects.toMatchObject({ kind: 'version' });
   });
 });
