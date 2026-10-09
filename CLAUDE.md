@@ -52,3 +52,9 @@ pnpm data:build-usda       # data/raw/usda → public/data/usda-*.json (+ src/li
   keep attribution visible in Settings.
 - Never `cat`/read `public/data/foods.json` or `data/raw/*` whole — they're large. Use `python3 -c`/`node -e` to query them.
 - Match existing code style: small modules, plain functions, Preact signals for shared state.
+- **Shared origin (owner decision, see docs/SECURITY-REVIEW.md S1):** the app runs on
+  `https://quoterg.github.io`, which every Pages site of the account shares — and with it all users'
+  stored data. Never enable GitHub Pages on another repo of this account, never add scripts or
+  other content to the `Quoterg.github.io` repo (it holds only a redirect and assetlinks.json), and
+  never suggest renaming the account. Keep the Content-Security-Policy in `vite.config.ts` strict:
+  widen it only for a proven need, and keep `e2e/csp.spec.ts` passing.

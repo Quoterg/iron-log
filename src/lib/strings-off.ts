@@ -33,4 +33,6 @@ const sv = {
 
 export type OffKey = keyof typeof sv;
 
-export const to = (key: OffKey): string => packOf(lang.value)?.off?.[key] ?? packOf('en')?.off?.[key] ?? sv[key];
+// Swedish strings live here; other languages in their pack, falling back to English.
+export const to = (key: OffKey): string =>
+  lang.value === 'sv' ? sv[key] : (packOf(lang.value)?.off?.[key] ?? packOf('en')?.off?.[key] ?? sv[key]);

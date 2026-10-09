@@ -152,6 +152,8 @@ for (const scheme of ['light', 'dark'] as const) {
 
 // Layout doesn't depend on the colour scheme: one pass, light mode.
 test.describe('200 % text size, 360 px wide: no horizontal scrolling', () => {
+  // The test injects its own style tag; the app's CSP (checked in csp.spec.ts) would rightly block it.
+  test.use({ bypassCSP: true });
   // Compare with the device width: overflow makes mobile browsers zoom out (innerWidth grows too).
   const overflow = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - 360);
   // A wide font (DejaVu Sans, CI's default) so local runs catch what CI catches.
