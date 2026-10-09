@@ -12,7 +12,7 @@ Keep entries short — this file is read at the start of every session.
 Done:
 - `scripts/fetch-usda.mjs` + `scripts/build-usda.mjs`: USDA FoodData Central SR Legacy (2018-04) +
   Foundation (2026-04-30), public domain → 8,032 foods (de-duplicated by name, most complete /
-  Foundation preferred) in `public/data/usda-{0,1,2}.json`, each ≤ 240 KB gzip; ≤ 3 household
+  Foundation preferred) in `public/data/usda-*.json`; ≤ 3 household
   portions per food. Mapping: energy 1008→2048→2047; carbohydrates = by summation, else by
   difference − fibre (SLV reports *available* carbs); salt from sodium; vitamin A as RAE and
   niacin as preformed niacin (SLV: RE / niacin equivalents — small, documented differences).
@@ -21,11 +21,18 @@ Done:
 - Setting "Livsmedelsdatabaser i sökningen" (Settings → general): default Swedish → Livsmedelsverket
   only, English → both; at least one stays on. "USDA" badge in search; source + attribution.
 - Size check now applies the 250 KB budget to every data file.
-- Tests: 71 unit (USDA order, unique refs/names, energy plausibility, banana available carbs),
-  22 Playwright (default/enabled/disabled USDA, English default). Initial JS 30.1 KB gzip.
+- Review fixes (reviewer agent on PR #13): a source that fails to load (offline before first
+  download) no longer breaks search — `allSettled`, results from loaded sources plus a
+  "kunde inte laddas" hint, retried automatically; diary lookups only wait for the sources their
+  refs need. Data files are content-hashed (`foods.<hash>.json`, `usda-<n>.<hash>.json`, via
+  `scripts/data-files.mjs`) and cache-first in the service worker (cache v2) — no re-download per
+  launch. USDA split into 4 files ≤ 190 KB (room for M16). Files load one at a time (memory); the
+  worker loads and indexes at idle (`warm`), not on the first keystroke. Build logs dropped
+  duplicates (139) and fails loudly on changed CSV columns; energy test pinned to ≤ 40 outliers.
+- Tests: 71 unit, 23 Playwright (incl. USDA blocked → Swedish search + hint). Initial JS 30.4 KB gzip.
 
 Known gaps: USDA names are English in both languages; English users download ~580 KB more food data
-(after first paint, then cached) — first search on a slow connection waits for it.
+once (after first paint; cached afterwards).
 
 ## 2026-10-09 — M10 Recipes (interactive session)
 

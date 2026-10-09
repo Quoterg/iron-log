@@ -1,15 +1,17 @@
 // Turns USDA FoodData Central CSVs (data/raw/usda, see fetch-usda.mjs) into the app's compact
-// format, split into files that each stay within the food-data budget:
-//   public/data/usda-<n>.json = { v, sources, keys, units, foods: [[ref, sv, en, ...per100g]] }
+// format, split into files that each stay well within the food-data budget:
+//   public/data/usda-<n>.<hash>.json = { v, sources, keys, units, foods: [[ref, sv, en, ...per100g]] }
 // and writes src/lib/sources.json (which files belong to which source) for the app.
 // USDA data is public domain. Usage: node scripts/build-usda.mjs
 import { createReadStream } from 'node:fs';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
 import { gzipSync } from 'node:zlib';
+import { writeSourceFiles } from './data-files.mjs';
 
 const NUTRIENTS = JSON.parse(await readFile('src/lib/nutrients.json', 'utf8'));
-const MAX_GZIP = 240 * 1024; // a little under the 250 KB budget
+// Well under the 250 KB per-file budget, leaving room for more nutrients later (M16).
+const MAX_GZIP = 190 * 1024;
 
 /** Our nutrient key → USDA nutrient ids in priority order (all per 100 g, same units as ours). */
 const IDS = {
@@ -69,13 +71,23 @@ function parseCsvLine(line) {
   return out;
 }
 
+const REQUIRED = {
+  'food.csv': ['fdc_id', 'data_type', 'description'],
+  'food_nutrient.csv': ['fdc_id', 'nutrient_id', 'amount'],
+  'food_portion.csv': ['fdc_id', 'amount', 'gram_weight', 'modifier', 'portion_description'],
+};
+
 async function* rows(path) {
   let header;
   for await (const line of createInterface({ input: createReadStream(path), crlfDelay: Infinity })) {
     if (!line) continue;
     const cells = parseCsvLine(line);
-    if (!header) header = cells;
-    else yield Object.fromEntries(header.map((h, i) => [h, cells[i]]));
+    if (!header) {
+      header = cells;
+      // Fail loudly if a new USDA release changes the format.
+      const missing = (REQUIRED[path.split('/').pop()] ?? []).filter((c) => !header.includes(c));
+      if (missing.length) throw new Error(`${path}: missing columns ${missing.join(', ')}`);
+    } else yield Object.fromEntries(header.map((h, i) => [h, cells[i]]));
   }
 }
 
@@ -136,8 +148,10 @@ for (const row of out) {
     byName.set(row[1], { row, isFoundation });
   }
 }
+const before = out.length;
 out.length = 0;
 for (const { row } of byName.values()) out.push(row);
+console.log(`De-duplicated by name: kept ${out.length}, dropped ${before - out.length} duplicates`);
 out.sort((a, b) => a[1].localeCompare(b[1], 'en'));
 
 // Split into files under the budget (greedy by size).
@@ -163,13 +177,9 @@ for (let i = 0; i < out.length; i += step) {
 }
 if (chunk.length) files.push(chunk);
 
-const names = [];
-for (const [i, c] of files.entries()) {
-  const name = `usda-${i}.json`;
-  const json = fileFor(c);
-  await writeFile(`public/data/${name}`, json);
-  names.push(name);
-  console.log(`${name}: ${c.length} foods, ${(gzipSync(json).length / 1024).toFixed(0)} KB gzip`);
+const jsons = files.map(fileFor);
+const names = await writeSourceFiles('usda', 'usda', jsons);
+for (const [i, name] of names.entries()) {
+  console.log(`${name}: ${files[i].length} foods, ${(gzipSync(jsons[i]).length / 1024).toFixed(0)} KB gzip`);
 }
-await writeFile('src/lib/sources.json', JSON.stringify({ slv: ['foods.json'], usda: names }, null, 2) + '\n');
 console.log(`USDA: ${out.length} foods in ${names.length} files`);

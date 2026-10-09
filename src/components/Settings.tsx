@@ -94,18 +94,19 @@ function General() {
       <p class="muted small">{t('attribution')}</p>
       <fieldset class="sources">
         <legend>{t('foodDatabases')}</legend>
-        {(['slv', 'usda'] as const).map((src) => {
-          const on = activeSources(s).includes(src);
+        {(['slv', 'usda'] as const).map((src, _, list) => {
+          const active = activeSources(s);
+          const on = active.includes(src);
           return (
             <label class="check" key={src}>
               <input
                 type="checkbox"
                 checked={on}
                 // At least one database stays on.
-                disabled={on && activeSources(s).length === 1}
+                disabled={on && active.length === 1}
                 onChange={(e) => {
                   const checked = (e.currentTarget as HTMLInputElement).checked;
-                  const next = (['slv', 'usda'] as const).filter((x) => (x === src ? checked : activeSources(s).includes(x)));
+                  const next = list.filter((x) => (x === src ? checked : active.includes(x)));
                   void updateSettings({ sources: next });
                 }}
               />

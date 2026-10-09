@@ -29,7 +29,6 @@ test('Swedish default searches Livsmedelsverket; USDA can be added and stays res
   // Turn USDA off again: the logged food still shows after a reload (loaded on demand).
   await settingsTab(page);
   await page.getByLabel(/USDA \(USA/).uncheck();
-  await page.getByLabel(/Livsmedelsverket/).blur();
   await page.waitForFunction(async () => {
     const req = indexedDB.open('iron-log');
     const db: IDBDatabase = await new Promise((ok) => (req.onsuccess = () => ok(req.result)));
@@ -50,4 +49,19 @@ test('English users search both databases by default', async ({ page }) => {
   await meal(page, 0).getByRole('button', { name: /Add/ }).click();
   await page.getByPlaceholder(/Search foods/).fill('oats');
   await expect(page.locator('.result', { hasText: 'USDA' }).first()).toBeVisible();
+});
+
+test.describe('without the service worker (its requests bypass page routing)', () => {
+  test.use({ serviceWorkers: 'block' });
+  test('offline before USDA is cached: Swedish data still searchable, with a hint', async ({ page }) => {
+  await page.route('**/data/usda-*', (route) => route.abort());
+  await page.goto('./');
+  await settingsTab(page);
+  await page.getByLabel('Språk').selectOption('en');
+  await page.getByRole('button', { name: 'Diary', exact: true }).click();
+  await meal(page, 0).getByRole('button', { name: /Add/ }).click();
+  await page.getByPlaceholder(/Search foods/).fill('havregryn');
+  await expect(page.locator('.result').first()).toContainText(/Rolled oats|Havregryn/i);
+  await expect(page.getByText(/USDA could not be loaded/)).toBeVisible();
+});
 });

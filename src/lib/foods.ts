@@ -1,4 +1,5 @@
 // Main-thread client for the food worker.
+import { signal } from '@preact/signals';
 import type { Food } from './nutrients';
 import SOURCE_FILES from './sources.json';
 
@@ -9,6 +10,7 @@ export const SOURCES = Object.keys(SOURCE_FILES) as Source[];
 export type WorkerRequest =
   | { id: number; type: 'init'; files: Record<string, string[]>; sources: string[] }
   | { id: number; type: 'sources'; sources: string[] }
+  | { id: number; type: 'warm'; lang: string }
   | { id: number; type: 'custom'; foods: Food[] }
   | { id: number; type: 'boost'; boosts: Record<string, number> }
   | { id: number; type: 'search'; query: string; lang: string; excludePrefix?: string }
@@ -17,10 +19,15 @@ export type WorkerRequest =
 export interface WorkerResponse {
   id: number;
   foods: Food[];
+  /** Databases that couldn't be loaded for this request (e.g. offline before first download). */
+  failed?: string[];
   error?: string;
 }
 
-type Pending = { resolve: (f: Food[]) => void; reject: (e: Error) => void };
+/** Databases that failed to load on the latest search (shown as a hint; retried automatically). */
+export const unavailableSources = signal<string[]>([]);
+
+type Pending = { resolve: (f: Food[]) => void; reject: (e: Error) => void; trackFailures?: boolean };
 
 let worker: Worker | undefined;
 let enabledSources: string[] = ['slv'];
@@ -32,10 +39,10 @@ const cache = new Map<string, Food>();
 type Query = Extract<WorkerRequest, { type: 'search' | 'get' }>;
 type WithoutId<T> = T extends unknown ? Omit<T, 'id'> : never;
 
-function call(req: WithoutId<Query>): Promise<Food[]> {
+function call(req: WithoutId<Query>, trackFailures = false): Promise<Food[]> {
   const id = nextId++;
   return new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject });
+    pending.set(id, { resolve, reject, trackFailures });
     getWorker().postMessage({ ...req, id } as WorkerRequest);
   });
 }
@@ -47,6 +54,7 @@ function getWorker(): Worker {
     const p = pending.get(ev.data.id);
     if (!p) return;
     pending.delete(ev.data.id);
+    if (p.trackFailures) unavailableSources.value = ev.data.failed ?? [];
     if (ev.data.error) p.reject(new Error(ev.data.error));
     else {
       for (const f of ev.data.foods) cache.set(f.ref, f);
@@ -91,9 +99,10 @@ export function setSources(sources: Source[]): void {
   }
 }
 
-/** Start loading the food database early (call after first paint). */
-export function warmUp(): Promise<unknown> {
-  return call({ type: 'get', refs: [] });
+/** At idle after first paint: load the databases and build the search index for `lang`. */
+export function warmUp(lang: string): void {
+  const msg: WorkerRequest = { id: 0, type: 'warm', lang };
+  getWorker().postMessage(msg);
 }
 
 /**
@@ -109,7 +118,7 @@ export function setCustomFoods(visible: Food[], all: Food[]): void {
 
 /** Search foods; `excludePrefix` (e.g. 'recipe:') leaves out a kind of food, still returning a full page. */
 export function searchFoods(query: string, lang: string, excludePrefix?: string): Promise<Food[]> {
-  return call({ type: 'search', query, lang, excludePrefix });
+  return call({ type: 'search', query, lang, excludePrefix }, true);
 }
 
 export async function getFoods(refs: string[]): Promise<Map<string, Food>> {

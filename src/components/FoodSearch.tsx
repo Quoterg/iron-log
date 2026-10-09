@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Meal } from '../lib/db';
-import { searchFoods } from '../lib/foods';
+import { searchFoods, unavailableSources } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
 import { back, open } from '../nav';
@@ -81,6 +81,11 @@ export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIng
         onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)}
       />
       {loading && !results && <p class="muted center">{t('loadingFoods')}</p>}
+      {results && unavailableSources.value.length > 0 && (
+        <p class="small warn pad" role="status">
+          {t('sourcesUnavailable').replace('{list}', unavailableSources.value.map((s) => (s === 'usda' ? 'USDA' : 'Livsmedelsverket')).join(', '))}
+        </p>
+      )}
       {results && results.length === 0 && <p class="muted center">{t('noResults')}</p>}
       {results ? (
         <ul class="results">{results.filter(allowed).map((f) => row(f, pick))}</ul>

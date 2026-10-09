@@ -65,20 +65,22 @@ describe('USDA food data', () => {
   });
 
   it('has plausible energy (available carbs, not carbs by difference)', () => {
-    let bad = 0;
-    for (const [, , , ...v] of foods) {
+    const off: string[] = [];
+    for (const [, name, , ...v] of foods) {
       const k = (key: string) => v[NUTRIENT_INDEX[key]] ?? 0;
       const est = k('protein') * 4 + k('carbs') * 4 + k('fat') * 9 + k('alcohol') * 7 + k('fibre') * 2;
-      if (Math.abs(est - k('kcal')) > 0.15 * k('kcal') + 15) bad++;
+      if (Math.abs(est - k('kcal')) > 0.15 * k('kcal') + 15) off.push(`${name}: ${k('kcal')} kcal vs ${Math.round(est)}`);
     }
-    expect(bad / foods.length).toBeLessThan(0.02);
+    // Pinned to today's count (mostly foods with sugar alcohols/organic acids); new outliers fail.
+    expect(off.length, off.slice(0, 10).join('\n')).toBeLessThanOrEqual(40);
     const banana = foods.find((f) => f[1] === 'Bananas, raw')!;
     expect(banana[3 + NUTRIENT_INDEX.carbs]).toBeCloseTo(20.2, 1); // 22.8 by difference − 2.6 fibre
   });
 });
 
 describe('real food data', () => {
-  const data = JSON.parse(readFileSync('public/data/foods.json', 'utf8')) as {
+  const slvFile = (JSON.parse(readFileSync('src/lib/sources.json', 'utf8')) as { slv: string[] }).slv[0];
+  const data = JSON.parse(readFileSync(`public/data/${slvFile}`, 'utf8')) as {
     keys: string[];
     foods: [string, string, string | null, ...(number | null)[]][];
   };

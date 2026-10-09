@@ -47,12 +47,14 @@ async function loadFile(url: string): Promise<Food[]> {
 function loadSource(source: string): Promise<void> {
   let p = loading.get(source);
   if (!p) {
-    p = Promise.all((files[source] ?? []).map(loadFile)).then((parts) => {
-      const list = parts.flat();
+    p = (async () => {
+      // One file at a time: keeps peak memory low on phones with little RAM.
+      const list: Food[] = [];
+      for (const url of files[source] ?? []) list.push(...(await loadFile(url)));
       sourceFoods.set(source, list);
       for (const f of list) byRef.set(f.ref, f);
       rebuild();
-    });
+    })();
     // A failed download can be retried later (e.g. back online).
     p.catch(() => loading.delete(source));
     loading.set(source, p);
@@ -68,7 +70,15 @@ function rebuild() {
   index = {};
 }
 
-const ready = () => Promise.all(enabled.map(loadSource));
+/**
+ * Load the enabled sources. One failing (e.g. offline before USDA was cached) must not break the
+ * others: search uses whatever loaded, and reports which sources are unavailable. A failed source
+ * is retried on the next request.
+ */
+async function ready(): Promise<string[]> {
+  const results = await Promise.allSettled(enabled.map(loadSource));
+  return enabled.filter((_, i) => results[i].status === 'rejected');
+}
 
 function indexFor(lang: string): SearchEntry[] {
   return (index[lang] ??= all.map((f, i) => {
@@ -82,10 +92,12 @@ function boostFor(ref: string, isCustom: boolean): number {
   return (isCustom ? CUSTOM_BOOST : 0) + (popular.has(ref) ? POPULAR_BOOST : 0) + (userBoost[ref] ?? 0);
 }
 
-/** Make sure the sources of these refs are loaded (e.g. an old USDA entry while USDA is off). */
-async function loadFor(refs: string[]) {
-  const needed = new Set(refs.map((r) => r.slice(0, r.indexOf(':'))).filter((s) => s in files));
-  await Promise.all([...needed].map(loadSource));
+/** Load only the sources these refs need (e.g. an old USDA entry while USDA is off). */
+async function loadFor(refs: string[]): Promise<string[]> {
+  // "custom:", "off:", "recipe:" refs aren't database files: the `in files` filter skips them.
+  const needed = [...new Set(refs.map((r) => r.slice(0, r.indexOf(':'))).filter((s) => s in files))];
+  const results = await Promise.allSettled(needed.map(loadSource));
+  return needed.filter((_, i) => results[i].status === 'rejected');
 }
 
 self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
@@ -93,13 +105,18 @@ self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
   if (req.type === 'init') {
     files = req.files;
     enabled = req.sources;
-    void ready().catch(() => {});
     return;
   }
   if (req.type === 'sources') {
     enabled = req.sources;
     rebuild();
-    void ready().catch(() => {});
+    void ready();
+    return;
+  }
+  if (req.type === 'warm') {
+    // At idle after first paint: load, then build the search index so the first keystroke is fast.
+    await ready();
+    indexFor(req.lang);
     return;
   }
   if (req.type === 'boost') {
@@ -120,13 +137,13 @@ self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
   let res: WorkerResponse;
   try {
     if (req.type === 'search') {
-      await ready();
+      const failed = await ready();
       const ex = req.excludePrefix;
       const hits = search(indexFor(req.lang), req.query, ex ? 200 : 40).map((i) => all[i]);
-      res = { id: req.id, foods: (ex ? hits.filter((f) => !f.ref.startsWith(ex)) : hits).slice(0, 40) };
+      res = { id: req.id, foods: (ex ? hits.filter((f) => !f.ref.startsWith(ex)) : hits).slice(0, 40), failed };
     } else {
-      await Promise.all([ready(), loadFor(req.refs)]);
-      res = { id: req.id, foods: req.refs.map((r) => byRef.get(r)).filter((f): f is Food => !!f) };
+      const failed = await loadFor(req.refs);
+      res = { id: req.id, foods: req.refs.map((r) => byRef.get(r)).filter((f): f is Food => !!f), failed };
     }
   } catch (err) {
     res = { id: req.id, foods: [], error: String(err) };

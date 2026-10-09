@@ -1,10 +1,11 @@
 {
   "slv": [
-    "foods.json"
+    "foods.015c9bdd.json"
   ],
   "usda": [
-    "usda-0.json",
-    "usda-1.json",
-    "usda-2.json"
+    "usda-0.094b69e4.json",
+    "usda-1.9506417a.json",
+    "usda-2.37a8477a.json",
+    "usda-3.df3073b1.json"
   ]
 }
