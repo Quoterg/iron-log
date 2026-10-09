@@ -89,6 +89,47 @@ export async function putUsage(u: Usage): Promise<void> {
   await (await db()).put('usage', u);
 }
 
+export interface AllData {
+  entries: Entry[];
+  customFoods: CustomFood[];
+  usage: Usage[];
+  settings?: Settings;
+}
+
+export async function exportAll(): Promise<AllData> {
+  const d = await db();
+  const [entries, customFoods, usage, settings] = await Promise.all([
+    d.getAll('entries'),
+    d.getAll('customFoods'),
+    d.getAll('usage'),
+    d.get('kv', 'settings') as Promise<Settings | undefined>,
+  ]);
+  return { entries, customFoods, usage, settings };
+}
+
+/** Upsert everything in one transaction: items with the same id/ref are replaced, others kept. */
+export async function importAll(data: AllData): Promise<void> {
+  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'kv'], 'readwrite');
+  const puts: Promise<unknown>[] = [
+    ...data.entries.map((e) => tx.objectStore('entries').put(e)),
+    ...data.customFoods.map((f) => tx.objectStore('customFoods').put(f)),
+    ...data.usage.map((u) => tx.objectStore('usage').put(u)),
+  ];
+  if (data.settings) puts.push(tx.objectStore('kv').put(data.settings, 'settings'));
+  await Promise.all([...puts, tx.done]);
+}
+
+export async function clearAll(): Promise<void> {
+  const tx = (await db()).transaction(['entries', 'customFoods', 'usage', 'kv'], 'readwrite');
+  await Promise.all([
+    tx.objectStore('entries').clear(),
+    tx.objectStore('customFoods').clear(),
+    tx.objectStore('usage').clear(),
+    tx.objectStore('kv').clear(),
+    tx.done,
+  ]);
+}
+
 export async function putEntries(list: Entry[]): Promise<void> {
   const tx = (await db()).transaction('entries', 'readwrite');
   await Promise.all([...list.map((e) => tx.store.put(e)), tx.done]);

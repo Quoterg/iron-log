@@ -1,5 +1,6 @@
 import { render } from 'preact';
 import { App } from './app';
+import { captureInstallPrompt } from './components/YourData';
 import { warmUp } from './lib/foods';
 import { lang } from './lib/i18n';
 import { initNav } from './nav';
@@ -8,6 +9,7 @@ import './styles.css';
 
 async function start() {
   initNav();
+  captureInstallPrompt();
   await loadSettings();
   document.documentElement.lang = lang.value;
   render(<App />, document.getElementById('app')!);
