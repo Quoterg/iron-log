@@ -40,7 +40,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   presets (NNR default, high-protein, low-carb, keto), reset to defaults.
 - [x] **M10 Recipes** — Recipes from ingredients, servings, cooked yield/weight change;
   log by serving or grams; recipe nutrient summary.
-- [ ] **M11 Global food data** — USDA FoodData Central (Foundation + SR Legacy, public domain)
+- [x] **M11 Global food data** — USDA FoodData Central (Foundation + SR Legacy, public domain)
   mapped to the same nutrient keys; data split per source and loaded by language/region
   setting; keep each file within budget; source badges in results.
 - [ ] **M12 Body log & charts** — Weight, body fat, waist; tiny hand-written SVG charts

@@ -1,5 +1,7 @@
 /// <reference lib="webworker" />
-// Owns the food database so parsing and searching never block the UI thread.
+// Owns the food databases so parsing and searching never block the UI thread.
+// Each source (Livsmedelsverket, USDA, …) is one or more JSON files, loaded only when the source
+// is enabled for search — or when a diary entry needs one of its foods.
 import { buildEntry, search, type SearchEntry } from '../lib/search';
 import type { Food } from '../lib/nutrients';
 import type { WorkerRequest, WorkerResponse } from '../lib/foods';
@@ -15,42 +17,63 @@ const CUSTOM_BOOST = 1;
 /** Everyday foods (data/popular.txt): "ris" → cooked rice before raw specialty rice. */
 const POPULAR_BOOST = 2;
 
-let builtIn: Food[] = [];
+let files: Record<string, string[]> = {};
+let enabled: string[] = [];
+const sourceFoods = new Map<string, Food[]>();
+const loading = new Map<string, Promise<void>>();
 let custom: Food[] = [];
+let builtInCount = 0;
 let all: Food[] = [];
 const byRef = new Map<string, Food>();
 let index: Partial<Record<string, SearchEntry[]>> = {};
-let popular = new Set<string>();
+const popular = new Set<string>();
 /** Per-food boost from the user's own history (count, favourites), set by the main thread. */
 let userBoost: Record<string, number> = {};
 
-let ready: Promise<void> | undefined;
-
-async function load(url: string) {
+async function loadFile(url: string): Promise<Food[]> {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`foods.json: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
   const data = (await res.json()) as FoodsFile;
   const units = data.units ?? {};
-  builtIn = data.foods.map(([ref, sv, en, ...per100g]) => {
+  for (const r of data.popular ?? []) popular.add(r);
+  return data.foods.map(([ref, sv, en, ...per100g]) => {
     const f: Food = { ref, sv, en, per100g };
     const u = units[ref];
     if (u) f.units = u.map(([name, g]) => ({ name, g }));
     return f;
   });
-  popular = new Set(data.popular ?? []);
-  for (const f of builtIn) byRef.set(f.ref, f);
-  rebuild();
 }
 
+function loadSource(source: string): Promise<void> {
+  let p = loading.get(source);
+  if (!p) {
+    p = Promise.all((files[source] ?? []).map(loadFile)).then((parts) => {
+      const list = parts.flat();
+      sourceFoods.set(source, list);
+      for (const f of list) byRef.set(f.ref, f);
+      rebuild();
+    });
+    // A failed download can be retried later (e.g. back online).
+    p.catch(() => loading.delete(source));
+    loading.set(source, p);
+  }
+  return p;
+}
+
+/** Search covers the enabled sources (in order) plus the user's own foods. */
 function rebuild() {
+  const builtIn = enabled.flatMap((s) => sourceFoods.get(s) ?? []);
+  builtInCount = builtIn.length;
   all = builtIn.concat(custom);
   index = {};
 }
 
+const ready = () => Promise.all(enabled.map(loadSource));
+
 function indexFor(lang: string): SearchEntry[] {
   return (index[lang] ??= all.map((f, i) => {
     const e = buildEntry(i, [f.sv, f.en], lang === 'en' ? (f.en ?? f.sv) : f.sv);
-    e.boost = boostFor(f.ref, i >= builtIn.length);
+    e.boost = boostFor(f.ref, i >= builtInCount);
     return e;
   }));
 }
@@ -59,17 +82,31 @@ function boostFor(ref: string, isCustom: boolean): number {
   return (isCustom ? CUSTOM_BOOST : 0) + (popular.has(ref) ? POPULAR_BOOST : 0) + (userBoost[ref] ?? 0);
 }
 
+/** Make sure the sources of these refs are loaded (e.g. an old USDA entry while USDA is off). */
+async function loadFor(refs: string[]) {
+  const needed = new Set(refs.map((r) => r.slice(0, r.indexOf(':'))).filter((s) => s in files));
+  await Promise.all([...needed].map(loadSource));
+}
+
 self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
   const req = ev.data;
   if (req.type === 'init') {
-    ready = load(req.dataUrl);
+    files = req.files;
+    enabled = req.sources;
+    void ready().catch(() => {});
+    return;
+  }
+  if (req.type === 'sources') {
+    enabled = req.sources;
+    rebuild();
+    void ready().catch(() => {});
     return;
   }
   if (req.type === 'boost') {
     userBoost = req.boosts;
     // Update in place: cheaper than rebuilding the normalised index after every logged food.
     for (const entries of Object.values(index)) {
-      for (const e of entries ?? []) e.boost = boostFor(all[e.i].ref, e.i >= builtIn.length);
+      for (const e of entries ?? []) e.boost = boostFor(all[e.i].ref, e.i >= builtInCount);
     }
     return;
   }
@@ -82,12 +119,13 @@ self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
   }
   let res: WorkerResponse;
   try {
-    await ready;
     if (req.type === 'search') {
+      await ready();
       const ex = req.excludePrefix;
       const hits = search(indexFor(req.lang), req.query, ex ? 200 : 40).map((i) => all[i]);
       res = { id: req.id, foods: (ex ? hits.filter((f) => !f.ref.startsWith(ex)) : hits).slice(0, 40) };
     } else {
+      await Promise.all([ready(), loadFor(req.refs)]);
       res = { id: req.id, foods: req.refs.map((r) => byRef.get(r)).filter((f): f is Food => !!f) };
     }
   } catch (err) {

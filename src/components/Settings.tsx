@@ -1,7 +1,7 @@
 import { fmt, t, type Lang } from '../lib/i18n';
 import { NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { open } from '../nav';
-import { customFoods, recipes, settings, updateSettings } from '../state';
+import { activeSources, customFoods, recipes, settings, updateSettings } from '../state';
 import { ProfileForm } from './ProfileForm';
 import { YourData } from './YourData';
 
@@ -92,7 +92,30 @@ function General() {
       </label>
       <p class="muted small">{t('privacy')}</p>
       <p class="muted small">{t('attribution')}</p>
+      <fieldset class="sources">
+        <legend>{t('foodDatabases')}</legend>
+        {(['slv', 'usda'] as const).map((src) => {
+          const on = activeSources(s).includes(src);
+          return (
+            <label class="check" key={src}>
+              <input
+                type="checkbox"
+                checked={on}
+                // At least one database stays on.
+                disabled={on && activeSources(s).length === 1}
+                onChange={(e) => {
+                  const checked = (e.currentTarget as HTMLInputElement).checked;
+                  const next = (['slv', 'usda'] as const).filter((x) => (x === src ? checked : activeSources(s).includes(x)));
+                  void updateSettings({ sources: next });
+                }}
+              />
+              {t(src === 'slv' ? 'sourceNameSlv' : 'sourceNameUsda')}
+            </label>
+          );
+        })}
+      </fieldset>
       <p class="muted small">{t('attributionOff')}</p>
+      <p class="muted small">{t('attributionUsda')}</p>
     </section>
   );
 }

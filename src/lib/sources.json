@@ -1,0 +1,10 @@
+{
+  "slv": [
+    "foods.json"
+  ],
+  "usda": [
+    "usda-0.json",
+    "usda-1.json",
+    "usda-2.json"
+  ]
+}

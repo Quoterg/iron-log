@@ -14,7 +14,7 @@ test('create a custom food, log it, edit the entry and the food, then delete the
   await meal(page, 0).getByRole('button', { name: /Lägg till/ }).click();
   await page.getByPlaceholder(/Sök livsmedel/).fill('Mitt proteinpulver');
   await page.getByRole('button', { name: /Skapa eget livsmedel/ }).click();
-  await expect(page.getByLabel('Namn')).toHaveValue('Mitt proteinpulver');
+  await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('Mitt proteinpulver');
   await page.getByLabel('Protein (g)', { exact: true }).fill('75');
   await page.getByLabel('Kolhydrater (g)', { exact: true }).fill('8');
   await page.getByLabel('Fett (g)', { exact: true }).fill('6');
@@ -81,7 +81,7 @@ test('going back from a food keeps the search; unknown nutrients show as –', a
 
   // A custom food with only macros: micronutrients are unknown, not 0.
   await page.getByRole('button', { name: /Skapa eget livsmedel/ }).click();
-  await page.getByLabel('Namn').fill('Bara makron');
+  await page.getByLabel('Namn', { exact: true }).fill('Bara makron');
   await page.getByLabel('Protein (g)', { exact: true }).fill('10');
   await page.getByRole('button', { name: 'Spara' }).click();
   await expect(page.locator('.bar', { hasText: 'Järn' })).toContainText('– mg');

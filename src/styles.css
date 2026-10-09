@@ -235,3 +235,6 @@ table.targets tr.changed th { font-weight: 600; }
 
 .ingredient { display: flex; align-items: center; gap: 8px; }
 .ingredient .entry { flex: 1; min-width: 0; }
+
+fieldset.sources { border: 0; padding: 0; margin: 0 0 14px; }
+fieldset.sources legend { color: var(--muted); padding: 0; margin-bottom: 6px; }

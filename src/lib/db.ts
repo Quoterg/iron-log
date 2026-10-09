@@ -42,6 +42,8 @@ export interface Settings {
   version?: number;
   /** One-time notice: the automatic energy target changed with the new formula. */
   energyNotice?: boolean;
+  /** Food databases to search (default by language: Swedish → Livsmedelsverket; English → both). */
+  sources?: ('slv' | 'usda')[];
 }
 
 /** Current settings format version. */

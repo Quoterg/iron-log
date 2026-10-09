@@ -245,7 +245,9 @@ export function FoodDetail(props: {
               ? t('sourceRecipe')
               : ref.startsWith('off:')
                 ? `${t('sourceOff')} ${ref.slice(4)}.`
-                : t('sourceSlv')}
+                : ref.startsWith('usda:')
+                  ? t('sourceUsda')
+                  : t('sourceSlv')}
         </p>
       </div>
     </Sheet>

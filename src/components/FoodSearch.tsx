@@ -125,6 +125,7 @@ function row(f: Food, pick: (f: Food) => void) {
           {f.ref.startsWith('custom:') && <span class="badge">{t('customBadge')}</span>}
           {f.ref.startsWith('off:') && <span class="badge">{t('barcodeBadge')}</span>}
           {f.ref.startsWith('recipe:') && <span class="badge">{t('recipeBadge')}</span>}
+          {f.ref.startsWith('usda:') && <span class="badge">USDA</span>}
         </span>
         <span class="num muted">
           {fmt(value(f.per100g, 'kcal'))} kcal · P {fmtAmount(value(f.per100g, 'protein'))} ·{' '}
