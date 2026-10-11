@@ -6,6 +6,7 @@ import { ProfileForm } from './ProfileForm';
 import { AdaptiveEnergy } from './AdaptiveEnergy';
 import { YourData } from './YourData';
 import { ts } from '../lib/strings-sync';
+import { setTheme, themeChoice } from '../lib/theme';
 
 /** Loaded lazily (see app.tsx): not needed for the first screen. */
 export default function Settings() {
@@ -128,6 +129,14 @@ function General() {
   const s = settings.value;
   return (
     <section class="card form">
+      <p class="muted theme-label">{t('appearance')}</p>
+      <div class="chips" role="group" aria-label={t('appearance')}>
+        {(['auto', 'day', 'night'] as const).map((c) => (
+          <button key={c} type="button" class={themeChoice.value === c ? 'chip on' : 'chip'} aria-pressed={themeChoice.value === c} onClick={() => setTheme(c)}>
+            {t(c === 'auto' ? 'themeAuto' : c === 'day' ? 'themeDay' : 'themeNight')}
+          </button>
+        ))}
+      </div>
       <label>
         {t('language')}
         <select
