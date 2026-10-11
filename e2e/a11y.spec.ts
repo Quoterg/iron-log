@@ -78,6 +78,12 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: 'Kopiera hela dagen' }).click();
     await expect(dialog(page)).toBeVisible();
   },
+  'save a meal': async (page) => {
+    await SCREENS['edit entry'](page);
+    await dialog(page).getByRole('button', { name: /‹/ }).click();
+    await page.locator('.meal').first().getByRole('button', { name: 'Spara som måltid' }).click();
+    await expect(dialog(page).getByLabel('Namn', { exact: true })).not.toHaveValue('');
+  },
   nutrients: async (page) => {
     await tab(page, 'Näringsämnen');
     await expect(page.getByRole('button', { name: 'Anpassa mål' })).toBeVisible();

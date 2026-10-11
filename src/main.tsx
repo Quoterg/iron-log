@@ -1,10 +1,10 @@
 import { render } from 'preact';
-import { App, bodyView, contributorsView, recipeEditorView, settingsView, targetEditorView } from './app';
+import { App, bodyView, contributorsView, recipeEditorView, settingsView, targetEditorView, templateView } from './app';
 import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang, lastLang, loadLang } from './lib/i18n';
 import { initNav } from './nav';
-import { date, loadDay, loadLibrary, loadServings, loadSettings, loadUsage } from './state';
+import { date, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage } from './state';
 import './styles.css';
 
 async function start() {
@@ -23,6 +23,7 @@ async function start() {
   await Promise.all([loadLibrary(), loadUsage(), loadServings()]);
   render(<App />, document.getElementById('app')!);
   await loadDay(date.value);
+  void loadTemplates(); // only the add sheet and Settings use them
   // Load the food database in the background once the diary is on screen.
   requestIdleCallbackShim(() => {
     // Food databases first (loaded and indexed in the worker); the split-out screens are small and
@@ -34,6 +35,7 @@ async function start() {
       void recipeEditorView.prefetch();
       void bodyView.prefetch();
       void contributorsView.prefetch();
+      void templateView.prefetch();
     }, 1500);
   });
   if ('serviceWorker' in navigator && import.meta.env.PROD) {

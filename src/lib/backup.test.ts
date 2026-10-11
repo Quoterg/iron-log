@@ -6,11 +6,17 @@ import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
 const data: AllData = {
   entries: [{ id: 'e1', date: '2026-10-09', meal: 'lunch', foodRef: 'custom:a', grams: 50, createdAt: 1, unit: 'skopa', qty: 2 }],
   customFoods: [{ ref: 'custom:a', sv: 'Proteinpulver', en: null, per100g: [380, 75], createdAt: 1, updatedAt: 1 }],
-  usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true, lastUnit: 'skopa', lastQty: 2 }],
+  usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true, lastUnit: 'skopa', lastQty: 2, amounts: [{ grams: 30 }, { grams: 50, unit: 'skopa', qty: 2 }] }],
   servings: [{ foodRef: 'custom:a', servings: [{ name: 'skopa', g: 25 }] }],
   body: [{ date: '2026-10-08', weightKg: 80.4, waistCm: 90, updatedAt: 3 }],
   activities: [{ id: 'a1', date: '2026-10-08', type: 'run10', minutes: 30, kcal: 308, createdAt: 4 }],
   water: [{ date: '2026-10-08', ml: 1500 }],
+  templates: [
+    {
+      id: 't1', name: 'Frukost', createdAt: 1, updatedAt: 2,
+      items: [{ foodRef: 'slv:1', grams: 300, unit: 'dl', qty: 3 }, { foodRef: 'custom:a', grams: 25 }],
+    },
+  ],
   recipes: [
     {
       ref: 'recipe:r1', name: 'Gröt', ingredients: [{ foodRef: 'slv:1', grams: 100, unit: 'dl', qty: 3 }],
@@ -48,6 +54,17 @@ describe('backup', () => {
     expect(parseBackup(text({})).customFoods[0].supplement).toEqual({ unit: 'kapsel', perDay: 2 });
     expect(() => parseBackup(text({ supplement: { unit: '', perDay: 1 } }))).toThrow(BackupError);
     expect(() => parseBackup(text({ supplement: { unit: 'st', perDay: -1 } }))).toThrow(BackupError);
+  });
+
+  it('validates saved meals and drops invalid remembered amounts', () => {
+    const bad = (t: object) => () => parseBackup(JSON.stringify(makeBackup({ ...data, templates: [{ ...data.templates![0], ...t }] })));
+    expect(bad({ items: [] })).toThrow(BackupError);
+    expect(bad({ name: ' ' })).toThrow(BackupError);
+    expect(bad({ items: [{ foodRef: 'slv:1', grams: -1 }] })).toThrow(BackupError);
+    expect(bad({ items: Array(51).fill({ foodRef: 'slv:1', grams: 1 }) })).toThrow(BackupError);
+    expect(bad({ name: '  Frukost ' })().templates![0].name).toBe('Frukost'); // trimmed, like the app saves it
+    const usage = [{ ...data.usage[0], amounts: [{ grams: 0 }, 'x', { grams: 40, unit: 'skopa' }] }];
+    expect(parseBackup(JSON.stringify({ ...makeBackup(data), usage })).usage[0].amounts).toEqual([{ grams: 40 }]);
   });
 
   it('rejects the whole file if any item is invalid', () => {

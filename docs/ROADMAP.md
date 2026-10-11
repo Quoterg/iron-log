@@ -116,8 +116,9 @@ that adapts or advises (adaptive expenditure, swaps, recommendations, check-in) 
 off by default** — the app
 must never feel preachy. Everything stays on the device, lazy-loaded, within the size budget.
 
-- [ ] **M23 Meal templates & portion memory** — Save a meal as a named template (from the diary or
-  built by hand) and log it in one tap; templates show in the add sheet before typing. Each food
+- [x] **M23 Meal templates & portion memory** — Save a logged meal as a named "saved meal" (rename,
+  drop foods or remove it later, also from Settings) and log it in one tap; saved meals show in the
+  add sheet before typing. Each food
   opens at the amount and unit you usually log; quick multipliers (½×, 1×, 1½×, 2×) in the amount
   picker. One-tap "same as yesterday" per meal (builds on the M4 copy sheet). Templates are part
   of backup and sync.

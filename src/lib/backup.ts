@@ -5,6 +5,8 @@ import { dataLangOf, foodName, NUTRIENTS, type Food } from './nutrients';
 import { MAX_ACTIVITY_KCAL, MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
 import { padVector, type StoredRecipe } from './recipes';
+import { MAX_TEMPLATE_ITEMS, MAX_TEMPLATE_NAME, type MealTemplate, type TemplateItem } from './templates';
+import { AMOUNT_MEMORY, type LoggedAmount } from './servings';
 import { normalizeDays, SUPPLEMENT_TIMES, type SupplementTime } from './supplements';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
@@ -178,6 +180,27 @@ function water(x: unknown): Water {
   throw new BackupError('water');
 }
 
+/** A logged amount: grams, plus a household measure (both or neither). Undefined if invalid. */
+function amount(x: unknown): LoggedAmount | undefined {
+  if (!isObj(x) || !isNum(x.grams) || !(x.grams > 0 && x.grams < 100000)) return undefined;
+  return isStr(x.unit, 50) && isNum(x.qty) && x.qty > 0 ? { grams: x.grams, unit: x.unit, qty: x.qty } : { grams: x.grams };
+}
+
+function template(x: unknown): MealTemplate {
+  if (
+    isObj(x) && isStr(x.id, 100) && isStr(x.name, MAX_TEMPLATE_NAME) && x.name.trim() !== '' && Array.isArray(x.items) &&
+    x.items.length > 0 && x.items.length <= MAX_TEMPLATE_ITEMS && isNum(x.createdAt) && isNum(x.updatedAt)
+  ) {
+    const items = x.items.map((i): TemplateItem => {
+      const a = isObj(i) && isStr(i.foodRef, 200) ? amount(i) : undefined;
+      if (!a) throw new BackupError('template');
+      return { foodRef: (i as { foodRef: string }).foodRef, ...a };
+    });
+    return { id: x.id, name: x.name.trim(), items, createdAt: x.createdAt, updatedAt: x.updatedAt };
+  }
+  throw new BackupError('template');
+}
+
 function usage(x: unknown): Usage {
   if (isObj(x) && isStr(x.foodRef, 200) && isNum(x.count) && isNum(x.lastUsed) && isNum(x.lastGrams)) {
     const u: Usage = { foodRef: x.foodRef, count: x.count, lastUsed: x.lastUsed, lastGrams: x.lastGrams };
@@ -185,6 +208,11 @@ function usage(x: unknown): Usage {
     if (isStr(x.lastUnit, 50) && isNum(x.lastQty) && x.lastQty > 0) {
       u.lastUnit = x.lastUnit;
       u.lastQty = x.lastQty;
+    }
+    // Portion memory is a convenience: keep the valid amounts, drop the rest.
+    if (Array.isArray(x.amounts)) {
+      const list = x.amounts.slice(-AMOUNT_MEMORY).map(amount).filter((a): a is LoggedAmount => !!a);
+      if (list.length) u.amounts = list;
     }
     return u;
   }
@@ -252,6 +280,7 @@ export const SYNC_VALIDATORS: Record<SyncStore, (x: unknown) => unknown> = {
   body,
   activities: activity,
   water,
+  templates: template,
   kv: (x) => {
     const s = settings(x);
     if (!s) throw new BackupError('settings');
@@ -285,6 +314,7 @@ export function parseBackup(text: string): AllData {
     body: list('body').map(body),
     activities: list('activities').map(activity),
     water: list('water').map(water),
+    templates: list('templates').map(template),
     settings: settings(raw.settings),
   };
 }

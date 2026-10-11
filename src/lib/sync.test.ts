@@ -155,8 +155,17 @@ describe('device-to-device sync', () => {
     const good = { k: 'entries:ok', mt: 5, v: entry('ok') };
     await expect(a.sync.applyChanges([good, { k: 'entries:bad', mt: 5, v: { ...entry('bad'), grams: -1 } }])).rejects.toThrow(a.sync.SyncError);
     await expect(a.sync.applyChanges([good, { k: 'entries:other', mt: 5, v: entry('not-other') }])).rejects.toThrow(/key mismatch/);
-    await expect(a.sync.applyChanges([{ k: 'secrets:x', mt: 5, v: {} }])).rejects.toThrow(/unknown store/);
+    await expect(a.sync.applyChanges([{ k: 'Bad Store:x', mt: 5, v: {} }])).rejects.toThrow(/bad key/);
+    await expect(a.sync.applyChanges([{ k: 'nostore', mt: 5, v: {} }])).rejects.toThrow(/bad key/);
     expect(await a.db.getEntry('ok')).toBeUndefined();
+  });
+
+  it('skips stores from a newer version and still applies the rest', async () => {
+    const a = await device();
+    const applied = await a.sync.applyChanges([{ k: 'futureStore:x', mt: 5, v: { anything: 1 } }, { k: 'entries:ok', mt: 5, v: entry('ok') }]);
+    expect(applied).toEqual({ count: 1, stores: ['entries'] });
+    expect(await a.db.getEntry('ok')).toBeDefined();
+    expect(Object.keys(await a.sync.summarize())).toEqual(['entries:ok']); // nothing of the unknown store kept
   });
 
   it('caps change times from a device with a clock far ahead', async () => {

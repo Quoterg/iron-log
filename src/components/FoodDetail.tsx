@@ -25,6 +25,8 @@ import { Sheet } from './Sheet';
 
 const QUICK_GRAMS = [25, 50, 100, 150, 200, 300];
 const QUICK_QTY = [0.5, 1, 2, 3];
+/** Multiples of the usual amount (portion memory). */
+const MULTIPLES = [0.5, 1, 1.5, 2];
 
 const numText = (n: number) => String(n).replace('.', decimalComma() ? ',' : '.');
 
@@ -72,6 +74,7 @@ export function FoodDetail(props: {
   const per100g = (entry && entryVector(entry, foods.value)) || food.per100g;
   const amounts = scale(per100g, valid ? g : 0);
   const isCustom = ref.startsWith('custom:');
+  const multiples = !entry && !props.ingredient && !!used?.lastUsed && unit === init.unit;
 
   const submit = async (e: Event) => {
     e.preventDefault();
@@ -148,7 +151,24 @@ export function FoodDetail(props: {
           </label>
         </div>
         <div class="chips">
-          {unit === GRAMS
+          {/* A food logged before, in its usual measure: multiples of the usual amount. */}
+          {multiples
+            ? MULTIPLES.map((m) => {
+                const q = Math.round(init.qty * m * 100) / 100;
+                const label = `${m === 0.5 ? '½' : m === 1.5 ? '1½' : m}×`;
+                return (
+                  <button
+                    type="button"
+                    class={qty === q ? 'chip on' : 'chip'}
+                    key={m}
+                    aria-label={`${label} = ${fmtAmount(q)} ${unit === GRAMS ? 'g' : unitLabel(unit)}`}
+                    onClick={() => setQtyText(numText(q))}
+                  >
+                    {label}
+                  </button>
+                );
+              })
+            : unit === GRAMS
             ? QUICK_GRAMS.map((q) => (
                 <button type="button" class="chip" key={q} onClick={() => setQtyText(String(q))}>
                   {q} g

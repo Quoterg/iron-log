@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { Meal } from '../lib/db';
 import { searchFoods, unavailableSources } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
-import { back, open } from '../nav';
-import { ensureFoods, favourites, foods, recent, supplementRefs, updateEntry } from '../state';
+import { back, closeAll, open } from '../nav';
+import { ensureFoods, favourites, foods, logTemplate, recent, supplementRefs, templates, templateUse, updateEntry } from '../state';
+import { sortTemplates, type MealTemplate } from '../lib/templates';
 import type { Usage } from '../lib/db';
 import { Sheet } from './Sheet';
 
@@ -18,11 +19,17 @@ export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIng
 
   useEffect(() => inputRef.current?.focus(), []);
 
-  // Before typing: favourites and recent foods (resolved from the worker/custom foods).
+  // Before typing: saved meals, favourites and recent foods (resolved from the worker/custom foods).
   const quick = [...favourites.value, ...recent.value];
+  const saved = useMemo(
+    () => (replaceEntryId || pickIngredient ? [] : sortTemplates(templates.value, templateUse.value, lang.value)),
+    [templates.value, templateUse.value, lang.value],
+  );
+  // Saved meals show only before typing: resolve their foods only then.
+  const refs = [...quick.map((u) => u.foodRef), ...(query.trim() ? [] : saved.flatMap((m) => m.items.map((i) => i.foodRef)))];
   useEffect(() => {
-    void ensureFoods(quick.map((u) => u.foodRef));
-  }, [quick.map((u) => u.foodRef).join()]);
+    void ensureFoods(refs);
+  }, [refs.join()]);
 
   // Debounce lightly: search is fast, but avoid queueing work on every keypress on slow phones.
   useEffect(() => {
@@ -91,9 +98,10 @@ export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIng
         <ul class="results">{results.filter(allowed).map((f) => row(f, pick))}</ul>
       ) : query.trim() ? null : (
         <>
+          <SavedMeals list={saved} meal={meal} />
           <QuickList title={t('favourites')} list={favourites.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} />
           <QuickList title={t('recent')} list={recent.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} />
-          {quick.length === 0 && <p class="muted center small pad">{t('searchHint')}</p>}
+          {quick.length === 0 && saved.length === 0 && <p class="muted center small pad">{t('searchHint')}</p>}
         </>
       )}
       {!replaceEntryId && !pickIngredient && (
@@ -107,6 +115,48 @@ export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIng
         </div>
       )}
     </Sheet>
+  );
+}
+
+/** Saved meals: one tap logs all their foods into the meal. */
+function SavedMeals({ list, meal }: { list: MealTemplate[]; meal: Meal }) {
+  // Synchronous guard: a double tap on a slow phone must not log the meal twice.
+  const busy = useRef(false);
+  const kcal = useMemo(() => {
+    const out = new Map<string, number>();
+    for (const m of list) {
+      out.set(m.id, m.items.reduce((s, i) => {
+        const f = foods.value.get(i.foodRef);
+        return s + (f ? (value(f.per100g, 'kcal') * i.grams) / 100 : 0);
+      }, 0));
+    }
+    return out;
+  }, [list, foods.value]);
+  if (!list.length) return null;
+  return (
+    <>
+      <h3 class="list-title">{t('savedMeals')}</h3>
+      <ul class="results">
+        {list.map((m) => (
+          <li key={m.id}>
+            <button
+              class="result"
+              onClick={async () => {
+                if (busy.current) return;
+                busy.current = true;
+                if (await logTemplate(meal, m)) closeAll();
+                else busy.current = false;
+              }}
+            >
+              <span class="entry-name">{m.name}</span>
+              <span class="num muted">
+                {t('foodsCount').replace('{n}', String(m.items.length))} · {fmt(kcal.get(m.id) ?? 0)} kcal
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 

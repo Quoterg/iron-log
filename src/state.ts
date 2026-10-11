@@ -4,7 +4,7 @@ import * as db from './lib/db';
 import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db';
 import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
 import { fetchProduct } from './lib/off';
-import { lang, loadLang, rememberLang } from './lib/i18n';
+import { lang, loadLang, rememberLang, t } from './lib/i18n';
 import { type Food, type NutrientVector, type Serving, dataLangOf } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
@@ -13,6 +13,8 @@ import type { BodyEntry } from './lib/body';
 import { supplementServings, UNIT_GRAMS, type SupplementInfo } from './lib/supplements';
 import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
+import { rememberAmount } from './lib/servings';
+import { itemsFromEntries, type MealTemplate, type TemplateUse } from './lib/templates';
 
 /** Entries of the period the Nutrients tab loaded last, reused by the sources sheet. */
 export const periodCache = signal<{ key: string; entries: Entry[] } | null>(null);
@@ -22,6 +24,15 @@ export type View = 'diary' | 'nutrients' | 'body' | 'settings';
 export const view = signal<View>('diary');
 export const date = signal(db.isoDate(new Date()));
 export const entries = signal<Entry[]>([]);
+/** The day before the selected one: offers "same as yesterday" for empty meals. */
+export const prevEntries = signal<Entry[]>([]);
+/** Saved meals (not deleted). */
+export const templates = signal<MealTemplate[]>([]);
+const TEMPLATE_USE_KEY = 'iron-log-meal-use';
+/** How often and when each saved meal was logged on this device (orders the list; not synced). */
+export const templateUse = signal<TemplateUse>(readLocal(TEMPLATE_USE_KEY));
+/** A short message for the diary (e.g. foods of a saved meal that are no longer available). */
+export const notice = signal<string | null>(null);
 /** Every food referenced on screen, built-in or custom, by ref. */
 export const foods = signal<Map<string, Food>>(new Map());
 export const customFoods = signal<CustomFood[]>([]);
@@ -77,13 +88,19 @@ let loadSeq = 0;
 export async function loadDay(d: string): Promise<void> {
   date.value = d;
   const seq = ++loadSeq;
+  notice.value = null;
   const [list, acts, water] = await Promise.all([db.entriesFor(d), db.activitiesFor(d), db.waterFor(d)]);
   if (seq !== loadSeq) return;
+  // The day before only matters for empty meals ("same as yesterday"): skip it when all are logged.
+  const empty = new Set(db.MEALS.filter((m) => !list.some((e) => e.meal === m)));
+  const prev = empty.size ? (await db.entriesFor(db.addDays(d, -1))).filter((e) => empty.has(e.meal)) : [];
+  if (seq !== loadSeq) return;
   entries.value = list;
+  prevEntries.value = prev;
   dayActivities.value = acts.sort((a, b) => a.createdAt - b.createdAt);
   if (acts.length) loadActivityTypes();
   dayWater.value = water;
-  if (list.length) await ensureFoods(list.map((e) => e.foodRef));
+  if (list.length || prev.length) await ensureFoods([...list, ...prev].map((e) => e.foodRef));
 }
 
 /** Make sure the given foods are in the `foods` map (fetching from the worker if needed). */
@@ -310,17 +327,32 @@ async function putUsage(u: Usage) {
 }
 
 async function recordUse(ref: string, amount: Amount) {
-  const prev = usage.value.get(ref);
-  const m = measure(amount);
-  await putUsage({
-    foodRef: ref,
-    fav: prev?.fav,
-    count: (prev?.count ?? 0) + 1,
-    lastUsed: Date.now(),
-    lastGrams: m.grams,
-    lastUnit: m.unit,
-    lastQty: m.qty,
-  });
+  await recordUses([[ref, amount]]);
+}
+
+/** Count uses of several foods (a whole meal) in one write; the same food may appear twice. */
+async function recordUses(list: [ref: string, amount: Amount][]) {
+  const map = new Map(usage.value);
+  const changed = new Map<string, Usage>();
+  for (const [ref, amount] of list) {
+    const prev = map.get(ref);
+    const m = measure(amount);
+    const u: Usage = {
+      foodRef: ref,
+      fav: prev?.fav,
+      count: (prev?.count ?? 0) + 1,
+      lastUsed: Date.now(),
+      lastGrams: m.grams,
+      lastUnit: m.unit,
+      lastQty: m.qty,
+      amounts: rememberAmount(prev?.amounts, m),
+    };
+    map.set(ref, u);
+    changed.set(ref, u);
+  }
+  usage.value = map;
+  setUserBoosts(userBoosts(map));
+  await db.putUsages([...changed.values()]);
 }
 
 export async function toggleFavourite(ref: string): Promise<void> {
@@ -345,9 +377,9 @@ export const recent = computed(() =>
 
 // --- Copy meals / days ---
 
-/** Copy the selected day's entries (optionally one meal) to another date and meal. */
-export async function copyEntries(opts: { fromMeal?: Meal; toDate: string; toMeal?: Meal }): Promise<number> {
-  const src = entries.value.filter((e) => !opts.fromMeal || e.meal === opts.fromMeal);
+/** Copy the selected day's entries (or `from`), optionally one meal, to another date and meal. */
+export async function copyEntries(opts: { from?: Entry[]; fromMeal?: Meal; toDate: string; toMeal?: Meal }): Promise<number> {
+  const src = (opts.from ?? entries.value).filter((e) => !opts.fromMeal || e.meal === opts.fromMeal);
   const now = Date.now();
   const copies: Entry[] = src.map((e, i) => ({
     ...e,
@@ -359,6 +391,91 @@ export async function copyEntries(opts: { fromMeal?: Meal; toDate: string; toMea
   await db.putEntries(copies);
   if (opts.toDate === date.value) entries.value = [...entries.value, ...copies];
   return copies.length;
+}
+
+// --- Saved meals ---
+
+/** A small per-device record in localStorage (a convenience: empty if storage is blocked). */
+function readLocal<T>(key: string): T {
+  try {
+    return JSON.parse(localStorage.getItem(key) ?? '{}') as T;
+  } catch {
+    return {} as T;
+  }
+}
+
+function writeLocal(key: string, v: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(v));
+  } catch {
+    // Private mode or storage blocked: kept until the app closes.
+  }
+}
+
+export async function loadTemplates(): Promise<void> {
+  templates.value = await db.listTemplates();
+}
+
+/** Create (no id) or update a saved meal. */
+export async function saveTemplate(input: { id?: string; name: string; items: MealTemplate['items'] }): Promise<void> {
+  const now = Date.now();
+  const prev = input.id ? templates.value.find((m) => m.id === input.id) : undefined;
+  const m: MealTemplate = { id: prev?.id ?? db.newId(), name: input.name.trim(), items: input.items, createdAt: prev?.createdAt ?? now, updatedAt: now };
+  templates.value = prev ? templates.value.map((x) => (x.id === m.id ? m : x)) : [...templates.value, m];
+  await db.putTemplate(m);
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  templates.value = templates.value.filter((m) => m.id !== id);
+  await db.deleteTemplate(id);
+}
+
+/**
+ * Log a saved meal (or yesterday's meal) into `meal` of the selected day. Returns how many foods
+ * were added; foods no longer available (a source turned off, an uncached product) are skipped
+ * and the diary says so.
+ */
+export async function logItems(meal: Meal, items: MealTemplate['items']): Promise<number> {
+  await ensureFoods(items.map((i) => i.foodRef));
+  const now = Date.now();
+  const list: Entry[] = [];
+  items.forEach((i, n) => {
+    const food = foods.value.get(i.foodRef);
+    if (!food) return;
+    const e: Entry = { id: db.newId(), date: date.value, meal, foodRef: i.foodRef, createdAt: now + n, ...measure(i) };
+    if (i.foodRef.startsWith('recipe:')) e.snap = food.per100g;
+    list.push(e);
+  });
+  const skipped = items.length - list.length;
+  notice.value = skipped ? t('foodsUnavailable').replace('{n}', String(skipped)) : null;
+  if (!list.length) return 0;
+  entries.value = [...entries.value, ...list];
+  await db.putEntries(list);
+  await recordUses(list.map((e) => [e.foodRef, e]));
+  return list.length;
+}
+
+export async function logTemplate(meal: Meal, m: MealTemplate): Promise<number> {
+  const n = await logItems(meal, m.items);
+  if (n) {
+    const cur = templateUse.value[m.id];
+    templateUse.value = { ...templateUse.value, [m.id]: { n: (cur?.n ?? 0) + 1, last: Date.now() } };
+    writeLocal(TEMPLATE_USE_KEY, templateUse.value);
+  }
+  return n;
+}
+
+let repeating = false;
+
+/** Yesterday's foods in `meal`, logged again today (same amounts). A double tap logs them once. */
+export async function repeatYesterday(meal: Meal): Promise<number> {
+  if (repeating) return 0;
+  repeating = true;
+  try {
+    return await logItems(meal, itemsFromEntries(prevEntries.value.filter((e) => e.meal === meal && !supplementRefs.value.has(e.foodRef))));
+  } finally {
+    repeating = false;
+  }
 }
 
 // --- User-defined household measures ---

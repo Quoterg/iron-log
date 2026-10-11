@@ -7,6 +7,8 @@ import { MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
 import type { StoredRecipe } from './recipes';
 import type { SupplementInfo } from './supplements';
+import type { MealTemplate } from './templates';
+import type { LoggedAmount } from './servings';
 import type { MacroPct, MacroPreset, Profile, TargetOverride } from './targets';
 
 export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack';
@@ -74,6 +76,8 @@ export interface Usage {
   lastUnit?: string;
   lastQty?: number;
   fav?: boolean;
+  /** The last few amounts logged (newest last): the amount picker opens at the usual one. */
+  amounts?: LoggedAmount[];
 }
 
 /** A product from Open Food Facts, cached after the first lookup (works offline afterwards). */
@@ -98,13 +102,14 @@ interface Schema extends DBSchema {
   body: { key: string; value: BodyEntry };
   activities: { key: string; value: Activity; indexes: { date: string } };
   water: { key: string; value: Water };
+  templates: { key: string; value: MealTemplate };
   /** Sync bookkeeping: `${store}:${key}` → when the record last changed, or was deleted. */
   meta: { key: string; value: Meta };
 }
 
 /** The stores that sync between devices (kv: only the 'settings' key exists). */
-export type SyncStore = 'entries' | 'customFoods' | 'usage' | 'servings' | 'offFoods' | 'recipes' | 'body' | 'activities' | 'water' | 'kv';
-export const SYNC_STORES: SyncStore[] = ['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'activities', 'water', 'kv'];
+export type SyncStore = 'entries' | 'customFoods' | 'usage' | 'servings' | 'offFoods' | 'recipes' | 'body' | 'activities' | 'water' | 'templates' | 'kv';
+export const SYNC_STORES: SyncStore[] = ['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'activities', 'water', 'templates', 'kv'];
 
 /** Last change of a record (ms since epoch); `del` marks a deletion so it can't come back on sync. */
 export interface Meta {
@@ -125,12 +130,13 @@ export const KEY_PATH: Record<Exclude<SyncStore, 'kv'>, string> = {
   body: 'date',
   activities: 'id',
   water: 'date',
+  templates: 'id',
 };
 
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('iron-log', 9, {
+  dbp ??= openDB<Schema>('iron-log', 10, {
     async upgrade(d, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
@@ -157,10 +163,12 @@ function db() {
         const meta = d.createObjectStore('meta');
         const mt = Date.now();
         for (const store of SYNC_STORES) {
+          if (!d.objectStoreNames.contains(store)) continue; // added later (v10+), still empty
           const keys = store === 'kv' ? ((await tx.objectStore('kv').get('settings')) ? ['settings'] : []) : await tx.objectStore(store).getAllKeys();
           for (const key of keys) await meta.put({ mt }, metaKey(store, String(key)));
         }
       }
+      if (oldVersion < 10) d.createObjectStore('templates', { keyPath: 'id' });
     },
   });
   return dbp;
@@ -212,6 +220,10 @@ export async function putUsage(u: Usage): Promise<void> {
   await put('usage', [u]);
 }
 
+export async function putUsages(list: Usage[]): Promise<void> {
+  if (list.length) await put('usage', list);
+}
+
 export interface AllData {
   entries: Entry[];
   customFoods: CustomFood[];
@@ -222,12 +234,14 @@ export interface AllData {
   body: BodyEntry[];
   activities: Activity[];
   water: Water[];
+  /** Saved meals (absent in backups made before they existed). */
+  templates?: MealTemplate[];
   settings?: Settings;
 }
 
 export async function exportAll(): Promise<AllData> {
   const d = await db();
-  const [entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, settings] = await Promise.all([
+  const [entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, templates, settings] = await Promise.all([
     d.getAll('entries'),
     d.getAll('customFoods'),
     d.getAll('usage'),
@@ -237,9 +251,10 @@ export async function exportAll(): Promise<AllData> {
     d.getAll('body'),
     d.getAll('activities'),
     d.getAll('water'),
+    d.getAll('templates'),
     d.get('kv', 'settings') as Promise<Settings | undefined>,
   ]);
-  return { entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, settings };
+  return { entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, templates, settings };
 }
 
 /**
@@ -267,10 +282,11 @@ export async function importAll(data: AllData): Promise<void> {
     await meta.put({ mt: Math.max(mt, m && !m.del ? m.mt : 0) }, metaKey(store, key));
   };
   const puts: Promise<unknown>[] = [
-    // Recipes, custom foods, body: the newer version wins (an old backup must not undo edits).
+    // Recipes, custom foods, body, saved meals: the newer version wins (an old backup must not undo edits).
     ...data.recipes.map((r) => restore('recipes', r, r.ref, r.updatedAt, (cur) => cur.updatedAt < r.updatedAt)),
     ...data.customFoods.map((f) => restore('customFoods', f, f.ref, f.updatedAt, (cur) => cur.updatedAt < f.updatedAt)),
     ...data.body.map((b) => restore('body', b, b.date, b.updatedAt, (cur) => cur.updatedAt < b.updatedAt)),
+    ...(data.templates ?? []).map((m) => restore('templates', m, m.id, m.updatedAt, (cur) => cur.updatedAt < m.updatedAt)),
     // Water: the larger total wins (a day only ever adds up). Raising a total here is a change now;
     // a day that was missing keeps time 0, so a paired device's own value for it wins.
     ...data.water.map(async (w) => {
@@ -304,6 +320,7 @@ export async function clearAll(): Promise<void> {
     tx.objectStore('meta').clear(),
     tx.objectStore('activities').clear(),
     tx.objectStore('water').clear(),
+    tx.objectStore('templates').clear(),
     tx.objectStore('body').clear(),
     tx.objectStore('recipes').clear(),
     tx.objectStore('offFoods').clear(),
@@ -353,6 +370,18 @@ export async function changeWater(date: string, deltaMl: number): Promise<number
   await tx.objectStore('meta').put({ mt: Date.now() }, metaKey('water', date));
   await tx.done;
   return ml;
+}
+
+export async function listTemplates(): Promise<MealTemplate[]> {
+  return (await db()).getAll('templates');
+}
+
+export async function putTemplate(m: MealTemplate): Promise<void> {
+  await put('templates', [m]);
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  await del('templates', id);
 }
 
 export async function listBody(): Promise<BodyEntry[]> {
