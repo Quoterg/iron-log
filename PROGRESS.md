@@ -23,7 +23,7 @@ go in lazy sections (strings-*.ts). PRs: the reviewer agent merges once its revi
   else clipboard; ticked items left out).
 - New synced store `shopping` (IndexedDB v12), in backups and validated; batch delete in one
   transaction with tombstones.
-- Tests: unit 203 ✓ (expand, summing, sections, amounts, text), build ✓ (initial JS 39.8 KB, +0.3:
+- Tests: unit 202 ✓ (expand, summing, sections, amounts, text), build ✓ (initial JS 39.8 KB, +0.3:
   button, store functions, string), e2e 127 ✓ (new shopping.spec.ts; a11y "shopping list"),
   Lighthouse ✓.
 
