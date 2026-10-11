@@ -201,6 +201,7 @@ export const openDb = () => db();
 async function put<S extends SyncStore>(store: S, values: Schema[S]['value'][], key?: string): Promise<void> {
   const tx = (await db()).transaction([store, 'meta'], 'readwrite');
   const mt = Date.now();
+  localChanges++;
   const os = tx.objectStore(store) as unknown as { put(v: unknown, k?: string): Promise<IDBValidKey> };
   const writes = values.map(async (v) => {
     const k = await os.put(v, key);
@@ -211,6 +212,7 @@ async function put<S extends SyncStore>(store: S, values: Schema[S]['value'][], 
 
 /** Delete a record and leave a tombstone, so the deletion syncs instead of the record coming back. */
 async function del(store: SyncStore, key: string): Promise<void> {
+  localChanges++;
   const tx = (await db()).transaction([store, 'meta'], 'readwrite');
   await Promise.all([tx.objectStore(store).delete(key), tx.objectStore('meta').put({ mt: Date.now(), del: true }, metaKey(store, key)), tx.done]);
 }
@@ -418,6 +420,13 @@ export async function setDayComplete(date: string, complete: boolean): Promise<v
 export async function daysCompleteBetween(from: string, to: string): Promise<Set<string>> {
   return new Set(await (await db()).getAllKeys('days', IDBKeyRange.bound(from, to)));
 }
+
+export async function bodyBetween(from: string, to: string): Promise<BodyEntry[]> {
+  return (await db()).getAll('body', IDBKeyRange.bound(from, to));
+}
+
+/** Changes written on this device since it started (a cheap "has anything changed?" check). */
+export let localChanges = 0;
 
 export async function listBody(): Promise<BodyEntry[]> {
   return (await db()).getAll('body');

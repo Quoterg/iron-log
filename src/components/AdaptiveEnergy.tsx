@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { ADAPTIVE, allowedPaces, estimate, goalTarget, GOALS, minIntake, type DayIntake, type Estimate, type Goal } from '../lib/adaptive';
-import { addDays, daysCompleteBetween, entriesBetween, entryVector, isoDate, listBody } from '../lib/db';
+import { addDays, bodyBetween, daysCompleteBetween, entriesBetween, entryVector, isoDate, localChanges } from '../lib/db';
 import { fmt } from '../lib/i18n';
 import { value } from '../lib/nutrients';
 import { te } from '../lib/strings-energy';
@@ -9,22 +9,31 @@ import { ensureFoods, foods, settings, updateSettings } from '../state';
 
 const GOAL_LABEL: Record<Goal, 'goalLose' | 'goalMaintain' | 'goalGain'> = { lose: 'goalLose', maintain: 'goalMaintain', gain: 'goalGain' };
 
+/** The last estimate, reused while nothing changed (same day, no writes on this device). */
+let cached: { key: string; est: Estimate } | undefined;
+
 /** The last 4 weeks of intake (ending yesterday) and weigh-ins, read from the diary and body log. */
 async function load(): Promise<Estimate> {
   const today = isoDate(new Date());
+  const key = `${today}|${localChanges}`;
+  if (cached?.key === key) return cached.est;
   const from = addDays(today, -ADAPTIVE.windowDays);
   const to = addDays(today, -1);
-  const [list, marks, body] = await Promise.all([entriesBetween(from, to), daysCompleteBetween(from, to), listBody()]);
+  const [list, marks, body] = await Promise.all([entriesBetween(from, to), daysCompleteBetween(from, to), bodyBetween(from, today)]);
   await ensureFoods([...new Set(list.map((e) => e.foodRef))]);
   const kcal = new Map<string, number>();
+  const unknown = new Set<string>();
   for (const e of list) {
     const v = entryVector(e, foods.value);
     if (v) kcal.set(e.date, (kcal.get(e.date) ?? 0) + (value(v, 'kcal') * e.grams) / 100);
+    else unknown.add(e.date);
   }
   const days: DayIntake[] = [];
-  for (let d = from; d <= to; d = addDays(d, 1)) days.push({ date: d, kcal: kcal.get(d) ?? 0, complete: marks.has(d) });
-  const weighIns = body.filter((b) => b.weightKg != null && b.date >= from && b.date <= today).map((b) => ({ date: b.date, kg: b.weightKg! }));
-  return estimate(days, weighIns);
+  for (let d = from; d <= to; d = addDays(d, 1)) days.push({ date: d, kcal: kcal.get(d) ?? 0, complete: marks.has(d), unknown: unknown.has(d) });
+  const weighIns = body.filter((b) => b.weightKg != null).map((b) => ({ date: b.date, kg: b.weightKg! }));
+  const est = estimate(days, weighIns);
+  cached = { key, est };
+  return est;
 }
 
 /**

@@ -7,7 +7,7 @@ Keep entries short — this file is read at the start of every session.
 
 **Paused by the owner after M25 (2026-10-11) — don't start new milestones until told.** Then, in
 order: M21b (low security housekeeping), M26 → M28 (weekly check-in and gap fixer — both opt-in —
-and the shopping list). Initial JS is 38.4 KB of 40: Phase 4 features must be lazy-loaded (strings
+and the shopping list). Initial JS is 38.5 KB of 40: Phase 4 features must be lazy-loaded (strings
 too: see strings-energy.ts). PRs: the reviewer agent merges once its review is addressed (owner,
 2026-10-11).
 
@@ -24,9 +24,16 @@ too: see strings-energy.ts). PRs: the reviewer agent merges once its review is a
   pregnancy or breastfeeding. "Använd som mitt energimål" sets it once; nothing changes by itself.
 - "Dagen är komplett" button in the diary (only when on): new synced store `days` (IndexedDB v11),
   in backups. Strings of the card load with Settings (strings-energy.ts, `energy` in the packs).
+- Review fixes: the ± uses t-quantiles for few weigh-ins plus 0.3 kg scale noise over the span
+  (3 perfect weigh-ins no longer show "±10"); days with foods of unknown energy never count; only
+  the window's weigh-ins are read; the estimate is cached until something is written.
+- Known: a device still on an older version drops `adaptive/goal/pace` from settings, so its next
+  settings change syncs back and turns the feature off here (until it updates). A day un-marked on
+  one device comes back if an older backup with the mark is restored (like other stores).
 - Also: android/twa-manifest.json now at 1.1.0 (code 3), matching the released APK.
-- Tests: unit 182 ✓ (estimator, counted days, paces/floor, strings, backup), build ✓ (initial JS
-  38.4 KB), e2e 117 ✓ (new adaptive.spec.ts; a11y "adaptive energy (on)"), Lighthouse ✓.
+- Tests: unit 184 ✓ (estimator, uncertainty, unknown foods, counted days, paces/floor, strings,
+  backup), build ✓ (initial JS 38.5 KB), e2e 117 ✓ (new adaptive.spec.ts; a11y "adaptive energy
+  (on)"), Lighthouse ✓.
 
 ## 2026-10-11 — M24 "Your usual" & shortcuts (interactive session)
 

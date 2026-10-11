@@ -16,7 +16,12 @@ export const ADAPTIVE = {
   lowShare: 0.6,
   /** Fastest pace offered: % of body weight per week. */
   maxPctPerWeek: 0.75,
+  /** Day-to-day scale noise (water, food in the gut) the trend can't see through, in kg. */
+  scaleNoiseKg: 0.3,
 };
+
+/** Two-sided 95 % t-quantiles for 1–10 degrees of freedom (≈ 2 beyond). */
+const T95 = [12.71, 4.3, 3.18, 2.78, 2.57, 2.45, 2.36, 2.31, 2.26, 2.23];
 
 export type Goal = 'lose' | 'maintain' | 'gain';
 export const GOALS: Goal[] = ['lose', 'maintain', 'gain'];
@@ -27,6 +32,8 @@ export interface DayIntake {
   date: string;
   kcal: number;
   complete: boolean;
+  /** Some of the day's foods have no data here (e.g. a source turned off): its energy is unknown. */
+  unknown?: boolean;
 }
 
 export interface WeighIn {
@@ -39,7 +46,7 @@ export type Estimate =
       ok: true;
       /** Daily expenditure (kcal), rounded to 10. */
       kcal: number;
-      /** ± about 95 % (two standard errors), rounded to 10. */
+      /** ± about 95 % (intake, trend and scale noise), rounded to 10. */
       plusMinus: number;
       days: number;
       weighIns: number;
@@ -60,9 +67,12 @@ function median(xs: number[]): number {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 }
 
-/** Days that count: marked complete, or logged and not far below the user's typical intake. */
+/**
+ * Days that count: marked complete, or logged and not far below the user's typical intake. Days
+ * with foods of unknown energy never count (they would make intake, and so expenditure, too low).
+ */
 export function countedDays(days: DayIntake[]): DayIntake[] {
-  const logged = days.filter((d) => d.kcal > 0);
+  const logged = days.filter((d) => d.kcal > 0 && !d.unknown);
   if (!logged.length) return [];
   const typical = median(logged.map((d) => d.kcal));
   return logged.filter((d) => d.complete || d.kcal >= ADAPTIVE.lowShare * typical);
@@ -106,13 +116,17 @@ export function estimate(days: DayIntake[], weighIns: WeighIn[]): Estimate {
   const mean = intake.reduce((a, b) => a + b, 0) / intake.length;
   const sd = Math.sqrt(intake.reduce((a, b) => a + (b - mean) ** 2, 0) / Math.max(1, intake.length - 1));
   const kcal = mean - line.slope * ADAPTIVE.kcalPerKg;
-  const se = Math.sqrt((sd / Math.sqrt(intake.length)) ** 2 + (line.se * ADAPTIVE.kcalPerKg) ** 2);
+  // ± about 95 %: the intake mean (normal), the trend slope (t for few weigh-ins), and scale noise
+  // over the span, which a near-perfect line through 3 weigh-ins would otherwise hide.
+  const t = T95[w.length - 3] ?? 2;
+  const slopeErr = Math.hypot(t * line.se, ADAPTIVE.scaleNoiseKg / span);
+  const err = Math.hypot((2 * sd) / Math.sqrt(intake.length), slopeErr * ADAPTIVE.kcalPerKg);
   // Far outside what a body burns: something is missing from the log (or the scale).
   if (!(kcal >= 1000 && kcal <= 6000)) return { ok: false, reason: 'implausible', ...base };
   return {
     ok: true,
     kcal: round10(kcal),
-    plusMinus: Math.max(10, round10(2 * se)),
+    plusMinus: Math.max(10, round10(err)),
     ...base,
     kgPerWeek: Math.round(line.slope * 7 * 100) / 100,
     weightKg: Math.round((line.intercept + line.slope * x[x.length - 1]) * 10) / 10,

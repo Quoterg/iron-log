@@ -29,6 +29,23 @@ describe('adaptive energy expenditure', () => {
     expect(calm.ok && noisy.ok && noisy.plusMinus > calm.plusMinus).toBe(true);
   });
 
+  it('few weigh-ins never look precise: 3 on a perfect line still carry scale noise', () => {
+    const three: WeighIn[] = [0, 7, 14].map((i, k) => ({ date: addDays(START, i), kg: 80 - 0.25 * k }));
+    const e = estimate(days(() => 2000), three);
+    // At least 0.3 kg of scale noise over 14 days: 0.3 / 14 × 7700 ≈ 165 kcal/day.
+    expect(e.ok && e.plusMinus).toBeGreaterThanOrEqual(160);
+    // More weigh-ins over a longer span: tighter.
+    const many = estimate(days(() => 2000), weights(80, -0.25, 2));
+    expect(many.ok && e.ok && many.plusMinus < e.plusMinus).toBe(true);
+  });
+
+  it('days with foods of unknown energy never count (they would lower the estimate)', () => {
+    const list = days(() => 2200).map((d, i) => (i < 3 ? { ...d, kcal: 1500, unknown: true, complete: true } : d));
+    expect(countedDays(list)).toHaveLength(25);
+    const e = estimate(list, weights(80, 0));
+    expect(e.ok && e.kcal).toBe(2200);
+  });
+
   it('days far below the usual intake count only when marked complete', () => {
     const list = days((i) => (i < 5 ? 600 : 2200));
     expect(countedDays(list)).toHaveLength(23);
