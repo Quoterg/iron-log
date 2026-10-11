@@ -112,7 +112,8 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
 
 Owner decisions (2026-10-11): all of "logging in 3 seconds" (plan 1A); from the coaching plan the
 adaptive energy expenditure, a shopping list, and a weekly check-in with recommendations. Anything
-that gives advice (swaps, recommendations, check-in) is **opt-in and off by default** — the app
+that adapts or advises (adaptive expenditure, swaps, recommendations, check-in) is **opt-in and
+off by default** — the app
 must never feel preachy. Everything stays on the device, lazy-loaded, within the size budget.
 
 - [ ] **M23 Meal templates & portion memory** — Save a meal as a named template (from the diary or
@@ -128,7 +129,8 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   hides it for the day; three dismissals in a row pause it for that slot for 14 days; an off switch
   in Settings. Plus a quick-add row (water, usual items) and home-screen shortcuts (web manifest
   `shortcuts`; the Android app picks them up with the next Bubblewrap build — note it for the owner).
-- [ ] **M25 Adaptive energy expenditure** — Estimate real daily expenditure from the weight trend
+- [ ] **M25 Adaptive energy expenditure (opt-in)** — Off by default (Settings); many users prefer
+  a constant calorie target, and with it off nothing changes and nothing is shown. When on, estimate real daily expenditure from the weight trend
   (M12 moving average) and logged intake over the last 2–4 weeks (≈ 7700 kcal per kg, smoothed;
   only days marked complete count — add a one-tap "day complete" mark to the diary, with days
   far below the user's typical intake treated as incomplete when unmarked; needs ≥ 10 such days and ≥ 3 weigh-ins, otherwise it says so).
@@ -136,7 +138,7 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   as their energy target, with a goal (lose / maintain / gain) and a pace capped at safe limits
   (never below a minimum intake, at most ~0.75 % body weight per week). Never changes targets by itself.
 - [ ] **M26 Weekly check-in (opt-in)** — Off by default; turned on in Settings. Once a week: averages,
-  weight trend, adaptive expenditure, a suggested energy target for the chosen goal (accept or
+  weight trend, adaptive expenditure and a suggested energy target (only if M25 is on) for the chosen goal (accept or
   ignore), what went well, and at most one recommendation to reach the goals (from M27's scoring).
   Neutral wording, no streak pressure or guilt, no notifications unless the user asks.
 - [ ] **M27 Gap fixer & swaps (opt-in)** — Off by default ("Suggestions" in Settings). For nutrients
