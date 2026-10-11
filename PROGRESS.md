@@ -6,11 +6,12 @@ Keep entries short — this file is read at the start of every session.
 ## Next up
 
 Phase 4 and M29 are done (owner's order request 2026-10-11: built as M29, M27, M26, M28). Next:
-**M21b** (low security housekeeping). **Budget:** initial JS is 39.8 KB of 40 — the next feature that
-needs anything in the first bundle needs a decision first (trim the first bundle, e.g. move rarely
-used diary cards behind lazy chunks, or raise the budget with the owner's OK). Strings of new screens
-go in lazy sections (strings-*.ts). PRs: the reviewer agent merges once its review is addressed
-(owner, 2026-10-11).
+**M21b** (low security housekeeping). **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
+barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
+the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
+than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
+(strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
+db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 
 ## 2026-10-11 — M28 Shopping list (interactive session)
 
@@ -26,7 +27,9 @@ go in lazy sections (strings-*.ts). PRs: the reviewer agent merges once its revi
 - Review fixes: the list is capped at 300 lines where items are added (with a message), a backup is
   never cut (only > 3000 refused); saves are one transaction, written before the screen updates;
   sections computed once per change; nut butters/coconut milk → Skafferi; sugar stays in grams.
-- Tests: unit 204 ✓ (expand, summing, sections, amounts, text, sync, backup cap), build ✓ (initial JS 39.8 KB, +0.3:
+- CI caught the first bundle at 40.0 KB (local 39.8): the scanner + Open Food Facts client, the food
+  editor and the copy sheet are now lazy (prefetched when idle) → 37.2 KB.
+- Tests: unit 204 ✓ (expand, summing, sections, amounts, text, sync, backup cap), build ✓ (initial JS 37.2 KB; M28 itself +0.3:
   button, store functions, string), e2e 127 ✓ (new shopping.spec.ts; a11y "shopping list"),
   Lighthouse ✓.
 

@@ -152,3 +152,5 @@ export function ScanSheet({ meal }: { meal: Meal }) {
     </Sheet>
   );
 }
+
+export default ScanSheet;
