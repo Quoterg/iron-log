@@ -160,6 +160,22 @@ describe('device-to-device sync', () => {
     expect(await a.db.getEntry('ok')).toBeUndefined();
   });
 
+  it('shopping list: items, ticks and removals sync; a removal wins over the older copy', async () => {
+    const a = await device();
+    await a.db.changeShopping([{ id: 's1', foodRef: 'slv:1', grams: 300, updatedAt: 1 }, { id: 's2', text: 'Tandkräm', updatedAt: 1 }], []);
+    const b = await device();
+    await syncPair(a, b);
+    expect((await b.db.listShopping()).map((i) => i.id).sort()).toEqual(['s1', 's2']);
+    // b ticks s1; later a removes s2.
+    await b.db.changeShopping([{ id: 's1', foodRef: 'slv:1', grams: 300, checked: true, updatedAt: 2 }], []);
+    await new Promise((r) => setTimeout(r, 5));
+    await a.db.changeShopping([], ['s2']);
+    await syncPair(a, b);
+    for (const d of [a, b]) expect(await d.db.listShopping()).toEqual([{ id: 's1', foodRef: 'slv:1', grams: 300, checked: true, updatedAt: 2 }]);
+    // The removal is a tombstone in the log, so it can't come back from a device that missed it.
+    expect((await a.sync.summarize())['shopping:s2']).toBeGreaterThan(0);
+  });
+
   it('skips stores from a newer version and still applies the rest', async () => {
     const a = await device();
     const applied = await a.sync.applyChanges([{ k: 'futureStore:x', mt: 5, v: { anything: 1 } }, { k: 'entries:ok', mt: 5, v: entry('ok') }]);

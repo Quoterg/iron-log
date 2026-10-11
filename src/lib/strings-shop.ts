@@ -19,6 +19,8 @@ export const SV_SHOP = {
   shopClearChecked: 'Ta bort avbockade',
   shopClearAll: 'Töm listan',
   shopClearAllConfirm: 'Ta bort allt från inköpslistan?',
+  shopFull: 'Listan är full ({n} rader). Ta bort avbockade först.',
+  shopSaveFailed: 'Kunde inte spara. Försök igen.',
   secProduce: 'Frukt & grönt',
   secBread: 'Bröd, gryn & pasta',
   secDairy: 'Mejeri & ägg',

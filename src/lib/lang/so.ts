@@ -522,6 +522,8 @@ const pack: LangPack = {
     shopClearChecked: 'Ka saar kuwa la calaamadeeyay',
     shopClearAll: 'Faaruqi liiska',
     shopClearAllConfirm: 'Ma ka saartaa wax walba liiska iibsiga?',
+    shopFull: 'Liisku waa buuxaa ({n} sadar). Marka hore ka saar kuwa la calaamadeeyay.',
+    shopSaveFailed: 'Lama kaydin karin. Isku day mar kale.',
     secProduce: 'Khudaar & miro',
     secBread: 'Rooti, badar & baasto',
     secDairy: 'Caano & ukun',

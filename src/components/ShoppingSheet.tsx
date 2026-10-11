@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
-import { addDays, deleteShopping, entriesBetween, isoDate, listShopping, newId, putShopping, type Entry } from '../lib/db';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { addDays, changeShopping, entriesBetween, isoDate, listShopping, newId, type Entry } from '../lib/db';
 import { fmt, lang } from '../lib/i18n';
 import { foodName } from '../lib/nutrients';
 import { servingsFor } from '../lib/servings';
-import { addTo, expand, sectionOf, SECTIONS, shopAmount, toText, type Section, type ShopItem } from '../lib/shopping';
+import { addTo, expand, MAX_SHOP_ITEMS, sectionOf, SECTIONS, shopAmount, toText, type Section, type ShopItem } from '../lib/shopping';
 import { tsh, type ShopKey } from '../lib/strings-shop';
 import { t } from '../lib/i18n';
 import { ensureFoods, foods, recipes, supplementRefs, templates, userServings } from '../state';
@@ -47,16 +47,30 @@ export default function ShoppingSheet() {
     return () => void (live = false);
   }, []);
 
-  /** Save changed items and show them (on top of the latest list, so quick taps don't overwrite each other). */
+  /**
+   * Store, then show (on top of the latest list, so quick taps don't overwrite each other). A failed
+   * write shows nothing new and says so.
+   */
   const save = async (changed: ShopItem[], removed: string[] = []) => {
+    try {
+      await changeShopping(changed, removed);
+    } catch {
+      setStatus(tsh('shopSaveFailed'));
+      return;
+    }
     setItems((cur) => {
       const byId = new Map((cur ?? []).map((i) => [i.id, i]));
       for (const c of changed) byId.set(c.id, c);
       for (const id of removed) byId.delete(id);
       return [...byId.values()];
     });
-    await putShopping(changed);
-    await deleteShopping(removed);
+  };
+
+  /** Room for `n` more lines (the list is kept to MAX_SHOP_ITEMS); says so when full. */
+  const room = (n: number) => {
+    const ok = (items?.length ?? 0) + n <= MAX_SHOP_ITEMS;
+    if (!ok) setStatus(tsh('shopFull').replace('{n}', String(MAX_SHOP_ITEMS)));
+    return ok;
   };
 
   /** Add foods (recipes become their ingredients); a double tap on a slow phone adds once. */
@@ -66,19 +80,28 @@ export default function ShoppingSheet() {
     try {
       const parts = expand(list, new Map(recipes.value.map((r) => [r.ref, r])));
       await ensureFoods(parts.map((p) => p.foodRef));
-      await save(addTo(items ?? [], parts, Date.now(), newId));
+      const changed = addTo(items ?? [], parts, Date.now(), newId);
+      const fresh = changed.filter((c) => !items?.some((i) => i.id === c.id)).length;
+      if (!room(fresh)) return;
+      await save(changed);
       setStatus(tsh('shopAdded'));
     } finally {
       busy.current = false;
     }
   };
 
-  const groups = SECTIONS.map((s) => ({
-    section: s,
-    list: (items ?? [])
-      .filter((i) => sectionOf(i.text ?? nameOf(i)) === s)
-      .sort((a, b) => Number(!!a.checked) - Number(!!b.checked) || nameOf(a).localeCompare(nameOf(b), lang.value)),
-  })).filter((g) => g.list.length);
+  // Section and name of each line worked out once per change (not per render and section).
+  const groups = useMemo(() => {
+    const collator = new Intl.Collator(lang.value);
+    const rows = (items ?? []).map((i) => ({ i, name: nameOf(i), section: sectionOf(i.text ?? nameOf(i)) }));
+    return SECTIONS.map((section) => ({
+      section,
+      list: rows
+        .filter((r) => r.section === section)
+        .sort((a, b) => Number(!!a.i.checked) - Number(!!b.i.checked) || collator.compare(a.name, b.name))
+        .map((r) => r.i),
+    })).filter((g) => g.list.length);
+  }, [items, foods.value, lang.value]);
 
   const share = async () => {
     const text = toText(
@@ -155,7 +178,7 @@ export default function ShoppingSheet() {
             onSubmit={(e) => {
               e.preventDefault();
               const text = own.trim();
-              if (!text) return;
+              if (!text || !room(1)) return;
               void save([{ id: newId(), text: text.slice(0, 200), updatedAt: Date.now() }]);
               setOwn('');
             }}

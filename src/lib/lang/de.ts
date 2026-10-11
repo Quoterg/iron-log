@@ -522,6 +522,8 @@ const pack: LangPack = {
     shopClearChecked: 'Abgehakte entfernen',
     shopClearAll: 'Liste leeren',
     shopClearAllConfirm: 'Alles von der Einkaufsliste entfernen?',
+    shopFull: 'Die Liste ist voll ({n} Zeilen). Entferne zuerst Abgehaktes.',
+    shopSaveFailed: 'Speichern fehlgeschlagen. Versuche es erneut.',
     secProduce: 'Obst & Gemüse',
     secBread: 'Brot, Getreide & Pasta',
     secDairy: 'Milchprodukte & Eier',

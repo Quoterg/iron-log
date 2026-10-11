@@ -17,7 +17,10 @@ export interface ShopItem {
 
 export const MAX_SHOP_ITEMS = 300;
 
-/** Foods with amounts; recipes are replaced by their ingredients, scaled to the amount used. */
+/**
+ * Foods with amounts; recipes are replaced by their ingredients, scaled to the amount used. One level
+ * is enough: a recipe can't contain a recipe (the ingredient search excludes them).
+ */
 export function expand(items: { foodRef: string; grams: number }[], recipes: Map<string, StoredRecipe>): { foodRef: string; grams: number }[] {
   return items.flatMap((i) => {
     const r = i.foodRef.startsWith('recipe:') ? recipes.get(i.foodRef) : undefined;
@@ -52,7 +55,9 @@ export const SECTIONS: Section[] = ['produce', 'bread', 'dairy', 'meat', 'dry', 
 // meat before dry ("Nötfärs" vs. "Nötter").
 const RULES: [Section, RegExp][] = [
   ['frozen', /frysvara|fryst|frozen/i],
-  ['meat', /kött|nöt(kött|färs|stek)|fläsk|gris|kyckling|kalkon|lamm|korv|skinka|bacon|färs|fisk|lax|torsk|sill|räk|tonfisk|makrill|beef|pork|chicken|turkey|lamb|sausage|ham\b|fish|salmon|cod\b|tuna|shrimp/i],
+  // Nut butters and cooking coconut milk are pantry goods, not dairy ("…smör", "…mjölk", "butter").
+  ['dry', /jordnötssmör|nötsmör|mandelsmör|kokosmjölk|peanut butter|nut butter|almond butter|coconut milk/i],
+  ['meat', /kött|nöt(kött|färs|stek)|fläsk|gris|kyckling|kalkon|lamm|korv|skinka|bacon|färs|fisk|lax|torsk|sill|räk|tonfisk|makrill|beef|pork|chicken|turkey|lamb|sausage|\bham\b|fish|salmon|cod\b|tuna|shrimp/i],
   ['dairy', /mjölk|yoghurt|(^|\s)ost|ost(\s|,|$)|smör(?!gås)|grädde|kvarg|keso|kesella|skyr|fil(mjölk)?\b|ägg|milk|yogh?urt|cheese|butter|cream|\beggs?\b/i],
   ['produce', /frukt|grönsak|äpple|päron|banan|apelsin|citron|lime|bär|jordgubb|hallon|blåbär|tomat|gurka|sallad|morot|lök|potatis|paprika|broccoli|kål|spenat|svamp|avokado|druv|melon|kiwi|vitlök|apple|pear|banana|orange|lemon|berr|tomato|cucumber|lettuce|carrot|onion|potato|pepper|cabbage|spinach|mushroom|avocado|grape/i],
   ['bread', /bröd|knäcke|havre|gryn|flingor|müsli|(^|\s)ris\b|pasta|spaghetti|spagetti|makaron|mjöl|bulgur|couscous|quinoa|tortilla|bread|\boats?\b|\brice\b|flour|cereal/i],
@@ -65,14 +70,14 @@ export function sectionOf(name: string): Section {
 
 /**
  * A shop-friendly amount: whole pieces if the food has "st"; litres/decilitres for liquids (a "dl" or
- * "glas" (2 dl) measure weighing about 100 g per dl — not oats or flour, bought by weight); else
- * rounded grams.
+ * "glas" (2 dl) measure weighing 95–115 g per dl, like milk, juice or yoghurt — not oats, flour or
+ * sugar, which are bought by weight); else rounded grams.
  */
 export function shopAmount(grams: number, units: Serving[] = []): { qty: number; unit: 'st' | 'l' | 'dl' | 'g' | 'kg' } {
   const st = units.find((u) => u.name === 'st');
   if (st && st.g > 0) return { qty: Math.max(1, Math.ceil(grams / st.g - 0.05)), unit: 'st' };
   const dl = units.find((u) => u.name === 'dl')?.g ?? (units.find((u) => u.name === 'glas')?.g ?? 0) / 2;
-  if (dl >= 85 && dl <= 130) {
+  if (dl >= 95 && dl <= 115) {
     const dls = grams / dl;
     return dls >= 10 ? { qty: Math.ceil(dls / 2.5) / 4, unit: 'l' } : { qty: Math.ceil(dls - 0.05), unit: 'dl' };
   }

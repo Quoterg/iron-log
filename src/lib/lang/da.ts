@@ -522,6 +522,8 @@ const pack: LangPack = {
     shopClearChecked: 'Fjern afkrydsede',
     shopClearAll: 'Tøm listen',
     shopClearAllConfirm: 'Fjern alt fra indkøbslisten?',
+    shopFull: 'Listen er fuld ({n} linjer). Fjern afkrydsede først.',
+    shopSaveFailed: 'Kunne ikke gemme. Prøv igen.',
     secProduce: 'Frugt & grønt',
     secBread: 'Brød, gryn & pasta',
     secDairy: 'Mejeri & æg',

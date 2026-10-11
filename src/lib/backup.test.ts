@@ -61,6 +61,15 @@ describe('backup', () => {
     expect(() => parseBackup(text({ supplement: { unit: 'st', perDay: -1 } }))).toThrow(BackupError);
   });
 
+  it('keeps a whole shopping list (never cut silently); refuses only absurd sizes and invalid items', () => {
+    const items = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `s${i}`, text: `Vara ${i}`, updatedAt: 1 }));
+    const parse = (shopping: unknown[]) => parseBackup(JSON.stringify({ ...makeBackup(data), shopping }));
+    expect(parse(items(350)).shopping).toHaveLength(350);
+    expect(() => parse(items(3001))).toThrow(BackupError);
+    expect(() => parse([{ id: 'x', updatedAt: 1 }])).toThrow(BackupError); // neither food nor text
+    expect(() => parse([{ id: 'x', foodRef: 'slv:1', grams: -5, updatedAt: 1 }])).toThrow(BackupError);
+  });
+
   it('validates saved meals and drops invalid remembered amounts', () => {
     const bad = (t: object) => () => parseBackup(JSON.stringify(makeBackup({ ...data, templates: [{ ...data.templates![0], ...t }] })));
     expect(bad({ items: [] })).toThrow(BackupError);

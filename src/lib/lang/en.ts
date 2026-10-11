@@ -427,6 +427,8 @@ const shop: Record<string, string> = {
   shopClearChecked: 'Remove ticked items',
   shopClearAll: 'Empty the list',
   shopClearAllConfirm: 'Remove everything from the shopping list?',
+  shopFull: 'The list is full ({n} lines). Remove ticked items first.',
+  shopSaveFailed: 'Could not save. Try again.',
   secProduce: 'Fruit & vegetables',
   secBread: 'Bread, grains & pasta',
   secDairy: 'Dairy & eggs',

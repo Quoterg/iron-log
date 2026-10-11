@@ -522,6 +522,8 @@ const pack: LangPack = {
     shopClearChecked: 'Poista rastitetut',
     shopClearAll: 'Tyhjennä lista',
     shopClearAllConfirm: 'Poistetaanko kaikki ostoslistalta?',
+    shopFull: 'Lista on täynnä ({n} riviä). Poista ensin rastitetut.',
+    shopSaveFailed: 'Tallennus epäonnistui. Yritä uudelleen.',
     secProduce: 'Hedelmät & vihannekset',
     secBread: 'Leipä, ryynit & pasta',
     secDairy: 'Maito & munat',

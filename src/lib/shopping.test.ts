@@ -37,6 +37,10 @@ describe('shopping list', () => {
     expect(sectionOf('Chicken, breast, raw')).toBe('meat');
     expect(sectionOf('Rapsolja')).toBe('dry');
     expect(sectionOf('Tandkräm')).toBe('other');
+    expect(sectionOf('Jordnötssmör')).toBe('dry'); // not dairy ("smör")
+    expect(sectionOf('Kokosmjölk')).toBe('dry');
+    expect(sectionOf('Peanut butter, smooth')).toBe('dry');
+    expect(sectionOf('Gotham')).toBe('other'); // not meat ("ham")
   });
 
   it('rounds to shop-friendly amounts', () => {
@@ -46,6 +50,7 @@ describe('shopping list', () => {
     expect(shopAmount(412, [{ name: 'dl', g: 103 }])).toEqual({ qty: 4, unit: 'dl' }); // milk: 4.0 dl
     expect(shopAmount(1400, [{ name: 'glas', g: 200 }])).toEqual({ qty: 1.5, unit: 'l' });
     expect(shopAmount(120, [{ name: 'dl', g: 35 }])).toEqual({ qty: 150, unit: 'g' }); // oats: by weight
+    expect(shopAmount(170, [{ name: 'dl', g: 85 }])).toEqual({ qty: 200, unit: 'g' }); // sugar: by weight
     expect(shopAmount(37)).toEqual({ qty: 40, unit: 'g' });
     expect(shopAmount(260)).toEqual({ qty: 300, unit: 'g' });
     expect(shopAmount(1230)).toEqual({ qty: 1.3, unit: 'kg' });

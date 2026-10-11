@@ -449,18 +449,17 @@ export async function listShopping(): Promise<ShopItem[]> {
   return (await db()).getAll('shopping');
 }
 
-export async function putShopping(items: ShopItem[]): Promise<void> {
-  if (items.length) await put('shopping', items);
-}
-
-/** Remove items (one transaction; each leaves a tombstone so the removal syncs). */
-export async function deleteShopping(ids: string[]): Promise<void> {
-  if (!ids.length) return;
+/** Save and remove shopping items in one transaction (removals leave tombstones, so they sync). */
+export async function changeShopping(items: ShopItem[], removed: string[]): Promise<void> {
+  if (!items.length && !removed.length) return;
   const tx = (await db()).transaction(['shopping', 'meta'], 'readwrite');
   const mt = Date.now();
   localChanges++;
+  const store = tx.objectStore('shopping');
+  const meta = tx.objectStore('meta');
   await Promise.all([
-    ...ids.flatMap((id) => [tx.objectStore('shopping').delete(id), tx.objectStore('meta').put({ mt, del: true }, metaKey('shopping', id))]),
+    ...items.flatMap((i) => [store.put(i), meta.put({ mt }, metaKey('shopping', i.id))]),
+    ...removed.flatMap((id) => [store.delete(id), meta.put({ mt, del: true }, metaKey('shopping', id))]),
     tx.done,
   ]);
 }

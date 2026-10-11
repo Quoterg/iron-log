@@ -347,7 +347,12 @@ export function parseBackup(text: string): AllData {
     water: list('water').map(water),
     templates: list('templates').map(template),
     days: list('days').map(dayMark),
-    shopping: list('shopping').slice(0, MAX_SHOP_ITEMS).map(shopItem),
+    // The app keeps lists to MAX_SHOP_ITEMS; only absurd sizes are refused (never silently cut).
+    shopping: (() => {
+      const items = list('shopping');
+      if (items.length > MAX_SHOP_ITEMS * 10) throw new BackupError('shopping');
+      return items.map(shopItem);
+    })(),
     settings: settings(raw.settings),
   };
 }
