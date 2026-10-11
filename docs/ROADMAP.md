@@ -107,3 +107,44 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   account; no GitHub Pages on any other repo; user-site repo stays minimal — see CLAUDE.md). Revisit
   before promoting the app widely: then move to its own origin (free GitHub organization or own
   domain) with a "move my data" path and a new Android build. Don't start it without the owner.
+
+## Phase 4 — Faster than the rest, and a coach when you want one
+
+Owner decisions (2026-10-11): all of "logging in 3 seconds" (plan 1A); from the coaching plan the
+adaptive energy expenditure, a shopping list, and a weekly check-in with recommendations. Anything
+that gives advice (swaps, recommendations, check-in) is **opt-in and off by default** — the app
+must never feel preachy. Everything stays on the device, lazy-loaded, within the size budget.
+
+- [ ] **M23 Meal templates & portion memory** — Save a meal as a named template (from the diary or
+  built by hand) and log it in one tap; templates show in the add sheet before typing. Each food
+  opens at the amount and unit you usually log; quick multipliers (½×, 1×, 1½×, 2×) in the amount
+  picker. One-tap "same as yesterday" per meal (builds on the M4 copy sheet). Templates are part
+  of backup and sync.
+- [ ] **M24 "Your usual" & shortcuts** — Suggest a whole meal only when it truly is the usual, never
+  as noise. Rules (unit-tested, tune only with data): the same meal (≥ 80 % of its energy from the
+  same foods) was logged in that meal slot on ≥ 4 of the last 6 comparable days (weekdays vs.
+  weekends separately), it is the slot's time of day, and the meal is still empty today. One card
+  at most, at the top of that meal; one tap logs it, the amount is editable afterwards. Dismissing
+  hides it for the day; three dismissals in a row pause it for that slot for 14 days; an off switch
+  in Settings. Plus a quick-add row (water, usual items) and home-screen shortcuts (web manifest
+  `shortcuts`; the Android app picks them up with the next Bubblewrap build — note it for the owner).
+- [ ] **M25 Adaptive energy expenditure** — Estimate real daily expenditure from the weight trend
+  (M12 moving average) and logged intake over the last 2–4 weeks (≈ 7700 kcal per kg, smoothed;
+  only days marked complete count — add a one-tap "day complete" mark to the diary, with days
+  far below the user's typical intake treated as incomplete when unmarked; needs ≥ 10 such days and ≥ 3 weigh-ins, otherwise it says so).
+  Shown with its uncertainty next to the formula-based value (M8). The user can choose to use it
+  as their energy target, with a goal (lose / maintain / gain) and a pace capped at safe limits
+  (never below a minimum intake, at most ~0.75 % body weight per week). Never changes targets by itself.
+- [ ] **M26 Weekly check-in (opt-in)** — Off by default; turned on in Settings. Once a week: averages,
+  weight trend, adaptive expenditure, a suggested energy target for the chosen goal (accept or
+  ignore), what went well, and at most one recommendation to reach the goals (from M27's scoring).
+  Neutral wording, no streak pressure or guilt, no notifications unless the user asks.
+- [ ] **M27 Gap fixer & swaps (opt-in)** — Off by default ("Suggestions" in Settings). For nutrients
+  short over the period (only where the M13 coverage rule allows), suggest foods the user already
+  eats, then Swedish staples, ranked by how much of the gap they cover per kcal; and swaps for
+  frequently logged foods ("rye bread instead of white bread: +fibre, +iron"). Stays within NNR,
+  no medical claims. A neutral "what if" preview on the food detail (how today's bars would move)
+  is shown regardless of the setting.
+- [ ] **M28 Shopping list** — Build a list from templates, recipes and planned days (pick meals for
+  the coming days); quantities summed per food and rounded to shop-friendly units, grouped by
+  store section; tick off items, share as plain text. Stored locally, part of backup and sync.
