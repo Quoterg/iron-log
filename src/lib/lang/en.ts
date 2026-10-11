@@ -134,6 +134,7 @@ const strings: Dict = {
   deleteSavedMealConfirm: 'Remove the saved meal “{name}”? What you have already logged is not affected.',
   sameAsYesterday: 'Same as yesterday',
   foodsCount: '{n} foods',
+  shoppingList: 'Shopping list',
   checkinReady: 'Your weekly check-in is ready',
   checkinShow: 'Show',
   dayComplete: 'Day complete',
@@ -409,5 +410,31 @@ const checkin: Record<string, string> = {
   checkinDone: 'Done',
 };
 
-const pack: LangPack = { strings, sync, off, energy, suggest, checkin };
+const shop: Record<string, string> = {
+  shopEmpty: 'The list is empty. Add saved meals, recipes or what you have planned in the diary.',
+  shopAddTitle: 'Add to the list',
+  shopPlanned: 'Planned in the diary, next 7 days',
+  shopPlannedCount: '{n} foods',
+  shopNoPlanned: 'Nothing planned for the next 7 days. Copy a day or meal ahead in the diary and you can add it here.',
+  shopSavedMeals: 'Saved meals',
+  shopRecipes: 'Recipes (the whole recipe)',
+  shopAdd: 'Add',
+  shopAdded: 'Added to the list.',
+  shopOwnItem: 'Own item',
+  shopOwnPlaceholder: 'e.g. toothpaste',
+  shopShare: 'Share the list',
+  shopCopied: 'The list is copied.',
+  shopClearChecked: 'Remove ticked items',
+  shopClearAll: 'Empty the list',
+  shopClearAllConfirm: 'Remove everything from the shopping list?',
+  secProduce: 'Fruit & vegetables',
+  secBread: 'Bread, grains & pasta',
+  secDairy: 'Dairy & eggs',
+  secMeat: 'Meat & fish',
+  secDry: 'Pantry',
+  secFrozen: 'Frozen',
+  secOther: 'Other',
+};
+
+const pack: LangPack = { strings, sync, off, energy, suggest, checkin, shop };
 export default pack;

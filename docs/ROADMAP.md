@@ -150,7 +150,7 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   frequently logged foods ("rye bread instead of white bread: +fibre, +iron"). Stays within NNR,
   no medical claims. A "what if" preview on the food detail (how today's bars would move) has its
   own switch, on by default since it is information, not advice.
-- [ ] **M28 Shopping list** — Build a list from templates, recipes and planned days (pick meals for
+- [x] **M28 Shopping list** — Build a list from templates, recipes and planned days (pick meals for
   the coming days); quantities summed per food and rounded to shop-friendly units, grouped by
   store section; tick off items, share as plain text. Stored locally, part of backup and sync.
 

@@ -31,6 +31,7 @@ export const syncView = lazyView(() => import('./components/SyncSheet'));
 export const offUploadView = lazyView(() => import('./components/OffUploadSheet'));
 export const templateView = lazyView(() => import('./components/TemplateSheet'));
 export const checkinView = lazyView(() => import('./components/CheckIn'));
+export const shoppingView = lazyView(() => import('./components/ShoppingSheet'));
 
 export function App() {
   const s = top.value;
@@ -107,6 +108,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <templateView.Lazy meal={s.meal} id={s.id} />;
     case 'checkin':
       return <checkinView.Lazy />;
+    case 'shopping':
+      return <shoppingView.Lazy />;
   }
 }
 

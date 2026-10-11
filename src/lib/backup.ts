@@ -8,6 +8,7 @@ import { padVector, type StoredRecipe } from './recipes';
 import { MAX_TEMPLATE_ITEMS, MAX_TEMPLATE_NAME, type MealTemplate, type TemplateItem } from './templates';
 import { AMOUNT_MEMORY, type LoggedAmount } from './servings';
 import { GOALS, PACES, type Goal } from './adaptive';
+import { MAX_SHOP_ITEMS, type ShopItem } from './shopping';
 import { normalizeDays, SUPPLEMENT_TIMES, type SupplementTime } from './supplements';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
@@ -202,6 +203,20 @@ function template(x: unknown): MealTemplate {
   throw new BackupError('template');
 }
 
+function shopItem(x: unknown): ShopItem {
+  if (isObj(x) && isStr(x.id, 100) && isNum(x.updatedAt)) {
+    const item: ShopItem = { id: x.id, updatedAt: x.updatedAt };
+    if (isStr(x.foodRef, 200) && isNum(x.grams) && x.grams > 0 && x.grams < 1e6) {
+      item.foodRef = x.foodRef;
+      item.grams = x.grams;
+    } else if (isStr(x.text, 200) && x.text.trim() !== '') item.text = x.text.trim();
+    else throw new BackupError('shopping');
+    if (x.checked === true) item.checked = true;
+    return item;
+  }
+  throw new BackupError('shopping');
+}
+
 function dayMark(x: unknown): DayMark {
   if (isObj(x) && isStr(x.date) && DATE.test(x.date) && isNum(x.updatedAt)) return { date: x.date, updatedAt: x.updatedAt };
   throw new BackupError('day');
@@ -296,6 +311,7 @@ export const SYNC_VALIDATORS: Record<SyncStore, (x: unknown) => unknown> = {
   water,
   templates: template,
   days: dayMark,
+  shopping: shopItem,
   kv: (x) => {
     const s = settings(x);
     if (!s) throw new BackupError('settings');
@@ -331,6 +347,7 @@ export function parseBackup(text: string): AllData {
     water: list('water').map(water),
     templates: list('templates').map(template),
     days: list('days').map(dayMark),
+    shopping: list('shopping').slice(0, MAX_SHOP_ITEMS).map(shopItem),
     settings: settings(raw.settings),
   };
 }

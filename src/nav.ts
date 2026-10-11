@@ -31,7 +31,9 @@ export type Screen =
   /** Save a logged meal for later (`meal`), or edit a saved one (`id`). */
   | { kind: 'template'; meal?: Meal; id?: string }
   /** Last week's check-in (opt-in, M26). */
-  | { kind: 'checkin' };
+  | { kind: 'checkin' }
+  /** The shopping list (M28). */
+  | { kind: 'shopping' };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

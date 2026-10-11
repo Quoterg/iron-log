@@ -116,6 +116,16 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await page.getByLabel('Beräkna min förbrukning från vikt och intag').check();
     await expect(page.getByText(/Behöver mer underlag/)).toBeVisible();
   },
+  'shopping list': async (page) => {
+    await SCREENS['save a meal'](page);
+    await page.getByRole('button', { name: 'Spara', exact: true }).click();
+    await page.getByRole('button', { name: 'Inköpslista' }).click();
+    await dialog(page).getByRole('button', { name: /^Lägg till: / }).first().click();
+    await dialog(page).getByLabel('Egen vara').fill('Tandkräm');
+    await dialog(page).getByRole('button', { name: 'Lägg till', exact: true }).click();
+    await dialog(page).locator('.shop-item').first().getByRole('checkbox').check();
+    await expect(dialog(page).getByRole('heading', { name: 'Övrigt' })).toBeVisible();
+  },
   'weekly check-in': async (page) => {
     await tab(page, 'Inställningar');
     await page.getByLabel('Visa en kort avstämning av förra veckan i dagboken').check();
