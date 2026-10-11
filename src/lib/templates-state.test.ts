@@ -41,7 +41,9 @@ describe('saved meals', () => {
       ['lunch', 'slv:milk', 200, undefined],
     ]);
     expect(state.dayTotals.value[NUTRIENT_INDEX.kcal]).toBeCloseTo(148 + 80);
-    expect((await db.listTemplates())[0].count).toBe(1);
+    // Use is counted on this device only: the stored (synced) saved meal doesn't change.
+    expect(state.templateUse.value[m.id]?.n).toBe(1);
+    expect((await db.listTemplates())[0].updatedAt).toBe(m.updatedAt);
     // Logging counts as using the foods (recent list, portion memory).
     expect(state.usage.value.get('slv:milk')?.amounts).toEqual([{ grams: 200 }, { grams: 200 }]);
 
@@ -60,9 +62,20 @@ describe('saved meals', () => {
     expect(state.entries.value.filter((e) => e.meal === 'lunch')).toHaveLength(2);
   });
 
+  it('skips foods that are no longer available and says so', async () => {
+    const state = await import('../state');
+    await state.loadDay('2026-10-20');
+    const n = await state.logItems('dinner', [{ foodRef: 'slv:oats', grams: 50 }, { foodRef: 'slv:gone', grams: 10 }]);
+    expect(n).toBe(1);
+    expect(state.notice.value).toMatch(/^1 /);
+    await state.loadDay('2026-10-21');
+    expect(state.notice.value).toBeNull();
+  });
+
   it('suggests a name from the first foods and sorts by use', () => {
     expect(suggestName(['Havregryn, fullkorn', 'Mjölk 3 %', 'Banan', 'Kanel'])).toBe('Havregryn, Mjölk 3 %, Banan …');
-    const t = (id: string, count?: number, lastUsed?: number) => ({ id, name: id, items: [], createdAt: 0, updatedAt: 0, count, lastUsed });
-    expect(sortTemplates([t('b'), t('a', 1, 5), t('c', 1, 9)]).map((x) => x.id)).toEqual(['c', 'a', 'b']);
+    const t = (id: string) => ({ id, name: id, items: [], createdAt: 0, updatedAt: 0 });
+    const use = { a: { n: 1, last: 5 }, c: { n: 1, last: 9 } };
+    expect(sortTemplates([t('b'), t('a'), t('c')], use, 'sv').map((x) => x.id)).toEqual(['c', 'a', 'b']);
   });
 });

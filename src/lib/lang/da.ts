@@ -135,6 +135,7 @@ const pack: LangPack = {
     notNow: 'Ikke nu',
     usualSetting: 'Foreslå mit sædvanlige måltid',
     usualSettingNote: 'Vises kun, når du har spist det samme i det måltid de fleste lignende dage (hverdage og weekender hver for sig), omkring det tidspunkt, du plejer at logge det. Tre “Ikke nu” i træk sætter forslaget på pause i to uger.',
+    foodsUnavailable: '{n} af fødevarerne findes ikke længere og blev ikke tilføjet.',
     toDate: 'Til dato',
     toMeal: 'Til måltid',
     sameMeal: 'Samme måltider',

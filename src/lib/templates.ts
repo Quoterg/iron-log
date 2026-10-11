@@ -15,10 +15,10 @@ export interface MealTemplate {
   items: TemplateItem[];
   createdAt: number;
   updatedAt: number;
-  /** How often and when it was last logged: orders the list in the add sheet. */
-  count?: number;
-  lastUsed?: number;
 }
+
+/** Per device: how often (`n`) and when (`last`) each saved meal was logged, by id. */
+export type TemplateUse = Record<string, { n: number; last: number } | undefined>;
 
 export const MAX_TEMPLATE_ITEMS = 50;
 export const MAX_TEMPLATE_NAME = 80;
@@ -39,6 +39,8 @@ export function suggestName(names: string[]): string {
 }
 
 /** Most used first, then most recently used, then by name. */
-export function sortTemplates(list: MealTemplate[]): MealTemplate[] {
-  return [...list].sort((a, b) => (b.count ?? 0) - (a.count ?? 0) || (b.lastUsed ?? 0) - (a.lastUsed ?? 0) || a.name.localeCompare(b.name, 'sv'));
+export function sortTemplates(list: MealTemplate[], use: TemplateUse, lang: string): MealTemplate[] {
+  const n = (m: MealTemplate) => use[m.id]?.n ?? 0;
+  const last = (m: MealTemplate) => use[m.id]?.last ?? 0;
+  return [...list].sort((a, b) => n(b) - n(a) || last(b) - last(a) || a.name.localeCompare(b.name, lang));
 }

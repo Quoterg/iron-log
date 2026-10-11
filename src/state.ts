@@ -4,7 +4,7 @@ import * as db from './lib/db';
 import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db';
 import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
 import { fetchProduct } from './lib/off';
-import { lang, loadLang, rememberLang } from './lib/i18n';
+import { lang, loadLang, rememberLang, t } from './lib/i18n';
 import { type Food, type NutrientVector, type Serving, dataLangOf, NUTRIENT_INDEX } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
@@ -14,7 +14,7 @@ import { supplementServings, UNIT_GRAMS, type SupplementInfo } from './lib/suppl
 import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 import { rememberAmount } from './lib/servings';
-import { itemsFromEntries, type MealTemplate } from './lib/templates';
+import { itemsFromEntries, type MealTemplate, type TemplateUse } from './lib/templates';
 import { accept, dismiss, USUAL_RULES, type UsualMeal, type UsualState } from './lib/usual';
 
 /** Entries of the period the Nutrients tab loaded last, reused by the sources sheet. */
@@ -29,10 +29,16 @@ export const entries = signal<Entry[]>([]);
 export const prevEntries = signal<Entry[]>([]);
 /** Saved meals (not deleted). */
 export const templates = signal<MealTemplate[]>([]);
+const TEMPLATE_USE_KEY = 'iron-log-meal-use';
+/** How often and when each saved meal was logged on this device (orders the list; not synced). */
+export const templateUse = signal<TemplateUse>(readLocal(TEMPLATE_USE_KEY));
+/** A short message for the diary (e.g. foods of a saved meal that are no longer available). */
+export const notice = signal<string | null>(null);
 /** Today's usual meals, by meal (see lib/usual.ts); empty when switched off. */
 export const usual = signal<Partial<Record<Meal, UsualMeal>>>({});
+const USUAL_KEY = 'iron-log-usual';
 /** Dismissals of "your usual" on this device. */
-export const usualState = signal<UsualState>(readUsualState());
+export const usualState = signal<UsualState>(readLocal(USUAL_KEY));
 /** Now, refreshed when the app comes back to the foreground (time-of-day suggestions). */
 export const clock = signal(Date.now());
 /** Every food referenced on screen, built-in or custom, by ref. */
@@ -90,7 +96,12 @@ let loadSeq = 0;
 export async function loadDay(d: string): Promise<void> {
   date.value = d;
   const seq = ++loadSeq;
-  const [list, prev, acts, water] = await Promise.all([db.entriesFor(d), db.entriesFor(db.addDays(d, -1)), db.activitiesFor(d), db.waterFor(d)]);
+  notice.value = null;
+  const [list, acts, water] = await Promise.all([db.entriesFor(d), db.activitiesFor(d), db.waterFor(d)]);
+  if (seq !== loadSeq) return;
+  // The day before only matters for empty meals ("same as yesterday"): skip it when all are logged.
+  const empty = new Set(db.MEALS.filter((m) => !list.some((e) => e.meal === m)));
+  const prev = empty.size ? (await db.entriesFor(db.addDays(d, -1))).filter((e) => empty.has(e.meal)) : [];
   if (seq !== loadSeq) return;
   entries.value = list;
   prevEntries.value = prev;
@@ -327,18 +338,32 @@ async function putUsage(u: Usage) {
 }
 
 async function recordUse(ref: string, amount: Amount) {
-  const prev = usage.value.get(ref);
-  const m = measure(amount);
-  await putUsage({
-    foodRef: ref,
-    fav: prev?.fav,
-    count: (prev?.count ?? 0) + 1,
-    lastUsed: Date.now(),
-    lastGrams: m.grams,
-    lastUnit: m.unit,
-    lastQty: m.qty,
-    amounts: rememberAmount(prev?.amounts, m),
-  });
+  await recordUses([[ref, amount]]);
+}
+
+/** Count uses of several foods (a whole meal) in one write; the same food may appear twice. */
+async function recordUses(list: [ref: string, amount: Amount][]) {
+  const map = new Map(usage.value);
+  const changed = new Map<string, Usage>();
+  for (const [ref, amount] of list) {
+    const prev = map.get(ref);
+    const m = measure(amount);
+    const u: Usage = {
+      foodRef: ref,
+      fav: prev?.fav,
+      count: (prev?.count ?? 0) + 1,
+      lastUsed: Date.now(),
+      lastGrams: m.grams,
+      lastUnit: m.unit,
+      lastQty: m.qty,
+      amounts: rememberAmount(prev?.amounts, m),
+    };
+    map.set(ref, u);
+    changed.set(ref, u);
+  }
+  usage.value = map;
+  setUserBoosts(userBoosts(map));
+  await db.putUsages([...changed.values()]);
 }
 
 export async function toggleFavourite(ref: string): Promise<void> {
@@ -381,6 +406,23 @@ export async function copyEntries(opts: { from?: Entry[]; fromMeal?: Meal; toDat
 
 // --- Saved meals ---
 
+/** A small per-device record in localStorage (a convenience: empty if storage is blocked). */
+function readLocal<T>(key: string): T {
+  try {
+    return JSON.parse(localStorage.getItem(key) ?? '{}') as T;
+  } catch {
+    return {} as T;
+  }
+}
+
+function writeLocal(key: string, v: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(v));
+  } catch {
+    // Private mode or storage blocked: kept until the app closes.
+  }
+}
+
 export async function loadTemplates(): Promise<void> {
   templates.value = await db.listTemplates();
 }
@@ -389,7 +431,7 @@ export async function loadTemplates(): Promise<void> {
 export async function saveTemplate(input: { id?: string; name: string; items: MealTemplate['items'] }): Promise<void> {
   const now = Date.now();
   const prev = input.id ? templates.value.find((m) => m.id === input.id) : undefined;
-  const m: MealTemplate = { ...prev, id: prev?.id ?? db.newId(), name: input.name.trim(), items: input.items, createdAt: prev?.createdAt ?? now, updatedAt: now };
+  const m: MealTemplate = { id: prev?.id ?? db.newId(), name: input.name.trim(), items: input.items, createdAt: prev?.createdAt ?? now, updatedAt: now };
   templates.value = prev ? templates.value.map((x) => (x.id === m.id ? m : x)) : [...templates.value, m];
   await db.putTemplate(m);
 }
@@ -399,31 +441,37 @@ export async function deleteTemplate(id: string): Promise<void> {
   await db.deleteTemplate(id);
 }
 
-/** Log a saved meal (or yesterday's meal) into `meal` of the selected day. Returns how many foods were added. */
+/**
+ * Log a saved meal (or yesterday's meal) into `meal` of the selected day. Returns how many foods
+ * were added; foods no longer available (a source turned off, an uncached product) are skipped
+ * and the diary says so.
+ */
 export async function logItems(meal: Meal, items: MealTemplate['items']): Promise<number> {
   await ensureFoods(items.map((i) => i.foodRef));
   const now = Date.now();
   const list: Entry[] = [];
   items.forEach((i, n) => {
     const food = foods.value.get(i.foodRef);
-    if (!food) return; // no longer available (e.g. a source turned off and not cached)
+    if (!food) return;
     const e: Entry = { id: db.newId(), date: date.value, meal, foodRef: i.foodRef, createdAt: now + n, ...measure(i) };
     if (i.foodRef.startsWith('recipe:')) e.snap = food.per100g;
     list.push(e);
   });
+  const skipped = items.length - list.length;
+  notice.value = skipped ? t('foodsUnavailable').replace('{n}', String(skipped)) : null;
   if (!list.length) return 0;
   entries.value = [...entries.value, ...list];
   await db.putEntries(list);
-  for (const e of list) await recordUse(e.foodRef, e);
+  await recordUses(list.map((e) => [e.foodRef, e]));
   return list.length;
 }
 
 export async function logTemplate(meal: Meal, m: MealTemplate): Promise<number> {
   const n = await logItems(meal, m.items);
   if (n) {
-    const next = { ...m, count: (m.count ?? 0) + 1, lastUsed: Date.now() };
-    templates.value = templates.value.map((x) => (x.id === m.id ? next : x));
-    await db.putTemplate(next);
+    const cur = templateUse.value[m.id];
+    templateUse.value = { ...templateUse.value, [m.id]: { n: (cur?.n ?? 0) + 1, last: Date.now() } };
+    writeLocal(TEMPLATE_USE_KEY, templateUse.value);
   }
   return n;
 }
@@ -463,23 +511,9 @@ export async function refreshUsual(today: string, force = false): Promise<void> 
   if (usualDay === today) usual.value = out;
 }
 
-const USUAL_KEY = 'iron-log-usual';
-
-function readUsualState(): UsualState {
-  try {
-    return JSON.parse(localStorage.getItem(USUAL_KEY) ?? '{}') as UsualState;
-  } catch {
-    return {};
-  }
-}
-
 function saveUsualState(s: UsualState) {
   usualState.value = s;
-  try {
-    localStorage.setItem(USUAL_KEY, JSON.stringify(s));
-  } catch {
-    // Private mode or storage blocked: it's remembered until the app closes.
-  }
+  writeLocal(USUAL_KEY, s);
 }
 
 export function dismissUsual(meal: Meal): void {

@@ -11,6 +11,11 @@ test.beforeEach(async ({ page }) => {
 const at = (date: string, hhmm: string) => new Date(`${date}T${hhmm}:00+02:00`); // CEST in October
 const meal = (page: Page, i: number) => page.locator('.meal').nth(i);
 const usualCard = (page: Page, i: number) => meal(page, i).getByRole('button', { name: /Som vanligt/ });
+/**
+ * "Not shown" is only meaningful once today's usual meals are worked out (in the background after
+ * the diary appears): give that time before asserting an absence.
+ */
+const settled = (page: Page) => page.waitForTimeout(2000);
 
 /** Oats and banana for breakfast at 07:30 on the given days, imported as a backup. */
 async function importBreakfasts(page: Page, days: string[]) {
@@ -38,6 +43,7 @@ test('your usual: only when it is the usual, at its time; dismiss, log, switch o
   await page.goto('./');
   await importBreakfasts(page, ['2026-10-09', '2026-10-08', '2026-10-07']);
   await expect(meal(page, 0).getByRole('button', { name: /Lägg till/ })).toBeVisible();
+  await settled(page);
   await expect(usualCard(page, 0)).toHaveCount(0);
 
   // A fourth weekday (a weekend day wouldn't count): now it is.
@@ -49,6 +55,7 @@ test('your usual: only when it is the usual, at its time; dismiss, log, switch o
   await page.clock.setFixedTime(at('2026-10-12', '12:00'));
   await page.reload();
   await expect(meal(page, 0).getByRole('button', { name: /Lägg till/ })).toBeVisible();
+  await settled(page);
   await expect(usualCard(page, 0)).toHaveCount(0);
 
   // "Not now" hides it for the day, also after a reload.
@@ -58,6 +65,7 @@ test('your usual: only when it is the usual, at its time; dismiss, log, switch o
   await expect(usualCard(page, 0)).toHaveCount(0);
   await page.reload();
   await expect(meal(page, 0).getByRole('button', { name: /Lägg till/ })).toBeVisible();
+  await settled(page);
   await expect(usualCard(page, 0)).toHaveCount(0);
 
   // Tuesday: offered again; one tap logs it (amounts editable afterwards like any entry).
@@ -74,6 +82,7 @@ test('your usual: only when it is the usual, at its time; dismiss, log, switch o
   await page.clock.setFixedTime(at('2026-10-14', '07:45'));
   await page.reload();
   await expect(meal(page, 0).getByRole('button', { name: /Lägg till/ })).toBeVisible();
+  await settled(page);
   await expect(usualCard(page, 0)).toHaveCount(0);
 });
 

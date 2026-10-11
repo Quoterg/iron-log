@@ -135,6 +135,7 @@ const pack: LangPack = {
     notNow: 'Ei nyt',
     usualSetting: 'Ehdota tavallista ateriaani',
     usualSettingNote: 'Näytetään vain, kun olet syönyt samaa tällä aterialla useimpina vastaavina päivinä (arkipäivät ja viikonloput erikseen), suunnilleen siihen aikaan kun yleensä kirjaat sen. Kolme ”Ei nyt” peräkkäin keskeyttää ehdotuksen kahdeksi viikoksi.',
+    foodsUnavailable: '{n} elintarviketta ei ole enää saatavilla, eikä niitä lisätty.',
     toDate: 'Päivälle',
     toMeal: 'Aterialle',
     sameMeal: 'Samat ateriat',

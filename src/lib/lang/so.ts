@@ -135,6 +135,7 @@ const pack: LangPack = {
     notNow: 'Hadda maya',
     usualSetting: 'Ii soo jeedi cuntadayda caadiga ah',
     usualSettingNote: 'Waxa la muujiyaa oo keliya marka aad cuntadan wax isku mid ah ku cuntay inta badan maalmaha la midka ah (maalmaha shaqada iyo dhammaadka toddobaadka si gooni ah), qiyaastii waqtiga aad caadi ahaan qorto. Saddex “Hadda maya” oo isku xiga waxay hakinayaan soo jeedinta laba toddobaad.',
+    foodsUnavailable: '{n} ka mid ah cuntooyinka lama heli karo mar dambe, lamana darin.',
     toDate: 'Taariikhda loo dirayo',
     toMeal: 'Cuntada loo dirayo',
     sameMeal: 'Isla cuntooyinka',

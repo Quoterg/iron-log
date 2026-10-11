@@ -196,10 +196,7 @@ function template(x: unknown): MealTemplate {
       if (!a) throw new BackupError('template');
       return { foodRef: (i as { foodRef: string }).foodRef, ...a };
     });
-    const m: MealTemplate = { id: x.id, name: x.name, items, createdAt: x.createdAt, updatedAt: x.updatedAt };
-    if (isNum(x.count) && x.count >= 0) m.count = x.count;
-    if (isNum(x.lastUsed) && x.lastUsed >= 0) m.lastUsed = x.lastUsed;
-    return m;
+    return { id: x.id, name: x.name.trim(), items, createdAt: x.createdAt, updatedAt: x.updatedAt };
   }
   throw new BackupError('template');
 }

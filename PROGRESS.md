@@ -9,9 +9,24 @@ Keep entries short — this file is read at the start of every session.
 by the owner — don't start it. Optional when the owner wants it: **M19c** (Play / F-Droid). M18d
 (screen-reader pass) is deferred until someone reports an issue.
 
-Phase 4 (owner's choices, 2026-10-11): M23 done; **M24 "your usual" & shortcuts** is being built
-in the same interactive session. Then M25 → M28 (adaptive expenditure, check-in, gap fixer — all
-opt-in — and the shopping list). The owner asked to stop after M24 until further notice.
+**Paused by the owner after M24 (2026-10-11) — don't start new milestones until told.** Then, in
+order: M21b (low security housekeeping), M25 → M28 (adaptive expenditure, check-in, gap fixer —
+all opt-in — and the shopping list). Initial JS is 37.9 KB of 40: Phase 4 features must be
+lazy-loaded. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-11 — M24 "Your usual" & shortcuts (interactive session)
+
+- "Som vanligt: …" card on an empty meal of today, only when the same meal (≥ 80 % of energy from
+  the same foods, both ways) was logged on ≥ 4 of the last 6 comparable days (weekdays/weekends
+  separately), around the time the user usually logs it. One tap logs it; "Inte nu" hides it for
+  the day; three in a row pause it 14 days (device-local); off switch in Settings → Sparade måltider.
+  Rules in lib/usual-find.ts (lazy, 0.7 KB), computed once a day from 3 weeks of diary.
+- Home-screen shortcuts: `?add` (add sheet for the meal of the time of day), `?water` (+2 dl); the
+  query is removed so a reload doesn't repeat it. Also in android/twa-manifest.json — **owner: the
+  Android app gets them with the next Bubblewrap build** (`bubblewrap update` + build).
+- Coming back to the app on a new day now shows the new day (was: stayed on yesterday).
+- Tests: unit 170 ✓ (usual rules, dismissals), build ✓ (initial JS 37.9 KB), e2e 113 ✓ (new
+  usual.spec.ts with fixed clock/time zone), Lighthouse ✓.
 
 ## 2026-10-11 — M23 Saved meals & portion memory (interactive session)
 
@@ -22,11 +37,16 @@ opt-in — and the shopping list). The owner asked to stop after M24 until furth
 - "↻ Samma som igår · N kcal" on an empty meal that was logged the day before (double-tap safe).
 - Portion memory: each food remembers its last 8 amounts and opens at the most frequent one;
   multiples ½× 1× 1½× 2× of it replace the fixed quick amounts for foods logged before.
-- Note: a device on an older version rejects sync messages with saved meals ("unknown store")
-  until it updates (the service worker updates it on the next start). Consider letting sync skip
-  unknown stores instead of failing (sync.test.ts currently asserts the rejection on purpose).
-- Tests: unit 162 ✓ (new: templates-state, portion memory, backup validation), build ✓ (initial JS
-  36.6 KB), e2e 111 ✓ (new templates.spec.ts, a11y "save a meal"), Lighthouse ✓.
+- Sync now skips stores it doesn't know (from a newer version) and applies the rest, so future
+  stores don't break sync with a not-yet-updated device. A device still on the version *before*
+  this one can't sync with a newer one until it updates (it rejects the unknown store); the
+  service worker updates it on the next start.
+- Review fixes: missing foods of a saved meal are skipped with a notice; a whole meal's usage is
+  one write; how often a saved meal is used is kept per device (localStorage), so logging one
+  doesn't create sync changes; save/remove guarded; names trimmed on import; the day before is
+  only read when a meal is empty; saved meals load after first paint.
+- Tests: unit 164 ✓ (new: templates-state, portion memory, backup validation, sync skip), build ✓
+  (initial JS 36.9 KB), e2e 111 ✓ (new templates.spec.ts, a11y "save a meal"), Lighthouse ✓.
 
 ## 2026-10-09 — Android release and install instructions (interactive session)
 

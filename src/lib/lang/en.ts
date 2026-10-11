@@ -134,6 +134,7 @@ const strings: Dict = {
   notNow: 'Not now',
   usualSetting: 'Suggest my usual meal',
   usualSettingNote: 'Only shown when you ate the same in that meal on most similar days (weekdays and weekends separately), around the time you usually log it. Three “Not now” in a row pause it for two weeks.',
+  foodsUnavailable: '{n} of the foods are no longer available and were not added.',
   toDate: 'To date',
   toMeal: 'To meal',
   sameMeal: 'Same meals',

@@ -147,6 +147,7 @@ const sv = {
   notNow: 'Inte nu',
   usualSetting: 'Föreslå min vanliga måltid',
   usualSettingNote: 'Visas bara när du har ätit samma sak i den måltiden de flesta liknande dagar (vardagar och helger var för sig), vid den tid du brukar logga den. Tre ”Inte nu” i rad pausar förslaget i två veckor.',
+  foodsUnavailable: '{n} av livsmedlen finns inte längre och lades inte till.',
   toDate: 'Till datum',
   toMeal: 'Till måltid',
   sameMeal: 'Samma måltider',
