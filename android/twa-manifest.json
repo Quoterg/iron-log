@@ -31,6 +31,19 @@
   "appVersionName": "1.0.0",
   "signingKey": { "path": "./android.keystore", "alias": "ironlog" },
   "generatorApp": "bubblewrap-cli",
-  "shortcuts": [],
+  "shortcuts": [
+    {
+      "name": "Lägg till mat",
+      "shortName": "Lägg till",
+      "url": "/iron-log/?add",
+      "chosenIconUrl": "https://quoterg.github.io/iron-log/icon-192.png"
+    },
+    {
+      "name": "Vatten +2 dl",
+      "shortName": "Vatten",
+      "url": "/iron-log/?water",
+      "chosenIconUrl": "https://quoterg.github.io/iron-log/icon-192.png"
+    }
+  ],
   "minSdkVersion": 24
 }

@@ -1,12 +1,13 @@
-import { entryVector, MEALS, type Entry } from '../lib/db';
+import { entryVector, isoDate, MEALS, type Entry } from '../lib/db';
 import { activityName, fmt, fmtAmount, lang, nutrientName, t, unitLabel } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, burnedToday, date, dayActivities, dayTotals, dayWater, entries, foods, prevEntries, removeActivity, repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken,
+  activityTypes, addWater, burnedToday, clock, date, dayActivities, dayTotals, dayWater, dismissUsual, entries, foods, logUsual, prevEntries, removeActivity, repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken, usual, usualState,
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
+import { hidden, inWindow } from '../lib/usual';
 import { Bar } from './Bar';
 
 export function Diary() {
@@ -36,8 +37,12 @@ export function Diary() {
       {MEALS.map((meal) => {
         const list = entries.value.filter((e) => e.meal === meal && !supplementRefs.value.has(e.foodRef));
         const kcal = list.reduce((s, e) => s + entryKcal(e), 0);
-        // An empty meal that was logged the day before: offer it again in one tap.
-        const prev = list.length ? [] : prevEntries.value.filter((e) => e.meal === meal && !supplementRefs.value.has(e.foodRef));
+        // An empty meal today that truly is the usual (lib/usual.ts), at its time of day.
+        const now = new Date(clock.value);
+        const u = usual.value[meal];
+        const showUsual = !list.length && !!u && date.value === isoDate(now) && inWindow(u, now) && !hidden(usualState.value, meal, date.value);
+        // Else, an empty meal that was logged the day before: offer it again in one tap.
+        const prev = list.length || showUsual ? [] : prevEntries.value.filter((e) => e.meal === meal && !supplementRefs.value.has(e.foodRef));
         return (
           <section class="card meal" key={meal}>
             <header class="meal-head">
@@ -47,13 +52,26 @@ export function Diary() {
                 + {t('addFood')}
               </button>
             </header>
+            {showUsual && (
+              <div class="usual">
+                <button class="usual-log" onClick={() => void logUsual(meal)}>
+                  <span class="entry-name">
+                    {t('usualMeal')}: {u!.items.map((i) => name(i.foodRef)).join(', ')}
+                  </span>
+                  <span class="num">{fmt(u!.kcal)} kcal</span>
+                </button>
+                <button class="btn small" aria-label={t('notNow')} title={t('notNow')} onClick={() => dismissUsual(meal)}>
+                  ×
+                </button>
+              </div>
+            )}
             {list.length > 0 && (
               <>
               <ul class="entries">
                 {list.map((e) => (
                   <li key={e.id}>
                     <button class="entry" onClick={() => open({ kind: 'food', ref: e.foodRef, entryId: e.id })}>
-                      <span class="entry-name">{name(e)}</span>
+                      <span class="entry-name">{name(e.foodRef)}</span>
                       <span class="num muted">
                         {e.unit && e.qty ? `${fmtAmount(e.qty)} ${unitLabel(e.unit)}` : `${fmtAmount(e.grams)} g`}
                       </span>
@@ -94,8 +112,8 @@ export function Diary() {
   );
 }
 
-function name(e: Entry): string {
-  const f = foods.value.get(e.foodRef);
+function name(ref: string): string {
+  const f = foods.value.get(ref);
   return f ? foodName(f, lang.value) : '…';
 }
 

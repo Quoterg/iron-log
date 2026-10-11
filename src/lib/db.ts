@@ -53,6 +53,8 @@ export interface Settings {
   sources?: ('slv' | 'usda')[];
   /** Add the day's exercise energy to the day's energy target. */
   addBurnedToTarget?: boolean;
+  /** Don't suggest "your usual" meals (lib/usual.ts). */
+  usualOff?: boolean;
 }
 
 /** Current settings format version. */
