@@ -32,21 +32,36 @@ export function density(food: Food, i: number): number {
  * first, then others; each ranked by nutrient per kcal; only foods whose usual portion covers at
  * least 10 % of the gap.
  */
-export function gapFoods(key: string, gap: number, candidates: Candidate[], limit = 3): GapFood[] {
+export function gapFoods(key: string, gap: number, candidates: Candidate[], limit = 3, opts: { pregnant?: boolean } = {}): GapFood[] {
   const i = NUTRIENT_INDEX[key];
   if (!(gap > 0) || i == null) return [];
   const seen = new Set<string>();
   const scored = candidates
-    .filter((c) => !seen.has(c.food.ref) && seen.add(c.food.ref))
+    .filter((c) => !seen.has(c.food.ref) && seen.add(c.food.ref) && suitable(c.food, opts))
     .map((c) => ({ c, d: density(c.food, i), amount: ((c.food.per100g[i] ?? 0) * c.portionG) / 100 }))
     .filter((x) => x.amount >= gap * 0.1);
-  scored.sort((a, b) => Number(b.c.own) - Number(a.c.own) || b.d - a.d);
+  // The user's own foods first — but only those at least half as nutrient-dense as the best one, so a
+  // food they eat that barely helps doesn't push a much better one out.
+  const best = Math.max(0, ...scored.map((x) => x.d));
+  const first = (x: (typeof scored)[number]) => x.c.own && x.d >= best * 0.5;
+  scored.sort((a, b) => Number(first(b)) - Number(first(a)) || b.d - a.d);
   return scored.slice(0, limit).map(({ c, amount }) => ({ ref: c.food.ref, portionG: c.portionG, covers: Math.min(1, amount / gap), own: c.own }));
 }
 
 /**
+ * Never suggested: drinks with alcohol, and during pregnancy liver products (Livsmedelsverket's
+ * advice: too much vitamin A) — matched on both names, so USDA foods ("… liver …") are caught too.
+ */
+export function suitable(food: Food, { pregnant = false }: { pregnant?: boolean } = {}): boolean {
+  if ((food.per100g[NUTRIENT_INDEX.alcohol] ?? 0) > 0.5) return false;
+  return !(pregnant && /lever|liver/i.test(`${food.sv} ${food.en ?? ''}`));
+}
+
+/**
  * Swaps for common Swedish staples (Livsmedelsverket): a food name pattern → a better alternative.
- * Shown only when the alternative is measurably better at the same weight (see swapFor).
+ * Shown only when the alternative is measurably better at the same weight (see swapFor). Patterns and
+ * refs checked against public/data/foods.bf05898b.json (Livsmedelsverket's database as fetched for
+ * M1); re-check them after a data update (suggest.test.ts covers the rules, not the data).
  */
 export const SWAPS: [pattern: RegExp, to: string][] = [
   [/^Bröd vitt(?!.*fullkorn)/, 'slv:213'], // → Bröd fullkorn råg
