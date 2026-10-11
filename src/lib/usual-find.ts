@@ -37,7 +37,13 @@ function share(a: Map<string, number>, b: Map<string, number>): number {
  */
 export function findUsual(today: string, meal: Meal, entries: Entry[], kcalOf: (e: Entry) => number): UsualMeal | null {
   const days = comparableDays(today);
-  const byDay = days.map((d) => entries.filter((e) => e.date === d && e.meal === meal));
+  // One pass over the entries, bucketed by day.
+  const index = new Map(days.map((d, i) => [d, i]));
+  const byDay: Entry[][] = days.map(() => []);
+  for (const e of entries) {
+    const i = e.meal === meal ? index.get(e.date) : undefined;
+    if (i !== undefined) byDay[i].push(e);
+  }
   // Each day's meal as food → energy (at least a little weight, so coffee or water still count).
   const vec = byDay.map((list) => {
     const m = new Map<string, number>();
@@ -67,9 +73,10 @@ export function findUsual(today: string, meal: Meal, entries: Entry[], kcalOf: (
 function windowFor(meal: Meal, days: Entry[][]): [number, number] {
   const times: number[] = [];
   for (const list of days) {
-    const first = list.find((e) => isoDate(new Date(e.createdAt)) === e.date);
-    if (first) {
-      const t = new Date(first.createdAt);
+    // The earliest entry logged on the day itself (storage order says nothing).
+    const onDay = list.filter((e) => isoDate(new Date(e.createdAt)) === e.date).map((e) => e.createdAt);
+    if (onDay.length) {
+      const t = new Date(Math.min(...onDay));
       times.push(t.getHours() * 60 + t.getMinutes());
     }
   }

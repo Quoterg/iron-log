@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Entry, Meal } from './db';
-import { accept, dismiss, hidden, inWindow, mealAt, type UsualState } from './usual';
+import { accept, dismiss, hidden, inWindow, mealAt, pickUsual, resetIfLogged, type UsualMeal, type UsualState } from './usual';
 import { comparableDays, findUsual } from './usual-find';
 
 const MONDAY = '2026-10-12';
@@ -78,6 +78,36 @@ describe('your usual', () => {
     s = dismiss(s, 'breakfast', '2026-10-16'); // third in a row
     expect(hidden(s, 'breakfast', '2026-10-29')).toBe(true);
     expect(hidden(s, 'breakfast', '2026-10-30')).toBe(false);
+  });
+
+  it('shows one card at most: overlapping windows → the one that started last', () => {
+    const u = (meal: Meal, window: [number, number]): UsualMeal => ({ meal, items: [], kcal: 0, window });
+    const usual = { breakfast: u('breakfast', [7 * 60, 10 * 60 + 30]), lunch: u('lunch', [10 * 60, 13 * 60]) };
+    const all = () => true;
+    expect(pickUsual(usual, all, {}, MONDAY, at(MONDAY, '10:15'))).toBe('lunch');
+    expect(pickUsual(usual, all, {}, MONDAY, at(MONDAY, '09:00'))).toBe('breakfast');
+    // Lunch already logged, or dismissed today: breakfast is the one.
+    expect(pickUsual(usual, (m) => m !== 'lunch', {}, MONDAY, at(MONDAY, '10:15'))).toBe('breakfast');
+    expect(pickUsual(usual, all, dismiss({}, 'lunch', MONDAY), MONDAY, at(MONDAY, '10:15'))).toBe('breakfast');
+    expect(pickUsual(usual, all, {}, MONDAY, at(MONDAY, '14:00'))).toBeNull();
+  });
+
+  it('dismissals only count "in a row" when the meal was not logged in between', () => {
+    let s: UsualState = dismiss(dismiss({}, 'breakfast', '2026-10-12'), 'breakfast', '2026-10-13');
+    // Logged by hand on Wednesday: starts over (a log on the dismissal day itself doesn't).
+    expect(resetIfLogged(s, 'breakfast', ['2026-10-13'])).toBe(s);
+    s = resetIfLogged(s, 'breakfast', ['2026-10-12', '2026-10-14']);
+    expect(s.breakfast?.streak).toBe(0);
+    s = dismiss(s, 'breakfast', '2026-10-15');
+    expect(hidden(s, 'breakfast', '2026-10-16')).toBe(false); // 1 in a row, not 3
+    expect(s.breakfast?.streak).toBe(1);
+  });
+
+  it('the time window uses the earliest logging time of each day, whatever the storage order', () => {
+    const days = comparableDays(MONDAY).slice(0, 4);
+    // Each day: banana logged at 09:00 stored before oats logged at 07:00.
+    const list = days.flatMap((d) => [...meal(d, ['banana'], '09:00'), ...meal(d, ['oats'], '07:00')]);
+    expect(findUsual(MONDAY, 'breakfast', list, kcalOf)!.window).toEqual([6 * 60, 8 * 60 + 30]);
   });
 
   it('shortcuts add to the meal of the time of day', () => {

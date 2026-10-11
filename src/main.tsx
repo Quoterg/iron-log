@@ -4,7 +4,7 @@ import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang, lastLang, loadLang } from './lib/i18n';
 import { initNav, open } from './nav';
-import { addWater, clock, date, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage } from './state';
+import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage } from './state';
 import { isoDate } from './lib/db';
 import { mealAt } from './lib/usual';
 import './styles.css';
@@ -48,6 +48,7 @@ async function start() {
       void bodyView.prefetch();
       void contributorsView.prefetch();
       void templateView.prefetch();
+      enableUsual(); // after the food data started loading: it competes with nothing on screen
     }, 1500);
   });
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -62,8 +63,9 @@ function runShortcut() {
   const q = new URLSearchParams(location.search);
   if (!q.has('add') && !q.has('water')) return;
   // Drop the query first, so a reload doesn't run it again.
-  history.replaceState(history.state, '', location.pathname);
-  if (q.has('water')) void addWater(200);
+  history.replaceState(history.state, '', location.pathname + location.hash);
+  // Water goes to today (the diary opens on today; be explicit anyway).
+  if (q.has('water')) void loadDay(isoDate(new Date())).then(() => addWater(200));
   else open({ kind: 'search', meal: mealAt(new Date()) });
 }
 

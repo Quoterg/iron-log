@@ -7,7 +7,7 @@ import {
   activityTypes, addWater, burnedToday, clock, date, dayActivities, dayTotals, dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, removeActivity, repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken, usual, usualState,
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
-import { hidden, inWindow } from '../lib/usual';
+import { pickUsual } from '../lib/usual';
 import { Bar } from './Bar';
 
 export function Diary() {
@@ -15,6 +15,12 @@ export function Diary() {
   const g = (k: string) => tot[NUTRIENT_INDEX[k]];
   const tg = targets.value;
   const split = energySplit(g('protein'), g('carbs'), g('fat'), g('alcohol'));
+  // "Your usual": one card at most, on an empty meal of today (lib/usual.ts).
+  const now = new Date(clock.value);
+  const usualMeal =
+    date.value === isoDate(now)
+      ? pickUsual(usual.value, (m) => !entries.value.some((e) => e.meal === m && !supplementRefs.value.has(e.foodRef)), usualState.value, date.value, now)
+      : null;
 
   return (
     <>
@@ -42,10 +48,8 @@ export function Diary() {
       {MEALS.map((meal) => {
         const list = entries.value.filter((e) => e.meal === meal && !supplementRefs.value.has(e.foodRef));
         const kcal = list.reduce((s, e) => s + entryKcal(e), 0);
-        // An empty meal today that truly is the usual (lib/usual.ts), at its time of day.
-        const now = new Date(clock.value);
         const u = usual.value[meal];
-        const showUsual = !list.length && !!u && date.value === isoDate(now) && inWindow(u, now) && !hidden(usualState.value, meal, date.value);
+        const showUsual = usualMeal === meal;
         // Else, an empty meal that was logged the day before: offer it again in one tap.
         const prev = list.length || showUsual ? [] : prevEntries.value.filter((e) => e.meal === meal && !supplementRefs.value.has(e.foodRef));
         return (

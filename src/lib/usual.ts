@@ -25,6 +25,19 @@ export const DEFAULT_WINDOW: Record<Meal, [number, number]> = {
   snack: [14 * 60 + 30, 16 * 60],
 };
 
+/**
+ * The one meal to offer now (one card at most): among usual meals that are empty, in their time
+ * window and not dismissed, the one whose window started most recently.
+ */
+export function pickUsual(usual: Partial<Record<Meal, UsualMeal>>, empty: (m: Meal) => boolean, s: UsualState, today: string, now: Date): Meal | null {
+  let best: UsualMeal | null = null;
+  for (const u of Object.values(usual)) {
+    if (!u || !empty(u.meal) || !inWindow(u, now) || hidden(s, u.meal, today)) continue;
+    if (!best || u.window[0] > best.window[0]) best = u;
+  }
+  return best?.meal ?? null;
+}
+
 export const inWindow = (u: UsualMeal, now: Date) => {
   const m = now.getHours() * 60 + now.getMinutes();
   return m >= u.window[0] && m <= u.window[1];
@@ -60,6 +73,17 @@ export function dismiss(s: UsualState, meal: Meal, today: string): UsualState {
 export function accept(s: UsualState, meal: Meal): UsualState {
   const cur = s[meal];
   return cur?.streak ? { ...s, [meal]: { ...cur, streak: 0 } } : s;
+}
+
+/**
+ * The meal was logged (any way) on a day after the last dismissal: the dismissals weren't "in a
+ * row", so the streak starts over. `loggedDays`: days on which the meal has entries.
+ */
+export function resetIfLogged(s: UsualState, meal: Meal, loggedDays: Iterable<string>): UsualState {
+  const cur = s[meal];
+  if (!cur?.streak || !cur.last) return s;
+  for (const d of loggedDays) if (d > cur.last) return accept(s, meal);
+  return s;
 }
 
 export function hidden(s: UsualState, meal: Meal, today: string): boolean {

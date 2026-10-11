@@ -15,7 +15,7 @@ const usualCard = (page: Page, i: number) => meal(page, i).getByRole('button', {
  * "Not shown" is only meaningful once today's usual meals are worked out (in the background after
  * the diary appears): give that time before asserting an absence.
  */
-const settled = (page: Page) => page.waitForTimeout(2000);
+const settled = (page: Page) => page.waitForTimeout(4000);
 
 /** Oats and banana for breakfast at 07:30 on the given days, imported as a backup. */
 async function importBreakfasts(page: Page, days: string[]) {

@@ -11,7 +11,7 @@ by the owner — don't start it. Optional when the owner wants it: **M19c** (Pla
 
 **Paused by the owner after M24 (2026-10-11) — don't start new milestones until told.** Then, in
 order: M21b (low security housekeeping), M25 → M28 (adaptive expenditure, check-in, gap fixer —
-all opt-in — and the shopping list). Initial JS is 37.9 KB of 40: Phase 4 features must be
+all opt-in — and the shopping list). Initial JS is 38.2 KB of 40: Phase 4 features must be
 lazy-loaded. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 
 ## 2026-10-11 — M24 "Your usual" & shortcuts (interactive session)
@@ -25,8 +25,11 @@ lazy-loaded. PRs: the reviewer agent merges once its review is addressed (owner,
   query is removed so a reload doesn't repeat it. Also in android/twa-manifest.json — **owner: the
   Android app gets them with the next Bubblewrap build** (`bubblewrap update` + build).
 - Coming back to the app on a new day now shows the new day (was: stayed on yesterday).
-- Tests: unit 170 ✓ (usual rules, dismissals), build ✓ (initial JS 37.9 KB), e2e 113 ✓ (new
-  usual.spec.ts with fixed clock/time zone), Lighthouse ✓.
+- Review fixes: one card at most (overlapping windows → the one that started last); the dismissal
+  streak starts over when the meal was logged by hand since; earliest logging time per day; only
+  meals still empty today are worked out, after the app's idle start-up work.
+- Tests: unit 173 ✓ (usual rules, dismissals, overlap), build ✓ (initial JS 38.2 KB), e2e 113 ✓
+  (new usual.spec.ts with fixed clock/time zone), Lighthouse ✓.
 
 ## 2026-10-11 — M23 Saved meals & portion memory (interactive session)
 
