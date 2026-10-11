@@ -464,5 +464,19 @@ const pack: LangPack = {
     adaptiveIsTarget: 'Kani waa hadafkaaga tamarta hadda. Iskiis isuma beddelo.',
     adaptiveNoGoal: 'Inta lagu jiro uurka iyo naas-nuujinta waxaa la muujiyaa qiyaasta oo keliya, hadafyo miisaan beddel ah ma jiraan.',
   },
+  suggest: {
+    suggestTitle: 'Soo jeedin',
+    suggestToggle: 'Ii soo jeedi cuntooyin iyo beddel nafaqooyinka aan wax yar ka helo',
+    suggestNote: 'Si caadi ah waa dansan yahay. Waxay ku salaysan tahay cuntooyinkaaga iyo xogta Livsmedelsverket, waxayna raacdaa NNR 2023 – talo qiyaas ama kaabis ah ma bixiso.',
+    whatIfToggle: 'Muuji “Maxaa dhacaya haddii” marka aan cunto ku daro',
+    suggestLoading: 'Waxaa la raadinayaa soo jeedin…',
+    suggestNone: 'Hadda soo jeedin cad ma jirto.',
+    gapLine: '{name}: celcelis ahaan {amount} ka mid ah {target} {unit} maalintii',
+    gapPortion: '{grams} g waxay bixisaa {pct} % waxa maqan',
+    gapYouEat: 'horey ayaad u cuntaa',
+    swapsTitle: 'Beddel la isku dayo',
+    swapLine: '{to} halkii {from}',
+    whatIfTitle: 'Haddii aad tan ku darto',
+  },
 };
 export default pack;

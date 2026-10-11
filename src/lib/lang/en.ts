@@ -367,5 +367,20 @@ const energy: Record<string, string> = {
   adaptiveNoGoal: 'During pregnancy and breastfeeding only the estimate is shown, no weight-change goals.',
 };
 
-const pack: LangPack = { strings, sync, off, energy };
+const suggest: Record<string, string> = {
+  suggestTitle: 'Suggestions',
+  suggestToggle: 'Suggest foods and swaps for nutrients I get too little of',
+  suggestNote: 'Off by default. Based on your own foods and Livsmedelsverket data, following NNR 2023 – no advice on doses or supplements.',
+  whatIfToggle: 'Show “What if” when I add a food',
+  suggestLoading: 'Looking for suggestions…',
+  suggestNone: 'No clear suggestions right now.',
+  gapLine: '{name}: on average {amount} of {target} {unit} a day',
+  gapPortion: '{grams} g gives {pct} % of what is missing',
+  gapYouEat: 'you already eat this',
+  swapsTitle: 'Swaps to try',
+  swapLine: '{to} instead of {from}',
+  whatIfTitle: 'If you add this',
+};
+
+const pack: LangPack = { strings, sync, off, energy, suggest };
 export default pack;

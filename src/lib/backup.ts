@@ -272,6 +272,8 @@ function settings(x: unknown): Settings | undefined {
   if (x.adaptive === true) out.adaptive = true;
   if (GOALS.includes(x.goal as Goal)) out.goal = x.goal as Goal;
   if (PACES.includes(x.pace as number)) out.pace = x.pace as number;
+  if (x.suggestions === true) out.suggestions = true;
+  if (x.whatIfOff === true) out.whatIfOff = true;
   if (Array.isArray(x.sources)) {
     const src = (['slv', 'usda'] as const).filter((s) => (x.sources as unknown[]).includes(s));
     if (src.length) out.sources = src;

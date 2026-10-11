@@ -4,8 +4,12 @@ import { fmt, nutrientName, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
 import { averagePerDay, coverage, dailyTotals, gaps, knownNutrients, MIN_COVERAGE, streak } from '../lib/report';
 import { open } from '../nav';
-import { date, dayTotals, ensureFoods, entries as dayEntries, foods, periodCache, targets } from '../state';
+import { date, dayTotals, ensureFoods, entries as dayEntries, foods, periodCache, settings, targets } from '../state';
+import { lazyView } from '../lazy';
 import { NutrientGroups } from './NutrientGroups';
+
+/** Foods and swaps for the period's shortfalls (opt-in, M27): loaded only when switched on. */
+const suggestions = lazyView(() => import('./Suggestions'));
 
 const PERIODS = [1, 7, 30] as const;
 type Period = (typeof PERIODS)[number];
@@ -106,6 +110,7 @@ export function Nutrients() {
           )}
         </section>
       )}
+      {settings.value.suggestions && g && g.low.length > 0 && report && <suggestions.Lazy low={g.low} amounts={report.amounts} />}
       {amounts ? (
         <NutrientGroups amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
       ) : (

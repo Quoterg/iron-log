@@ -11,16 +11,37 @@ const N = 10;
 const NUTRIENTS = JSON.parse(await readFile('src/lib/nutrients.json', 'utf8'));
 const sources = JSON.parse(await readFile('src/lib/sources.json', 'utf8'));
 
-const out = { v: 1, keys: NUTRIENTS.map((n) => n.key), n: N, sources: {} };
+// Everyday foods (with household measures) richest per kcal, for suggestions (M27): concentrated
+// items like dried herbs top the per-100 g lists but are never eaten by the 100 g.
+const EVERYDAY = 12;
+const out = { v: 2, keys: NUTRIENTS.map((n) => n.key), n: N, sources: {}, everyday: {} };
 for (const [source, files] of Object.entries(sources)) {
   const rows = [];
-  for (const f of files) rows.push(...JSON.parse(await readFile(`public/data/${f}`, 'utf8')).foods);
+  const units = {};
+  for (const f of files) {
+    const data = JSON.parse(await readFile(`public/data/${f}`, 'utf8'));
+    rows.push(...data.foods);
+    Object.assign(units, data.units ?? {});
+  }
   const perKey = {};
   NUTRIENTS.forEach((n, i) => {
     const top = topK(rows, (r) => r[3 + i], N);
     if (top.length) perKey[n.key] = top.map((r) => [r[0], r[1], r[2], r[3 + i]]);
   });
   out.sources[source] = perKey;
+
+  // [ref, sv, en, value per 100 g, kcal per 100 g, portion g (the largest household measure, ≤ 300 g)]
+  // Never suggest drinks with alcohol.
+  const alcohol = 3 + NUTRIENTS.findIndex((n) => n.key === 'alcohol');
+  const withUnits = rows.filter((r) => units[r[0]]?.length && !((r[alcohol] ?? 0) > 0.5));
+  const portion = (r) => Math.min(300, Math.max(...units[r[0]].map((u) => u[1])));
+  const everyday = {};
+  NUTRIENTS.forEach((n, i) => {
+    if (n.key === 'kcal') return;
+    const top = topK(withUnits, (r) => (r[3 + i] ?? 0) / Math.max(r[3] ?? 0, 20), EVERYDAY);
+    if (top.length) everyday[n.key] = top.map((r) => [r[0], r[1], r[2], r[3 + i], r[3] ?? 0, portion(r)]);
+  });
+  if (Object.keys(everyday).length) out.everyday[source] = everyday;
 }
 
 const json = JSON.stringify(out);

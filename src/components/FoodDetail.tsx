@@ -1,6 +1,9 @@
 import { useRef, useState } from 'preact/hooks';
 import { databaseOf, offProductUrl, reportUrl } from '../lib/contribute';
 import { MEALS, type Meal } from '../lib/db';
+import { lazyView } from '../lazy';
+
+const whatIf = lazyView(() => import('./WhatIf'));
 import { decimalComma, fmt, fmtAmount, lang, parseNum, t, unitLabel } from '../lib/i18n';
 import { GRAMS, initialAmount, servingsFor, toGrams } from '../lib/servings';
 import { foodName, NUTRIENT_INDEX, value } from '../lib/nutrients';
@@ -17,6 +20,7 @@ import {
   removeEntry,
   toggleFavourite,
   updateEntry,
+  settings,
   usage,
   userServings,
 } from '../state';
@@ -220,6 +224,8 @@ export function FoodDetail(props: {
           {unit !== GRAMS && valid && `≈ ${fmtAmount(g)} g · `}
           {fmt(amounts[NUTRIENT_INDEX.kcal])} kcal · {fmt(value(per100g, 'kcal'))} kcal / 100 g
         </p>
+        {/* "What if" for a new diary entry (lazy; can be switched off in Settings). */}
+        {!entry && !props.ingredient && !settings.value.whatIfOff && valid && <whatIf.Lazy per100g={per100g} grams={g} />}
         <div class="actions">
           <button type="submit" class="btn primary" disabled={!valid}>
             {props.ingredient ? t('addToRecipe') : entry ? t('save') : t('add')}

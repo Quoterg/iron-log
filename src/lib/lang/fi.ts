@@ -464,5 +464,19 @@ const pack: LangPack = {
     adaptiveIsTarget: 'Tämä on nyt energiatavoitteesi. Se ei muutu itsestään.',
     adaptiveNoGoal: 'Raskauden ja imetyksen aikana näytetään vain arvio, ei painonmuutostavoitteita.',
   },
+  suggest: {
+    suggestTitle: 'Ehdotukset',
+    suggestToggle: 'Ehdota elintarvikkeita ja vaihtoja ravintoaineisiin, joita saan liian vähän',
+    suggestNote: 'Oletuksena pois päältä. Perustuu omiin elintarvikkeisiisi ja Livsmedelsverketin tietoihin ja noudattaa NNR 2023 -suosituksia – ei annos- tai lisäravinneneuvoja.',
+    whatIfToggle: 'Näytä ”Entä jos”, kun lisään elintarvikkeen',
+    suggestLoading: 'Etsitään ehdotuksia…',
+    suggestNone: 'Ei selviä ehdotuksia juuri nyt.',
+    gapLine: '{name}: keskimäärin {amount}/{target} {unit} päivässä',
+    gapPortion: '{grams} g kattaa {pct} % puuttuvasta',
+    gapYouEat: 'syöt jo tätä',
+    swapsTitle: 'Kokeiltavia vaihtoja',
+    swapLine: '{to} eikä {from}',
+    whatIfTitle: 'Jos lisäät tämän',
+  },
 };
 export default pack;

@@ -464,5 +464,19 @@ const pack: LangPack = {
     adaptiveIsTarget: 'Das ist jetzt dein Energieziel. Es ändert sich nicht von selbst.',
     adaptiveNoGoal: 'In Schwangerschaft und Stillzeit wird nur die Schätzung gezeigt, keine Ziele zur Gewichtsveränderung.',
   },
+  suggest: {
+    suggestTitle: 'Vorschläge',
+    suggestToggle: 'Lebensmittel und Tauschideen für Nährstoffe vorschlagen, von denen ich zu wenig bekomme',
+    suggestNote: 'Standardmäßig aus. Beruht auf deinen eigenen Lebensmitteln und Daten von Livsmedelsverket und folgt NNR 2023 – keine Ratschläge zu Dosen oder Nahrungsergänzung.',
+    whatIfToggle: '„Was wäre, wenn“ zeigen, wenn ich ein Lebensmittel hinzufüge',
+    suggestLoading: 'Suche Vorschläge…',
+    suggestNone: 'Gerade keine klaren Vorschläge.',
+    gapLine: '{name}: im Schnitt {amount} von {target} {unit} pro Tag',
+    gapPortion: '{grams} g decken {pct} % des Fehlenden',
+    gapYouEat: 'isst du schon',
+    swapsTitle: 'Tauschideen',
+    swapLine: '{to} statt {from}',
+    whatIfTitle: 'Wenn du das hinzufügst',
+  },
 };
 export default pack;

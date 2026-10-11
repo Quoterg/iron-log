@@ -61,6 +61,10 @@ export interface Settings {
   /** Goal and pace (kg/week) for the suggested energy target. */
   goal?: Goal;
   pace?: number;
+  /** Suggest foods and swaps for nutrients that run short (lib/suggest.ts; opt-in). */
+  suggestions?: boolean;
+  /** Hide the "what if" preview on the food screen (shown by default). */
+  whatIfOff?: boolean;
 }
 
 /** A day the user marked complete (everything eaten is logged): the adaptive estimate trusts it. */
