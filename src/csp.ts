@@ -4,10 +4,20 @@
  * set that way (accepted residual risk, see the review). Widen only for a proven need; csp.test.ts
  * and e2e/csp.spec.ts guard it.
  */
+/**
+ * Theme boot (M29), inline in index.html's head so the theme is set before first paint: the saved
+ * choice (Settings → Utseende), else the phone's setting. Allowed by its hash only — change the text
+ * and THEME_BOOT_HASH together (csp.test.ts checks they match).
+ */
+export const THEME_BOOT =
+  "(function(){var t;try{t=localStorage.getItem('iron-log-theme')}catch(e){}var n=t==='night'||(t!=='day'&&!!window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',n?'night':'day')})()";
+export const THEME_BOOT_HASH = 'sha256-AkwvTa3rnQ8nztg2pkAtVudol6ueS0Dd4FM5FrUmrZI=';
+
 export const CSP_DIRECTIVES: [directive: string, sources: string][] = [
   ['default-src', "'self'"],
   // wasm-unsafe-eval: the zxing barcode-scanner fallback (browsers without BarcodeDetector).
-  ['script-src', "'self' 'wasm-unsafe-eval'"],
+  // The hash: the theme boot script above, nothing else inline.
+  ['script-src', `'self' 'wasm-unsafe-eval' '${THEME_BOOT_HASH}'`],
   ['worker-src', "'self'"], // search worker, service worker
   // This site and Open Food Facts (lookups, uploads). Sync (WebRTC) isn't governed by CSP.
   ['connect-src', "'self' https://world.openfoodfacts.org"],

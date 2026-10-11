@@ -30,7 +30,7 @@ export function Diary() {
         </p>
       )}
       <section class="card summary">
-        <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} />
+        <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} hero />
         {settings.value.addBurnedToTarget && burnedToday.value > 0 && (
           <p class="muted small">{t('targetInclActivity').replace('{kcal}', fmt(burnedToday.value))}</p>
         )}

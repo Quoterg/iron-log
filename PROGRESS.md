@@ -5,12 +5,28 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**Paused by the owner after M25 (2026-10-11) — don't start new milestones until told.** Then, in
-order: M21b (low security housekeeping), M26 → M28 (weekly check-in and gap fixer — both opt-in —
-and the shopping list), M29 (Hologram "Natt"/"Dag" theme; mockups approved — the owner may pull it
-forward). Initial JS is 38.5 KB of 40: Phase 4 features must be lazy-loaded (strings
-too: see strings-energy.ts). PRs: the reviewer agent merges once its review is addressed (owner,
+Owner (2026-10-11): do M26 → M29 in the best order — done as M29 first (new screens get the new
+look), then **M26 weekly check-in**, M27 gap fixer & swaps, M28 shopping list. Afterwards M21b (low
+security housekeeping). Initial JS is 38.9 KB of 40: new features must be lazy-loaded (strings too:
+see strings-energy.ts). PRs: the reviewer agent merges once its review is addressed (owner,
 2026-10-11).
+
+## 2026-10-11 — M29 Hologram theme: Natt and Dag (interactive session)
+
+- Two token sets in styles.css: Dag ("Daylight": pearl, white glass, near-black primary) and Natt
+  ("Hologram": #050912, teal/violet glows, glass cards with teal borders). Glows are gradients on one
+  fixed layer and glass is plain rgba — no blur filters. System fonts.
+- New shapes everywhere: 18 px glass cards, floating pill tab bar (tabs sized by label), segmented
+  period/range controls, big light energy number with gradient bar on the diary, violet "Som vanligt",
+  theme-coloured focus rings, links and checkboxes. Space under content scales with text size.
+- Settings → Utseende: Auto (follows the phone, also while open) / Dag / Natt, per device
+  (localStorage). An inline boot script (src/csp.ts THEME_BOOT, allowed by its sha256 in the CSP —
+  no 'unsafe-inline') sets data-theme before first paint; browser bar colour follows. Web manifest
+  colours now the night theme (the Android splash follows with the next Bubblewrap build).
+- Design reference: the canvas rows "M29 theme" (link in ROADMAP).
+- Tests: unit 185 ✓ (CSP hash matches the script), build ✓ (CSS 3.7 KB; initial JS 38.9 KB, +0.4 —
+  slightly over the planned ±0.3: theme module, big-number variant, strings), e2e 118 ✓ (new
+  theme.spec.ts; axe in light/dark = Dag/Natt; 200 % text), Lighthouse ✓.
 
 ## 2026-10-11 — M25 Adaptive energy expenditure (interactive session)
 

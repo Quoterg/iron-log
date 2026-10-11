@@ -7,10 +7,13 @@ import { initNav, open } from './nav';
 import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage } from './state';
 import { isoDate } from './lib/db';
 import { mealAt } from './lib/usual';
+import { applyTheme, watchSystemTheme } from './lib/theme';
 import './styles.css';
 
 async function start() {
   initNav();
+  applyTheme(); // the boot script already set it; this also sets the bar colour
+  watchSystemTheme();
   captureInstallPrompt();
   // Only Swedish is built in; other languages are a small chunk each (cached after first use).
   // Fetch the likely one (last used here, else the browser's) while settings are read, so the

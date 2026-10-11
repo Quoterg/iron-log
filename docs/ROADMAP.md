@@ -156,7 +156,7 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
 
 ## Phase 5 — Look and feel
 
-- [ ] **M29 Hologram theme: "Natt" and "Dag"** — Owner's choice (2026-10-11). The approved mockups
+- [x] **M29 Hologram theme: "Natt" and "Dag"** — Owner's choice (2026-10-11). The approved mockups
   of every main screen in both themes (Dagbok, Näringsämnen, Kropp, Inställningar, Lägg till mat)
   are on the design canvas (https://claude.ai/artifact/FWjxwKoTNUpi9BN3bLFV25, rows "M29 theme").
   Natt = Hologram: near-black #050912, teal/violet glows, translucent glass cards with thin teal
