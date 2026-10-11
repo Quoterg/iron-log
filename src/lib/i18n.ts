@@ -143,6 +143,7 @@ const sv = {
   deleteSavedMealConfirm: 'Ta bort den sparade måltiden ”{name}”? Det du redan har loggat påverkas inte.',
   sameAsYesterday: 'Samma som igår',
   foodsCount: '{n} livsmedel',
+  dayComplete: 'Dagen är komplett',
   usualMeal: 'Som vanligt',
   notNow: 'Inte nu',
   usualSetting: 'Föreslå min vanliga måltid',
@@ -307,6 +308,8 @@ export interface LangPack {
   sync?: Record<string, string>;
   /** Strings of the Open Food Facts upload screen (Swedish ones: strings-off.ts). */
   off?: Record<string, string>;
+  /** Strings of the adaptive energy card (Swedish ones: strings-energy.ts). */
+  energy?: Record<string, string>;
 }
 
 const LOADERS: Record<Exclude<Lang, 'sv'>, () => Promise<{ default: LangPack }>> = {

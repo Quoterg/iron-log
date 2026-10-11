@@ -111,6 +111,11 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await tab(page, 'Inställningar');
     await expect(page.getByLabel('Språk')).toBeVisible();
   },
+  'adaptive energy (on)': async (page) => {
+    await tab(page, 'Inställningar');
+    await page.getByLabel('Beräkna min förbrukning från vikt och intag').check();
+    await expect(page.getByText(/Behöver mer underlag/)).toBeVisible();
+  },
   'sync sheet': async (page) => {
     await tab(page, 'Inställningar');
     await page.getByRole('button', { name: 'Synka', exact: true }).click();

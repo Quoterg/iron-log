@@ -5,14 +5,35 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M21b Security housekeeping** (low: sync input bounds, supply chain). M22 (own origin) is deferred
-by the owner — don't start it. Optional when the owner wants it: **M19c** (Play / F-Droid). M18d
-(screen-reader pass) is deferred until someone reports an issue.
+**Paused by the owner after M25 (2026-10-11) — don't start new milestones until told.** Then, in
+order: M21b (low security housekeeping), M26 → M28 (weekly check-in and gap fixer — both opt-in —
+and the shopping list). Initial JS is 38.5 KB of 40: Phase 4 features must be lazy-loaded (strings
+too: see strings-energy.ts). PRs: the reviewer agent merges once its review is addressed (owner,
+2026-10-11).
 
-**Paused by the owner after M24 (2026-10-11) — don't start new milestones until told.** Then, in
-order: M21b (low security housekeeping), M25 → M28 (adaptive expenditure, check-in, gap fixer —
-all opt-in — and the shopping list). Initial JS is 38.2 KB of 40: Phase 4 features must be
-lazy-loaded. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+## 2026-10-11 — M25 Adaptive energy expenditure (interactive session)
+
+- Opt-in (Settings → "Anpassad energiförbrukning", off by default; off = nothing shown anywhere).
+  Estimate = average intake − weight trend × 7700 kcal/kg over the last 28 days (ending yesterday):
+  a least-squares line through the weigh-ins; days count when marked complete, or when logged and
+  ≥ 60 % of the median intake. Needs ≥ 10 days and ≥ 3 weigh-ins spanning ≥ 14 days, else says what
+  is missing; refuses results outside 1000–6000 kcal. Shown with ± (≈ 2 standard errors) next to
+  the formula estimate.
+- Goal (lose / keep / gain) and pace (0.25/0.5/0.75 kg a week, only up to 0.75 % of body weight);
+  suggested target never below 1200 (women) / 1500 (men) kcal or the basal rate; no goals during
+  pregnancy or breastfeeding. "Använd som mitt energimål" sets it once; nothing changes by itself.
+- "Dagen är komplett" button in the diary (only when on): new synced store `days` (IndexedDB v11),
+  in backups. Strings of the card load with Settings (strings-energy.ts, `energy` in the packs).
+- Review fixes: the ± uses t-quantiles for few weigh-ins plus 0.3 kg scale noise over the span
+  (3 perfect weigh-ins no longer show "±10"); days with foods of unknown energy never count; only
+  the window's weigh-ins are read; the estimate is cached until something is written.
+- Known: a device still on an older version drops `adaptive/goal/pace` from settings, so its next
+  settings change syncs back and turns the feature off here (until it updates). A day un-marked on
+  one device comes back if an older backup with the mark is restored (like other stores).
+- Also: android/twa-manifest.json now at 1.1.0 (code 3), matching the released APK.
+- Tests: unit 184 ✓ (estimator, uncertainty, unknown foods, counted days, paces/floor, strings,
+  backup), build ✓ (initial JS 38.5 KB), e2e 117 ✓ (new adaptive.spec.ts; a11y "adaptive energy
+  (on)"), Lighthouse ✓.
 
 ## 2026-10-11 — M24 "Your usual" & shortcuts (interactive session)
 

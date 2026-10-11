@@ -4,7 +4,7 @@ import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, burnedToday, clock, date, dayActivities, dayTotals, dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, removeActivity, repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken, usual, usualState,
+  activityTypes, addWater, burnedToday, clock, date, dayComplete, toggleDayComplete, dayActivities, dayTotals, dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, removeActivity, repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken, usual, usualState,
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
 import { pickUsual } from '../lib/usual';
@@ -110,6 +110,12 @@ export function Diary() {
       <SupplementCard />
       <ActivityCard />
       <WaterCard />
+      {settings.value.adaptive && entries.value.length > 0 && (
+        <button class={dayComplete.value ? 'btn wide day-done on' : 'btn wide day-done'} aria-pressed={dayComplete.value} onClick={() => void toggleDayComplete()}>
+          {dayComplete.value ? '✓ ' : ''}
+          {t('dayComplete')}
+        </button>
+      )}
       {entries.value.length === 0 ? (
         <p class="muted center">{t('emptyDay')}</p>
       ) : (

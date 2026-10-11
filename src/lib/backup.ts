@@ -1,5 +1,5 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
-import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type Entry, type OffFood, type Settings, type SyncStore, type Usage, type UserServings } from './db';
+import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type DayMark, type Entry, type OffFood, type Settings, type SyncStore, type Usage, type UserServings } from './db';
 import { decimalCommaOf, isLang, type Lang } from './i18n';
 import { dataLangOf, foodName, NUTRIENTS, type Food } from './nutrients';
 import { MAX_ACTIVITY_KCAL, MAX_WATER_ML, type Activity, type Water } from './activity';
@@ -7,6 +7,7 @@ import type { BodyEntry } from './body';
 import { padVector, type StoredRecipe } from './recipes';
 import { MAX_TEMPLATE_ITEMS, MAX_TEMPLATE_NAME, type MealTemplate, type TemplateItem } from './templates';
 import { AMOUNT_MEMORY, type LoggedAmount } from './servings';
+import { GOALS, PACES, type Goal } from './adaptive';
 import { normalizeDays, SUPPLEMENT_TIMES, type SupplementTime } from './supplements';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
@@ -201,6 +202,11 @@ function template(x: unknown): MealTemplate {
   throw new BackupError('template');
 }
 
+function dayMark(x: unknown): DayMark {
+  if (isObj(x) && isStr(x.date) && DATE.test(x.date) && isNum(x.updatedAt)) return { date: x.date, updatedAt: x.updatedAt };
+  throw new BackupError('day');
+}
+
 function usage(x: unknown): Usage {
   if (isObj(x) && isStr(x.foodRef, 200) && isNum(x.count) && isNum(x.lastUsed) && isNum(x.lastGrams)) {
     const u: Usage = { foodRef: x.foodRef, count: x.count, lastUsed: x.lastUsed, lastGrams: x.lastGrams };
@@ -263,6 +269,9 @@ function settings(x: unknown): Settings | undefined {
   if (out.macroPreset === 'custom' && !pct) out.macroPreset = 'nnr';
   if (x.addBurnedToTarget === true) out.addBurnedToTarget = true;
   if (x.usualOff === true) out.usualOff = true;
+  if (x.adaptive === true) out.adaptive = true;
+  if (GOALS.includes(x.goal as Goal)) out.goal = x.goal as Goal;
+  if (PACES.includes(x.pace as number)) out.pace = x.pace as number;
   if (Array.isArray(x.sources)) {
     const src = (['slv', 'usda'] as const).filter((s) => (x.sources as unknown[]).includes(s));
     if (src.length) out.sources = src;
@@ -282,6 +291,7 @@ export const SYNC_VALIDATORS: Record<SyncStore, (x: unknown) => unknown> = {
   activities: activity,
   water,
   templates: template,
+  days: dayMark,
   kv: (x) => {
     const s = settings(x);
     if (!s) throw new BackupError('settings');
@@ -316,6 +326,7 @@ export function parseBackup(text: string): AllData {
     activities: list('activities').map(activity),
     water: list('water').map(water),
     templates: list('templates').map(template),
+    days: list('days').map(dayMark),
     settings: settings(raw.settings),
   };
 }

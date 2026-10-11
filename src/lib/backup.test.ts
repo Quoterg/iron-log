@@ -24,7 +24,8 @@ const data: AllData = {
     },
   ],
   offFoods: [{ ref: 'off:7310865004703', sv: 'Yoghurt (Arla)', en: null, per100g: [100], fetchedAt: 3, units: [{ name: 'portion', g: 150 }] }],
-  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: 2 },
+  days: [{ date: '2026-10-08', updatedAt: 5 }],
+  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: 2, adaptive: true, goal: 'lose', pace: 0.5 },
 };
 
 describe('backup', () => {

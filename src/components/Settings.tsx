@@ -3,6 +3,7 @@ import { NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { open } from '../nav';
 import { activeSources, customFoods, recipes, settings, templates, updateSettings } from '../state';
 import { ProfileForm } from './ProfileForm';
+import { AdaptiveEnergy } from './AdaptiveEnergy';
 import { YourData } from './YourData';
 import { ts } from '../lib/strings-sync';
 
@@ -11,6 +12,7 @@ export default function Settings() {
   return (
     <>
       <ProfileForm />
+      <AdaptiveEnergy />
       <MyFoods />
       <MyRecipes />
       <SavedMealsCard />
