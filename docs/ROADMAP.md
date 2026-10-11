@@ -153,3 +153,21 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
 - [ ] **M28 Shopping list** — Build a list from templates, recipes and planned days (pick meals for
   the coming days); quantities summed per food and rounded to shop-friendly units, grouped by
   store section; tick off items, share as plain text. Stored locally, part of backup and sync.
+
+## Phase 5 — Look and feel
+
+- [ ] **M29 Hologram theme: "Natt" and "Dag"** — Owner's choice (2026-10-11). The approved mockups
+  of every main screen in both themes (Dagbok, Näringsämnen, Kropp, Inställningar, Lägg till mat)
+  are on the design canvas (https://claude.ai/artifact/FWjxwKoTNUpi9BN3bLFV25, rows "M29 theme").
+  Natt = Hologram: near-black #050912, teal/violet glows, translucent glass cards with thin teal
+  borders, large light-weight numbers, floating pill tab bar, violet "Som vanligt". Dag = Daylight:
+  pearl #eef1f8, white frosted cards, the same glows softer, near-black primary buttons.
+  - Both as colour tokens in styles.css (they replace today's light/dark sets) plus the new
+    shapes: card radius/borders, pill nav, segmented controls, big-number type. Every screen and
+    sheet, not just the diary; charts (LineChart, bars) take the theme colours.
+  - Setting "Utseende": Auto (follows the phone) / Dag / Natt, device-local like the language,
+    applied before first paint (no flash), also in the web manifest's theme colours.
+  - Fast on old phones: no backdrop-filter or filter: blur — the glows are radial gradients drawn
+    once on a fixed background layer, glass is plain rgba. System fonts (no web font download).
+  - Contrast ≥ 4.5:1 on glass in both themes (axe e2e in Dag and Natt, 200 % text); CSS stays
+    within 8 KB gzip, initial JS unchanged within ±0.3 KB; Lighthouse unchanged.

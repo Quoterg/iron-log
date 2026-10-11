@@ -7,7 +7,8 @@ Keep entries short — this file is read at the start of every session.
 
 **Paused by the owner after M25 (2026-10-11) — don't start new milestones until told.** Then, in
 order: M21b (low security housekeeping), M26 → M28 (weekly check-in and gap fixer — both opt-in —
-and the shopping list). Initial JS is 38.5 KB of 40: Phase 4 features must be lazy-loaded (strings
+and the shopping list), M29 (Hologram "Natt"/"Dag" theme; mockups approved — the owner may pull it
+forward). Initial JS is 38.5 KB of 40: Phase 4 features must be lazy-loaded (strings
 too: see strings-energy.ts). PRs: the reviewer agent merges once its review is addressed (owner,
 2026-10-11).
 
