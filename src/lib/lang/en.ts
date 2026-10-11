@@ -134,6 +134,8 @@ const strings: Dict = {
   deleteSavedMealConfirm: 'Remove the saved meal “{name}”? What you have already logged is not affected.',
   sameAsYesterday: 'Same as yesterday',
   foodsCount: '{n} foods',
+  checkinReady: 'Your weekly check-in is ready',
+  checkinShow: 'Show',
   dayComplete: 'Day complete',
   usualMeal: 'The usual',
   notNow: 'Not now',
@@ -382,5 +384,30 @@ const suggest: Record<string, string> = {
   whatIfTitle: 'If you add this',
 };
 
-const pack: LangPack = { strings, sync, off, energy, suggest };
+const checkin: Record<string, string> = {
+  checkinTitle: 'Weekly check-in',
+  checkinToggle: 'Show a short check-in of last week in the diary',
+  checkinNote: 'Off by default. Once a week: averages, weight and, if you like, one suggestion. No reminders.',
+  checkinWeek: 'Week {week} · {from}–{to}',
+  checkinLoading: 'Adding up the week…',
+  checkinNothing: 'Nothing logged last week.',
+  checkinDays: '{n} of 7 days logged',
+  checkinEnergy: 'Energy on average {kcal} kcal per logged day (target {target})',
+  checkinWeight: 'Weight: {change} kg compared with the week before',
+  checkinNoWeight: 'No weigh-ins to compare with the week before.',
+  checkinExpenditure: 'Estimated expenditure (last 4 weeks): {kcal} kcal/day',
+  checkinTarget: 'Suggested energy target ({goal}): {kcal} kcal/day',
+  checkinApply: 'Use',
+  checkinApplied: 'Your energy target is now {kcal} kcal/day.',
+  checkinWell: 'What went well',
+  wellLogged: 'You logged {n} of 7 days.',
+  wellEnergy: 'Energy was close to your target.',
+  wellNutrient: '{name}: above the target on average.',
+  checkinTip: 'One suggestion',
+  tipGap: '{name} averaged {amount} of {target} {unit}. {food}: {grams} g gives {pct} % of what is missing.',
+  tipSwap: 'Try {to} instead of {from}: {changes}.',
+  checkinDone: 'Done',
+};
+
+const pack: LangPack = { strings, sync, off, energy, suggest, checkin };
 export default pack;

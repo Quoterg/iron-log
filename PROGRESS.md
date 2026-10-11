@@ -6,10 +6,24 @@ Keep entries short — this file is read at the start of every session.
 ## Next up
 
 Owner (2026-10-11): do M26 → M29 in the best order — done as M29 (new screens get the new look),
-M27 (its scoring feeds the check-in), then **M26 weekly check-in**, then M28 shopping list.
-Afterwards M21b (low security housekeeping). Initial JS is 39.2 KB of 40: new features must be
-lazy-loaded, strings too (see strings-energy.ts, strings-suggest.ts). PRs: the reviewer agent
-merges once its review is addressed (owner, 2026-10-11).
+M27 (its scoring feeds the check-in), M26, then **M28 shopping list**. Afterwards M21b (low
+security housekeeping). Initial JS is 39.5 KB of 40: new features must be lazy-loaded, strings too
+(strings-energy/-suggest/-checkin.ts); only an entry point may live in the first bundle. PRs: the
+reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-11 — M26 Weekly check-in (interactive session)
+
+- Settings → Veckans avstämning (off by default). On today's diary, once per new ISO week until
+  seen ("Klar"; seen-state syncs): a small teaser → a lazy sheet about the week before: days logged,
+  average energy vs. target and macros, weight change between the two weeks' average weigh-ins, the
+  M25 estimate and suggested target (only if M25 is on; "Använd" applies it, nothing automatic),
+  at most two things that went well (logging ≥ 6 days, energy within 10 %, nutrients reached — only
+  where the coverage rule allows), and at most one tip from M27's scoring (a food for the largest
+  shortfall, else a swap). No notifications, no streak pressure, neutral wording.
+- lib/checkin.ts (ISO weeks, in the first bundle for the teaser) and lib/checkin-report.ts (lazy).
+- Tests: unit 196 ✓ (ISO weeks incl. year boundary and summer time, weight change, positives),
+  build ✓ (initial JS 39.5 KB, +0.3), e2e 123 ✓ (new checkin.spec.ts; a11y "weekly check-in"),
+  Lighthouse ✓.
 
 ## 2026-10-11 — M27 Gap fixer, swaps and "what if" (interactive session)
 

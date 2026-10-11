@@ -13,7 +13,7 @@ const GOAL_LABEL: Record<Goal, 'goalLose' | 'goalMaintain' | 'goalGain'> = { los
 let cached: { key: string; est: Estimate } | undefined;
 
 /** The last 4 weeks of intake (ending yesterday) and weigh-ins, read from the diary and body log. */
-async function load(): Promise<Estimate> {
+export async function loadEstimate(): Promise<Estimate> {
   const today = isoDate(new Date());
   const key = `${today}|${localChanges}`;
   if (cached?.key === key) return cached.est;
@@ -48,7 +48,7 @@ export function AdaptiveEnergy() {
     if (!s.adaptive) return;
     let live = true;
     setEst(null);
-    void load().then((e) => live && setEst(e));
+    void loadEstimate().then((e) => live && setEst(e));
     return () => {
       live = false;
     };

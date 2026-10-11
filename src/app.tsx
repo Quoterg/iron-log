@@ -30,6 +30,7 @@ export const supplementView = lazyView(() => import('./components/SupplementEdit
 export const syncView = lazyView(() => import('./components/SyncSheet'));
 export const offUploadView = lazyView(() => import('./components/OffUploadSheet'));
 export const templateView = lazyView(() => import('./components/TemplateSheet'));
+export const checkinView = lazyView(() => import('./components/CheckIn'));
 
 export function App() {
   const s = top.value;
@@ -104,6 +105,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <offUploadView.Lazy code={s.code} meal={s.meal} />;
     case 'template':
       return <templateView.Lazy meal={s.meal} id={s.id} />;
+    case 'checkin':
+      return <checkinView.Lazy />;
   }
 }
 

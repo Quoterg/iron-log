@@ -274,6 +274,8 @@ function settings(x: unknown): Settings | undefined {
   if (PACES.includes(x.pace as number)) out.pace = x.pace as number;
   if (x.suggestions === true) out.suggestions = true;
   if (x.whatIfOff === true) out.whatIfOff = true;
+  if (x.checkin === true) out.checkin = true;
+  if (typeof x.checkinSeen === 'string' && /^\d{4}-W\d{2}$/.test(x.checkinSeen)) out.checkinSeen = x.checkinSeen;
   if (Array.isArray(x.sources)) {
     const src = (['slv', 'usda'] as const).filter((s) => (x.sources as unknown[]).includes(s));
     if (src.length) out.sources = src;

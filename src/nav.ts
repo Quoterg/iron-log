@@ -29,7 +29,9 @@ export type Screen =
   /** Add or complete a product on Open Food Facts. */
   | { kind: 'offUpload'; code: string; meal: Meal }
   /** Save a logged meal for later (`meal`), or edit a saved one (`id`). */
-  | { kind: 'template'; meal?: Meal; id?: string };
+  | { kind: 'template'; meal?: Meal; id?: string }
+  /** Last week's check-in (opt-in, M26). */
+  | { kind: 'checkin' };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

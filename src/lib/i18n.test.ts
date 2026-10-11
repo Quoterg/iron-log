@@ -37,7 +37,7 @@ describe('language packs', () => {
     });
   }
 
-  for (const section of ['sync', 'off', 'energy', 'suggest'] as const) {
+  for (const section of ['sync', 'off', 'energy', 'suggest', 'checkin'] as const) {
     it(`every pack has every ${section}-screen string, with its placeholders`, async () => {
       const en = (await import('./lang/en')).default[section]!;
       for (const code of ['da', 'de', 'fi', 'so'] as const) {

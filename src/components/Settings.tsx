@@ -8,6 +8,7 @@ import { YourData } from './YourData';
 import { ts } from '../lib/strings-sync';
 import { setTheme, themeChoice } from '../lib/theme';
 import { tg } from '../lib/strings-suggest';
+import { tc } from '../lib/strings-checkin';
 
 /** Loaded lazily (see app.tsx): not needed for the first screen. */
 export default function Settings() {
@@ -19,6 +20,7 @@ export default function Settings() {
       <MyRecipes />
       <SavedMealsCard />
       <SuggestCard />
+      <CheckinCard />
       <General />
       <SyncCard />
       <YourData />
@@ -142,6 +144,20 @@ function SuggestCard() {
         <input type="checkbox" checked={!s.whatIfOff} onChange={(e) => void updateSettings({ whatIfOff: !(e.currentTarget as HTMLInputElement).checked })} />
         {tg('whatIfToggle')}
       </label>
+    </section>
+  );
+}
+
+/** Weekly check-in (opt-in, M26). */
+function CheckinCard() {
+  return (
+    <section class="card form">
+      <h2>{tc('checkinTitle')}</h2>
+      <label class="check">
+        <input type="checkbox" checked={!!settings.value.checkin} onChange={(e) => void updateSettings({ checkin: (e.currentTarget as HTMLInputElement).checked })} />
+        {tc('checkinToggle')}
+      </label>
+      <p class="muted small">{tc('checkinNote')}</p>
     </section>
   );
 }

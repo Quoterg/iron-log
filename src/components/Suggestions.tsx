@@ -10,7 +10,7 @@ import { open } from '../nav';
 import { mealAt } from '../lib/usual';
 import { activeSources, ensureFoods, foods, settings, supplementRefs, targets, usage } from '../state';
 
-interface GapHelp {
+export interface GapHelp {
   key: string;
   amount: number;
   target: number;
@@ -38,7 +38,7 @@ export const staples = (key: string) => everydayFoods(key, activeSources(setting
 
 export const isPregnant = () => (settings.value.profile.status ?? 'none').startsWith('pregnant');
 
-async function build(low: Gap[], amounts: number[]): Promise<{ gaps: GapHelp[]; swaps: Swap[] }> {
+export async function buildSuggestions(low: Gap[], amounts: number[]): Promise<{ gaps: GapHelp[]; swaps: Swap[] }> {
   const tgt = targets.value;
   const keys = low.slice(0, 5).map((g) => g.key).filter((k) => tgt[k]?.min);
   const rows = new Map(await Promise.all(keys.map(async (k) => [k, await staples(k)] as const)));
@@ -89,7 +89,7 @@ export default function Suggestions({ low, amounts }: { low: Gap[]; amounts: num
   useEffect(() => {
     let live = true;
     setData(null);
-    void build(low, amounts).then((d) => live && setData(d));
+    void buildSuggestions(low, amounts).then((d) => live && setData(d));
     return () => void (live = false);
   }, [key]);
 
