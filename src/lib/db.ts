@@ -8,6 +8,7 @@ import type { BodyEntry } from './body';
 import type { StoredRecipe } from './recipes';
 import type { SupplementInfo } from './supplements';
 import type { MealTemplate } from './templates';
+import type { Goal } from './adaptive';
 import type { LoggedAmount } from './servings';
 import type { MacroPct, MacroPreset, Profile, TargetOverride } from './targets';
 
@@ -55,6 +56,17 @@ export interface Settings {
   addBurnedToTarget?: boolean;
   /** Don't suggest "your usual" meals (lib/usual.ts). */
   usualOff?: boolean;
+  /** Estimate energy expenditure from weight and intake (lib/adaptive.ts; opt-in). */
+  adaptive?: boolean;
+  /** Goal and pace (kg/week) for the suggested energy target. */
+  goal?: Goal;
+  pace?: number;
+}
+
+/** A day the user marked complete (everything eaten is logged): the adaptive estimate trusts it. */
+export interface DayMark {
+  date: string;
+  updatedAt: number;
 }
 
 /** Current settings format version. */
@@ -105,13 +117,14 @@ interface Schema extends DBSchema {
   activities: { key: string; value: Activity; indexes: { date: string } };
   water: { key: string; value: Water };
   templates: { key: string; value: MealTemplate };
+  days: { key: string; value: DayMark };
   /** Sync bookkeeping: `${store}:${key}` → when the record last changed, or was deleted. */
   meta: { key: string; value: Meta };
 }
 
 /** The stores that sync between devices (kv: only the 'settings' key exists). */
-export type SyncStore = 'entries' | 'customFoods' | 'usage' | 'servings' | 'offFoods' | 'recipes' | 'body' | 'activities' | 'water' | 'templates' | 'kv';
-export const SYNC_STORES: SyncStore[] = ['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'activities', 'water', 'templates', 'kv'];
+export type SyncStore = 'entries' | 'customFoods' | 'usage' | 'servings' | 'offFoods' | 'recipes' | 'body' | 'activities' | 'water' | 'templates' | 'days' | 'kv';
+export const SYNC_STORES: SyncStore[] = ['entries', 'customFoods', 'usage', 'servings', 'offFoods', 'recipes', 'body', 'activities', 'water', 'templates', 'days', 'kv'];
 
 /** Last change of a record (ms since epoch); `del` marks a deletion so it can't come back on sync. */
 export interface Meta {
@@ -133,12 +146,13 @@ export const KEY_PATH: Record<Exclude<SyncStore, 'kv'>, string> = {
   activities: 'id',
   water: 'date',
   templates: 'id',
+  days: 'date',
 };
 
 let dbp: Promise<IDBPDatabase<Schema>> | undefined;
 
 function db() {
-  dbp ??= openDB<Schema>('iron-log', 10, {
+  dbp ??= openDB<Schema>('iron-log', 11, {
     async upgrade(d, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         d.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date');
@@ -171,6 +185,7 @@ function db() {
         }
       }
       if (oldVersion < 10) d.createObjectStore('templates', { keyPath: 'id' });
+      if (oldVersion < 11) d.createObjectStore('days', { keyPath: 'date' });
     },
   });
   return dbp;
@@ -238,12 +253,14 @@ export interface AllData {
   water: Water[];
   /** Saved meals (absent in backups made before they existed). */
   templates?: MealTemplate[];
+  /** Days marked complete (absent in older backups). */
+  days?: DayMark[];
   settings?: Settings;
 }
 
 export async function exportAll(): Promise<AllData> {
   const d = await db();
-  const [entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, templates, settings] = await Promise.all([
+  const [entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, templates, days, settings] = await Promise.all([
     d.getAll('entries'),
     d.getAll('customFoods'),
     d.getAll('usage'),
@@ -254,9 +271,10 @@ export async function exportAll(): Promise<AllData> {
     d.getAll('activities'),
     d.getAll('water'),
     d.getAll('templates'),
+    d.getAll('days'),
     d.get('kv', 'settings') as Promise<Settings | undefined>,
   ]);
-  return { entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, templates, settings };
+  return { entries, customFoods, usage, servings, offFoods, recipes, body, activities, water, templates, days, settings };
 }
 
 /**
@@ -289,6 +307,7 @@ export async function importAll(data: AllData): Promise<void> {
     ...data.customFoods.map((f) => restore('customFoods', f, f.ref, f.updatedAt, (cur) => cur.updatedAt < f.updatedAt)),
     ...data.body.map((b) => restore('body', b, b.date, b.updatedAt, (cur) => cur.updatedAt < b.updatedAt)),
     ...(data.templates ?? []).map((m) => restore('templates', m, m.id, m.updatedAt, (cur) => cur.updatedAt < m.updatedAt)),
+    ...(data.days ?? []).map((m) => restore('days', m, m.date, m.updatedAt)),
     // Water: the larger total wins (a day only ever adds up). Raising a total here is a change now;
     // a day that was missing keeps time 0, so a paired device's own value for it wins.
     ...data.water.map(async (w) => {
@@ -323,6 +342,7 @@ export async function clearAll(): Promise<void> {
     tx.objectStore('activities').clear(),
     tx.objectStore('water').clear(),
     tx.objectStore('templates').clear(),
+    tx.objectStore('days').clear(),
     tx.objectStore('body').clear(),
     tx.objectStore('recipes').clear(),
     tx.objectStore('offFoods').clear(),
@@ -384,6 +404,19 @@ export async function putTemplate(m: MealTemplate): Promise<void> {
 
 export async function deleteTemplate(id: string): Promise<void> {
   await del('templates', id);
+}
+
+export async function isDayComplete(date: string): Promise<boolean> {
+  return !!(await (await db()).get('days', date));
+}
+
+export async function setDayComplete(date: string, complete: boolean): Promise<void> {
+  if (complete) await put('days', [{ date, updatedAt: Date.now() }]);
+  else await del('days', date);
+}
+
+export async function daysCompleteBetween(from: string, to: string): Promise<Set<string>> {
+  return new Set(await (await db()).getAllKeys('days', IDBKeyRange.bound(from, to)));
 }
 
 export async function listBody(): Promise<BodyEntry[]> {

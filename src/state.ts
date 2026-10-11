@@ -39,6 +39,8 @@ export const usual = signal<Partial<Record<Meal, UsualMeal>>>({});
 const USUAL_KEY = 'iron-log-usual';
 /** Dismissals of "your usual" on this device. */
 export const usualState = signal<UsualState>(readLocal(USUAL_KEY));
+/** The selected day is marked complete (only read when adaptive expenditure is on). */
+export const dayComplete = signal(false);
 /** Now, refreshed when the app comes back to the foreground (time-of-day suggestions). */
 export const clock = signal(Date.now());
 /** Every food referenced on screen, built-in or custom, by ref. */
@@ -97,7 +99,12 @@ export async function loadDay(d: string): Promise<void> {
   date.value = d;
   const seq = ++loadSeq;
   notice.value = null;
-  const [list, acts, water] = await Promise.all([db.entriesFor(d), db.activitiesFor(d), db.waterFor(d)]);
+  const [list, acts, water, complete] = await Promise.all([
+    db.entriesFor(d),
+    db.activitiesFor(d),
+    db.waterFor(d),
+    settings.value.adaptive ? db.isDayComplete(d) : false, // only read when adaptive expenditure is on
+  ]);
   if (seq !== loadSeq) return;
   // The day before only matters for empty meals ("same as yesterday"): skip it when all are logged.
   const empty = new Set(db.MEALS.filter((m) => !list.some((e) => e.meal === m)));
@@ -105,6 +112,7 @@ export async function loadDay(d: string): Promise<void> {
   if (seq !== loadSeq) return;
   entries.value = list;
   prevEntries.value = prev;
+  dayComplete.value = complete;
   dayActivities.value = acts.sort((a, b) => a.createdAt - b.createdAt);
   if (acts.length) loadActivityTypes();
   dayWater.value = water;
@@ -214,6 +222,8 @@ export async function updateSettings(patch: Partial<Settings>): Promise<void> {
   lang.value = settings.value.lang;
   document.documentElement.lang = lang.value;
   if ('usualOff' in patch) void refreshUsual(db.isoDate(new Date()), true);
+  // Turned on: show the selected day's mark (it isn't read while off).
+  if (patch.adaptive) void db.isDayComplete(date.value).then((c) => void (dayComplete.value = c));
   await db.saveSettings(settings.value);
 }
 
@@ -474,6 +484,14 @@ export async function logTemplate(meal: Meal, m: MealTemplate): Promise<number> 
     writeLocal(TEMPLATE_USE_KEY, templateUse.value);
   }
   return n;
+}
+
+/** Mark the selected day complete (everything eaten is logged), or not. */
+export async function toggleDayComplete(): Promise<void> {
+  const d = date.value;
+  const next = !dayComplete.value;
+  dayComplete.value = next;
+  await db.setDayComplete(d, next);
 }
 
 // --- Your usual ---

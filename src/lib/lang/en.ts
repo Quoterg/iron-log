@@ -130,6 +130,7 @@ const strings: Dict = {
   deleteSavedMealConfirm: 'Remove the saved meal “{name}”? What you have already logged is not affected.',
   sameAsYesterday: 'Same as yesterday',
   foodsCount: '{n} foods',
+  dayComplete: 'Day complete',
   usualMeal: 'The usual',
   notNow: 'Not now',
   usualSetting: 'Suggest my usual meal',
@@ -338,5 +339,29 @@ const off: Record<string, string> = {
   offMissingName: 'Fill in the product name.',
 };
 
-const pack: LangPack = { strings, sync, off };
+const energy: Record<string, string> = {
+  adaptiveTitle: 'Adaptive energy expenditure',
+  adaptiveToggle: 'Estimate my expenditure from weight and intake',
+  adaptiveNote: 'Compares how your weight changes with what you have logged over the last four weeks. Your energy target only changes if you choose so.',
+  adaptiveLoading: 'Calculating…',
+  adaptiveResult: 'Estimated expenditure: {kcal} kcal/day (± {pm})',
+  adaptiveBasis: 'From {days} days and {weighIns} weigh-ins. Weight trend: {trend} kg/week.',
+  adaptiveNeedData: 'Needs more data: {days} of 10 days and {weighIns} of 3 weigh-ins, spread over at least two weeks.',
+  adaptiveImplausible: 'The numbers don’t add up – some meals may be missing from the log. Mark days where everything is logged and keep weighing yourself.',
+  adaptiveHowTo: 'Tap “Day complete” in the diary when everything you ate is logged. Otherwise days with very little logged don’t count.',
+  adaptiveFormula: 'Formula estimate: {kcal} kcal/day',
+  goal: 'Goal',
+  goalLose: 'Lose weight',
+  goalMaintain: 'Keep my weight',
+  goalGain: 'Gain weight',
+  pace: 'Pace',
+  paceOption: '{kg} kg/week',
+  adaptiveTarget: 'Suggested energy target: {kcal} kcal/day',
+  adaptiveFloored: 'Limited to the lowest recommended intake for you ({kcal} kcal/day).',
+  adaptiveApply: 'Use as my energy target',
+  adaptiveIsTarget: 'This is your energy target now. It doesn’t change by itself.',
+  adaptiveNoGoal: 'During pregnancy and breastfeeding only the estimate is shown, no weight-change goals.',
+};
+
+const pack: LangPack = { strings, sync, off, energy };
 export default pack;

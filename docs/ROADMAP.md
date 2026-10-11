@@ -132,7 +132,7 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   a default window. Plus home-screen shortcuts "Lägg till mat" (add sheet for the meal of the time
   of day) and "Vatten +2 dl" (web manifest `shortcuts`, and android/twa-manifest.json — the Android
   app gets them with the next Bubblewrap build). Water already has quick buttons in the diary.
-- [ ] **M25 Adaptive energy expenditure (opt-in)** — Off by default (Settings); many users prefer
+- [x] **M25 Adaptive energy expenditure (opt-in)** — Off by default (Settings); many users prefer
   a constant calorie target, and with it off nothing changes and nothing is shown. When on, estimate real daily expenditure from the weight trend
   (M12 moving average) and logged intake over the last 2–4 weeks (≈ 7700 kcal per kg, smoothed;
   only days marked complete count — add a one-tap "day complete" mark to the diary, with days
