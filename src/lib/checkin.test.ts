@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { isoWeek, positives, previousWeek, weightChange } from './checkin';
+import { isoWeek, previousWeek } from './checkin';
+import { positives, weightChange } from './checkin-report';
 import { NUTRIENT_INDEX, NUTRIENTS } from './nutrients';
 import type { Target } from './targets';
 

@@ -65,6 +65,10 @@ export interface Settings {
   suggestions?: boolean;
   /** Hide the "what if" preview on the food screen (shown by default). */
   whatIfOff?: boolean;
+  /** Weekly check-in on the diary (opt-in, M26). */
+  checkin?: boolean;
+  /** ISO week ("2026-W41") whose check-in the user has seen (synced: seen on one device, seen on all). */
+  checkinSeen?: string;
 }
 
 /** A day the user marked complete (everything eaten is logged): the adaptive estimate trusts it. */

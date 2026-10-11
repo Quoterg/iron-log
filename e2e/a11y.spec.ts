@@ -116,6 +116,13 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await page.getByLabel('Beräkna min förbrukning från vikt och intag').check();
     await expect(page.getByText(/Behöver mer underlag/)).toBeVisible();
   },
+  'weekly check-in': async (page) => {
+    await tab(page, 'Inställningar');
+    await page.getByLabel('Visa en kort avstämning av förra veckan i dagboken').check();
+    await tab(page, 'Dagbok');
+    await page.getByRole('button', { name: 'Visa', exact: true }).click();
+    await expect(dialog(page).getByRole('button', { name: 'Klar' })).toBeVisible();
+  },
   'sync sheet': async (page) => {
     await tab(page, 'Inställningar');
     await page.getByRole('button', { name: 'Synka', exact: true }).click();

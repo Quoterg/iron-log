@@ -8,6 +8,7 @@ import {
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
 import { pickUsual } from '../lib/usual';
+import { previousWeek } from '../lib/checkin';
 import { Bar } from './Bar';
 
 export function Diary() {
@@ -28,6 +29,15 @@ export function Diary() {
         <p class="small warn pad" role="status">
           {notice.value}
         </p>
+      )}
+      {/* Weekly check-in (opt-in): once per new week, on today's diary, until it has been seen. */}
+      {settings.value.checkin && date.value === isoDate(now) && settings.value.checkinSeen !== previousWeek(date.value).key && (
+        <section class="card checkin-teaser">
+          <span>{t('checkinReady')}</span>
+          <button class="btn small" onClick={() => open({ kind: 'checkin' })}>
+            {t('checkinShow')}
+          </button>
+        </section>
       )}
       <section class="card summary">
         <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} hero />

@@ -140,7 +140,7 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   Shown with its uncertainty next to the formula-based value (M8). The user can choose to use it
   as their energy target, with a goal (lose / maintain / gain) and a pace capped at safe limits
   (never below a minimum intake, at most ~0.75 % body weight per week). Never changes targets by itself.
-- [ ] **M26 Weekly check-in (opt-in)** — Off by default; turned on in Settings. Once a week: averages,
+- [x] **M26 Weekly check-in (opt-in)** — Off by default; turned on in Settings. Once a week: averages,
   weight trend, adaptive expenditure and a suggested energy target (only if M25 is on) for the chosen goal (accept or
   ignore), what went well, and at most one recommendation to reach the goals (from M27's scoring).
   Neutral wording, no streak pressure or guilt, no notifications unless the user asks.
