@@ -464,5 +464,19 @@ const pack: LangPack = {
     adaptiveIsTarget: 'Dette er dit energimål nu. Det ændrer sig ikke af sig selv.',
     adaptiveNoGoal: 'Under graviditet og amning vises kun skønnet, ingen mål for vægtændring.',
   },
+  suggest: {
+    suggestTitle: 'Forslag',
+    suggestToggle: 'Foreslå fødevarer og bytte for næringsstoffer, jeg får for lidt af',
+    suggestNote: 'Slået fra som standard. Bygger på dine egne fødevarer og Livsmedelsverkets data og følger NNR 2023 – ingen råd om doser eller kosttilskud.',
+    whatIfToggle: 'Vis “Hvad nu hvis”, når jeg tilføjer en fødevare',
+    suggestLoading: 'Leder efter forslag…',
+    suggestNone: 'Ingen tydelige forslag lige nu.',
+    gapLine: '{name}: i gennemsnit {amount} af {target} {unit} om dagen',
+    gapPortion: '{grams} g giver {pct} % af det, der mangler',
+    gapYouEat: 'du spiser det allerede',
+    swapsTitle: 'Bytte at prøve',
+    swapLine: '{to} i stedet for {from}',
+    whatIfTitle: 'Hvis du tilføjer det',
+  },
 };
 export default pack;

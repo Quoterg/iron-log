@@ -146,6 +146,16 @@ main {
 .hero-num small { font-size: 1rem; font-weight: 400; letter-spacing: 0; color: var(--muted); }
 .hero .fill { background: var(--grad); }
 .theme-label { margin: 0 0 6px; }
+.whatif { margin: 4px 0 12px; padding: 10px 12px; border-radius: 14px; background: var(--inner); border: 1px solid var(--line); }
+.whatif h3 { margin: 0 0 4px; font-weight: 600; }
+.whatif-row { padding: 4px 0; }
+.whatif-track { position: relative; }
+.whatif-track .fill { position: absolute; inset: 0; transform-origin: left; }
+.whatif-track .whatif-after { background: var(--usual-border); }
+.whatif-track .whatif-before { background: var(--ok); }
+.suggest .result { padding: 10px 0; }
+.suggest-sub { margin: 12px 0 0; font-size: 0.95rem; }
+.suggest-gap + .suggest-gap { margin-top: 10px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 a { color: var(--accent); }
 input[type='checkbox'], input[type='radio'] { accent-color: var(--accent); }

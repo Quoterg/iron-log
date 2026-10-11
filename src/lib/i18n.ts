@@ -314,6 +314,8 @@ export interface LangPack {
   off?: Record<string, string>;
   /** Strings of the adaptive energy card (Swedish ones: strings-energy.ts). */
   energy?: Record<string, string>;
+  /** Strings of suggestions, swaps and "what if" (Swedish ones: strings-suggest.ts). */
+  suggest?: Record<string, string>;
 }
 
 const LOADERS: Record<Exclude<Lang, 'sv'>, () => Promise<{ default: LangPack }>> = {

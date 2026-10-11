@@ -7,6 +7,7 @@ import { AdaptiveEnergy } from './AdaptiveEnergy';
 import { YourData } from './YourData';
 import { ts } from '../lib/strings-sync';
 import { setTheme, themeChoice } from '../lib/theme';
+import { tg } from '../lib/strings-suggest';
 
 /** Loaded lazily (see app.tsx): not needed for the first screen. */
 export default function Settings() {
@@ -17,6 +18,7 @@ export default function Settings() {
       <MyFoods />
       <MyRecipes />
       <SavedMealsCard />
+      <SuggestCard />
       <General />
       <SyncCard />
       <YourData />
@@ -121,6 +123,25 @@ function SavedMealsCard() {
         {t('usualSetting')}
       </label>
       <p class="muted small">{t('usualSettingNote')}</p>
+    </section>
+  );
+}
+
+/** Suggestions (opt-in) and the "what if" preview (on by default). */
+function SuggestCard() {
+  const s = settings.value;
+  return (
+    <section class="card form">
+      <h2>{tg('suggestTitle')}</h2>
+      <label class="check">
+        <input type="checkbox" checked={!!s.suggestions} onChange={(e) => void updateSettings({ suggestions: (e.currentTarget as HTMLInputElement).checked })} />
+        {tg('suggestToggle')}
+      </label>
+      <p class="muted small">{tg('suggestNote')}</p>
+      <label class="check">
+        <input type="checkbox" checked={!s.whatIfOff} onChange={(e) => void updateSettings({ whatIfOff: !(e.currentTarget as HTMLInputElement).checked })} />
+        {tg('whatIfToggle')}
+      </label>
     </section>
   );
 }

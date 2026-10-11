@@ -144,7 +144,7 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   weight trend, adaptive expenditure and a suggested energy target (only if M25 is on) for the chosen goal (accept or
   ignore), what went well, and at most one recommendation to reach the goals (from M27's scoring).
   Neutral wording, no streak pressure or guilt, no notifications unless the user asks.
-- [ ] **M27 Gap fixer & swaps (opt-in)** — Off by default ("Suggestions" in Settings). For nutrients
+- [x] **M27 Gap fixer & swaps (opt-in)** — Off by default ("Suggestions" in Settings). For nutrients
   short over the period (only where the M13 coverage rule allows), suggest foods the user already
   eats, then Swedish staples, ranked by how much of the gap they cover per kcal; and swaps for
   frequently logged foods ("rye bread instead of white bread: +fibre, +iron"). Stays within NNR,

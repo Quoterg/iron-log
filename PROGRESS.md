@@ -5,11 +5,27 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-Owner (2026-10-11): do M26 → M29 in the best order — done as M29 first (new screens get the new
-look), then **M26 weekly check-in**, M27 gap fixer & swaps, M28 shopping list. Afterwards M21b (low
-security housekeeping). Initial JS is 38.9 KB of 40: new features must be lazy-loaded (strings too:
-see strings-energy.ts). PRs: the reviewer agent merges once its review is addressed (owner,
-2026-10-11).
+Owner (2026-10-11): do M26 → M29 in the best order — done as M29 (new screens get the new look),
+M27 (its scoring feeds the check-in), then **M26 weekly check-in**, then M28 shopping list.
+Afterwards M21b (low security housekeeping). Initial JS is 39.2 KB of 40: new features must be
+lazy-loaded, strings too (see strings-energy.ts, strings-suggest.ts). PRs: the reviewer agent
+merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-11 — M27 Gap fixer, swaps and "what if" (interactive session)
+
+- Settings → Förslag (off by default): on Näringsämnen (7/30 days) a card for the two largest
+  shortfalls an everyday food can help with (only where the coverage rule allows): up to 3 foods,
+  the user's own first (usual portion), then everyday foods; ranked by nutrient per kcal; each with
+  "N g ger X % av det som saknas". No liver products during pregnancy. Swaps for foods logged ≥ 3×
+  (curated Livsmedelsverket table in lib/suggest.ts: white bread → rye, white rice → brown, juice →
+  fruit, soft drink → soda water…), shown only with a gain ≥ 5 % of a target at the same weight.
+- "Om du lägger till" (on by default, switch in Settings): on the food screen, energy and up to 3
+  nutrients still short, before → after with the % of target.
+- Data: a new `everyday.<hash>.json` per nutrient (foods with household measures, richest per
+  kcal, no alcohol, with a portion; 84 KB raw) — scripts/build-top.mjs; the top file is unchanged.
+- All lazy (Suggestions 2.1 KB, WhatIf 0.7 KB, strings in strings-suggest.ts / `suggest` in packs).
+- Tests: unit 191 ✓ (ranking, portion filter, swaps, strings), build ✓ (initial JS 39.2 KB), e2e
+  119 ✓ (new suggest.spec.ts), Lighthouse ✓.
 
 ## 2026-10-11 — M29 Hologram theme: Natt and Dag (interactive session)
 
