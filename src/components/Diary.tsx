@@ -133,6 +133,9 @@ export function Diary() {
           {t('copyDay')}
         </button>
       )}
+      <button class="btn wide" onClick={() => open({ kind: 'shopping' })}>
+        {t('shoppingList')}
+      </button>
     </>
   );
 }

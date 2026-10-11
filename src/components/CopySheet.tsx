@@ -46,3 +46,5 @@ export function CopySheet({ meal }: { meal?: Meal }) {
     </Sheet>
   );
 }
+
+export default CopySheet;

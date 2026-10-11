@@ -1,12 +1,9 @@
 import { addDays, isoDate } from './lib/db';
 import { locale, t } from './lib/i18n';
-import { CopySheet } from './components/CopySheet';
 import { Diary } from './components/Diary';
 import { FoodDetail } from './components/FoodDetail';
-import { FoodEditor } from './components/FoodEditor';
 import { FoodSearch } from './components/FoodSearch';
 import { Nutrients } from './components/Nutrients';
-import { ScanSheet } from './components/ScanSheet';
 import { lazyView } from './lazy';
 import { stack, top, type Screen } from './nav';
 import { date, loadDay, supplementRefs, view, type View } from './state';
@@ -31,6 +28,11 @@ export const syncView = lazyView(() => import('./components/SyncSheet'));
 export const offUploadView = lazyView(() => import('./components/OffUploadSheet'));
 export const templateView = lazyView(() => import('./components/TemplateSheet'));
 export const checkinView = lazyView(() => import('./components/CheckIn'));
+// Not on the first screen (and not small): loaded when opened, prefetched when idle (main.tsx).
+export const scanView = lazyView(() => import('./components/ScanSheet'));
+export const foodEditorView = lazyView(() => import('./components/FoodEditor'));
+export const copyView = lazyView(() => import('./components/CopySheet'));
+export const shoppingView = lazyView(() => import('./components/ShoppingSheet'));
 
 export function App() {
   const s = top.value;
@@ -84,11 +86,11 @@ function ScreenView({ screen: s }: { screen: Screen }) {
     case 'editFood':
       // Supplements have per-unit values: never edit them as per-100 g foods.
       if (s.ref && supplementRefs.value.has(s.ref)) return <supplementView.Lazy foodRef={s.ref} />;
-      return <FoodEditor foodRef={s.ref} name={s.name} meal={s.meal} />;
+      return <foodEditorView.Lazy foodRef={s.ref} name={s.name} meal={s.meal} />;
     case 'copy':
-      return <CopySheet meal={s.meal} />;
+      return <copyView.Lazy meal={s.meal} />;
     case 'scan':
-      return <ScanSheet meal={s.meal} />;
+      return <scanView.Lazy meal={s.meal} />;
     case 'targets':
       return <targetEditorView.Lazy />;
     case 'recipe':
@@ -107,6 +109,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <templateView.Lazy meal={s.meal} id={s.id} />;
     case 'checkin':
       return <checkinView.Lazy />;
+    case 'shopping':
+      return <shoppingView.Lazy />;
   }
 }
 

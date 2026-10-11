@@ -147,6 +147,7 @@ const sv = {
   deleteSavedMealConfirm: 'Ta bort den sparade måltiden ”{name}”? Det du redan har loggat påverkas inte.',
   sameAsYesterday: 'Samma som igår',
   foodsCount: '{n} livsmedel',
+  shoppingList: 'Inköpslista',
   checkinReady: 'Veckans avstämning är klar',
   checkinShow: 'Visa',
   dayComplete: 'Dagen är komplett',
@@ -320,6 +321,8 @@ export interface LangPack {
   suggest?: Record<string, string>;
   /** Strings of the weekly check-in (Swedish ones: strings-checkin.ts). */
   checkin?: Record<string, string>;
+  /** Strings of the shopping list (Swedish ones: strings-shop.ts). */
+  shop?: Record<string, string>;
 }
 
 const LOADERS: Record<Exclude<Lang, 'sv'>, () => Promise<{ default: LangPack }>> = {

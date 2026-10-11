@@ -3,7 +3,6 @@ import { computed, signal } from '@preact/signals';
 import * as db from './lib/db';
 import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db';
 import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
-import { fetchProduct } from './lib/off';
 import { lang, loadLang, rememberLang, t } from './lib/i18n';
 import { type Food, type NutrientVector, type Serving, dataLangOf, NUTRIENT_INDEX } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
@@ -272,6 +271,8 @@ export async function lookupBarcode(code: string): Promise<Food> {
   const ref = `off:${code}`;
   const cached = offFoods.value.find((f) => f.ref === ref) ?? (await db.getOffFood(ref));
   if (cached) return toFood(cached);
+  // The Open Food Facts client loads only for a product not seen before.
+  const { fetchProduct } = await import('./lib/off');
   const food = await fetchProduct(code);
   await rememberOffFood(food);
   return food;

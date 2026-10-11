@@ -25,6 +25,10 @@ const data: AllData = {
   ],
   offFoods: [{ ref: 'off:7310865004703', sv: 'Yoghurt (Arla)', en: null, per100g: [100], fetchedAt: 3, units: [{ name: 'portion', g: 150 }] }],
   days: [{ date: '2026-10-08', updatedAt: 5 }],
+  shopping: [
+    { id: 's1', foodRef: 'slv:1', grams: 300, updatedAt: 6 },
+    { id: 's2', text: 'Tandkräm', checked: true, updatedAt: 7 },
+  ],
   settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: 2, adaptive: true, goal: 'lose', pace: 0.5 },
 };
 
@@ -55,6 +59,15 @@ describe('backup', () => {
     expect(parseBackup(text({})).customFoods[0].supplement).toEqual({ unit: 'kapsel', perDay: 2 });
     expect(() => parseBackup(text({ supplement: { unit: '', perDay: 1 } }))).toThrow(BackupError);
     expect(() => parseBackup(text({ supplement: { unit: 'st', perDay: -1 } }))).toThrow(BackupError);
+  });
+
+  it('keeps a whole shopping list (never cut silently); refuses only absurd sizes and invalid items', () => {
+    const items = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `s${i}`, text: `Vara ${i}`, updatedAt: 1 }));
+    const parse = (shopping: unknown[]) => parseBackup(JSON.stringify({ ...makeBackup(data), shopping }));
+    expect(parse(items(350)).shopping).toHaveLength(350);
+    expect(() => parse(items(3001))).toThrow(BackupError);
+    expect(() => parse([{ id: 'x', updatedAt: 1 }])).toThrow(BackupError); // neither food nor text
+    expect(() => parse([{ id: 'x', foodRef: 'slv:1', grams: -5, updatedAt: 1 }])).toThrow(BackupError);
   });
 
   it('validates saved meals and drops invalid remembered amounts', () => {

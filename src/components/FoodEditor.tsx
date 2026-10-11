@@ -114,3 +114,5 @@ function toText(v: number | null | undefined): string {
   const s = String(v);
   return decimalComma() ? s.replace('.', ',') : s;
 }
+
+export default FoodEditor;

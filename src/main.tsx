@@ -1,5 +1,5 @@
 import { render } from 'preact';
-import { App, bodyView, contributorsView, recipeEditorView, settingsView, targetEditorView, templateView } from './app';
+import { App, bodyView, contributorsView, copyView, foodEditorView, recipeEditorView, scanView, settingsView, targetEditorView, templateView } from './app';
 import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang, lastLang, loadLang } from './lib/i18n';
@@ -51,6 +51,9 @@ async function start() {
       void bodyView.prefetch();
       void contributorsView.prefetch();
       void templateView.prefetch();
+      void scanView.prefetch();
+      void foodEditorView.prefetch();
+      void copyView.prefetch();
       enableUsual(); // after the food data started loading: it competes with nothing on screen
     }, 1500);
   });

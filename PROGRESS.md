@@ -5,11 +5,33 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-Owner (2026-10-11): do M26 → M29 in the best order — done as M29 (new screens get the new look),
-M27 (its scoring feeds the check-in), M26, then **M28 shopping list**. Afterwards M21b (low
-security housekeeping). Initial JS is 39.5 KB of 40: new features must be lazy-loaded, strings too
-(strings-energy/-suggest/-checkin.ts); only an entry point may live in the first bundle. PRs: the
-reviewer agent merges once its review is addressed (owner, 2026-10-11).
+Phase 4 and M29 are done (owner's order request 2026-10-11: built as M29, M27, M26, M28). Next:
+**M21b** (low security housekeeping). **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
+barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
+the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
+than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
+(strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
+db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-11 — M28 Shopping list (interactive session)
+
+- "Inköpslista" button under the diary → a lazy sheet: add saved meals and recipes (one tap each,
+  tap again to add again), the diary's planned days (next 7 days — plan by copying days/meals
+  ahead), or an own item ("tandkräm"). Recipes become their ingredients, scaled. Amounts are summed
+  per food into the open line and shown shop-friendly: whole "st", dl/l for liquids (a dl measure of
+  ~100 g; oats stay in grams), else grams rounded up. Grouped by store section (name rules, Swedish
+  and English; "Övrigt" otherwise). Tick off, remove ticked, empty; share as plain text (share sheet,
+  else clipboard; ticked items left out).
+- New synced store `shopping` (IndexedDB v12), in backups and validated; batch delete in one
+  transaction with tombstones.
+- Review fixes: the list is capped at 300 lines where items are added (with a message), a backup is
+  never cut (only > 3000 refused); saves are one transaction, written before the screen updates;
+  sections computed once per change; nut butters/coconut milk → Skafferi; sugar stays in grams.
+- CI caught the first bundle at 40.0 KB (local 39.8): the scanner + Open Food Facts client, the food
+  editor and the copy sheet are now lazy (prefetched when idle) → 37.2 KB.
+- Tests: unit 204 ✓ (expand, summing, sections, amounts, text, sync, backup cap), build ✓ (initial JS 37.2 KB; M28 itself +0.3:
+  button, store functions, string), e2e 127 ✓ (new shopping.spec.ts; a11y "shopping list"),
+  Lighthouse ✓.
 
 ## 2026-10-11 — M26 Weekly check-in (interactive session)
 
