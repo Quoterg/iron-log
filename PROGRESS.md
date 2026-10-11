@@ -9,6 +9,10 @@ Keep entries short — this file is read at the start of every session.
 by the owner — don't start it. Optional when the owner wants it: **M19c** (Play / F-Droid). M18d
 (screen-reader pass) is deferred until someone reports an issue.
 
+Then **Phase 4** in order, M23 → M28 (owner's choices, 2026-10-11): templates & portion memory,
+"your usual" (strict rules so it only shows when it truly is the usual), adaptive energy
+expenditure, weekly check-in (opt-in), gap fixer & swaps (opt-in), shopping list.
+
 ## 2026-10-09 — Android release and install instructions (interactive session)
 
 - GitHub Release **v1.0.0** with `iron-log.apk` (the owner's signed build, verified: package
