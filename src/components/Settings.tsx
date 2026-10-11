@@ -91,7 +91,7 @@ function MyRecipes() {
   );
 }
 
-/** Saved meals: rename, drop foods or remove (they're created from a logged meal in the diary). */
+/** Saved meals (rename, drop foods, remove; created from a logged meal) and the "your usual" switch. */
 function SavedMealsCard() {
   const list = [...templates.value].sort((a, b) => a.name.localeCompare(b.name, lang.value));
   return (
@@ -113,6 +113,11 @@ function SavedMealsCard() {
           ))}
         </ul>
       )}
+      <label class="check">
+        <input type="checkbox" checked={!settings.value.usualOff} onChange={(e) => void updateSettings({ usualOff: !(e.currentTarget as HTMLInputElement).checked })} />
+        {t('usualSetting')}
+      </label>
+      <p class="muted small">{t('usualSettingNote')}</p>
     </section>
   );
 }

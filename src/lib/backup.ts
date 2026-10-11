@@ -262,6 +262,7 @@ function settings(x: unknown): Settings | undefined {
   if (pct) out.macroPct = pct;
   if (out.macroPreset === 'custom' && !pct) out.macroPreset = 'nnr';
   if (x.addBurnedToTarget === true) out.addBurnedToTarget = true;
+  if (x.usualOff === true) out.usualOff = true;
   if (Array.isArray(x.sources)) {
     const src = (['slv', 'usda'] as const).filter((s) => (x.sources as unknown[]).includes(s));
     if (src.length) out.sources = src;

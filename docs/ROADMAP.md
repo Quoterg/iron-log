@@ -122,14 +122,16 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   opens at the amount and unit you usually log; quick multipliers (½×, 1×, 1½×, 2×) in the amount
   picker. One-tap "same as yesterday" per meal (builds on the M4 copy sheet). Templates are part
   of backup and sync.
-- [ ] **M24 "Your usual" & shortcuts** — Suggest a whole meal only when it truly is the usual, never
+- [x] **M24 "Your usual" & shortcuts** — Suggest a whole meal only when it truly is the usual, never
   as noise. Rules (unit-tested, tune only with data): the same meal (≥ 80 % of its energy from the
   same foods) was logged in that meal slot on ≥ 4 of the last 6 comparable days (weekdays vs.
   weekends separately), it is the slot's time of day, and the meal is still empty today. One card
   at most, at the top of that meal; one tap logs it, the amount is editable afterwards. Dismissing
   hides it for the day; three dismissals in a row pause it for that slot for 14 days; an off switch
-  in Settings. Plus a quick-add row (water, usual items) and home-screen shortcuts (web manifest
-  `shortcuts`; the Android app picks them up with the next Bubblewrap build — note it for the owner).
+  in Settings. "Time of day" = around when the user logs that meal (1 h before to 1½ h after), else
+  a default window. Plus home-screen shortcuts "Lägg till mat" (add sheet for the meal of the time
+  of day) and "Vatten +2 dl" (web manifest `shortcuts`, and android/twa-manifest.json — the Android
+  app gets them with the next Bubblewrap build). Water already has quick buttons in the diary.
 - [ ] **M25 Adaptive energy expenditure (opt-in)** — Off by default (Settings); many users prefer
   a constant calorie target, and with it off nothing changes and nothing is shown. When on, estimate real daily expenditure from the weight trend
   (M12 moving average) and logged intake over the last 2–4 weeks (≈ 7700 kcal per kg, smoothed;

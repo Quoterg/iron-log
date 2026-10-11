@@ -5,7 +5,7 @@ import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db
 import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
 import { fetchProduct } from './lib/off';
 import { lang, loadLang, rememberLang, t } from './lib/i18n';
-import { type Food, type NutrientVector, type Serving, dataLangOf } from './lib/nutrients';
+import { type Food, type NutrientVector, type Serving, dataLangOf, NUTRIENT_INDEX } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
 import type { ActivityType } from './lib/activity-types';
@@ -15,6 +15,7 @@ import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrid
 import { scale, sum } from './lib/totals';
 import { rememberAmount } from './lib/servings';
 import { itemsFromEntries, type MealTemplate, type TemplateUse } from './lib/templates';
+import { accept, dismiss, resetIfLogged, USUAL_RULES, type UsualMeal, type UsualState } from './lib/usual';
 
 /** Entries of the period the Nutrients tab loaded last, reused by the sources sheet. */
 export const periodCache = signal<{ key: string; entries: Entry[] } | null>(null);
@@ -33,6 +34,13 @@ const TEMPLATE_USE_KEY = 'iron-log-meal-use';
 export const templateUse = signal<TemplateUse>(readLocal(TEMPLATE_USE_KEY));
 /** A short message for the diary (e.g. foods of a saved meal that are no longer available). */
 export const notice = signal<string | null>(null);
+/** Today's usual meals, by meal (see lib/usual.ts); empty when switched off. */
+export const usual = signal<Partial<Record<Meal, UsualMeal>>>({});
+const USUAL_KEY = 'iron-log-usual';
+/** Dismissals of "your usual" on this device. */
+export const usualState = signal<UsualState>(readLocal(USUAL_KEY));
+/** Now, refreshed when the app comes back to the foreground (time-of-day suggestions). */
+export const clock = signal(Date.now());
 /** Every food referenced on screen, built-in or custom, by ref. */
 export const foods = signal<Map<string, Food>>(new Map());
 export const customFoods = signal<CustomFood[]>([]);
@@ -101,6 +109,8 @@ export async function loadDay(d: string): Promise<void> {
   if (acts.length) loadActivityTypes();
   dayWater.value = water;
   if (list.length || prev.length) await ensureFoods([...list, ...prev].map((e) => e.foodRef));
+  clock.value = Date.now();
+  if (usualReady && d === db.isoDate(new Date())) void refreshUsual(d);
 }
 
 /** Make sure the given foods are in the `foods` map (fetching from the worker if needed). */
@@ -203,6 +213,7 @@ export async function updateSettings(patch: Partial<Settings>): Promise<void> {
   setSources(activeSources(settings.value));
   lang.value = settings.value.lang;
   document.documentElement.lang = lang.value;
+  if ('usualOff' in patch) void refreshUsual(db.isoDate(new Date()), true);
   await db.saveSettings(settings.value);
 }
 
@@ -463,6 +474,80 @@ export async function logTemplate(meal: Meal, m: MealTemplate): Promise<number> 
     writeLocal(TEMPLATE_USE_KEY, templateUse.value);
   }
   return n;
+}
+
+// --- Your usual ---
+
+let usualDay = '';
+let usualReady = false;
+
+/** Start "your usual" once the app has settled (main.tsx, after the food data started loading). */
+export function enableUsual(): void {
+  usualReady = true;
+  const today = db.isoDate(new Date());
+  if (date.value === today) void refreshUsual(today);
+}
+
+/**
+ * Work out today's usual meals once per day, for the meals still empty today (a few weeks of
+ * diary, read once). Also starts a dismissal streak over where the meal was logged since.
+ */
+export async function refreshUsual(today: string, force = false): Promise<void> {
+  if (settings.value.usualOff) {
+    usualDay = '';
+    usual.value = {};
+    return;
+  }
+  if (usualDay === today && !force) return;
+  usualDay = today;
+  let findUsual: typeof import('./lib/usual-find').findUsual;
+  let all: Entry[];
+  try {
+    [{ findUsual }, all] = await Promise.all([import('./lib/usual-find'), db.entriesBetween(db.addDays(today, -USUAL_RULES.maxLookback), today)]);
+  } catch {
+    usualDay = ''; // offline before the rules were ever cached: try again on the next load
+    return;
+  }
+  const own = all.filter((e) => !supplementRefs.value.has(e.foodRef));
+  let s = usualState.value;
+  for (const meal of db.MEALS) s = resetIfLogged(s, meal, own.filter((e) => e.meal === meal).map((e) => e.date));
+  if (s !== usualState.value) saveUsualState(s);
+  // Only meals still empty today can be offered: only their history (and foods) matter.
+  const empty = new Set(db.MEALS.filter((m) => !own.some((e) => e.date === today && e.meal === m)));
+  const list = own.filter((e) => e.date !== today && empty.has(e.meal));
+  await ensureFoods([...new Set(list.map((e) => e.foodRef))]);
+  const kcalOf = (e: Entry) => {
+    const v = db.entryVector(e, foods.value);
+    return v ? scale(v, e.grams)[NUTRIENT_INDEX.kcal] ?? 0 : 0;
+  };
+  const out: Partial<Record<Meal, UsualMeal>> = {};
+  for (const meal of empty) {
+    const u = findUsual(today, meal, list, kcalOf);
+    if (u) out[meal] = u;
+  }
+  if (usualDay === today) usual.value = out;
+}
+
+function saveUsualState(s: UsualState) {
+  usualState.value = s;
+  writeLocal(USUAL_KEY, s);
+}
+
+export function dismissUsual(meal: Meal): void {
+  saveUsualState(dismiss(usualState.value, meal, date.value));
+}
+
+export async function logUsual(meal: Meal): Promise<number> {
+  const u = usual.value[meal];
+  if (!u || repeating) return 0;
+  repeating = true;
+  try {
+    const n = await logItems(meal, u.items);
+    if (n) saveUsualState(accept(usualState.value, meal));
+    return n;
+  } finally {
+    repeating = false;
+  }
 }
 
 let repeating = false;

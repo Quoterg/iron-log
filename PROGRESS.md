@@ -9,9 +9,27 @@ Keep entries short — this file is read at the start of every session.
 by the owner — don't start it. Optional when the owner wants it: **M19c** (Play / F-Droid). M18d
 (screen-reader pass) is deferred until someone reports an issue.
 
-Phase 4 (owner's choices, 2026-10-11): M23 done; **M24 "your usual" & shortcuts** is being built
-in the same interactive session. Then M25 → M28 (adaptive expenditure, check-in, gap fixer — all
-opt-in — and the shopping list). The owner asked to stop after M24 until further notice.
+**Paused by the owner after M24 (2026-10-11) — don't start new milestones until told.** Then, in
+order: M21b (low security housekeeping), M25 → M28 (adaptive expenditure, check-in, gap fixer —
+all opt-in — and the shopping list). Initial JS is 38.2 KB of 40: Phase 4 features must be
+lazy-loaded. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-11 — M24 "Your usual" & shortcuts (interactive session)
+
+- "Som vanligt: …" card on an empty meal of today, only when the same meal (≥ 80 % of energy from
+  the same foods, both ways) was logged on ≥ 4 of the last 6 comparable days (weekdays/weekends
+  separately), around the time the user usually logs it. One tap logs it; "Inte nu" hides it for
+  the day; three in a row pause it 14 days (device-local); off switch in Settings → Sparade måltider.
+  Rules in lib/usual-find.ts (lazy, 0.7 KB), computed once a day from 3 weeks of diary.
+- Home-screen shortcuts: `?add` (add sheet for the meal of the time of day), `?water` (+2 dl); the
+  query is removed so a reload doesn't repeat it. Also in android/twa-manifest.json — **owner: the
+  Android app gets them with the next Bubblewrap build** (`bubblewrap update` + build).
+- Coming back to the app on a new day now shows the new day (was: stayed on yesterday).
+- Review fixes: one card at most (overlapping windows → the one that started last); the dismissal
+  streak starts over when the meal was logged by hand since; earliest logging time per day; only
+  meals still empty today are worked out, after the app's idle start-up work.
+- Tests: unit 173 ✓ (usual rules, dismissals, overlap), build ✓ (initial JS 38.2 KB), e2e 113 ✓
+  (new usual.spec.ts with fixed clock/time zone), Lighthouse ✓.
 
 ## 2026-10-11 — M23 Saved meals & portion memory (interactive session)
 
