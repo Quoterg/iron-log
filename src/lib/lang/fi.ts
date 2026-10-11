@@ -491,7 +491,7 @@ const pack: LangPack = {
     checkinEnergy: 'Energiaa keskimäärin {kcal} kcal kirjattua päivää kohden (tavoite {target})',
     checkinWeight: 'Paino: {change} kg edelliseen viikkoon verrattuna',
     checkinNoWeight: 'Ei punnituksia verrattavaksi edelliseen viikkoon.',
-    checkinExpenditure: 'Arvioitu kulutus: {kcal} kcal/vrk',
+    checkinExpenditure: 'Arvioitu kulutus (viimeiset 4 viikkoa): {kcal} kcal/vrk',
     checkinTarget: 'Ehdotettu energiatavoite ({goal}): {kcal} kcal/vrk',
     checkinApply: 'Käytä',
     checkinApplied: 'Energiatavoitteesi on nyt {kcal} kcal/vrk.',

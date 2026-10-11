@@ -14,7 +14,7 @@ export const SV_CHECKIN = {
   checkinEnergy: 'Energi i snitt {kcal} kcal per loggad dag (mål {target})',
   checkinWeight: 'Vikt: {change} kg jämfört med veckan innan',
   checkinNoWeight: 'Inga vägningar att jämföra med veckan innan.',
-  checkinExpenditure: 'Uppskattad förbrukning: {kcal} kcal/dag',
+  checkinExpenditure: 'Uppskattad förbrukning (senaste 4 veckorna): {kcal} kcal/dag',
   checkinTarget: 'Förslag på energimål ({goal}): {kcal} kcal/dag',
   checkinApply: 'Använd',
   checkinApplied: 'Ditt energimål är nu {kcal} kcal/dag.',

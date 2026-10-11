@@ -18,7 +18,10 @@ export function weightChange(weighIns: { date: string; kg: number }[], week: { s
 
 export type Positive = { kind: 'logged'; days: number } | { kind: 'energy' } | { kind: 'nutrient'; key: string };
 
-/** Nutrients worth a word of credit when reached on average (main ones people track). */
+/**
+ * Nutrients worth a word of credit when reached on average (main ones people track). The order is
+ * the priority: with at most two items shown, protein and fibre come first on purpose.
+ */
 const CREDIT = ['protein', 'fibre', 'vitC', 'iron', 'folate', 'calcium', 'vitD', 'potassium'];
 
 /**

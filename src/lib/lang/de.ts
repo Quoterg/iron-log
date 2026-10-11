@@ -491,7 +491,7 @@ const pack: LangPack = {
     checkinEnergy: 'Energie im Schnitt {kcal} kcal pro eingetragenem Tag (Ziel {target})',
     checkinWeight: 'Gewicht: {change} kg im Vergleich zur Vorwoche',
     checkinNoWeight: 'Keine Wiegungen zum Vergleich mit der Vorwoche.',
-    checkinExpenditure: 'Geschätzter Verbrauch: {kcal} kcal/Tag',
+    checkinExpenditure: 'Geschätzter Verbrauch (letzte 4 Wochen): {kcal} kcal/Tag',
     checkinTarget: 'Vorgeschlagenes Energieziel ({goal}): {kcal} kcal/Tag',
     checkinApply: 'Übernehmen',
     checkinApplied: 'Dein Energieziel ist jetzt {kcal} kcal/Tag.',

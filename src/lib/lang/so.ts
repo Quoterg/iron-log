@@ -491,7 +491,7 @@ const pack: LangPack = {
     checkinEnergy: 'Tamarta celcelis ahaan {kcal} kcal maalintii la qoray (hadaf {target})',
     checkinWeight: 'Miisaan: {change} kg marka la barbardhigo toddobaadkii ka horreeyay',
     checkinNoWeight: 'Miisaamid lagu barbardhigo toddobaadkii ka horreeyay ma jirto.',
-    checkinExpenditure: 'Isticmaalka la qiyaasay: {kcal} kcal/maalintii',
+    checkinExpenditure: 'Isticmaalka la qiyaasay (4-tii toddobaad ee la soo dhaafay): {kcal} kcal/maalintii',
     checkinTarget: 'Hadafka tamarta ee la soo jeediyey ({goal}): {kcal} kcal/maalintii',
     checkinApply: 'Isticmaal',
     checkinApplied: 'Hadafkaaga tamarta hadda waa {kcal} kcal/maalintii.',

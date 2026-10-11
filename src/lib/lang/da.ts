@@ -491,7 +491,7 @@ const pack: LangPack = {
     checkinEnergy: 'Energi i gennemsnit {kcal} kcal pr. logget dag (mål {target})',
     checkinWeight: 'Vægt: {change} kg sammenlignet med ugen før',
     checkinNoWeight: 'Ingen vejninger at sammenligne med ugen før.',
-    checkinExpenditure: 'Anslået forbrug: {kcal} kcal/dag',
+    checkinExpenditure: 'Anslået forbrug (seneste 4 uger): {kcal} kcal/dag',
     checkinTarget: 'Forslag til energimål ({goal}): {kcal} kcal/dag',
     checkinApply: 'Brug',
     checkinApplied: 'Dit energimål er nu {kcal} kcal/dag.',

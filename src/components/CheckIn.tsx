@@ -29,6 +29,8 @@ interface Week {
 
 async function load(): Promise<Week> {
   const week = previousWeek(isoDate(new Date()));
+  // The M25 estimate (last 4 weeks) loads alongside the week's data.
+  const estimate = settings.value.adaptive ? loadEstimate() : Promise.resolve(null);
   const [list, body] = await Promise.all([entriesBetween(week.start, week.end), bodyBetween(addDays(week.start, -7), week.end)]);
   await ensureFoods(list.map((e) => e.foodRef));
   const perDay = dailyTotals(list, foods.value);
@@ -51,7 +53,7 @@ async function load(): Promise<Week> {
     weight: weightChange(weighIns, week),
     well: perDay.size ? positives(amounts, tgt, perDay.size, covered) : [],
     tip,
-    estimate: settings.value.adaptive ? await loadEstimate() : null,
+    estimate: await estimate,
   };
 }
 

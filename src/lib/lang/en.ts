@@ -395,7 +395,7 @@ const checkin: Record<string, string> = {
   checkinEnergy: 'Energy on average {kcal} kcal per logged day (target {target})',
   checkinWeight: 'Weight: {change} kg compared with the week before',
   checkinNoWeight: 'No weigh-ins to compare with the week before.',
-  checkinExpenditure: 'Estimated expenditure: {kcal} kcal/day',
+  checkinExpenditure: 'Estimated expenditure (last 4 weeks): {kcal} kcal/day',
   checkinTarget: 'Suggested energy target ({goal}): {kcal} kcal/day',
   checkinApply: 'Use',
   checkinApplied: 'Your energy target is now {kcal} kcal/day.',
