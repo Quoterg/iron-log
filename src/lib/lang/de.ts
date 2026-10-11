@@ -131,6 +131,7 @@ const pack: LangPack = {
     deleteSavedMealConfirm: 'Die gespeicherte Mahlzeit „{name}“ entfernen? Bereits Eingetragenes bleibt unverändert.',
     sameAsYesterday: 'Wie gestern',
     foodsCount: '{n} Lebensmittel',
+    foodsUnavailable: '{n} der Lebensmittel sind nicht mehr verfügbar und wurden nicht hinzugefügt.',
     toDate: 'Zum Datum',
     toMeal: 'Zur Mahlzeit',
     sameMeal: 'Gleiche Mahlzeiten',

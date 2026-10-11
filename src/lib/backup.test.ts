@@ -13,7 +13,7 @@ const data: AllData = {
   water: [{ date: '2026-10-08', ml: 1500 }],
   templates: [
     {
-      id: 't1', name: 'Frukost', createdAt: 1, updatedAt: 2, count: 3, lastUsed: 2,
+      id: 't1', name: 'Frukost', createdAt: 1, updatedAt: 2,
       items: [{ foodRef: 'slv:1', grams: 300, unit: 'dl', qty: 3 }, { foodRef: 'custom:a', grams: 25 }],
     },
   ],
@@ -62,6 +62,7 @@ describe('backup', () => {
     expect(bad({ name: ' ' })).toThrow(BackupError);
     expect(bad({ items: [{ foodRef: 'slv:1', grams: -1 }] })).toThrow(BackupError);
     expect(bad({ items: Array(51).fill({ foodRef: 'slv:1', grams: 1 }) })).toThrow(BackupError);
+    expect(bad({ name: '  Frukost ' })().templates![0].name).toBe('Frukost'); // trimmed, like the app saves it
     const usage = [{ ...data.usage[0], amounts: [{ grams: 0 }, 'x', { grams: 40, unit: 'skopa' }] }];
     expect(parseBackup(JSON.stringify({ ...makeBackup(data), usage })).usage[0].amounts).toEqual([{ grams: 40 }]);
   });

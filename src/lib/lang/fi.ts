@@ -131,6 +131,7 @@ const pack: LangPack = {
     deleteSavedMealConfirm: 'Poistetaanko tallennettu ateria ”{name}”? Jo kirjattuihin merkintöihin tämä ei vaikuta.',
     sameAsYesterday: 'Sama kuin eilen',
     foodsCount: '{n} elintarviketta',
+    foodsUnavailable: '{n} elintarviketta ei ole enää saatavilla, eikä niitä lisätty.',
     toDate: 'Päivälle',
     toMeal: 'Aterialle',
     sameMeal: 'Samat ateriat',

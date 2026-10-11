@@ -13,7 +13,7 @@ export default function Settings() {
       <ProfileForm />
       <MyFoods />
       <MyRecipes />
-      <SavedMeals />
+      <SavedMealsCard />
       <General />
       <SyncCard />
       <YourData />
@@ -92,8 +92,8 @@ function MyRecipes() {
 }
 
 /** Saved meals: rename, drop foods or remove (they're created from a logged meal in the diary). */
-function SavedMeals() {
-  const list = [...templates.value].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+function SavedMealsCard() {
+  const list = [...templates.value].sort((a, b) => a.name.localeCompare(b.name, lang.value));
   return (
     <section class="card">
       <header class="meal-head">

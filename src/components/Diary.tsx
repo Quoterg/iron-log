@@ -4,7 +4,7 @@ import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, burnedToday, date, dayActivities, dayTotals, dayWater, entries, foods, prevEntries, removeActivity, repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken,
+  activityTypes, addWater, burnedToday, date, notice, dayActivities, dayTotals, dayWater, entries, foods, prevEntries, removeActivity, repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken,
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
 import { Bar } from './Bar';
@@ -17,6 +17,11 @@ export function Diary() {
 
   return (
     <>
+      {notice.value && (
+        <p class="small warn pad" role="status">
+          {notice.value}
+        </p>
+      )}
       <section class="card summary">
         <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} />
         {settings.value.addBurnedToTarget && burnedToday.value > 0 && (

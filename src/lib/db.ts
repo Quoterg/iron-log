@@ -220,6 +220,10 @@ export async function putUsage(u: Usage): Promise<void> {
   await put('usage', [u]);
 }
 
+export async function putUsages(list: Usage[]): Promise<void> {
+  if (list.length) await put('usage', list);
+}
+
 export interface AllData {
   entries: Entry[];
   customFoods: CustomFood[];

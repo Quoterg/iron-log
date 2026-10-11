@@ -131,6 +131,7 @@ const pack: LangPack = {
     deleteSavedMealConfirm: 'Ka saar cuntada la kaydiyey “{name}”? Wixii aad horey u qortay isma beddelayaan.',
     sameAsYesterday: 'Sidii shalay',
     foodsCount: '{n} cunto',
+    foodsUnavailable: '{n} ka mid ah cuntooyinka lama heli karo mar dambe, lamana darin.',
     toDate: 'Taariikhda loo dirayo',
     toMeal: 'Cuntada loo dirayo',
     sameMeal: 'Isla cuntooyinka',

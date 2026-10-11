@@ -143,6 +143,7 @@ const sv = {
   deleteSavedMealConfirm: 'Ta bort den sparade måltiden ”{name}”? Det du redan har loggat påverkas inte.',
   sameAsYesterday: 'Samma som igår',
   foodsCount: '{n} livsmedel',
+  foodsUnavailable: '{n} av livsmedlen finns inte längre och lades inte till.',
   toDate: 'Till datum',
   toMeal: 'Till måltid',
   sameMeal: 'Samma måltider',

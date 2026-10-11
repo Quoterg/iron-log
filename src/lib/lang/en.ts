@@ -130,6 +130,7 @@ const strings: Dict = {
   deleteSavedMealConfirm: 'Remove the saved meal “{name}”? What you have already logged is not affected.',
   sameAsYesterday: 'Same as yesterday',
   foodsCount: '{n} foods',
+  foodsUnavailable: '{n} of the foods are no longer available and were not added.',
   toDate: 'To date',
   toMeal: 'To meal',
   sameMeal: 'Same meals',

@@ -32,8 +32,12 @@ export default function TemplateSheet({ meal, id }: { meal?: Meal; id?: string }
     e.preventDefault();
     if (!ok || busy.current) return;
     busy.current = true;
-    await saveTemplate({ id: existing?.id, name, items });
-    back();
+    try {
+      await saveTemplate({ id: existing?.id, name, items });
+      back();
+    } finally {
+      busy.current = false;
+    }
   };
 
   if (id && !existing) return <Sheet title={t('savedMeal')}>{null}</Sheet>;
@@ -74,9 +78,14 @@ export default function TemplateSheet({ meal, id }: { meal?: Meal; id?: string }
               type="button"
               class="btn danger"
               onClick={async () => {
-                if (!confirm(t('deleteSavedMealConfirm').replace('{name}', existing.name))) return;
-                await deleteTemplate(existing.id);
-                back();
+                if (busy.current || !confirm(t('deleteSavedMealConfirm').replace('{name}', existing.name))) return;
+                busy.current = true;
+                try {
+                  await deleteTemplate(existing.id);
+                  back();
+                } finally {
+                  busy.current = false;
+                }
               }}
             >
               {t('remove')}

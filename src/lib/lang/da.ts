@@ -131,6 +131,7 @@ const pack: LangPack = {
     deleteSavedMealConfirm: 'Fjern det gemte måltid “{name}”? Det, du allerede har logget, påvirkes ikke.',
     sameAsYesterday: 'Samme som i går',
     foodsCount: '{n} fødevarer',
+    foodsUnavailable: '{n} af fødevarerne findes ikke længere og blev ikke tilføjet.',
     toDate: 'Til dato',
     toMeal: 'Til måltid',
     sameMeal: 'Samme måltider',

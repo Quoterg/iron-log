@@ -41,11 +41,16 @@ const DEVICE_LOCAL_SETTINGS = ['lang', 'sources', 'energyNotice'] as const;
 /** A sync failure. Its message may contain text from the other device: show it as plain text only. */
 export class SyncError extends Error {}
 
-function split(k: string): [SyncStore, string] {
+/**
+ * Store and key of a change-log key. A well-formed key of a store this version doesn't know (added
+ * by a newer version on the other device) gives null: skipped, so the rest still syncs until this
+ * device updates. Anything else malformed is an error.
+ */
+function split(k: string): [SyncStore, string] | null {
   const i = k.indexOf(':');
   const store = k.slice(0, i) as SyncStore;
-  if (i < 1 || !SYNC_STORES.includes(store)) throw new SyncError(`unknown store in ${k.slice(0, 40)}`);
-  return [store, k.slice(i + 1)];
+  if (i < 1 || !/^[a-z][A-Za-z]{0,39}$/.test(store)) throw new SyncError(`bad key ${k.slice(0, 40)}`);
+  return SYNC_STORES.includes(store) ? [store, k.slice(i + 1)] : null;
 }
 
 const keyOf = (store: SyncStore, v: unknown): string =>
@@ -98,8 +103,9 @@ export async function changesFor(theirs: Summary, mine?: Summary): Promise<Chang
       out.push({ k, mt, del: true });
       continue;
     }
-    const [store, key] = split(k);
-    const v = (await records(store)).get(key);
+    const sk = split(k);
+    if (!sk) continue; // only this version's stores are ever in the log; be safe anyway
+    const v = (await records(sk[0])).get(sk[1]);
     if (v !== undefined) out.push({ k, mt, v });
   }
   await tx.done;
@@ -113,11 +119,14 @@ export async function changesFor(theirs: Summary, mine?: Summary): Promise<Chang
  */
 export async function applyChanges(changes: Change[], now = Date.now()): Promise<Applied> {
   // Validate everything first: a bad record must not leave a half-synced database.
-  const checked = changes.map((c) => {
+  type Checked = { k: string; mt: number; del?: true; store: SyncStore; key: string; v: unknown };
+  const checked = changes.flatMap((c): Checked[] => {
     if (typeof c.k !== 'string' || typeof c.mt !== 'number' || !Number.isFinite(c.mt) || c.mt < 0) throw new SyncError('bad change');
-    const [store, key] = split(c.k);
+    const sk = split(c.k);
+    if (!sk) return []; // a store from a newer version: skipped
+    const [store, key] = sk;
     const mt = Math.min(c.mt, now + MAX_CLOCK_AHEAD);
-    if (c.del) return { k: c.k, mt, del: true as const, store, key, v: undefined };
+    if (c.del) return [{ k: c.k, mt, del: true, store, key, v: undefined }];
     let v: unknown;
     try {
       v = SYNC_VALIDATORS[store](c.v);
@@ -125,7 +134,7 @@ export async function applyChanges(changes: Change[], now = Date.now()): Promise
       throw new SyncError(`invalid ${store} record`);
     }
     if (keyOf(store, v) !== key) throw new SyncError(`key mismatch in ${store}`);
-    return { k: c.k, mt, del: undefined, store, key, v };
+    return [{ k: c.k, mt, store, key, v }];
   });
 
   const tx = (await openDb()).transaction([...SYNC_STORES, 'meta'], 'readwrite');

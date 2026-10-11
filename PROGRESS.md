@@ -22,11 +22,16 @@ opt-in — and the shopping list). The owner asked to stop after M24 until furth
 - "↻ Samma som igår · N kcal" on an empty meal that was logged the day before (double-tap safe).
 - Portion memory: each food remembers its last 8 amounts and opens at the most frequent one;
   multiples ½× 1× 1½× 2× of it replace the fixed quick amounts for foods logged before.
-- Note: a device on an older version rejects sync messages with saved meals ("unknown store")
-  until it updates (the service worker updates it on the next start). Consider letting sync skip
-  unknown stores instead of failing (sync.test.ts currently asserts the rejection on purpose).
-- Tests: unit 162 ✓ (new: templates-state, portion memory, backup validation), build ✓ (initial JS
-  36.6 KB), e2e 111 ✓ (new templates.spec.ts, a11y "save a meal"), Lighthouse ✓.
+- Sync now skips stores it doesn't know (from a newer version) and applies the rest, so future
+  stores don't break sync with a not-yet-updated device. A device still on the version *before*
+  this one can't sync with a newer one until it updates (it rejects the unknown store); the
+  service worker updates it on the next start.
+- Review fixes: missing foods of a saved meal are skipped with a notice; a whole meal's usage is
+  one write; how often a saved meal is used is kept per device (localStorage), so logging one
+  doesn't create sync changes; save/remove guarded; names trimmed on import; the day before is
+  only read when a meal is empty; saved meals load after first paint.
+- Tests: unit 164 ✓ (new: templates-state, portion memory, backup validation, sync skip), build ✓
+  (initial JS 36.9 KB), e2e 111 ✓ (new templates.spec.ts, a11y "save a meal"), Lighthouse ✓.
 
 ## 2026-10-09 — Android release and install instructions (interactive session)
 

@@ -20,9 +20,10 @@ async function start() {
   document.documentElement.lang = lang.value;
   // Small local tables, loaded before first render so every screen starts with complete data
   // (custom foods are also needed to resolve diary entries, including deleted ones).
-  await Promise.all([loadLibrary(), loadUsage(), loadServings(), loadTemplates()]);
+  await Promise.all([loadLibrary(), loadUsage(), loadServings()]);
   render(<App />, document.getElementById('app')!);
   await loadDay(date.value);
+  void loadTemplates(); // only the add sheet and Settings use them
   // Load the food database in the background once the diary is on screen.
   requestIdleCallbackShim(() => {
     // Food databases first (loaded and indexed in the worker); the split-out screens are small and
