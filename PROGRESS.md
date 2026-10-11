@@ -21,8 +21,8 @@ merges once its review is addressed (owner, 2026-10-11).
   fruit, soft drink → soda water…), shown only with a gain ≥ 5 % of a target at the same weight.
 - "Om du lägger till" (on by default, switch in Settings): on the food screen, energy and up to 3
   nutrients still short, before → after with the % of target.
-- Data: top.json now also has `everyday` per nutrient (foods with household measures, richest per
-  kcal, no alcohol, with a portion) — scripts/build-top.mjs; the file is 144 KB raw (was 63).
+- Data: a new `everyday.<hash>.json` per nutrient (foods with household measures, richest per
+  kcal, no alcohol, with a portion; 84 KB raw) — scripts/build-top.mjs; the top file is unchanged.
 - All lazy (Suggestions 2.1 KB, WhatIf 0.7 KB, strings in strings-suggest.ts / `suggest` in packs).
 - Tests: unit 191 ✓ (ranking, portion filter, swaps, strings), build ✓ (initial JS 39.2 KB), e2e
   119 ✓ (new suggest.spec.ts), Lighthouse ✓.

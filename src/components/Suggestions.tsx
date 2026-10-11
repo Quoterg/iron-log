@@ -17,50 +17,54 @@ interface GapHelp {
   foods: GapFood[];
 }
 
-/** The user's foods (logged at least twice), with their usual portion. */
-export async function ownFoods(): Promise<{ food: Food; grams: number; count: number }[]> {
-  const list = [...usage.value.values()]
+/** The user's food usage (logged at least twice, not supplements), most used first. */
+function ownUsage() {
+  return [...usage.value.values()]
     .filter((u) => u.count >= 2 && u.lastUsed > 0 && !supplementRefs.value.has(u.foodRef))
     .sort((a, b) => b.count - a.count)
     .slice(0, 80);
-  await ensureFoods(list.map((u) => u.foodRef));
-  return list.flatMap((u) => {
+}
+
+/** The user's foods with their usual portion (foods must be loaded: see build). */
+export function ownFoods(): { food: Food; grams: number; count: number }[] {
+  return ownUsage().flatMap((u) => {
     const food = foods.value.get(u.foodRef);
     return food ? [{ food, grams: usualAmount(u).grams, count: u.count }] : [];
   });
 }
 
-/**
- * Everyday foods rich in `key` per kcal (precomputed, with a household portion). During pregnancy no
- * liver products (Livsmedelsverket's advice: too much vitamin A).
- */
-export async function staples(key: string): Promise<Candidate[]> {
-  const pregnant = (settings.value.profile.status ?? 'none').startsWith('pregnant');
-  const rows = (await everydayFoods(key, activeSources(settings.value)).catch(() => [])).filter(([, sv]) => !(pregnant && /lever/i.test(sv)));
-  await ensureFoods(rows.map((r) => r[0]));
-  return rows.flatMap(([ref, , , , , portionG]) => {
-    const food = foods.value.get(ref);
-    return food ? [{ food, portionG, own: false }] : [];
-  });
-}
+/** Everyday foods rich in `key` per kcal (precomputed, with a household portion), unloaded rows. */
+export const staples = (key: string) => everydayFoods(key, activeSources(settings.value)).catch(() => []);
+
+export const isPregnant = () => (settings.value.profile.status ?? 'none').startsWith('pregnant');
 
 async function build(low: Gap[], amounts: number[]): Promise<{ gaps: GapHelp[]; swaps: Swap[] }> {
   const tgt = targets.value;
-  const own = await ownFoods();
+  const keys = low.slice(0, 5).map((g) => g.key).filter((k) => tgt[k]?.min);
+  const rows = new Map(await Promise.all(keys.map(async (k) => [k, await staples(k)] as const)));
+  // One load for everything: own foods, everyday foods for each gap, swap alternatives.
+  const usageRefs = ownUsage().map((u) => u.foodRef);
+  await ensureFoods([...usageRefs, ...[...rows.values()].flat().map((r) => r[0])]);
+  const own = ownFoods();
+  await ensureFoods(swapTargets(own.filter((o) => o.count >= 3).map((o) => o.food)));
+
   const ownCands: Candidate[] = own.map((o) => ({ food: o.food, portionG: o.grams, own: true }));
+  const pregnant = isPregnant();
   const gaps: GapHelp[] = [];
   // The two largest shortfalls that some everyday food can actually help with.
-  for (const g of low.slice(0, 5)) {
+  for (const key of keys) {
     if (gaps.length === 2) break;
-    const target = tgt[g.key]?.min;
-    if (!target) continue;
-    const amount = amounts[NUTRIENT_INDEX[g.key]];
-    const list = gapFoods(g.key, target - amount, [...ownCands, ...(await staples(g.key))]);
-    if (list.length) gaps.push({ key: g.key, amount, target, foods: list });
+    const target = tgt[key].min!;
+    const amount = amounts[NUTRIENT_INDEX[key]];
+    const everyday = (rows.get(key) ?? []).flatMap(([ref, , , , , portionG]) => {
+      const food = foods.value.get(ref);
+      return food ? [{ food, portionG, own: false }] : [];
+    });
+    const list = gapFoods(key, target - amount, [...ownCands, ...everyday], 3, { pregnant });
+    if (list.length) gaps.push({ key, amount, target, foods: list });
   }
-  const frequent = own.filter((o) => o.count >= 3);
-  await ensureFoods(swapTargets(frequent.map((o) => o.food)));
-  const swaps = frequent
+  const swaps = own
+    .filter((o) => o.count >= 3)
     .map((o) => {
       const rule = swapTargets([o.food])[0];
       return swapFor(o.food, rule ? foods.value.get(rule) : undefined, o.grams, tgt);
@@ -79,7 +83,9 @@ const nutrient = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
 /** Foods and swaps that help with the period's shortfalls (opt-in; see lib/suggest.ts). */
 export default function Suggestions({ low, amounts }: { low: Gap[]; amounts: number[] }) {
   const [data, setData] = useState<{ gaps: GapHelp[]; swaps: Swap[] } | null>(null);
-  const key = low.map((g) => g.key).join() + '|' + amounts.join();
+  // Refresh when the gaps, the food sources, pregnancy status or the user's foods change.
+  const sv = settings.value;
+  const key = [low.map((g) => g.key).join(), amounts.join(), activeSources(sv).join(), sv.profile.status ?? '', [...usage.value.values()].reduce((n, u) => n + u.count, 0)].join('|');
   useEffect(() => {
     let live = true;
     setData(null);

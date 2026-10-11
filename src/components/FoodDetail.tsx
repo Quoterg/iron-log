@@ -2,8 +2,6 @@ import { useRef, useState } from 'preact/hooks';
 import { databaseOf, offProductUrl, reportUrl } from '../lib/contribute';
 import { MEALS, type Meal } from '../lib/db';
 import { lazyView } from '../lazy';
-
-const whatIf = lazyView(() => import('./WhatIf'));
 import { decimalComma, fmt, fmtAmount, lang, parseNum, t, unitLabel } from '../lib/i18n';
 import { GRAMS, initialAmount, servingsFor, toGrams } from '../lib/servings';
 import { foodName, NUTRIENT_INDEX, value } from '../lib/nutrients';
@@ -26,6 +24,9 @@ import {
 } from '../state';
 import { NutrientGroups } from './NutrientGroups';
 import { Sheet } from './Sheet';
+
+/** "What if" (M27): loaded with the first food screen that shows it. */
+const whatIf = lazyView(() => import('./WhatIf'));
 
 const QUICK_GRAMS = [25, 50, 100, 150, 200, 300];
 const QUICK_QTY = [0.5, 1, 2, 3];

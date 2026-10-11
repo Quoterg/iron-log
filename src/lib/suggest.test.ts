@@ -19,15 +19,29 @@ describe('gap fixer', () => {
   const thyme = food('slv:3', 'Timjan torkad', { kcal: 276, iron: 124 });
   const oats = food('slv:4', 'Havregryn', { kcal: 375, iron: 4 });
 
-  it("ranks the user's own foods first, then by nutrient per kcal", () => {
+  it("ranks the user's own foods first (if at least half as dense as the best), then by nutrient per kcal", () => {
+    const chickpeas = food('slv:5', 'Kikärtor kokta', { kcal: 120, iron: 2.9 });
     const out = gapFoods('iron', 6, [
-      { food: spinach, portionG: 100, own: false },
       { food: lentils, portionG: 150, own: false },
+      { food: chickpeas, portionG: 150, own: true },
       { food: oats, portionG: 40, own: true },
     ]);
-    expect(out.map((f) => f.ref)).toEqual(['slv:4', 'slv:2', 'slv:1']);
-    expect(out[0]).toMatchObject({ own: true, portionG: 40 });
-    expect(out[0].covers).toBeCloseTo(1.6 / 6);
+    // Chickpeas (own, 0.024 mg/kcal vs. best 0.029) first; oats (own, 0.011) ranks by density only.
+    expect(out.map((f) => f.ref)).toEqual(['slv:5', 'slv:1', 'slv:4']);
+    expect(out[0]).toMatchObject({ own: true, portionG: 150 });
+    expect(out[2].covers).toBeCloseTo(1.6 / 6);
+    const withSpinach = gapFoods('iron', 6, [{ food: oats, portionG: 40, own: true }, { food: spinach, portionG: 100, own: false }]);
+    expect(withSpinach.map((f) => f.ref)).toEqual(['slv:2', 'slv:4']);
+  });
+
+  it('never suggests alcohol, nor liver products during pregnancy (Swedish or English names)', () => {
+    const beer = food('slv:6', 'Öl starköl', { kcal: 45, folate: 6, alcohol: 4 });
+    const pate = food('slv:7', 'Leverpastej', { kcal: 230, iron: 9 });
+    const usdaLiver = { ...food('usda:174729', 'Beef, variety meats and by-products, liver, raw', { kcal: 135, iron: 4.9 }), en: null };
+    expect(gapFoods('folate', 100, [{ food: beer, portionG: 1000, own: true }])).toEqual([]);
+    const iron = [{ food: pate, portionG: 20, own: true }, { food: usdaLiver, portionG: 100, own: false }, { food: lentils, portionG: 150, own: false }];
+    expect(gapFoods('iron', 6, iron).map((f) => f.ref)).toEqual(['slv:7', 'usda:174729', 'slv:1']);
+    expect(gapFoods('iron', 6, iron, 3, { pregnant: true }).map((f) => f.ref)).toEqual(['slv:1']);
   });
 
   it('skips foods whose usual portion covers under 10 % of the gap (spices), and caps coverage', () => {
