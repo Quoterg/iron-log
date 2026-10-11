@@ -9,9 +9,24 @@ Keep entries short — this file is read at the start of every session.
 by the owner — don't start it. Optional when the owner wants it: **M19c** (Play / F-Droid). M18d
 (screen-reader pass) is deferred until someone reports an issue.
 
-Then **Phase 4** in order, M23 → M28 (owner's choices, 2026-10-11): templates & portion memory,
-"your usual" (strict rules so it only shows when it truly is the usual), adaptive energy
-expenditure, weekly check-in (opt-in), gap fixer & swaps (opt-in), shopping list.
+Phase 4 (owner's choices, 2026-10-11): M23 done; **M24 "your usual" & shortcuts** is being built
+in the same interactive session. Then M25 → M28 (adaptive expenditure, check-in, gap fixer — all
+opt-in — and the shopping list). The owner asked to stop after M24 until further notice.
+
+## 2026-10-11 — M23 Saved meals & portion memory (interactive session)
+
+- Saved meals: "Spara som måltid" under a logged meal (name suggested from its foods; drop foods
+  before saving). They show first in the add sheet; one tap logs all foods into that meal. Rename,
+  trim or remove from Settings → Sparade måltider. New synced store `templates` (IndexedDB v10),
+  in backups (older backups without it still import), validated like every other record.
+- "↻ Samma som igår · N kcal" on an empty meal that was logged the day before (double-tap safe).
+- Portion memory: each food remembers its last 8 amounts and opens at the most frequent one;
+  multiples ½× 1× 1½× 2× of it replace the fixed quick amounts for foods logged before.
+- Note: a device on an older version rejects sync messages with saved meals ("unknown store")
+  until it updates (the service worker updates it on the next start). Consider letting sync skip
+  unknown stores instead of failing (sync.test.ts currently asserts the rejection on purpose).
+- Tests: unit 162 ✓ (new: templates-state, portion memory, backup validation), build ✓ (initial JS
+  36.6 KB), e2e 111 ✓ (new templates.spec.ts, a11y "save a meal"), Lighthouse ✓.
 
 ## 2026-10-09 — Android release and install instructions (interactive session)
 

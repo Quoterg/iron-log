@@ -1,0 +1,44 @@
+// Saved meals ("templates"): a named set of foods and amounts, logged again in one tap.
+import type { Entry } from './db';
+
+export interface TemplateItem {
+  foodRef: string;
+  grams: number;
+  /** Household measure it was logged with (grams stays the source of truth). */
+  unit?: string;
+  qty?: number;
+}
+
+export interface MealTemplate {
+  id: string;
+  name: string;
+  items: TemplateItem[];
+  createdAt: number;
+  updatedAt: number;
+  /** How often and when it was last logged: orders the list in the add sheet. */
+  count?: number;
+  lastUsed?: number;
+}
+
+export const MAX_TEMPLATE_ITEMS = 50;
+export const MAX_TEMPLATE_NAME = 80;
+
+/** The foods and amounts of logged entries, in logged order. */
+export function itemsFromEntries(entries: Entry[]): TemplateItem[] {
+  return [...entries]
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .slice(0, MAX_TEMPLATE_ITEMS)
+    .map((e) => (e.unit && e.qty ? { foodRef: e.foodRef, grams: e.grams, unit: e.unit, qty: e.qty } : { foodRef: e.foodRef, grams: e.grams }));
+}
+
+/** A first suggestion for the name: the first foods, e.g. "Havregryn, mjölk, banan". */
+export function suggestName(names: string[]): string {
+  const first = names.slice(0, 3).map((n) => n.split(',')[0].trim());
+  const s = first.join(', ') + (names.length > 3 ? ' …' : '');
+  return s.slice(0, MAX_TEMPLATE_NAME);
+}
+
+/** Most used first, then most recently used, then by name. */
+export function sortTemplates(list: MealTemplate[]): MealTemplate[] {
+  return [...list].sort((a, b) => (b.count ?? 0) - (a.count ?? 0) || (b.lastUsed ?? 0) - (a.lastUsed ?? 0) || a.name.localeCompare(b.name, 'sv'));
+}

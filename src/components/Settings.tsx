@@ -1,7 +1,7 @@
 import { fmt, type Lang, lang, LANGS, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { open } from '../nav';
-import { activeSources, customFoods, recipes, settings, updateSettings } from '../state';
+import { activeSources, customFoods, recipes, settings, templates, updateSettings } from '../state';
 import { ProfileForm } from './ProfileForm';
 import { YourData } from './YourData';
 import { ts } from '../lib/strings-sync';
@@ -13,6 +13,7 @@ export default function Settings() {
       <ProfileForm />
       <MyFoods />
       <MyRecipes />
+      <SavedMeals />
       <General />
       <SyncCard />
       <YourData />
@@ -81,6 +82,32 @@ function MyRecipes() {
                 <span class="num muted">
                   {fmt(((r.per100g[NUTRIENT_INDEX.kcal] ?? 0) * r.portionG) / 100)} kcal / {t('portionShort')}
                 </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/** Saved meals: rename, drop foods or remove (they're created from a logged meal in the diary). */
+function SavedMeals() {
+  const list = [...templates.value].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+  return (
+    <section class="card">
+      <header class="meal-head">
+        <h2>{t('savedMeals')}</h2>
+      </header>
+      {list.length === 0 ? (
+        <p class="muted small">{t('noSavedMeals')}</p>
+      ) : (
+        <ul class="entries">
+          {list.map((m) => (
+            <li key={m.id}>
+              <button class="entry" onClick={() => open({ kind: 'template', id: m.id })}>
+                <span class="entry-name">{m.name}</span>
+                <span class="num muted">{t('foodsCount').replace('{n}', String(m.items.length))}</span>
               </button>
             </li>
           ))}

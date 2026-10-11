@@ -27,7 +27,9 @@ export type Screen =
   /** Sync with another of the user's devices. */
   | { kind: 'sync' }
   /** Add or complete a product on Open Food Facts. */
-  | { kind: 'offUpload'; code: string; meal: Meal };
+  | { kind: 'offUpload'; code: string; meal: Meal }
+  /** Save a logged meal for later (`meal`), or edit a saved one (`id`). */
+  | { kind: 'template'; meal?: Meal; id?: string };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

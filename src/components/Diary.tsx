@@ -4,7 +4,7 @@ import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, burnedToday, date, dayActivities, dayTotals, dayWater, entries, foods, removeActivity, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken,
+  activityTypes, addWater, burnedToday, date, dayActivities, dayTotals, dayWater, entries, foods, prevEntries, removeActivity, repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken,
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
 import { Bar } from './Bar';
@@ -36,6 +36,8 @@ export function Diary() {
       {MEALS.map((meal) => {
         const list = entries.value.filter((e) => e.meal === meal && !supplementRefs.value.has(e.foodRef));
         const kcal = list.reduce((s, e) => s + entryKcal(e), 0);
+        // An empty meal that was logged the day before: offer it again in one tap.
+        const prev = list.length ? [] : prevEntries.value.filter((e) => e.meal === meal && !supplementRefs.value.has(e.foodRef));
         return (
           <section class="card meal" key={meal}>
             <header class="meal-head">
@@ -60,10 +62,20 @@ export function Diary() {
                   </li>
                 ))}
               </ul>
-              <button class="link" onClick={() => open({ kind: 'copy', meal })}>
-                {t('copyMeal')}
-              </button>
+              <div class="links">
+                <button class="link" onClick={() => open({ kind: 'copy', meal })}>
+                  {t('copyMeal')}
+                </button>
+                <button class="link" onClick={() => open({ kind: 'template', meal })}>
+                  {t('saveAsMeal')}
+                </button>
+              </div>
               </>
+            )}
+            {prev.length > 0 && (
+              <button class="link" onClick={() => void repeatYesterday(meal)}>
+                ↻ {t('sameAsYesterday')} · {fmt(prev.reduce((s, e) => s + entryKcal(e), 0))} kcal
+              </button>
             )}
           </section>
         );
