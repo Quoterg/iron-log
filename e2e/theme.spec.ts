@@ -16,7 +16,8 @@ test('Auto follows the phone; a chosen theme sticks across reloads, before first
   await expect(group.getByRole('button', { name: 'Natt' })).toHaveAttribute('aria-pressed', 'true');
   expect(await theme(page)).toBe('night');
 
-  // Before any app script runs: the inline boot script already set it.
+  // Set by the inline boot script while the page is parsed (before the app's own scripts run):
+  // checked when parsing ends, ahead of the deferred app module.
   await page.addInitScript(() => {
     document.addEventListener('readystatechange', () => {
       if (document.readyState === 'interactive') (window as unknown as { early: string | null }).early = document.documentElement.getAttribute('data-theme');

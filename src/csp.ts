@@ -5,13 +5,14 @@
  * and e2e/csp.spec.ts guard it.
  */
 /**
- * Theme boot (M29), inline in index.html's head so the theme is set before first paint: the saved
- * choice (Settings → Utseende), else the phone's setting. Allowed by its hash only — change the text
- * and THEME_BOOT_HASH together (csp.test.ts checks they match).
+ * Theme boot (M29), written inline in index.html's head after the theme-color metas and before the
+ * stylesheet, so the theme (and the browser bar colour for an explicit choice) is set before first
+ * paint: the saved choice (Settings → Utseende), else the phone's setting. Allowed by its hash only —
+ * change index.html, THEME_BOOT and THEME_BOOT_HASH together (csp.test.ts checks all three match).
  */
 export const THEME_BOOT =
-  "(function(){var t;try{t=localStorage.getItem('iron-log-theme')}catch(e){}var n=t==='night'||(t!=='day'&&!!window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',n?'night':'day')})()";
-export const THEME_BOOT_HASH = 'sha256-AkwvTa3rnQ8nztg2pkAtVudol6ueS0Dd4FM5FrUmrZI=';
+  "(function(){var t;try{t=localStorage.getItem('iron-log-theme')}catch(e){}var n=t==='night'||(t!=='day'&&!!window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);var d=document;d.documentElement.setAttribute('data-theme',n?'night':'day');if(t){var m=d.querySelectorAll('meta[name=theme-color]');for(var i=0;i<m.length;i++)m[i].content=n?'#050912':'#eef1f8'}})()";
+export const THEME_BOOT_HASH = 'sha256-ZzWIPloZstWYQUZEE8v25Jxi35qSfD4R0pv8JbS4eQk=';
 
 export const CSP_DIRECTIVES: [directive: string, sources: string][] = [
   ['default-src', "'self'"],

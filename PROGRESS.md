@@ -22,7 +22,8 @@ see strings-energy.ts). PRs: the reviewer agent merges once its review is addres
 - Settings → Utseende: Auto (follows the phone, also while open) / Dag / Natt, per device
   (localStorage). An inline boot script (src/csp.ts THEME_BOOT, allowed by its sha256 in the CSP —
   no 'unsafe-inline') sets data-theme before first paint; browser bar colour follows. Web manifest
-  colours now the night theme (the Android splash follows with the next Bubblewrap build).
+  colours now the night theme (the Android splash follows with the next Bubblewrap build). Known: a
+  manifest can't follow the theme, so Dag users also get the dark splash/install UI.
 - Design reference: the canvas rows "M29 theme" (link in ROADMAP).
 - Tests: unit 185 ✓ (CSP hash matches the script), build ✓ (CSS 3.7 KB; initial JS 38.9 KB, +0.4 —
   slightly over the planned ±0.3: theme module, big-number variant, strings), e2e 118 ✓ (new
