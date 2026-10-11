@@ -18,7 +18,7 @@ interface GapHelp {
 }
 
 /** The user's foods (logged at least twice), with their usual portion. */
-async function ownFoods(): Promise<{ food: Food; grams: number; count: number }[]> {
+export async function ownFoods(): Promise<{ food: Food; grams: number; count: number }[]> {
   const list = [...usage.value.values()]
     .filter((u) => u.count >= 2 && u.lastUsed > 0 && !supplementRefs.value.has(u.foodRef))
     .sort((a, b) => b.count - a.count)
@@ -34,7 +34,7 @@ async function ownFoods(): Promise<{ food: Food; grams: number; count: number }[
  * Everyday foods rich in `key` per kcal (precomputed, with a household portion). During pregnancy no
  * liver products (Livsmedelsverket's advice: too much vitamin A).
  */
-async function staples(key: string): Promise<Candidate[]> {
+export async function staples(key: string): Promise<Candidate[]> {
   const pregnant = (settings.value.profile.status ?? 'none').startsWith('pregnant');
   const rows = (await everydayFoods(key, activeSources(settings.value)).catch(() => [])).filter(([, sv]) => !(pregnant && /lever/i.test(sv)));
   await ensureFoods(rows.map((r) => r[0]));
