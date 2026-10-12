@@ -6,12 +6,21 @@ Keep entries short — this file is read at the start of every session.
 ## Next up
 
 Phase 4 and M29 are done (owner's order request 2026-10-11: built as M29, M27, M26, M28). Next:
-**M21b** (low security housekeeping). **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
+Remaining roadmap items are manual/optional (M18d, M19c) or deferred (M22). **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-12 — M21b Security housekeeping (weekly run)
+
+- S4: `MAX_PARTS` 4096 → 2048 (32 MB per message; a 200 000-key summary is tested to fit); summary checked (≤ 200 000 keys, finite numbers
+  only); receive loop stops after `ceil(total/BATCH)+1` batches and rejects a changing/invalid `total`.
+- S5: `--frozen-lockfile` in CLAUDE.md, README and docs/ROUTINE.md; `.github/dependabot.yml` (npm +
+  actions, weekly, grouped); `SECURITY.md`. Owner: enable "Private vulnerability reporting" in the
+  repo settings so the SECURITY.md route works.
+- Tests: unit 207 ✓, build ✓ (initial JS 37.4 KB), Lighthouse ✓, e2e 123 ✓ / 4 ✗: the sync-code (QR) screen never shows its code in this cloud sandbox (WebRTC offer; csp "main flows" and a11y "sync code (QR)" x3) — fails identically on unmodified main here, so environmental; CI is the check.
 
 ## 2026-10-11 — M28 Shopping list (interactive session)
 

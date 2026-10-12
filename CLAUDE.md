@@ -32,7 +32,7 @@ Must stay fast on old low/mid-range phones. Read docs/ARCHITECTURE.md before str
 
 ```sh
 corepack enable            # once; pnpm version is pinned in package.json
-pnpm install
+pnpm install --frozen-lockfile  # lockfile changes must be deliberate, and mentioned in the PR
 pnpm dev                   # local dev server
 pnpm test                  # Vitest unit tests (src/**/*.test.ts)
 pnpm build                 # typecheck + build + performance budget (scripts/check-size.mjs)
