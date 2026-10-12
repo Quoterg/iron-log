@@ -15,12 +15,12 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
 
 ## 2026-10-12 — M21b Security housekeeping (weekly run)
 
-- S4: `MAX_PARTS` 4096 → 1024 (16 MB per message); summary checked (≤ 200 000 keys, finite numbers
+- S4: `MAX_PARTS` 4096 → 2048 (32 MB per message; a 200 000-key summary is tested to fit); summary checked (≤ 200 000 keys, finite numbers
   only); receive loop stops after `ceil(total/BATCH)+1` batches and rejects a changing/invalid `total`.
 - S5: `--frozen-lockfile` in CLAUDE.md, README and docs/ROUTINE.md; `.github/dependabot.yml` (npm +
   actions, weekly, grouped); `SECURITY.md`. Owner: enable "Private vulnerability reporting" in the
   repo settings so the SECURITY.md route works.
-- Tests: unit 206 ✓, build ✓ (initial JS 37.4 KB), Lighthouse ✓, e2e 123 ✓ / 4 ✗: the sync-code (QR) screen never shows its code in this cloud sandbox (WebRTC offer; csp "main flows" and a11y "sync code (QR)" x3) — fails identically on unmodified main here, so environmental; CI is the check.
+- Tests: unit 207 ✓, build ✓ (initial JS 37.4 KB), Lighthouse ✓, e2e 123 ✓ / 4 ✗: the sync-code (QR) screen never shows its code in this cloud sandbox (WebRTC offer; csp "main flows" and a11y "sync code (QR)" x3) — fails identically on unmodified main here, so environmental; CI is the check.
 
 ## 2026-10-11 — M28 Shopping list (interactive session)
 

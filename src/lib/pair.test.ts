@@ -97,7 +97,7 @@ describe('message framing', () => {
     expect(() => new Reassembler().push(parts[1])).toThrow(PairError); // out of order
     expect(() => new Reassembler().push('garbage')).toThrow(PairError);
     expect(() => new Reassembler().push('0/99999|{}')).toThrow(PairError); // too many parts
-    expect(() => new Reassembler().push('0/1025|{}')).toThrow(PairError); // just over MAX_PARTS
+    expect(() => new Reassembler().push('0/2049|{}')).toThrow(PairError); // just over MAX_PARTS
     expect(new Reassembler().push('0/1|{}')).toEqual({});
     expect(() => new Reassembler().push(`0/1|${'x'.repeat(20_000)}`)).toThrow(PairError); // part too big
     const asm = new Reassembler();
@@ -148,6 +148,15 @@ describe('sync protocol over a channel', () => {
     const q: SyncMsg[] = [{ t: 'hello', v: 2 }, ...msgs];
     return { send: async () => {}, next: async () => q.shift() ?? { t: 'done' }, flush: async () => {} };
   };
+
+  it('a realistic maximum summary (MAX_SUMMARY keys, long keys) fits in MAX_PARTS', async () => {
+    const { frame, Reassembler, MAX_SUMMARY } = (await device()).pair;
+    const s: Record<string, number> = {};
+    for (let i = 0; i < MAX_SUMMARY; i++) s[`entries:00000000-0000-4000-8000-${String(i).padStart(12, '0')}`] = 1_760_000_000_000 + i;
+    const asm = new Reassembler();
+    const got = frame({ t: 'summary', s }).map((p) => asm.push(p));
+    expect(Object.keys((got.at(-1) as { s: object }).s).length).toBe(MAX_SUMMARY);
+  });
 
   it('rejects a summary with too many keys or non-numeric values', async () => {
     const { checkSummary, MAX_SUMMARY, PairError } = (await device()).pair;

@@ -64,7 +64,7 @@ export type SyncMsg =
 
 /** Characters per part. Parts are `i/n|text` — no re-escaping, so a part is at most ~16 KB. */
 export const PART = 16_000;
-const MAX_PARTS = 1024; // 16 MB per message: room for a 500-record batch or a summary of MAX_SUMMARY keys, bounds what a peer can make us hold
+const MAX_PARTS = 2048; // 32 MB per message: room for a 500-record batch or a summary of MAX_SUMMARY keys, bounds what a peer can make us hold
 /** Most records a summary may list (a lifetime of use is ~50 000). */
 export const MAX_SUMMARY = 200_000;
 
