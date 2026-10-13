@@ -33,7 +33,9 @@ export type Screen =
   /** Last week's check-in (opt-in, M26). */
   | { kind: 'checkin' }
   /** The shopping list (M28). */
-  | { kind: 'shopping' };
+  | { kind: 'shopping' }
+  /** What's new (M32): releases newer than `since`, else the latest ones. */
+  | { kind: 'whatsnew'; since?: string | null };
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

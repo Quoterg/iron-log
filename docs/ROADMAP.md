@@ -181,7 +181,7 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   item (Willys, Hemköp, Coop, Lidl, City Gross search pages; ICA's offers page — its search needs a
   store). The user picks their chains (synced setting). The app fetches nothing: links open the
   store's site with the item's name (privacy page says so).
-- [ ] **M32 What's new** — The app gets a version (package.json) and a changelog (`src/changelog.ts`,
+- [x] **M32 What's new** — The app gets a version (package.json) and a changelog (`src/changelog.ts`,
   every language). After a release, the first start shows "Nyheter i <version>" once; a fresh
   install shows nothing; minor web deploys without a version bump show nothing. Releasing = bump the
   version and add its entry (rule in CLAUDE.md).

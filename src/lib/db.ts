@@ -573,6 +573,11 @@ export async function getSettings(): Promise<Settings | undefined> {
   return (await (await db()).get('kv', 'settings')) as Settings | undefined;
 }
 
+/** Whether anything was ever logged here (cheap: a count). */
+export async function hasEntries(): Promise<boolean> {
+  return (await (await db()).count('entries')) > 0;
+}
+
 export async function saveSettings(s: Settings): Promise<void> {
   await put('kv', [s], 'settings');
 }

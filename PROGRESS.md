@@ -5,15 +5,29 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-Owner (2026-10-13): **M32 what's new** (changelog on a new app version) next, then M21b (low
-security housekeeping). **Watch:** local Lighthouse TBT hovers at the 200 ms limit (201/207 ms on
-single runs, re-runs pass) — worth a look at start-up main-thread work. **Store links** (`lib/stores.ts`, checked
-2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
+**M21b** (low security housekeeping) next. **Release 1.3.0** is ready to build once #49 is merged
+(bubblewrap update + build; twa-manifest already says 1.3.0 / code 5). **Releasing** from now on:
+see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 37.6 KB of 40 after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-13 — M32 What's new (interactive session)
+
+- The app has a version (package.json, now **1.3.0**) and a changelog (`src/changelog.ts`, 6
+  languages, lazy). After a version bump the first start opens "Nyheter" with what's new since the
+  version last seen (localStorage `iron-log-seen-version`); a fresh install shows nothing; users
+  from before M32 who have data see everything since 1.1.0. Back/Okej closes it. Settings shows
+  "Iron Log 1.3.0 · Nyheter". The check is a lazy chunk run after the diary is shown.
+- Release rule in CLAUDE.md; a unit test fails if package.json's version has no changelog entry.
+- **Lighthouse TBT flake found:** it was about.html, not the app. Symbol characters (□↑⋮→) in the
+  install instructions (added 2026-10-09) made Chrome search fallback fonts: ~400 ms extra layout,
+  TBT 0 or ~210 ms per run. Replaced with words: about.html TBT now 0–50 ms.
+- Tests: unit 218 ✓, build ✓ (37.6 KB), e2e 134 ✓ (what’s new ×2, plus axe/200 % for the sheet),
+  Lighthouse ✓.
 
 ## 2026-10-13 — M31 Offer links (interactive session)
 
