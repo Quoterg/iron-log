@@ -5,13 +5,31 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-Phase 4 and M29 are done (owner's order request 2026-10-11: built as M29, M27, M26, M28). Next:
-**M21b** (low security housekeeping). **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
+Owner (2026-10-13): **M31 offer links**, then **M32 what's new** (changelog on a new app version).
+Then M21b (low security housekeeping). **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-13 — M30 Shopping list: prices and biggest items (interactive session)
+
+- The list looks back: "Det du åt de senaste 7 dagarna" adds this week's foods (owner: restocking
+  is the daily use); "planerat framåt" shows only when future days have entries.
+- "Pris" per line: the shelf's comparison price (kr/kg; kr/l via the food's dl density; kr/st via
+  its "st" weight) → remembered per food as kr/kg in a new synced store `prices` (IndexedDB v13, in
+  backups, validated). Own items take a price in kr. Estimated total with "N utan pris", and a
+  "Största posterna" view with each line's share of the total.
+- Review fixes: kr/l uses the same density as the amounts (dl, else glas/2); the price editor opens
+  with the stored price and can remove it ("Ta bort pris", syncs as a tombstone); one price limit
+  (MAX_PRICE) for editor and backups; costs computed once and summed unrounded; lines re-render only
+  when their own data changed. Known (last-writer-wins): an older app version drops a typed price on
+  an own item, and its next tick of that item syncs back without the price.
+- Also: android/twa-manifest.json synced to the owner's v1.2.0 build (Hologram bar/splash colours).
+- Tests: unit 207 ✓ (kr/kg conversion incl. glas, limit, line cost, unrounded totals, ranking, bad prices), build ✓ (initial JS 37.3 KB;
+  ShoppingSheet 3.7 KB lazy), e2e 128 ✓ (new price/total/biggest-items/look-back test), Lighthouse ✓
+  (one local run showed TBT 201 ms vs 200; the re-run passed — nothing on the first screen changed).
 
 ## 2026-10-11 — M28 Shopping list (interactive session)
 
