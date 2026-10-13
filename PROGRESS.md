@@ -5,13 +5,26 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-Owner (2026-10-13): **M31 offer links**, then **M32 what's new** (changelog on a new app version).
-Then M21b (low security housekeeping). **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
+Owner (2026-10-13): **M32 what's new** (changelog on a new app version) next, then M21b (low
+security housekeeping). **Watch:** local Lighthouse TBT hovers at the 200 ms limit (201/207 ms on
+single runs, re-runs pass) — worth a look at start-up main-thread work. **Store links** (`lib/stores.ts`, checked
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-13 — M31 Offer links (interactive session)
+
+- In "Största posterna", the 5 most expensive priced lines still to buy get links to the user's
+  stores: Willys, Coop, Lidl, Hemköp, City Gross search for the item's first word ("Mjölk");
+  ICA opens its offers page (its search needs a chosen store). Links open the store's site in a
+  new tab; the app fetches nothing (e2e checks no external request). "Mina butiker" picker —
+  synced setting `chains` (default Willys, ICA, Coop, Lidl), validated. Privacy page says so.
+- URL patterns in lib/stores.ts, checked 2026-10-13 (re-check if a store changes its site).
+- Tests: unit 209 ✓ (search term, URLs/encoding), build ✓ (37.3 KB), e2e 129 ✓ (new offer-links
+  test), Lighthouse ✓ (one local run TBT 207 ms, re-run passed).
 
 ## 2026-10-13 — M30 Shopping list: prices and biggest items (interactive session)
 
