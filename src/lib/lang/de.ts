@@ -539,6 +539,7 @@ const pack: LangPack = {
     shopOffers: 'Angebote ansehen:',
     shopMyStores: 'Meine Läden',
     shopOffersNote: 'Die Links öffnen die Website des Ladens mit dem Namen des Artikels in der Suche. Die App lädt selbst nichts.',
+    shopClearPrice: 'Preis entfernen',
     secProduce: 'Obst & Gemüse',
     secBread: 'Brot, Getreide & Pasta',
     secDairy: 'Milchprodukte & Eier',

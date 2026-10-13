@@ -444,6 +444,7 @@ const shop: Record<string, string> = {
   shopOffers: 'Check offers:',
   shopMyStores: 'My stores',
   shopOffersNote: 'The links open the store\'s website with the item\'s name in its search. The app fetches nothing itself.',
+  shopClearPrice: 'Remove price',
   secProduce: 'Fruit & vegetables',
   secBread: 'Bread, grains & pasta',
   secDairy: 'Dairy & eggs',

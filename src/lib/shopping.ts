@@ -26,45 +26,60 @@ export interface FoodPrice {
 
 export type PriceUnit = 'kg' | 'l' | 'st';
 
-/**
- * The shelf's comparison price ("jämförpris") as kr per kg: kr/l via the food's dl measure (its
- * density), kr/st via its "st" measure. Null when the unit can't be converted for this food.
- */
-export function krPerKg(kr: number, unit: PriceUnit, units: Serving[] = []): number | null {
-  if (!(kr > 0)) return null;
-  if (unit === 'kg') return kr;
-  const per = unit === 'st' ? units.find((u) => u.name === 'st')?.g : (units.find((u) => u.name === 'dl')?.g ?? 0) * 10 || (unit === 'l' ? 1000 : 0);
-  return per ? Math.round((kr / per) * 1000 * 100) / 100 : null;
+/** Prices above this (kr, or kr per kg) are refused as typos — in the editor and in backups/sync. */
+export const MAX_PRICE = 1e5;
+
+/** Grams in one dl of a food: its "dl" measure, else half its "glas" (2 dl); 0 if neither. */
+export function gramsPerDl(units: Serving[]): number {
+  return units.find((u) => u.name === 'dl')?.g ?? (units.find((u) => u.name === 'glas')?.g ?? 0) / 2;
 }
 
-/** A line's cost: typed for the line, else estimated from the food's price and the amount on the list. */
+/**
+ * The shelf's comparison price ("jämförpris") as kr per kg: kr/l via the food's density (its dl or
+ * glas measure; 1 kg per litre if neither is known), kr/st via its "st" measure. Null when the unit
+ * can't be converted for this food.
+ */
+export function krPerKg(kr: number, unit: PriceUnit, units: Serving[] = []): number | null {
+  if (!(kr > 0 && kr < MAX_PRICE)) return null;
+  let gramsPerUnit: number;
+  if (unit === 'kg') gramsPerUnit = 1000;
+  else if (unit === 'l') gramsPerUnit = gramsPerDl(units) * 10 || 1000;
+  else gramsPerUnit = units.find((u) => u.name === 'st')?.g ?? 0;
+  return gramsPerUnit ? Math.round((kr / gramsPerUnit) * 1000 * 100) / 100 : null;
+}
+
+/**
+ * A line's cost (unrounded: round only for display, so totals don't drift): typed for the line, else
+ * estimated from the food's price and the amount on the list.
+ */
 export function lineCost(i: ShopItem, prices: Map<string, FoodPrice>): { kr: number; estimated: boolean } | null {
   if (i.kr != null) return { kr: i.kr, estimated: false };
   const p = i.foodRef && i.grams ? prices.get(i.foodRef) : undefined;
-  return p ? { kr: Math.round((p.krPerKg * i.grams!) / 1000), estimated: true } : null;
+  return p ? { kr: (p.krPerKg * i.grams!) / 1000, estimated: true } : null;
 }
 
-/** The whole list: estimated total and how many lines have no price yet. */
-export function listCost(items: ShopItem[], prices: Map<string, FoodPrice>): { total: number; missing: number } {
+export interface Costed {
+  item: ShopItem;
+  cost: { kr: number; estimated: boolean } | null;
+  /** Share of the list's total (0–1). */
+  share: number;
+}
+
+/**
+ * Every line's cost (computed once), the total and how many lines have no price yet; `ranked` is
+ * the lines by cost, most expensive first (unpriced last).
+ */
+export function costList(items: ShopItem[], prices: Map<string, FoodPrice>): { total: number; missing: number; ranked: Costed[] } {
+  const costed = items.map((item) => ({ item, cost: lineCost(item, prices), share: 0 }));
   let total = 0;
   let missing = 0;
-  for (const i of items) {
-    const c = lineCost(i, prices);
-    if (c) total += c.kr;
+  for (const c of costed) {
+    if (c.cost) total += c.cost.kr;
     else missing++;
   }
-  return { total, missing };
-}
-
-/** Lines by cost, most expensive first (unpriced last), each with its share of the total. */
-export function byCost(items: ShopItem[], prices: Map<string, FoodPrice>): { item: ShopItem; kr: number | null; share: number }[] {
-  const { total } = listCost(items, prices);
-  return items
-    .map((item) => {
-      const kr = lineCost(item, prices)?.kr ?? null;
-      return { item, kr, share: kr != null && total ? kr / total : 0 };
-    })
-    .sort((a, b) => (b.kr ?? -1) - (a.kr ?? -1));
+  for (const c of costed) c.share = c.cost && total ? c.cost.kr / total : 0;
+  costed.sort((a, b) => (b.cost?.kr ?? -1) - (a.cost?.kr ?? -1));
+  return { total, missing, ranked: costed };
 }
 
 export const MAX_SHOP_ITEMS = 300;
@@ -128,7 +143,7 @@ export function sectionOf(name: string): Section {
 export function shopAmount(grams: number, units: Serving[] = []): { qty: number; unit: 'st' | 'l' | 'dl' | 'g' | 'kg' } {
   const st = units.find((u) => u.name === 'st');
   if (st && st.g > 0) return { qty: Math.max(1, Math.ceil(grams / st.g - 0.05)), unit: 'st' };
-  const dl = units.find((u) => u.name === 'dl')?.g ?? (units.find((u) => u.name === 'glas')?.g ?? 0) / 2;
+  const dl = gramsPerDl(units);
   if (dl >= 95 && dl <= 115) {
     const dls = grams / dl;
     return dls >= 10 ? { qty: Math.ceil(dls / 2.5) / 4, unit: 'l' } : { qty: Math.ceil(dls - 0.05), unit: 'dl' };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addTo, byCost, expand, krPerKg, lineCost, listCost, sectionOf, shopAmount, toText, type ShopItem } from './shopping';
+import { addTo, costList, expand, krPerKg, lineCost, sectionOf, shopAmount, toText, type ShopItem } from './shopping';
 import type { StoredRecipe } from './recipes';
 
 describe('shopping list', () => {
@@ -60,6 +60,8 @@ describe('shopping list', () => {
     expect(krPerKg(32, 'kg')).toBe(32);
     expect(krPerKg(15, 'l', [{ name: 'dl', g: 103 }])).toBeCloseTo(14.56); // milk: 1 l ≈ 1.03 kg
     expect(krPerKg(15, 'l')).toBe(15); // no density known: 1 l ≈ 1 kg
+    expect(krPerKg(15, 'l', [{ name: 'glas', g: 206 }])).toBeCloseTo(14.56); // only a glass (2 dl): same density
+    expect(krPerKg(1e5, 'kg')).toBeNull(); // over the limit: a typo
     expect(krPerKg(3.5, 'st', [{ name: 'st', g: 55 }])).toBeCloseTo(63.64); // eggs
     expect(krPerKg(3.5, 'st')).toBeNull(); // no piece weight known
     expect(krPerKg(0, 'kg')).toBeNull();
@@ -76,10 +78,14 @@ describe('shopping list', () => {
     expect(lineCost(items[1], prices)).toEqual({ kr: 96, estimated: true });
     expect(lineCost(items[2], prices)).toEqual({ kr: 25, estimated: false });
     expect(lineCost(items[3], prices)).toBeNull();
-    expect(listCost(items, prices)).toEqual({ total: 131, missing: 1 });
-    const sorted = byCost(items, prices);
-    expect(sorted.map((x) => x.item.id)).toEqual(['b', 'c', 'a', 'd']);
-    expect(sorted[0].share).toBeCloseTo(96 / 131);
+    const list = costList(items, prices);
+    expect([list.total, list.missing]).toEqual([131, 1]);
+    expect(list.ranked.map((x) => x.item.id)).toEqual(['b', 'c', 'a', 'd']);
+    expect(list.ranked[0].share).toBeCloseTo(96 / 131);
+    // Unrounded per line: ten 5 g spice lines at 200 kr/kg add up to 10 kr, not 10 × round(1).
+    const spice = new Map([['slv:s', { foodRef: 'slv:s', krPerKg: 200, updatedAt: 1 }]]);
+    const lines = Array.from({ length: 10 }, (_, k): ShopItem => ({ id: `s${k}`, foodRef: 'slv:s', grams: 5, updatedAt: 1 }));
+    expect(costList(lines, spice).total).toBeCloseTo(10);
   });
 
   it('shares as plain text, sections with items only', () => {

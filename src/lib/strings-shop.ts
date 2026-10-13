@@ -36,6 +36,7 @@ export const SV_SHOP = {
   shopOffers: 'Kolla erbjudanden:',
   shopMyStores: 'Mina butiker',
   shopOffersNote: 'Länkarna öppnar butikens webbplats med varans namn i sökningen. Appen hämtar inget själv.',
+  shopClearPrice: 'Ta bort pris',
   secProduce: 'Frukt & grönt',
   secBread: 'Bröd, gryn & pasta',
   secDairy: 'Mejeri & ägg',

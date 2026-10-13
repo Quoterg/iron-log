@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { addDays, changeShopping, entriesBetween, isoDate, listPrices, listShopping, newId, putPrice, type Entry } from '../lib/db';
-import { fmt, lang, parseNum, t } from '../lib/i18n';
-import { foodName } from '../lib/nutrients';
+import { Component } from 'preact';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { addDays, changeShopping, deletePrice, entriesBetween, isoDate, listPrices, listShopping, newId, putPrice, type Entry } from '../lib/db';
+import { decimalComma, fmt, lang, parseNum, t } from '../lib/i18n';
+import { foodName, type Serving } from '../lib/nutrients';
 import { servingsFor } from '../lib/servings';
 import {
-  addTo, byCost, expand, krPerKg, lineCost, listCost, MAX_SHOP_ITEMS, sectionOf, SECTIONS, shopAmount, toText,
-  type FoodPrice, type PriceUnit, type Section, type ShopItem,
+  addTo, costList, expand, gramsPerDl, krPerKg, MAX_PRICE, MAX_SHOP_ITEMS, sectionOf, SECTIONS, shopAmount, toText,
+  type Costed, type FoodPrice, type PriceUnit, type Section, type ShopItem,
 } from '../lib/shopping';
 import { tsh, type ShopKey } from '../lib/strings-shop';
 import { ensureFoods, foods, recipes, settings, supplementRefs, templates, updateSettings, userServings } from '../state';
@@ -22,51 +23,73 @@ const nameOf = (item: ShopItem) => {
   return f ? foodName(f, lang.value) : '…';
 };
 
-const unitsOf = (ref?: string) => {
+const unitsOf = (ref?: string): Serving[] => {
   const f = ref ? foods.value.get(ref) : undefined;
   return f ? servingsFor(f, userServings.value.get(ref!)) : [];
 };
 
-function amountOf(item: ShopItem): string {
+function amountOf(item: ShopItem, units: Serving[]): string {
   if (!item.foodRef || !item.grams) return '';
-  const a = shopAmount(item.grams, unitsOf(item.foodRef));
+  const a = shopAmount(item.grams, units);
   return `${fmt(a.qty, a.unit === 'l' || a.unit === 'kg' ? 2 : 0)} ${a.unit}`;
 }
 
 /** Price units a food's shelf price can be typed in: kg always, l for liquids, st for pieces. */
-function priceUnits(ref?: string): PriceUnit[] {
-  const u = unitsOf(ref);
-  return ['kg', ...(u.some((x) => x.name === 'dl' || x.name === 'glas') ? (['l'] as const) : []), ...(u.some((x) => x.name === 'st') ? (['st'] as const) : [])];
+function priceUnits(units: Serving[]): PriceUnit[] {
+  return ['kg', ...(gramsPerDl(units) ? (['l'] as const) : []), ...(units.some((x) => x.name === 'st') ? (['st'] as const) : [])];
 }
 
-/** One line: tick, name, amount, cost; "Pris" opens a small editor (the shelf's comparison price). */
-function Line(props: {
+const numText = (n: number) => String(Math.round(n * 100) / 100).replace('.', decimalComma() ? ',' : '.');
+
+interface LineProps {
   item: ShopItem;
-  prices: Map<string, FoodPrice>;
+  name: string;
+  units: Serving[];
+  cost: { kr: number; estimated: boolean } | null;
+  /** The food's remembered price (kr/kg), shown in the editor. */
+  price?: FoodPrice;
   share?: number;
   /** Offer links for this line (the biggest items; M31). */
   offers?: { name: string; href: string }[];
   onSave: (changed: ShopItem[], removed?: string[]) => void;
   onPrice: (p: FoodPrice) => void;
-}) {
-  const { item: i, prices } = props;
+  onClearPrice: (foodRef: string) => void;
+}
+
+/** One line: tick, name, amount, cost; "Pris" opens a small editor (the shelf's comparison price). */
+function Line(props: LineProps) {
+  const { item: i, name, units, cost } = props;
   const [editing, setEditing] = useState(false);
   const [kr, setKr] = useState('');
   const [unit, setUnit] = useState<PriceUnit>('kg');
-  const cost = lineCost(i, prices);
-  const name = nameOf(i);
 
+  // Opens with what is stored (a food's price as kr/kg; an own item's price), so it can be checked.
+  const open = () => {
+    if (!editing) {
+      setKr(i.foodRef ? (props.price ? numText(props.price.krPerKg) : '') : i.kr != null ? numText(i.kr) : '');
+      setUnit('kg');
+    }
+    setEditing(!editing);
+  };
   const savePrice = (e: Event) => {
     e.preventDefault();
     const n = parseNum(kr);
-    if (!(n > 0 && n < 1e5)) return;
+    if (!(n > 0 && n < MAX_PRICE)) return;
     if (i.foodRef) {
-      const k = krPerKg(n, unit, unitsOf(i.foodRef));
+      const k = krPerKg(n, unit, units);
       if (k) props.onPrice({ foodRef: i.foodRef, krPerKg: k, updatedAt: Date.now() });
     } else props.onSave([{ ...i, kr: n, updatedAt: Date.now() }]);
     setEditing(false);
-    setKr('');
   };
+  const clearPrice = () => {
+    if (i.foodRef) props.onClearPrice(i.foodRef);
+    else {
+      const { kr: _kr, ...rest } = i;
+      props.onSave([{ ...rest, updatedAt: Date.now() }]);
+    }
+    setEditing(false);
+  };
+  const stored = i.foodRef ? !!props.price : i.kr != null;
 
   return (
     <li class="shop-line">
@@ -75,12 +98,12 @@ function Line(props: {
           <input type="checkbox" checked={!!i.checked} onChange={() => props.onSave([{ ...i, checked: !i.checked, updatedAt: Date.now() }])} />
           <span class="entry-name">{name}</span>
           <span class="num muted">
-            {amountOf(i)}
+            {amountOf(i, units)}
             {cost && ` · ${cost.estimated ? '~' : ''}${fmt(cost.kr)} kr`}
             {props.share != null && cost && ` · ${fmt(props.share * 100)} %`}
           </span>
         </label>
-        <button type="button" class="btn small" aria-expanded={editing} onClick={() => setEditing(!editing)}>
+        <button type="button" class="btn small" aria-expanded={editing} onClick={open}>
           {tsh('shopPrice')}
         </button>
         <button type="button" class="btn small" aria-label={`${t('remove')} ${name}`} onClick={() => props.onSave([], [i.id])}>
@@ -107,7 +130,7 @@ function Line(props: {
             <label>
               {t('unit')}
               <select value={unit} onChange={(e) => setUnit((e.currentTarget as HTMLSelectElement).value as PriceUnit)}>
-                {priceUnits(i.foodRef).map((u) => (
+                {priceUnits(units).map((u) => (
                   <option key={u} value={u}>
                     kr/{u}
                   </option>
@@ -115,14 +138,34 @@ function Line(props: {
               </select>
             </label>
           )}
-          <button type="submit" class="btn" disabled={!(parseNum(kr) > 0)}>
+          <button type="submit" class="btn" disabled={!(parseNum(kr) > 0 && parseNum(kr) < MAX_PRICE)}>
             {tsh('shopSavePrice')}
           </button>
+          {stored && (
+            <button type="button" class="btn danger" onClick={clearPrice}>
+              {tsh('shopClearPrice')}
+            </button>
+          )}
           {i.foodRef && <p class="muted small block">{tsh('shopPriceHint')}</p>}
         </form>
       )}
     </li>
   );
+}
+
+/**
+ * A line that re-renders only when its own data changed (a tick or a price elsewhere doesn't
+ * re-render up to 300 lines on an old phone). Callbacks must be stable (useCallback in the sheet).
+ */
+class PureLine extends Component<LineProps> {
+  shouldComponentUpdate(next: LineProps) {
+    const a = this.props as unknown as Record<string, unknown>;
+    const b = next as unknown as Record<string, unknown>;
+    return Object.keys(b).some((k) => a[k] !== b[k]);
+  }
+  render() {
+    return <Line {...this.props} />;
+  }
 }
 
 /**
@@ -161,7 +204,8 @@ export default function ShoppingSheet() {
    * Store, then show (on top of the latest list, so quick taps don't overwrite each other). A failed
    * write shows nothing new and says so.
    */
-  const save = async (changed: ShopItem[], removed: string[] = []) => {
+  // Stable (no dependencies: they only use state setters), so lines don't re-render for nothing.
+  const save = useCallback(async (changed: ShopItem[], removed: string[] = []) => {
     try {
       await changeShopping(changed, removed);
     } catch {
@@ -174,10 +218,10 @@ export default function ShoppingSheet() {
       for (const id of removed) byId.delete(id);
       return [...byId.values()];
     });
-  };
+  }, []);
 
   /** Remember what a food costs (kr/kg) for every line of it, now and later. */
-  const savePrice = async (p: FoodPrice) => {
+  const savePrice = useCallback(async (p: FoodPrice) => {
     try {
       await putPrice(p);
     } catch {
@@ -185,7 +229,25 @@ export default function ShoppingSheet() {
       return;
     }
     setPrices((cur) => new Map(cur).set(p.foodRef, p));
-  };
+  }, []);
+
+  /** Forget a food's price (a mistyped one shouldn't stay on every future list). */
+  const clearPrice = useCallback(async (foodRef: string) => {
+    try {
+      await deletePrice(foodRef);
+    } catch {
+      setStatus(tsh('shopSaveFailed'));
+      return;
+    }
+    setPrices((cur) => {
+      const next = new Map(cur);
+      next.delete(foodRef);
+      return next;
+    });
+  }, []);
+  const onSave = useCallback((c: ShopItem[], r?: string[]) => void save(c, r), [save]);
+  const onPrice = useCallback((p: FoodPrice) => void savePrice(p), [savePrice]);
+  const onClearPrice = useCallback((ref: string) => void clearPrice(ref), [clearPrice]);
 
   /** Room for `n` more lines (the list is kept to MAX_SHOP_ITEMS); says so when full. */
   const room = (n: number) => {
@@ -211,25 +273,52 @@ export default function ShoppingSheet() {
     }
   };
 
-  // Section and name of each line worked out once per change (not per render and section).
+  // Name, measures and section of each line worked out once per change (not per render and section).
+  const info = useMemo(() => {
+    const m = new Map<string, { name: string; units: Serving[]; section: Section }>();
+    for (const i of items ?? []) {
+      const name = nameOf(i);
+      m.set(i.id, { name, units: unitsOf(i.foodRef), section: sectionOf(i.text ?? name) });
+    }
+    return m;
+  }, [items, foods.value, userServings.value, lang.value]);
   const groups = useMemo(() => {
     const collator = new Intl.Collator(lang.value);
-    const rows = (items ?? []).map((i) => ({ i, name: nameOf(i), section: sectionOf(i.text ?? nameOf(i)) }));
     return SECTIONS.map((section) => ({
       section,
-      list: rows
-        .filter((r) => r.section === section)
-        .sort((a, b) => Number(!!a.i.checked) - Number(!!b.i.checked) || collator.compare(a.name, b.name))
-        .map((r) => r.i),
+      list: (items ?? [])
+        .filter((i) => info.get(i.id)!.section === section)
+        .sort((a, b) => Number(!!a.checked) - Number(!!b.checked) || collator.compare(info.get(a.id)!.name, info.get(b.id)!.name)),
     })).filter((g) => g.list.length);
-  }, [items, foods.value, lang.value]);
-  const costs = useMemo(() => (items ? listCost(items, prices) : null), [items, prices]);
-  const ranked = useMemo(() => (byCostView && items ? byCost(items, prices) : []), [byCostView, items, prices]);
+  }, [items, info]);
+  // Every line's cost once per change: the total, the ranking and each line's figure.
+  const costs = useMemo(() => (items ? costList(items, prices) : null), [items, prices]);
+  const costOf = useMemo(() => new Map((costs?.ranked ?? []).map((c) => [c.item.id, c])), [costs]);
+  const ranked: Costed[] = byCostView ? (costs?.ranked ?? []) : [];
+
+  // Offer links (M31): the user's chains, for the most expensive priced lines still to buy. Built
+  // once per change so lines keep the same arrays (and don't re-render for nothing).
+  const chosen = settings.value.chains ?? DEFAULT_CHAINS;
+  const offersById = useMemo(() => {
+    const chains = CHAINS.filter((c) => chosen.includes(c.id));
+    const m = new Map<string, { name: string; href: string }[]>();
+    if (!chains.length) return m;
+    for (const c of (costs?.ranked ?? []).filter((r) => r.cost && !r.item.checked).slice(0, OFFER_LINES)) {
+      const term = searchTerm(info.get(c.item.id)!.name, !!c.item.text);
+      m.set(c.item.id, chains.map((ch) => ({ name: ch.name, href: ch.url(term) })));
+    }
+    return m;
+  }, [costs, info, chosen.join()]);
+  const toggleChain = (id: string) =>
+    void updateSettings({ chains: CHAINS.map((c) => c.id).filter((x) => (x === id ? !chosen.includes(id) : chosen.includes(x))) });
 
   const share = async () => {
     const text = toText(
       t('shoppingList'),
-      groups.map((g) => ({ title: tsh(SECTION_LABEL[g.section]), lines: g.list.filter((i) => !i.checked).map((i) => `${nameOf(i)} ${amountOf(i)}`.trim()) })),
+      groups.map((g) => ({
+        title: tsh(SECTION_LABEL[g.section]),
+        lines: g.list.filter((i) => !i.checked).map((i) => `${info.get(i.id)!.name} ${amountOf(i, info.get(i.id)!.units)}`.trim()),
+      })),
     );
     try {
       if (navigator.share) await navigator.share({ title: t('shoppingList'), text });
@@ -242,20 +331,20 @@ export default function ShoppingSheet() {
     }
   };
 
-  // Offer links (M31): the user's chains, for the most expensive priced lines still to buy.
-  const chosen = settings.value.chains ?? DEFAULT_CHAINS;
-  const chains = CHAINS.filter((c) => chosen.includes(c.id));
-  const offerIds = new Set(ranked.filter((r) => r.kr != null && !r.item.checked).slice(0, OFFER_LINES).map((r) => r.item.id));
-  const offersFor = (i: ShopItem) => {
-    if (!offerIds.has(i.id)) return undefined;
-    const term = searchTerm(nameOf(i), !!i.text);
-    return chains.map((c) => ({ name: c.name, href: c.url(term) }));
-  };
-  const toggleChain = (id: string) =>
-    void updateSettings({ chains: chosen.includes(id) ? chosen.filter((x) => x !== id) : CHAINS.map((c) => c.id).filter((x) => x === id || chosen.includes(x)) });
-
   const line = (i: ShopItem, share?: number) => (
-    <Line key={i.id} item={i} prices={prices} share={share} offers={offersFor(i)} onSave={(c, r) => void save(c, r)} onPrice={(p) => void savePrice(p)} />
+    <PureLine
+      key={i.id}
+      item={i}
+      name={info.get(i.id)!.name}
+      units={info.get(i.id)!.units}
+      cost={costOf.get(i.id)?.cost ?? null}
+      price={i.foodRef ? prices.get(i.foodRef) : undefined}
+      share={share}
+      offers={byCostView ? offersById.get(i.id) : undefined}
+      onSave={onSave}
+      onPrice={onPrice}
+      onClearPrice={onClearPrice}
+    />
   );
   const liveTemplates = templates.value;
   const liveRecipes = recipes.value.filter((r) => !r.deleted);

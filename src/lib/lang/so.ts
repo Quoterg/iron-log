@@ -539,6 +539,7 @@ const pack: LangPack = {
     shopOffers: 'Eeg dalacsiinta:',
     shopMyStores: 'Dukaamadayda',
     shopOffersNote: 'Xiriirradu waxay furayaan bogga dukaanka iyadoo magaca alaabtu ku jiro raadinta. Barnaamijku keligiis wax ma soo dejiyo.',
+    shopClearPrice: 'Ka saar qiimaha',
     secProduce: 'Khudaar & miro',
     secBread: 'Rooti, badar & baasto',
     secDairy: 'Caano & ukun',

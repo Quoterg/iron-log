@@ -539,6 +539,7 @@ const pack: LangPack = {
     shopOffers: 'Katso tarjoukset:',
     shopMyStores: 'Omat kaupat',
     shopOffersNote: 'Linkit avaavat kaupan verkkosivun tuotteen nimellä haettuna. Sovellus ei itse hae mitään.',
+    shopClearPrice: 'Poista hinta',
     secProduce: 'Hedelmät & vihannekset',
     secBread: 'Leipä, ryynit & pasta',
     secDairy: 'Maito & munat',

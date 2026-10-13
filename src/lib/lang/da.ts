@@ -539,6 +539,7 @@ const pack: LangPack = {
     shopOffers: 'Se tilbud:',
     shopMyStores: 'Mine butikker',
     shopOffersNote: 'Linkene åbner butikkens hjemmeside med varens navn i søgningen. Appen henter ikke selv noget.',
+    shopClearPrice: 'Fjern pris',
     secProduce: 'Frugt & grønt',
     secBread: 'Brød, gryn & pasta',
     secDairy: 'Mejeri & æg',
