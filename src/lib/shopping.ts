@@ -12,7 +12,59 @@ export interface ShopItem {
   /** …a free-text item ("tandkräm"). */
   text?: string;
   checked?: boolean;
+  /** What this line costs, when the user typed it (own items; a food's price is its FoodPrice). */
+  kr?: number;
   updatedAt: number;
+}
+
+/** What the user pays for a food, normalised to kr per kg (from the shelf's comparison price). */
+export interface FoodPrice {
+  foodRef: string;
+  krPerKg: number;
+  updatedAt: number;
+}
+
+export type PriceUnit = 'kg' | 'l' | 'st';
+
+/**
+ * The shelf's comparison price ("jämförpris") as kr per kg: kr/l via the food's dl measure (its
+ * density), kr/st via its "st" measure. Null when the unit can't be converted for this food.
+ */
+export function krPerKg(kr: number, unit: PriceUnit, units: Serving[] = []): number | null {
+  if (!(kr > 0)) return null;
+  if (unit === 'kg') return kr;
+  const per = unit === 'st' ? units.find((u) => u.name === 'st')?.g : (units.find((u) => u.name === 'dl')?.g ?? 0) * 10 || (unit === 'l' ? 1000 : 0);
+  return per ? Math.round((kr / per) * 1000 * 100) / 100 : null;
+}
+
+/** A line's cost: typed for the line, else estimated from the food's price and the amount on the list. */
+export function lineCost(i: ShopItem, prices: Map<string, FoodPrice>): { kr: number; estimated: boolean } | null {
+  if (i.kr != null) return { kr: i.kr, estimated: false };
+  const p = i.foodRef && i.grams ? prices.get(i.foodRef) : undefined;
+  return p ? { kr: Math.round((p.krPerKg * i.grams!) / 1000), estimated: true } : null;
+}
+
+/** The whole list: estimated total and how many lines have no price yet. */
+export function listCost(items: ShopItem[], prices: Map<string, FoodPrice>): { total: number; missing: number } {
+  let total = 0;
+  let missing = 0;
+  for (const i of items) {
+    const c = lineCost(i, prices);
+    if (c) total += c.kr;
+    else missing++;
+  }
+  return { total, missing };
+}
+
+/** Lines by cost, most expensive first (unpriced last), each with its share of the total. */
+export function byCost(items: ShopItem[], prices: Map<string, FoodPrice>): { item: ShopItem; kr: number | null; share: number }[] {
+  const { total } = listCost(items, prices);
+  return items
+    .map((item) => {
+      const kr = lineCost(item, prices)?.kr ?? null;
+      return { item, kr, share: kr != null && total ? kr / total : 0 };
+    })
+    .sort((a, b) => (b.kr ?? -1) - (a.kr ?? -1));
 }
 
 export const MAX_SHOP_ITEMS = 300;

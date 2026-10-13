@@ -27,8 +27,9 @@ const data: AllData = {
   days: [{ date: '2026-10-08', updatedAt: 5 }],
   shopping: [
     { id: 's1', foodRef: 'slv:1', grams: 300, updatedAt: 6 },
-    { id: 's2', text: 'Tandkräm', checked: true, updatedAt: 7 },
+    { id: 's2', text: 'Tandkräm', checked: true, kr: 25, updatedAt: 7 },
   ],
+  prices: [{ foodRef: 'slv:1', krPerKg: 21.33, updatedAt: 8 }],
   settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: 2, adaptive: true, goal: 'lose', pace: 0.5 },
 };
 

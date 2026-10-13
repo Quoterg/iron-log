@@ -171,3 +171,17 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
     once on a fixed background layer, glass is plain rgba. System fonts (no web font download).
   - Contrast ≥ 4.5:1 on glass in both themes (axe e2e in Dag and Natt, 200 % text); CSS stays
     within 8 KB gzip, initial JS unchanged within ±0.3 KB; Lighthouse unchanged.
+- [x] **M30 Shopping list: prices and biggest items** — Owner's choice (2026-10-13). The list restocks
+  from what was eaten in the last 7 days (planned days ahead only when there are any). Per line a
+  "Pris" editor takes the shelf's comparison price (kr/kg, kr/l via the food's density, kr/st via its
+  piece weight), remembered per food as kr/kg (new synced store `prices`); own items take a price in
+  kr. Estimated total ("~420 kr · 3 utan pris") and a "Största posterna" view: lines by cost with
+  their share of the total.
+- [ ] **M31 Offer links** — For the biggest items, one tap opens a chosen store's own search for the
+  item (Willys, Hemköp, Coop, Lidl, City Gross search pages; ICA's offers page — its search needs a
+  store). The user picks their chains (synced setting). The app fetches nothing: links open the
+  store's site with the item's name (privacy page says so).
+- [ ] **M32 What's new** — The app gets a version (package.json) and a changelog (`src/changelog.ts`,
+  every language). After a release, the first start shows "Nyheter i <version>" once; a fresh
+  install shows nothing; minor web deploys without a version bump show nothing. Releasing = bump the
+  version and add its entry (rule in CLAUDE.md).

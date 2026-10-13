@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { addDays, changeShopping, entriesBetween, isoDate, listShopping, newId, type Entry } from '../lib/db';
-import { fmt, lang } from '../lib/i18n';
+import { addDays, changeShopping, entriesBetween, isoDate, listPrices, listShopping, newId, putPrice, type Entry } from '../lib/db';
+import { fmt, lang, parseNum, t } from '../lib/i18n';
 import { foodName } from '../lib/nutrients';
 import { servingsFor } from '../lib/servings';
-import { addTo, expand, MAX_SHOP_ITEMS, sectionOf, SECTIONS, shopAmount, toText, type Section, type ShopItem } from '../lib/shopping';
+import {
+  addTo, byCost, expand, krPerKg, lineCost, listCost, MAX_SHOP_ITEMS, sectionOf, SECTIONS, shopAmount, toText,
+  type FoodPrice, type PriceUnit, type Section, type ShopItem,
+} from '../lib/shopping';
 import { tsh, type ShopKey } from '../lib/strings-shop';
-import { t } from '../lib/i18n';
 import { ensureFoods, foods, recipes, supplementRefs, templates, userServings } from '../state';
 import { Sheet } from './Sheet';
 
@@ -19,17 +21,107 @@ const nameOf = (item: ShopItem) => {
   return f ? foodName(f, lang.value) : '…';
 };
 
+const unitsOf = (ref?: string) => {
+  const f = ref ? foods.value.get(ref) : undefined;
+  return f ? servingsFor(f, userServings.value.get(ref!)) : [];
+};
+
 function amountOf(item: ShopItem): string {
   if (!item.foodRef || !item.grams) return '';
-  const f = foods.value.get(item.foodRef);
-  const a = shopAmount(item.grams, f ? servingsFor(f, userServings.value.get(item.foodRef)) : []);
+  const a = shopAmount(item.grams, unitsOf(item.foodRef));
   return `${fmt(a.qty, a.unit === 'l' || a.unit === 'kg' ? 2 : 0)} ${a.unit}`;
 }
 
-/** Shopping list (M28): add saved meals, recipes and planned days; tick off; share as text. */
+/** Price units a food's shelf price can be typed in: kg always, l for liquids, st for pieces. */
+function priceUnits(ref?: string): PriceUnit[] {
+  const u = unitsOf(ref);
+  return ['kg', ...(u.some((x) => x.name === 'dl' || x.name === 'glas') ? (['l'] as const) : []), ...(u.some((x) => x.name === 'st') ? (['st'] as const) : [])];
+}
+
+/** One line: tick, name, amount, cost; "Pris" opens a small editor (the shelf's comparison price). */
+function Line(props: {
+  item: ShopItem;
+  prices: Map<string, FoodPrice>;
+  share?: number;
+  onSave: (changed: ShopItem[], removed?: string[]) => void;
+  onPrice: (p: FoodPrice) => void;
+}) {
+  const { item: i, prices } = props;
+  const [editing, setEditing] = useState(false);
+  const [kr, setKr] = useState('');
+  const [unit, setUnit] = useState<PriceUnit>('kg');
+  const cost = lineCost(i, prices);
+  const name = nameOf(i);
+
+  const savePrice = (e: Event) => {
+    e.preventDefault();
+    const n = parseNum(kr);
+    if (!(n > 0 && n < 1e5)) return;
+    if (i.foodRef) {
+      const k = krPerKg(n, unit, unitsOf(i.foodRef));
+      if (k) props.onPrice({ foodRef: i.foodRef, krPerKg: k, updatedAt: Date.now() });
+    } else props.onSave([{ ...i, kr: n, updatedAt: Date.now() }]);
+    setEditing(false);
+    setKr('');
+  };
+
+  return (
+    <li class="shop-line">
+      <div class="ingredient">
+        <label class={i.checked ? 'shop-item done' : 'shop-item'}>
+          <input type="checkbox" checked={!!i.checked} onChange={() => props.onSave([{ ...i, checked: !i.checked, updatedAt: Date.now() }])} />
+          <span class="entry-name">{name}</span>
+          <span class="num muted">
+            {amountOf(i)}
+            {cost && ` · ${cost.estimated ? '~' : ''}${fmt(cost.kr)} kr`}
+            {props.share != null && cost && ` · ${fmt(props.share * 100)} %`}
+          </span>
+        </label>
+        <button type="button" class="btn small" aria-expanded={editing} onClick={() => setEditing(!editing)}>
+          {tsh('shopPrice')}
+        </button>
+        <button type="button" class="btn small" aria-label={`${t('remove')} ${name}`} onClick={() => props.onSave([], [i.id])}>
+          ×
+        </button>
+      </div>
+      {editing && (
+        <form class="row shop-price" onSubmit={savePrice}>
+          <label>
+            {i.foodRef ? tsh('shopPriceLabel') : tsh('shopPriceItem')}
+            <input type="text" inputMode="decimal" value={kr} onInput={(e) => setKr((e.currentTarget as HTMLInputElement).value)} />
+          </label>
+          {i.foodRef && (
+            <label>
+              {t('unit')}
+              <select value={unit} onChange={(e) => setUnit((e.currentTarget as HTMLSelectElement).value as PriceUnit)}>
+                {priceUnits(i.foodRef).map((u) => (
+                  <option key={u} value={u}>
+                    kr/{u}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <button type="submit" class="btn" disabled={!(parseNum(kr) > 0)}>
+            {tsh('shopSavePrice')}
+          </button>
+          {i.foodRef && <p class="muted small block">{tsh('shopPriceHint')}</p>}
+        </form>
+      )}
+    </li>
+  );
+}
+
+/**
+ * Shopping list (M28, M30): add what you ate this past week, saved meals, recipes or own items;
+ * prices from the shelf give an estimated total and the biggest items first; tick off; share.
+ */
 export default function ShoppingSheet() {
   const [items, setItems] = useState<ShopItem[] | null>(null);
+  const [prices, setPrices] = useState<Map<string, FoodPrice>>(new Map());
+  const [recent, setRecent] = useState<Entry[]>([]);
   const [planned, setPlanned] = useState<Entry[]>([]);
+  const [byCostView, setByCostView] = useState(false);
   const [status, setStatus] = useState('');
   const [own, setOwn] = useState('');
   const busy = useRef(false);
@@ -37,13 +129,18 @@ export default function ShoppingSheet() {
   useEffect(() => {
     let live = true;
     const today = isoDate(new Date());
-    void Promise.all([listShopping(), entriesBetween(addDays(today, 1), addDays(today, 7))]).then(async ([list, next]) => {
-      const p = next.filter((e) => !supplementRefs.value.has(e.foodRef));
-      await ensureFoods([...list.flatMap((i) => (i.foodRef ? [i.foodRef] : [])), ...p.map((e) => e.foodRef)]);
-      if (!live) return;
-      setItems(list);
-      setPlanned(p);
-    });
+    void Promise.all([listShopping(), listPrices(), entriesBetween(addDays(today, -6), today), entriesBetween(addDays(today, 1), addDays(today, 7))]).then(
+      async ([list, p, past, next]) => {
+        const food = (e: Entry) => !supplementRefs.value.has(e.foodRef);
+        const [r, n] = [past.filter(food), next.filter(food)];
+        await ensureFoods([...list.flatMap((i) => (i.foodRef ? [i.foodRef] : [])), ...r.map((e) => e.foodRef), ...n.map((e) => e.foodRef)]);
+        if (!live) return;
+        setItems(list);
+        setPrices(new Map(p.map((x) => [x.foodRef, x])));
+        setRecent(r);
+        setPlanned(n);
+      },
+    );
     return () => void (live = false);
   }, []);
 
@@ -64,6 +161,17 @@ export default function ShoppingSheet() {
       for (const id of removed) byId.delete(id);
       return [...byId.values()];
     });
+  };
+
+  /** Remember what a food costs (kr/kg) for every line of it, now and later. */
+  const savePrice = async (p: FoodPrice) => {
+    try {
+      await putPrice(p);
+    } catch {
+      setStatus(tsh('shopSaveFailed'));
+      return;
+    }
+    setPrices((cur) => new Map(cur).set(p.foodRef, p));
   };
 
   /** Room for `n` more lines (the list is kept to MAX_SHOP_ITEMS); says so when full. */
@@ -102,6 +210,8 @@ export default function ShoppingSheet() {
         .map((r) => r.i),
     })).filter((g) => g.list.length);
   }, [items, foods.value, lang.value]);
+  const costs = useMemo(() => (items ? listCost(items, prices) : null), [items, prices]);
+  const ranked = useMemo(() => (byCostView && items ? byCost(items, prices) : []), [byCostView, items, prices]);
 
   const share = async () => {
     const text = toText(
@@ -119,6 +229,9 @@ export default function ShoppingSheet() {
     }
   };
 
+  const line = (i: ShopItem, share?: number) => (
+    <Line key={i.id} item={i} prices={prices} share={share} onSave={(c, r) => void save(c, r)} onPrice={(p) => void savePrice(p)} />
+  );
   const liveTemplates = templates.value;
   const liveRecipes = recipes.value.filter((r) => !r.deleted);
 
@@ -131,25 +244,33 @@ export default function ShoppingSheet() {
           <p class="muted">{tsh('shopEmpty')}</p>
         ) : (
           <>
-            {groups.map((g) => (
-              <section class="card" key={g.section}>
-                <h2>{tsh(SECTION_LABEL[g.section])}</h2>
-                <ul class="entries">
-                  {g.list.map((i) => (
-                    <li key={i.id} class="ingredient">
-                      <label class={i.checked ? 'shop-item done' : 'shop-item'}>
-                        <input type="checkbox" checked={!!i.checked} onChange={() => void save([{ ...i, checked: !i.checked, updatedAt: Date.now() }])} />
-                        <span class="entry-name">{nameOf(i)}</span>
-                        <span class="num muted">{amountOf(i)}</span>
-                      </label>
-                      <button type="button" class="btn small" aria-label={`${t('remove')} ${nameOf(i)}`} onClick={() => void save([], [i.id])}>
-                        ×
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+            <div class="chips" role="group" aria-label={tsh('shopView')}>
+              <button type="button" class={byCostView ? 'chip' : 'chip on'} aria-pressed={!byCostView} onClick={() => setByCostView(false)}>
+                {tsh('shopViewSections')}
+              </button>
+              <button type="button" class={byCostView ? 'chip on' : 'chip'} aria-pressed={byCostView} onClick={() => setByCostView(true)}>
+                {tsh('shopViewCost')}
+              </button>
+            </div>
+            {costs && costs.total > 0 && (
+              <p class="shop-total">
+                <span class="num">{tsh('shopTotal').replace('{kr}', fmt(costs.total))}</span>
+                {costs.missing > 0 && <span class="muted small"> · {tsh('shopNoPrice').replace('{n}', String(costs.missing))}</span>}
+              </p>
+            )}
+            {byCostView ? (
+              <section class="card">
+                <ul class="entries">{ranked.map((r) => line(r.item, r.share))}</ul>
+                <p class="muted small">{tsh('shopCostNote')}</p>
               </section>
-            ))}
+            ) : (
+              groups.map((g) => (
+                <section class="card" key={g.section}>
+                  <h2>{tsh(SECTION_LABEL[g.section])}</h2>
+                  <ul class="entries">{g.list.map((i) => line(i))}</ul>
+                </section>
+              ))
+            )}
             <div class="actions">
               <button type="button" class="btn primary" onClick={() => void share()}>
                 {tsh('shopShare')}
@@ -173,6 +294,24 @@ export default function ShoppingSheet() {
 
         <section class="card form">
           <h2>{tsh('shopAddTitle')}</h2>
+          {/* What was eaten this past week: the usual way to restock. */}
+          <h3 class="suggest-sub">{tsh('shopLastWeek')}</h3>
+          {recent.length ? (
+            <button type="button" class="btn wide" onClick={() => void add(recent.map((e) => ({ foodRef: e.foodRef, grams: e.grams })))}>
+              + {tsh('shopPlannedCount').replace('{n}', String(new Set(recent.map((e) => e.foodRef)).size))}
+            </button>
+          ) : (
+            <p class="muted small">{tsh('shopNoLastWeek')}</p>
+          )}
+          {planned.length > 0 && (
+            <>
+              <h3 class="suggest-sub">{tsh('shopPlanned')}</h3>
+              <button type="button" class="btn wide" onClick={() => void add(planned.map((e) => ({ foodRef: e.foodRef, grams: e.grams })))}>
+                + {tsh('shopPlannedCount').replace('{n}', String(new Set(planned.map((e) => e.foodRef)).size))}
+              </button>
+            </>
+          )}
+
           <form
             class="row"
             onSubmit={(e) => {
@@ -191,15 +330,6 @@ export default function ShoppingSheet() {
               {tsh('shopAdd')}
             </button>
           </form>
-
-          <h3 class="suggest-sub">{tsh('shopPlanned')}</h3>
-          {planned.length ? (
-            <button type="button" class="btn wide" onClick={() => void add(planned.map((e) => ({ foodRef: e.foodRef, grams: e.grams })))}>
-              + {tsh('shopPlannedCount').replace('{n}', String(planned.length))}
-            </button>
-          ) : (
-            <p class="muted small">{tsh('shopNoPlanned')}</p>
-          )}
 
           {liveTemplates.length > 0 && <h3 class="suggest-sub">{tsh('shopSavedMeals')}</h3>}
           <ul class="entries">
