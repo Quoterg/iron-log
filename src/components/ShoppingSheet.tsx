@@ -8,7 +8,8 @@ import {
   type FoodPrice, type PriceUnit, type Section, type ShopItem,
 } from '../lib/shopping';
 import { tsh, type ShopKey } from '../lib/strings-shop';
-import { ensureFoods, foods, recipes, supplementRefs, templates, userServings } from '../state';
+import { ensureFoods, foods, recipes, settings, supplementRefs, templates, updateSettings, userServings } from '../state';
+import { CHAINS, DEFAULT_CHAINS, OFFER_LINES, searchTerm } from '../lib/stores';
 import { Sheet } from './Sheet';
 
 const SECTION_LABEL: Record<Section, ShopKey> = {
@@ -43,6 +44,8 @@ function Line(props: {
   item: ShopItem;
   prices: Map<string, FoodPrice>;
   share?: number;
+  /** Offer links for this line (the biggest items; M31). */
+  offers?: { name: string; href: string }[];
   onSave: (changed: ShopItem[], removed?: string[]) => void;
   onPrice: (p: FoodPrice) => void;
 }) {
@@ -84,6 +87,16 @@ function Line(props: {
           ×
         </button>
       </div>
+      {props.offers && props.offers.length > 0 && (
+        <p class="offer-links small">
+          <span class="muted">{tsh('shopOffers')}</span>
+          {props.offers.map((o) => (
+            <a key={o.name} class="chip" href={o.href} target="_blank" rel="noopener noreferrer">
+              {o.name}
+            </a>
+          ))}
+        </p>
+      )}
       {editing && (
         <form class="row shop-price" onSubmit={savePrice}>
           <label>
@@ -229,8 +242,20 @@ export default function ShoppingSheet() {
     }
   };
 
+  // Offer links (M31): the user's chains, for the most expensive priced lines still to buy.
+  const chosen = settings.value.chains ?? DEFAULT_CHAINS;
+  const chains = CHAINS.filter((c) => chosen.includes(c.id));
+  const offerIds = new Set(ranked.filter((r) => r.kr != null && !r.item.checked).slice(0, OFFER_LINES).map((r) => r.item.id));
+  const offersFor = (i: ShopItem) => {
+    if (!offerIds.has(i.id)) return undefined;
+    const term = searchTerm(nameOf(i), !!i.text);
+    return chains.map((c) => ({ name: c.name, href: c.url(term) }));
+  };
+  const toggleChain = (id: string) =>
+    void updateSettings({ chains: chosen.includes(id) ? chosen.filter((x) => x !== id) : CHAINS.map((c) => c.id).filter((x) => x === id || chosen.includes(x)) });
+
   const line = (i: ShopItem, share?: number) => (
-    <Line key={i.id} item={i} prices={prices} share={share} onSave={(c, r) => void save(c, r)} onPrice={(p) => void savePrice(p)} />
+    <Line key={i.id} item={i} prices={prices} share={share} offers={offersFor(i)} onSave={(c, r) => void save(c, r)} onPrice={(p) => void savePrice(p)} />
   );
   const liveTemplates = templates.value;
   const liveRecipes = recipes.value.filter((r) => !r.deleted);
@@ -262,6 +287,15 @@ export default function ShoppingSheet() {
               <section class="card">
                 <ul class="entries">{ranked.map((r) => line(r.item, r.share))}</ul>
                 <p class="muted small">{tsh('shopCostNote')}</p>
+                <h3 class="suggest-sub">{tsh('shopMyStores')}</h3>
+                <div class="chips">
+                  {CHAINS.map((c) => (
+                    <button key={c.id} type="button" class={chosen.includes(c.id) ? 'chip on' : 'chip'} aria-pressed={chosen.includes(c.id)} onClick={() => toggleChain(c.id)}>
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+                <p class="muted small">{tsh('shopOffersNote')}</p>
               </section>
             ) : (
               groups.map((g) => (

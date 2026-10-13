@@ -9,6 +9,7 @@ import { MAX_TEMPLATE_ITEMS, MAX_TEMPLATE_NAME, type MealTemplate, type Template
 import { AMOUNT_MEMORY, type LoggedAmount } from './servings';
 import { GOALS, PACES, type Goal } from './adaptive';
 import { MAX_SHOP_ITEMS, type FoodPrice, type ShopItem } from './shopping';
+import { CHAIN_IDS } from './stores';
 import { normalizeDays, SUPPLEMENT_TIMES, type SupplementTime } from './supplements';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
@@ -299,6 +300,8 @@ function settings(x: unknown): Settings | undefined {
   if (x.whatIfOff === true) out.whatIfOff = true;
   if (x.checkin === true) out.checkin = true;
   if (typeof x.checkinSeen === 'string' && /^\d{4}-W\d{2}$/.test(x.checkinSeen)) out.checkinSeen = x.checkinSeen;
+  // Known chains only (an empty choice is a choice: no offer links).
+  if (Array.isArray(x.chains)) out.chains = CHAIN_IDS.filter((id) => (x.chains as unknown[]).includes(id));
   if (Array.isArray(x.sources)) {
     const src = (['slv', 'usda'] as const).filter((s) => (x.sources as unknown[]).includes(s));
     if (src.length) out.sources = src;

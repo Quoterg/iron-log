@@ -70,6 +70,8 @@ export interface Settings {
   checkin?: boolean;
   /** ISO week ("2026-W41") whose check-in the user has seen (synced: seen on one device, seen on all). */
   checkinSeen?: string;
+  /** Store chains offered as offer links on the shopping list (lib/stores.ts ids; default there). */
+  chains?: string[];
 }
 
 /** A day the user marked complete (everything eaten is logged): the adaptive estimate trusts it. */
