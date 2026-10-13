@@ -48,38 +48,57 @@ export function krPerKg(kr: number, unit: PriceUnit, units: Serving[] = []): num
   return gramsPerUnit ? Math.round((kr / gramsPerUnit) * 1000 * 100) / 100 : null;
 }
 
+/** A line's cost; `typical` when it comes from the typical-price table (M33), not the user's price. */
+export interface LineCost {
+  kr: number;
+  estimated: boolean;
+  typical?: boolean;
+}
+
 /**
  * A line's cost (unrounded: round only for display, so totals don't drift): typed for the line, else
- * estimated from the food's price and the amount on the list.
+ * estimated from the food's price and the amount on the list, else from its typical price (when the
+ * user turned food costs on).
  */
-export function lineCost(i: ShopItem, prices: Map<string, FoodPrice>): { kr: number; estimated: boolean } | null {
+export function lineCost(i: ShopItem, prices: Map<string, FoodPrice>, typical?: Map<string, number>): LineCost | null {
   if (i.kr != null) return { kr: i.kr, estimated: false };
-  const p = i.foodRef && i.grams ? prices.get(i.foodRef) : undefined;
-  return p ? { kr: (p.krPerKg * i.grams!) / 1000, estimated: true } : null;
+  if (!i.foodRef || !i.grams) return null;
+  const p = prices.get(i.foodRef);
+  if (p) return { kr: (p.krPerKg * i.grams) / 1000, estimated: true };
+  const t = typical?.get(i.foodRef);
+  return t ? { kr: (t * i.grams) / 1000, estimated: true, typical: true } : null;
 }
 
 export interface Costed {
   item: ShopItem;
-  cost: { kr: number; estimated: boolean } | null;
+  cost: LineCost | null;
   /** Share of the list's total (0–1). */
   share: number;
 }
 
 /**
- * Every line's cost (computed once), the total and how many lines have no price yet; `ranked` is
- * the lines by cost, most expensive first (unpriced last).
+ * Every line's cost (computed once), the total (and how much of it is typical prices) and how many
+ * lines have no price yet; `ranked` is the lines by cost, most expensive first (unpriced last).
  */
-export function costList(items: ShopItem[], prices: Map<string, FoodPrice>): { total: number; missing: number; ranked: Costed[] } {
-  const costed = items.map((item) => ({ item, cost: lineCost(item, prices), share: 0 }));
+export function costList(
+  items: ShopItem[],
+  prices: Map<string, FoodPrice>,
+  typical?: Map<string, number>,
+): { total: number; typicalKr: number; missing: number; ranked: Costed[] } {
+  const costed = items.map((item) => ({ item, cost: lineCost(item, prices, typical), share: 0 }));
   let total = 0;
+  let typicalKr = 0;
   let missing = 0;
   for (const c of costed) {
-    if (c.cost) total += c.cost.kr;
-    else missing++;
+    if (!c.cost) missing++;
+    else {
+      total += c.cost.kr;
+      if (c.cost.typical) typicalKr += c.cost.kr;
+    }
   }
   for (const c of costed) c.share = c.cost && total ? c.cost.kr / total : 0;
   costed.sort((a, b) => (b.cost?.kr ?? -1) - (a.cost?.kr ?? -1));
-  return { total, missing, ranked: costed };
+  return { total, typicalKr, missing, ranked: costed };
 }
 
 export const MAX_SHOP_ITEMS = 300;

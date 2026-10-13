@@ -70,6 +70,8 @@ export interface Settings {
   checkin?: boolean;
   /** ISO week ("2026-W41") whose check-in the user has seen (synced: seen on one device, seen on all). */
   checkinSeen?: string;
+  /** Food costs (M33/M34, opt-in): typical prices where the user typed none, costs in the diary. */
+  costs?: boolean;
   /** Store chains offered as offer links on the shopping list (lib/stores.ts ids; default there). */
   chains?: string[];
 }

@@ -185,45 +185,28 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   every language). After a release, the first start shows "Nyheter i <version>" once; a fresh
   install shows nothing; minor web deploys without a version bump show nothing. Releasing = bump the
   version and add its entry (rule in CLAUDE.md).
-- [ ] **M33 Typical prices, updated twice a year** — Owner's choice (2026-10-13). Wait for the owner's
-  go before starting. A bundled table of typical Swedish prices (kr/kg) for common foods, so costs
-  work before the user types any price. Research (2026-10-13): SCB publishes **no average prices in
-  kronor** any more, only the consumer price index, including a monthly index for 97 food groups
-  (table `PR0101A/KPI2020EPG01M`: Gryn, Ris, Mjöl, Mjukt bröd, …). So two open sources are combined:
-  - **Kronor:** Open Food Facts' **Open Prices** (prices.openfoodfacts.org, ODbL; ~5 200 SEK prices
-    from Swedish stores, per product with barcode and pack size → kr/kg). **No fixed number of
-    foods:** every food the data supports gets a price. A map of **base foods** (Open Food Facts
-    categories ↔ SCB group) takes the median kr/kg of the last 12 months, needing ≥ 3 prices from
-    ≥ 2 stores; outliers trimmed. Base foods are as many as reach that bar (expected: a few hundred).
-  - **Spreading base prices over Livsmedelsverket's ~2 600 foods**, so most of what people log is
-    covered (goal: well over 1 000 foods):
-    - *Variants* share their base food's price ("Mjölk 3 %", "Mjölk 1,5 %", "Mjölk berikad" → milk;
-      likewise cheeses, breads, minced meats), by rules on Livsmedelsverket's names and groups plus
-      a short hand-made list of exceptions.
-    - *Cooked/prepared foods* use the raw food's price adjusted for weight change (cooked pasta
-      ≈ 2,5 × dry weight → 40 % of the dry price per 100 g; rice, potatoes, fried chicken, …), using
-      Livsmedelsverket's yield factors where given, else a small table.
-    - *Recipes* add up their ingredients (M34).
-    - Foods with no reliable price show nothing rather than a guess; own prices work for any food.
-  - **First step, before building the app side:** measure coverage (base foods reaching the bar,
-    Livsmedelsverket foods covered, share of the owner's logged foods covered) and report the numbers
-    to the owner.
-  - **Keeping it current:** SCB's group index moves each price from the month it was observed to
-    the latest month, and fills foods with too few recent prices from their last value (marked
-    with its age; dropped after 2 years). Check SCB's licence terms before use (open data; keep the
-    attribution in Settings either way).
-  - Pipeline `pnpm data:fetch-prices` + `data:build-prices` → `public/data/prices-se.json` (a few
-    KB, with the month it is valid for); loaded lazily, only when prices are used. Nothing is
-    fetched by the app at runtime.
-  - **Updates every 6 months:** a scheduled GitHub Actions workflow (1 March and 1 September, after
-    SCB's January/July figures) runs fetch + build and opens a PR "Prices <month>" with a summary
-    (foods covered, biggest changes); it fails visibly if coverage drops by more than 10 % from the previous table. Needs the
-    owner to allow "GitHub Actions to create pull requests" in the repo settings once. The PR is
-    reviewed and merged like any other; no version bump needed (data only).
-  - **Shopping list:** lines without an own price use the typical price, shown as "≈ 18 kr" and
-    "≈ typpris" in the editor; own prices always win. The total says how much is estimated.
-  - Off by default, behind the M34 setting. Attribution (Open Food Facts Open Prices, SCB) in
-    Settings and on the privacy/about pages.
+- [x] **M33 Typical prices, updated twice a year** — Owner's choice (2026-10-13). A bundled table of
+  typical Swedish prices (kr/kg) for Livsmedelsverket's foods, used where the user typed no price.
+  - **Coverage check first** (as planned): Open Prices has ~5 200 SEK prices but no meat, fish or
+    eggs, and is skewed to a few contributors' baskets. Owner's choice: a **hand-made base list** of
+    ~200 shelf prices instead (`scripts/prices-spec.mjs` + `data/prices-base.json`: willys.se
+    comparison prices, median of the matching products, compiled by hand once a year with
+    `pnpm data:base-prices`). Open Prices replaces a shelf price only with ≥ 3 prices from ≥ 2 stores
+    in 12 months **and** within ×1.5 of it (22 items today).
+  - **Spread to the foods** with Livsmedelsverket's own data (raw commodities per food, with raw
+    weights): a food named by an item gets its price; cooked foods of raw-priced items by the raw
+    weight in them (cooked pasta = 50 g dry per 100 g); other raw foods and home-style dishes summed
+    from their raw commodities when ≥ 90 % of the raw weight has a price; industrial products only
+    by a shelf price. Result: **2 364 of 2 606 foods** (all 59 popular ones), 8.9 KB gzip.
+  - **Kept current** by SCB's consumer price index per food group (CC0, monthly, 85 groups): a
+    scheduled workflow (`.github/workflows/prices.yml`, 1 March and 1 September) refetches, rebuilds,
+    runs the unit tests (including sanity checks of the table) and opens a PR "Prices: …", starting
+    CI on it; it fails if coverage drops > 10 % and reminds when the shelf prices are ~a year old.
+  - **App**: setting "Visa uppskattade priser (typpriser)" in Settings → Matkostnad (off by default,
+    synced, in backups). On: the shopping list prices lines without an own price as "≈ 18 kr", the
+    total says how much is typical prices, and the price editor shows "≈ typpris … kr/kg". The table
+    is lazy (fetched when on, prefetched when idle for offline). Sources credited in Settings and on
+    the about/privacy pages; nothing is fetched from shops.
 - [ ] **M34 Cost per food and meal in the diary** — Owner's choice (2026-10-13), after M33. Setting
   "Visa matkostnad" (Settings, **off by default**, synced like the other opt-ins) turns on M33's
   typical prices and shows costs in the diary:

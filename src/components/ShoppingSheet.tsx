@@ -6,12 +6,14 @@ import { foodName, type Serving } from '../lib/nutrients';
 import { servingsFor } from '../lib/servings';
 import {
   addTo, costList, expand, gramsPerDl, krPerKg, MAX_PRICE, MAX_SHOP_ITEMS, sectionOf, SECTIONS, shopAmount, toText,
+  type LineCost,
   type Costed, type FoodPrice, type PriceUnit, type Section, type ShopItem,
 } from '../lib/shopping';
 import { tsh, type ShopKey } from '../lib/strings-shop';
 import { ensureFoods, foods, recipes, settings, supplementRefs, templates, updateSettings, userServings } from '../state';
 import { CHAINS, DEFAULT_CHAINS, OFFER_LINES, searchTerm } from '../lib/stores';
 import { Sheet } from './Sheet';
+import { typicalPrices } from '../lib/typical-prices';
 
 const SECTION_LABEL: Record<Section, ShopKey> = {
   produce: 'secProduce', bread: 'secBread', dairy: 'secDairy', meat: 'secMeat', dry: 'secDry', frozen: 'secFrozen', other: 'secOther',
@@ -45,9 +47,11 @@ interface LineProps {
   item: ShopItem;
   name: string;
   units: Serving[];
-  cost: { kr: number; estimated: boolean } | null;
+  cost: LineCost | null;
   /** The food's remembered price (kr/kg), shown in the editor. */
   price?: FoodPrice;
+  /** Its typical price (kr/kg, M33), when food costs are on: shown in the editor as a hint. */
+  typical?: number;
   share?: number;
   /** Offer links for this line (the biggest items; M31). */
   offers?: { name: string; href: string }[];
@@ -99,7 +103,7 @@ function Line(props: LineProps) {
           <span class="entry-name">{name}</span>
           <span class="num muted">
             {amountOf(i, units)}
-            {cost && ` · ${cost.estimated ? '~' : ''}${fmt(cost.kr)} kr`}
+            {cost && ` · ${cost.typical ? '≈' : cost.estimated ? '~' : ''}${fmt(cost.kr)} kr`}
             {props.share != null && cost && ` · ${fmt(props.share * 100)} %`}
           </span>
         </label>
@@ -147,6 +151,9 @@ function Line(props: LineProps) {
             </button>
           )}
           {i.foodRef && <p class="muted small block">{tsh('shopPriceHint')}</p>}
+          {i.foodRef && props.typical != null && !props.price && (
+            <p class="muted small block">{tsh('shopTypical').replace('{kr}', fmt(props.typical))}</p>
+          )}
         </form>
       )}
     </li>
@@ -175,6 +182,17 @@ class PureLine extends Component<LineProps> {
 export default function ShoppingSheet() {
   const [items, setItems] = useState<ShopItem[] | null>(null);
   const [prices, setPrices] = useState<Map<string, FoodPrice>>(new Map());
+  // Typical prices (M33): only when food costs are on; loaded after the list is shown.
+  const costsOn = !!settings.value.costs;
+  const [typical, setTypical] = useState<Map<string, number> | undefined>(undefined);
+  useEffect(() => {
+    if (!costsOn) return setTypical(undefined);
+    let live = true;
+    typicalPrices().then((m) => live && setTypical(m), () => {}); // offline before it was cached: own prices only
+    return () => {
+      live = false;
+    };
+  }, [costsOn]);
   const [recent, setRecent] = useState<Entry[]>([]);
   const [planned, setPlanned] = useState<Entry[]>([]);
   const [byCostView, setByCostView] = useState(false);
@@ -292,7 +310,7 @@ export default function ShoppingSheet() {
     })).filter((g) => g.list.length);
   }, [items, info]);
   // Every line's cost once per change: the total, the ranking and each line's figure.
-  const costs = useMemo(() => (items ? costList(items, prices) : null), [items, prices]);
+  const costs = useMemo(() => (items ? costList(items, prices, typical) : null), [items, prices, typical]);
   const costOf = useMemo(() => new Map((costs?.ranked ?? []).map((c) => [c.item.id, c])), [costs]);
   const ranked: Costed[] = byCostView ? (costs?.ranked ?? []) : [];
 
@@ -339,6 +357,7 @@ export default function ShoppingSheet() {
       units={info.get(i.id)!.units}
       cost={costOf.get(i.id)?.cost ?? null}
       price={i.foodRef ? prices.get(i.foodRef) : undefined}
+      typical={i.foodRef ? typical?.get(i.foodRef) : undefined}
       share={share}
       offers={byCostView ? offersById.get(i.id) : undefined}
       onSave={onSave}
@@ -369,6 +388,7 @@ export default function ShoppingSheet() {
             {costs && costs.total > 0 && (
               <p class="shop-total">
                 <span class="num">{tsh('shopTotal').replace('{kr}', fmt(costs.total))}</span>
+                {costs.typicalKr > 0 && <span class="muted small"> · {tsh('shopTotalTypical').replace('{kr}', fmt(costs.typicalKr))}</span>}
                 {costs.missing > 0 && <span class="muted small"> · {tsh('shopNoPrice').replace('{n}', String(costs.missing))}</span>}
               </p>
             )}

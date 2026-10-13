@@ -1,9 +1,9 @@
 // Builds the typical-price table (M33): kr/kg for every Livsmedelsverket food the data supports.
 //   public/data/prices.<hash>.json = { v, month, foods: { "slv:846": 14.1, … } }   (kr per kg)
-//   src/lib/prices.json            = { file, month, foods }                       (for the app)
+//   src/lib/prices.json            = { file, month, collected, foods }            (for the app)
 // Inputs: scripts/prices-spec.mjs (hand-made), data/prices-base.json (shelf prices, yearly), and
-// data/raw/prices/* (pnpm data:fetch-prices: SCB's price index, Open Prices, Livsmedelsverket's raw
-// commodities). Each price:
+// data/raw/prices/* (pnpm data:fetch-prices: SCB's price index, Open Prices, Livsmedelsverket's foods
+// and their raw commodities). Each price:
 //   1. an item of the spec: its shelf price moved by SCB's index for its group to the latest month,
 //      or the median of Open Prices (≥ 3 prices, ≥ 2 stores, last 12 months) when there are enough;
 //   2. a food the spec names directly gets its item's price; for raw-priced items (meat, pasta,
@@ -22,7 +22,7 @@ const base = await read('data/prices-base.json');
 const scb = await read('data/raw/prices/scb-kpi.json');
 const openPrices = await read('data/raw/prices/open-prices-sek.json');
 const slvRaw = await read('data/raw/prices/slv-ravaror.json');
-const names = new Map((await read('data/raw/slv.json')).foods.map((f) => [String(f.id), f.sv]));
+const names = new Map(Object.entries(slvRaw).map(([id, f]) => [id, f.sv]));
 
 const median = (xs) => {
   const s = [...xs].sort((a, b) => a - b);
@@ -159,13 +159,16 @@ const json = JSON.stringify({ v: 1, month: LATEST, foods });
 for (const f of await readdir('public/data')) if (/^prices\.[0-9a-f]{8}\.json$/.test(f)) await rm(`public/data/${f}`);
 const file = `prices.${createHash('sha256').update(json).digest('hex').slice(0, 8)}.json`;
 await writeFile(`public/data/${file}`, json);
-await writeFile('src/lib/prices.json', JSON.stringify({ file, month: LATEST, foods: count }, null, 2) + '\n');
+await writeFile('src/lib/prices.json', JSON.stringify({ file, month: LATEST, collected: base.collected, foods: count }, null, 2) + '\n');
 
 const fromOpen = [...item.values()].filter((p) => p.source === 'open-prices').length;
 const summary = [
   `Typical prices for ${LATEST}: **${count} of ${names.size} foods** (${how.item} by a shelf price, ${how.sum} summed from their raw commodities).`,
   `Shelf prices from ${base.source}, collected ${base.collected}; moved by SCB's price index to ${LATEST}. ${fromOpen} of ${item.size} items from Open Prices.`,
   previous != null ? `Previous table: ${previous} foods.` : '',
+  Date.now() - Date.parse(base.collected) > 330 * 864e5
+    ? `**The shelf prices are from ${base.collected}, almost a year old: re-check them by hand (\`pnpm data:base-prices\`, then commit data/prices-base.json).**`
+    : '',
   '',
   '| Group | Priced |',
   '|---|---|',

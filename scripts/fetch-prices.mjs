@@ -3,38 +3,48 @@
 //   build-prices.mjs uses (product categories and pack size, store, date);
 // - scb-kpi.json: SCB's monthly consumer price index per food and drink group (COICOP 01.1, 01.2,
 //   02.1; CC0).
-// - slv-ravaror.json: Livsmedelsverket's raw commodities per food (share and raw-weight factor), used
-//   to price cooked foods and dishes, and each food's EuroFIR group (bröd, godis, maträtter …).
-//   Rarely changes: kept unless --refresh-slv (~5 200 requests).
+// - slv-ravaror.json: Livsmedelsverket's foods (Swedish name), each with its raw commodities (share
+//   and raw-weight factor, used to price cooked foods and dishes) and EuroFIR group (bröd, godis,
+//   maträtter …). The commodities rarely change: fetched only for new foods, or all with
+//   --refresh-slv (~5 200 requests).
 // Usage: node scripts/fetch-prices.mjs [--refresh-slv]
-import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const OUT = 'data/raw/prices';
 await mkdir(OUT, { recursive: true });
 
+const SLV = 'https://dataportal.livsmedelsverket.se/livsmedel/api/v1';
 const RAVAROR = `${OUT}/slv-ravaror.json`;
-if (process.argv.includes('--refresh-slv') || !(await access(RAVAROR).then(() => true, () => false))) {
-  const API = 'https://dataportal.livsmedelsverket.se/livsmedel/api/v1';
-  const ids = JSON.parse(await readFile('data/raw/slv.json', 'utf8')).foods.map((f) => f.id);
-  const out = {};
-  let next = 0;
-  const worker = async () => {
-    while (next < ids.length) {
-      const id = ids[next++];
-      const rows = await json(`${API}/livsmedel/${id}/ravaror?sprak=1`);
-      const classes = await json(`${API}/livsmedel/${id}/klassificeringar?sprak=1`);
-      out[id] = {
-        group: classes.find((c) => c.fasett.startsWith('A '))?.namn ?? null,
-        // [FoodEx2 code, name, cooked?, share %, raw grams per 100 g of the food]
-        raw: rows.map((r) => [r.foodEx2, r.namn.trim(), r.tillagning === 'Tillagad', r.andel, r.omraknadTillRa]),
-      };
-      if (Object.keys(out).length % 200 === 0) process.stdout.write(`\rLivsmedelsverket: ${Object.keys(out).length}/${ids.length}`);
-    }
-  };
-  await Promise.all(Array.from({ length: 4 }, worker));
-  await writeFile(RAVAROR, JSON.stringify(out));
-  console.log(`\nLivsmedelsverket: raw commodities of ${ids.length} foods`);
+let slv = {};
+if (!process.argv.includes('--refresh-slv')) {
+  try {
+    slv = JSON.parse(await readFile(RAVAROR, 'utf8'));
+  } catch {
+    // first run
+  }
 }
+const list = (await json(`${SLV}/livsmedel?offset=0&limit=5000&sprak=1`)).livsmedel;
+const todo = list.filter((f) => !slv[f.nummer]?.raw);
+let next = 0;
+const worker = async () => {
+  while (next < todo.length) {
+    const f = todo[next++];
+    const rows = await json(`${SLV}/livsmedel/${f.nummer}/ravaror?sprak=1`);
+    const classes = await json(`${SLV}/livsmedel/${f.nummer}/klassificeringar?sprak=1`);
+    slv[f.nummer] = {
+      group: classes.find((c) => c.fasett.startsWith('A '))?.namn ?? null,
+      // [FoodEx2 code, name, cooked?, share %, raw grams per 100 g of the food]
+      raw: rows.map((r) => [r.foodEx2, r.namn.trim(), r.tillagning === 'Tillagad', r.andel, r.omraknadTillRa]),
+    };
+    if (next % 200 === 0) process.stdout.write(`\rLivsmedelsverket: ${next}/${todo.length}`);
+  }
+};
+await Promise.all(Array.from({ length: 4 }, worker));
+const current = new Set(list.map((f) => String(f.nummer)));
+for (const id of Object.keys(slv)) if (!current.has(id)) delete slv[id]; // removed from the database
+for (const f of list) slv[f.nummer].sv = f.namn;
+await writeFile(RAVAROR, JSON.stringify(slv));
+console.log(`\nLivsmedelsverket: ${list.length} foods (${todo.length} fetched)`);
 
 async function json(url, init) {
   for (let attempt = 1; ; attempt++) {
