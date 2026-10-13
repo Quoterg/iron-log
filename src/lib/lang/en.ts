@@ -81,6 +81,8 @@ const strings: Dict = {
   reportError: 'Report a data error',
   privacyPolicy: 'Privacy',
   aboutApp: 'About Iron Log',
+  whatsNew: 'What’s new',
+  whatsNewIn: 'New in {v}',
   back: 'Back',
   save: 'Save',
   meal: 'Meal',

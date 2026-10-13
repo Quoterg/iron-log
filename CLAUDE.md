@@ -56,6 +56,10 @@ pnpm data:build-usda       # data/raw/usda → public/data/usda-*.json (+ src/li
 - Nutrient vectors follow `src/lib/nutrients.json` order; every food source maps into it.
   Adding a nutrient = add to nutrients.json + rebuild data + targets if any.
 - All UI strings go through `t()` in `src/lib/i18n.ts`, both `sv` and `en`. Numbers via `fmt()`.
+- **Releases (M32):** a new app version = bump `version` in package.json, add its entry at the top of
+  `src/changelog.ts` in every language (short, plain notes for users; a unit test checks both), and
+  set `appVersionName`/`appVersionCode` in android/twa-manifest.json to match. The first start
+  after a version bump shows "Nyheter" once; ordinary deploys without a bump show nothing.
 - Data licenses: Livsmedelsverket CC BY 4.0, Open Food Facts ODbL, USDA public domain —
   keep attribution visible in Settings.
 - Never `cat`/read `public/data/foods.json` or `data/raw/*` whole — they're large. Use `python3 -c`/`node -e` to query them.

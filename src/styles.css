@@ -155,6 +155,8 @@ main {
 .whatif-track .whatif-before { background: var(--ok); }
 .suggest .result { padding: 10px 0; }
 .suggest-sub { margin: 12px 0 0; font-size: 0.95rem; }
+.news { margin: 8px 0 0; padding-left: 20px; }
+.news li { margin: 6px 0; }
 .suggest-gap + .suggest-gap { margin-top: 10px; }
 .checkin-teaser { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--usual); border-color: var(--usual-border); }
 .checkin-days { font-size: 1.4rem; font-weight: 200; margin: 0 0 4px; }

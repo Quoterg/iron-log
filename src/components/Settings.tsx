@@ -9,6 +9,7 @@ import { ts } from '../lib/strings-sync';
 import { setTheme, themeChoice } from '../lib/theme';
 import { tg } from '../lib/strings-suggest';
 import { tc } from '../lib/strings-checkin';
+import { APP_VERSION } from '../lib/version';
 
 /** Loaded lazily (see app.tsx): not needed for the first screen. */
 export default function Settings() {
@@ -194,6 +195,12 @@ function General() {
       <p class="muted small">
         {t('privacy')} <a href={lang.value === 'sv' ? 'privacy.html' : 'privacy.html#en'}>{t('privacyPolicy')}</a> ·{' '}
         <a href={lang.value === 'sv' ? 'about.html' : 'about.html#en'}>{t('aboutApp')}</a>
+      </p>
+      <p class="muted small">
+        Iron Log {APP_VERSION} ·{' '}
+        <button type="button" class="link inline" onClick={() => open({ kind: 'whatsnew' })}>
+          {t('whatsNew')}
+        </button>
       </p>
       <p class="muted small">{t('attribution')}</p>
       <fieldset class="sources">

@@ -82,6 +82,8 @@ const pack: LangPack = {
     reportError: 'Soo sheeg khalad xogta cuntada ah',
     privacyPolicy: 'Arrimaha gaarka ah',
     aboutApp: 'Ku saabsan Iron Log',
+    whatsNew: 'Waxa cusub',
+    whatsNewIn: 'Waxa cusub ee {v}',
     back: 'Dib',
     save: 'Keydi',
     meal: 'Cunto',

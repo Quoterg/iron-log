@@ -126,6 +126,11 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await dialog(page).locator('.shop-item').first().getByRole('checkbox').check();
     await expect(dialog(page).getByRole('heading', { name: 'Övrigt' })).toBeVisible();
   },
+  "what's new": async (page) => {
+    await tab(page, 'Inställningar');
+    await page.getByRole('button', { name: 'Nyheter' }).click();
+    await expect(dialog(page).getByRole('heading', { name: 'Nytt i 1.2.0' })).toBeVisible();
+  },
   'weekly check-in': async (page) => {
     await tab(page, 'Inställningar');
     await page.getByLabel('Visa en kort avstämning av förra veckan i dagboken').check();

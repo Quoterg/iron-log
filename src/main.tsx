@@ -3,9 +3,9 @@ import { App, bodyView, contributorsView, copyView, foodEditorView, recipeEditor
 import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang, lastLang, loadLang } from './lib/i18n';
-import { initNav, open } from './nav';
+import { initNav, open, stack } from './nav';
 import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage } from './state';
-import { isoDate } from './lib/db';
+import { getSettings, hasEntries, isoDate } from './lib/db';
 import { mealAt } from './lib/usual';
 import { applyTheme, watchSystemTheme } from './lib/theme';
 import './styles.css';
@@ -29,6 +29,7 @@ async function start() {
   render(<App />, document.getElementById('app')!);
   await loadDay(date.value);
   runShortcut();
+  showWhatsNew().catch(() => {}); // offline and not cached yet: next start
   // Back in the foreground: time-of-day suggestions follow the clock, and a new day shows today.
   let shownToday = isoDate(new Date());
   document.addEventListener('visibilitychange', () => {
@@ -62,6 +63,18 @@ async function start() {
   }
   // Ask the browser not to evict our local data (matters on iOS/low-storage devices).
   void navigator.storage?.persist?.();
+}
+
+/** Once after a release (a new version in package.json): what's new since the version last seen. */
+async function showWhatsNew() {
+  if (stack.value.length) return; // a shortcut opened a sheet: next start instead
+  const { markSeen, whatsNewSince } = await import('./lib/version'); // not needed for first paint
+  const since = await whatsNewSince(async () => !!(await getSettings()) || (await hasEntries()));
+  // The user may have opened a sheet meanwhile (slow storage): then it's shown next start.
+  if (since && !stack.value.length) {
+    open({ kind: 'whatsnew', since });
+    markSeen();
+  }
 }
 
 /** Home-screen shortcuts (manifest.webmanifest): `?add` opens the add sheet, `?water` adds 2 dl. */
