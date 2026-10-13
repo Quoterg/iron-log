@@ -1,12 +1,40 @@
 // Downloads the inputs of the typical-price table (M33) into data/raw/prices/:
 // - open-prices-sek.json: every SEK price on Open Food Facts' Open Prices (ODbL), slimmed to what
 //   build-prices.mjs uses (product categories and pack size, store, date);
-// - scb-kpi.json: SCB's monthly consumer price index per food group (COICOP 01.1.x, CC0).
-// Usage: node scripts/fetch-prices.mjs
-import { mkdir, writeFile } from 'node:fs/promises';
+// - scb-kpi.json: SCB's monthly consumer price index per food and drink group (COICOP 01.1, 01.2,
+//   02.1; CC0).
+// - slv-ravaror.json: Livsmedelsverket's raw commodities per food (share and raw-weight factor), used
+//   to price cooked foods and dishes, and each food's EuroFIR group (bröd, godis, maträtter …).
+//   Rarely changes: kept unless --refresh-slv (~5 200 requests).
+// Usage: node scripts/fetch-prices.mjs [--refresh-slv]
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const OUT = 'data/raw/prices';
 await mkdir(OUT, { recursive: true });
+
+const RAVAROR = `${OUT}/slv-ravaror.json`;
+if (process.argv.includes('--refresh-slv') || !(await access(RAVAROR).then(() => true, () => false))) {
+  const API = 'https://dataportal.livsmedelsverket.se/livsmedel/api/v1';
+  const ids = JSON.parse(await readFile('data/raw/slv.json', 'utf8')).foods.map((f) => f.id);
+  const out = {};
+  let next = 0;
+  const worker = async () => {
+    while (next < ids.length) {
+      const id = ids[next++];
+      const rows = await json(`${API}/livsmedel/${id}/ravaror?sprak=1`);
+      const classes = await json(`${API}/livsmedel/${id}/klassificeringar?sprak=1`);
+      out[id] = {
+        group: classes.find((c) => c.fasett.startsWith('A '))?.namn ?? null,
+        // [FoodEx2 code, name, cooked?, share %, raw grams per 100 g of the food]
+        raw: rows.map((r) => [r.foodEx2, r.namn.trim(), r.tillagning === 'Tillagad', r.andel, r.omraknadTillRa]),
+      };
+      if (Object.keys(out).length % 200 === 0) process.stdout.write(`\rLivsmedelsverket: ${Object.keys(out).length}/${ids.length}`);
+    }
+  };
+  await Promise.all(Array.from({ length: 4 }, worker));
+  await writeFile(RAVAROR, JSON.stringify(out));
+  console.log(`\nLivsmedelsverket: raw commodities of ${ids.length} foods`);
+}
 
 async function json(url, init) {
   for (let attempt = 1; ; attempt++) {
@@ -48,7 +76,7 @@ await writeFile(`${OUT}/open-prices-sek.json`, JSON.stringify(prices));
 // SCB: index (2020=100) per food group, the last 36 months.
 const TABLE = 'https://api.scb.se/OV0104/v1/doris/sv/ssd/PR/PR0101/PR0101A/KPI2020COICOPM';
 const meta = await json(TABLE);
-const groups = meta.variables[0].values.filter((v) => /^01\.1(\.|$)/.test(v));
+const groups = meta.variables[0].values.filter((v) => /^(01\.1|01\.2|02\.1)(\.|$)/.test(v)); // food, drinks
 const d = await json(TABLE, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
