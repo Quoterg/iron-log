@@ -199,6 +199,9 @@ input[type='checkbox'], input[type='radio'] { accent-color: var(--accent); }
 .result { flex-direction: column; gap: 2px; padding: 12px 16px; }
 .result .muted { font-size: 0.85rem; }
 .entry-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.entries li.priced { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; } /* food cost (M34) */
+.priced .entry { flex: 1 1 14em; min-width: 0; }
+.priced .cost { margin-left: auto; white-space: nowrap; }
 .usual { display: flex; align-items: center; gap: 8px; margin-top: 8px; border: 1px solid var(--usual-border); background: var(--usual); border-radius: 14px; padding: 0 0 0 12px; }
 .usual-log { display: flex; flex: 1; min-width: 0; gap: 10px; align-items: baseline; padding: 10px 0; background: none; border: 0; text-align: left; cursor: pointer; color: inherit; font: inherit; }
 .entry-edit { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 0; }

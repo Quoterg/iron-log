@@ -34,6 +34,8 @@ export type Screen =
   | { kind: 'checkin' }
   /** The shopping list (M28). */
   | { kind: 'shopping' }
+  /** A food's price (M34): the shopping list's editor, from a cost in the diary. */
+  | { kind: 'price'; ref: string }
   /** What's new (M32): releases newer than `since`, else the latest ones. */
   | { kind: 'whatsnew'; since?: string | null };
 

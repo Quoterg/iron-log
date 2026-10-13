@@ -34,6 +34,7 @@ export const foodEditorView = lazyView(() => import('./components/FoodEditor'));
 export const copyView = lazyView(() => import('./components/CopySheet'));
 export const shoppingView = lazyView(() => import('./components/ShoppingSheet'));
 export const whatsNewView = lazyView(() => import('./components/WhatsNew'));
+export const priceView = lazyView(() => import('./components/PriceSheet'));
 
 export function App() {
   const s = top.value;
@@ -112,6 +113,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <checkinView.Lazy />;
     case 'shopping':
       return <shoppingView.Lazy />;
+    case 'price':
+      return <priceView.Lazy foodRef={s.ref} />;
     case 'whatsnew':
       return <whatsNewView.Lazy since={s.since} />;
   }

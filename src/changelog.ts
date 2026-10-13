@@ -13,6 +13,48 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.4.0',
+    date: '2026-10-13',
+    notes: {
+      sv: [
+        'Matkostnad (valbart): ungefärliga priser för över 2 300 livsmedel – i dagboken per livsmedel, måltid och dag, och i inköpslistan. Slå på i Inställningar → Matkostnad.',
+        'Tryck på en kostnad i dagboken för att skriva in ditt eget pris; det används också i inköpslistan.',
+        'Priserna uppdateras två gånger per år med SCB:s prisindex. Allt finns i appen – inget hämtas från butiker.',
+        'Använder du appen på flera enheter: uppdatera alla, annars kan en äldre version slå av Matkostnad igen.',
+      ],
+      en: [
+        'Food cost (optional): approximate prices for over 2,300 foods – in the diary per food, meal and day, and on the shopping list. Turn on in Settings → Food cost.',
+        'Tap a cost in the diary to type your own price; it is used on the shopping list too.',
+        'Prices are updated twice a year with Statistics Sweden’s price index. Everything is in the app – nothing is fetched from shops.',
+        'Using the app on several devices: update them all, or an older version may turn Food cost off again.',
+      ],
+      da: [
+        'Madudgifter (valgfrit): omtrentlige priser for over 2.300 fødevarer – i dagbogen pr. fødevare, måltid og dag og på indkøbslisten. Slå til under Indstillinger → Madudgifter.',
+        'Tryk på en udgift i dagbogen for at skrive din egen pris; den bruges også på indkøbslisten.',
+        'Priserne opdateres to gange om året med SCB’s prisindeks. Alt ligger i appen – intet hentes fra butikker.',
+        'Bruger du appen på flere enheder: opdater dem alle, ellers kan en ældre version slå Madudgifter fra igen.',
+      ],
+      de: [
+        'Lebensmittelkosten (optional): ungefähre Preise für über 2.300 Lebensmittel – im Tagebuch pro Lebensmittel, Mahlzeit und Tag und auf der Einkaufsliste. Einschalten unter Einstellungen → Lebensmittelkosten.',
+        'Tippe im Tagebuch auf einen Betrag, um deinen eigenen Preis einzugeben; er gilt auch auf der Einkaufsliste.',
+        'Die Preise werden zweimal im Jahr mit dem Preisindex von SCB aktualisiert. Alles steckt in der App – nichts wird von Läden abgerufen.',
+        'Nutzt du die App auf mehreren Geräten: aktualisiere alle, sonst kann eine ältere Version Lebensmittelkosten wieder ausschalten.',
+      ],
+      fi: [
+        'Ruokakulut (valinnainen): likimääräiset hinnat yli 2 300 elintarvikkeelle – päiväkirjassa elintarvikkeittain, aterioittain ja päivittäin sekä ostoslistalla. Ota käyttöön kohdassa Asetukset → Ruokakulut.',
+        'Napauta päiväkirjassa hintaa kirjoittaaksesi oman hintasi; sitä käytetään myös ostoslistalla.',
+        'Hinnat päivitetään kahdesti vuodessa SCB:n hintaindeksillä. Kaikki on sovelluksessa – kaupoista ei haeta mitään.',
+        'Jos käytät sovellusta useilla laitteilla: päivitä kaikki, muuten vanhempi versio voi kytkeä Ruokakulut taas pois.',
+      ],
+      so: [
+        'Kharashka cuntada (ikhtiyaari): qiimayaal qiyaas ah oo loogu talagalay in ka badan 2,300 cunto – buugga maalinlaha cunto kasta, cunto-qayb kasta iyo maalin kasta, iyo liiska iibsiga. Ka shid Dejinta → Kharashka cuntada.',
+        'Riix kharash ku jira buugga maalinlaha si aad u qorto qiimahaaga; sidoo kale waxaa lagu isticmaalaa liiska iibsiga.',
+        'Qiimayaasha waxaa la cusboonaysiiyaa laba jeer sannadkii iyadoo la adeegsanayo tusaha qiimaha SCB. Wax walba waxay ku jiraan barnaamijka – dukaamada waxba lagama soo dejiyo.',
+        'Haddii aad barnaamijka ku isticmaasho qalab badan: cusboonaysii dhammaan, haddii kale nooc hore ayaa mar kale demin kara Kharashka cuntada.',
+      ],
+    },
+  },
+  {
     version: '1.3.0',
     date: '2026-10-13',
     notes: {
