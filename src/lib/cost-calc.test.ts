@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { priceCalc, roundKr, sumCost } from './cost-calc';
+import { fmt } from './i18n';
 
 // Food cost in the diary (M34).
 describe('food cost', () => {
@@ -29,7 +30,7 @@ describe('food cost', () => {
 
   it('shows whole kronor, half kronor below 10, tenths below 1', () => {
     expect([roundKr(23.4), roundKr(3.3), roundKr(0.34)]).toEqual([23, 3.5, 0.3]);
-    expect(book.text({ kr: 3.3, partial: false })).toBe('~3,5 kr');
+    expect(book.text({ kr: 3.3, partial: false })).toBe(`~${fmt(3.5, 1)} kr`); // "~3,5 kr" in Swedish (the decimal mark follows the locale)
     expect(book.text({ kr: 23.4, partial: true })).toBe('minst ~23 kr');
   });
 
