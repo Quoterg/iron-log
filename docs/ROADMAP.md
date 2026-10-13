@@ -185,3 +185,42 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   every language). After a release, the first start shows "Nyheter i <version>" once; a fresh
   install shows nothing; minor web deploys without a version bump show nothing. Releasing = bump the
   version and add its entry (rule in CLAUDE.md).
+- [ ] **M33 Typical prices, updated twice a year** — Owner's choice (2026-10-13). Wait for the owner's
+  go before starting. A bundled table of typical Swedish prices (kr/kg) for common foods, so costs
+  work before the user types any price. Research (2026-10-13): SCB publishes **no average prices in
+  kronor** any more, only the consumer price index, including a monthly index for 97 food groups
+  (table `PR0101A/KPI2020EPG01M`: Gryn, Ris, Mjöl, Mjukt bröd, …). So two open sources are combined:
+  - **Kronor:** Open Food Facts' **Open Prices** (prices.openfoodfacts.org, ODbL; ~5 200 SEK prices
+    from Swedish stores, per product with barcode and pack size → kr/kg). A curated map of ~100
+    common foods (Livsmedelsverket number ↔ Open Food Facts categories ↔ SCB group) takes the
+    median kr/kg of the last 12 months, needing ≥ 3 prices from ≥ 2 stores; outliers trimmed.
+  - **Keeping it current:** SCB's group index moves each price from the month it was observed to
+    the latest month, and fills foods with too few recent prices from their last value (marked
+    with its age; dropped after 2 years). Check SCB's licence terms before use (open data; keep the
+    attribution in Settings either way).
+  - Pipeline `pnpm data:fetch-prices` + `data:build-prices` → `public/data/prices-se.json` (a few
+    KB, with the month it is valid for); loaded lazily, only when prices are used. Nothing is
+    fetched by the app at runtime.
+  - **Updates every 6 months:** a scheduled GitHub Actions workflow (1 March and 1 September, after
+    SCB's January/July figures) runs fetch + build and opens a PR "Prices <month>" with a summary
+    (foods covered, biggest changes); it fails visibly if coverage drops below 70 foods. Needs the
+    owner to allow "GitHub Actions to create pull requests" in the repo settings once. The PR is
+    reviewed and merged like any other; no version bump needed (data only).
+  - **Shopping list:** lines without an own price use the typical price, shown as "≈ 18 kr" and
+    "≈ typpris" in the editor; own prices always win. The total says how much is estimated.
+  - Off by default, behind the M34 setting. Attribution (Open Food Facts Open Prices, SCB) in
+    Settings and on the privacy/about pages.
+- [ ] **M34 Cost per food and meal in the diary** — Owner's choice (2026-10-13), after M33. Setting
+  "Visa matkostnad" (Settings, **off by default**, synced like the other opt-ins) turns on M33's
+  typical prices and shows costs in the diary:
+  - each entry: "~4 kr" next to its energy (own price > typical price; recipes add up their
+    ingredients; foods with no price show nothing);
+  - each meal: total in its header ("Frukost · ~23 kr"; "minst ~23 kr" when some entries lack a
+    price), and the day's total under the day summary;
+  - tapping a cost opens the food's price editor (the same one as the shopping list), so a wrong
+    estimate is fixed in one place.
+  - Performance: when the setting is off nothing extra loads; when on, the price table loads after
+    first paint and costs appear when ready. Initial JS within +0.4 KB; Lighthouse unchanged.
+  - Tests: unit (cost per entry, recipes, units, missing prices, the typical/own precedence), e2e
+    (off by default; on → entry and meal costs; editing a price updates them; off again hides
+    them), axe and 200 % text with costs shown.

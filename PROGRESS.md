@@ -5,7 +5,9 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M21b** (low security housekeeping) next. **Release 1.3.0** is ready to build once #49 is merged
+Planned 2026-10-13 (owner): **M33 typical prices** (Open Prices kr/kg + SCB food-group index,
+updated by a twice-yearly workflow) and **M34 cost per food and meal** (opt-in). **Don't start them
+until the owner says go.** **M21b** (low security housekeeping) next. **Release 1.3.0** is ready to build once #49 is merged
 (bubblewrap update + build; twa-manifest already says 1.3.0 / code 5). **Releasing** from now on:
 see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
 2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 37.6 KB of 40 after M28 moved the
