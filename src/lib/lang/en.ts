@@ -86,6 +86,7 @@ const strings: Dict = {
   dayCost: 'Food cost: {kr}',
   costMin: 'at least {kr}',
   costEdit: 'Price: {name}',
+  followDone: 'Your energy target follows your expenditure: now {kcal} kcal/day ({delta}).',
   back: 'Back',
   save: 'Save',
   meal: 'Meal',
@@ -373,6 +374,11 @@ const energy: Record<string, string> = {
   adaptiveApply: 'Use as my energy target',
   adaptiveIsTarget: 'This is your energy target now. It doesn’t change by itself.',
   adaptiveNoGoal: 'During pregnancy and breastfeeding only the estimate is shown, no weight-change goals.',
+  goalWhere: 'Goal: {goal} (change it under Profile).',
+  goalFormula: 'Expenditure about {need} kcal, {delta} kcal/day for {kg} kg/week.',
+  followToggle: 'Follow the estimate automatically (at most ±{kcal} kcal per week)',
+  followExplain: 'Once a week your energy target moves toward the suggested one, at most {kcal} kcal at a time, so a single week can’t swing it. You’ll see the change in the diary.',
+  followActive: 'The energy target follows your measured expenditure once a week (Adaptive expenditure).',
 };
 
 const suggest: Record<string, string> = {

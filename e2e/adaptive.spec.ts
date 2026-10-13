@@ -47,13 +47,37 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
 
   // A goal suggests a target; nothing changes until the user applies it.
   await page.getByRole('combobox', { name: 'Mål', exact: true }).selectOption('lose');
-  await expect(page.getByRole('combobox', { name: 'Takt' }).locator('option')).toHaveCount(2); // 0.75 kg/week is over 0.75 % of 78.5 kg
+  // The goal is set in the profile (M35); its paces follow the profile weight (none entered here: all three).
+  await expect(page.getByRole('combobox', { name: 'Takt' }).locator('option')).toHaveCount(3);
   await page.getByRole('combobox', { name: 'Takt' }).selectOption('0.25');
   await expect(page.getByText(/Föreslaget energimål: 2\s280 kcal\/dag/)).toBeVisible();
   await expect(energy).toHaveValue(before);
   await page.getByRole('button', { name: 'Använd som mitt energimål' }).click();
   await expect(energy).toHaveValue('2280');
   await expect(page.getByText('Det här är ditt energimål nu.', { exact: false })).toBeVisible();
+
+  // Follow the estimate (M35): gain 0.25 kg/week wants 2550 + 275 = 2830; one step is at most +150.
+  await page.getByRole('combobox', { name: 'Mål', exact: true }).selectOption('gain');
+  await expect(page.getByText(/Föreslaget energimål: 2\s830 kcal\/dag/)).toBeVisible();
+  await page.getByLabel(/Följ uppskattningen automatiskt/).check();
+  await expect(energy).toHaveValue('2430');
+  await expect(page.getByText(/följer din uppmätta förbrukning en gång i veckan/)).toBeVisible();
+  await tab(page, 'Dagbok');
+  const note = page.getByRole('status').filter({ hasText: 'Energimålet följer din förbrukning' });
+  await expect(note).toContainText('nu 2 430 kcal/dag (+150)');
+  // Once a week: a reload the same week changes nothing.
+  await page.reload();
+  await expect(note).toBeVisible();
+  await tab(page, 'Inställningar');
+  await expect(energy).toHaveValue('2430');
+  await page.getByLabel(/Följ uppskattningen automatiskt/).uncheck();
+  await page.getByRole('combobox', { name: 'Mål', exact: true }).selectOption('lose');
+  await page.getByRole('button', { name: 'Använd som mitt energimål' }).click();
+  await expect(energy).toHaveValue('2280');
+  await tab(page, 'Dagbok');
+  await note.getByRole('button', { name: 'Inte nu' }).click();
+  await expect(note).toHaveCount(0);
+  await page.getByRole('button', { name: 'Föregående dag' }).click();
 
   // The day-complete mark in the diary (still showing yesterday), kept across a reload.
   await tab(page, 'Dagbok');

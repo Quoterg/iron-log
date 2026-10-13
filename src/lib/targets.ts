@@ -91,20 +91,59 @@ export function energyNeed(p: Profile): number | null {
  * new level (moderate, 1.55) rather than the new sedentary default; other levels snap to the
  * nearest. Returns whether the automatic energy target changed, so the app can say so.
  */
-export function migrateEnergyProfile(p: Profile): { profile: Profile; kcalChanged: boolean } {
-  const profile = withEnergy({ ...p, pal: snapPal(p.pal ?? 1.6) });
+export function migrateEnergyProfile(p: Profile, goal?: Goal, pace?: number): { profile: Profile; kcalChanged: boolean } {
+  const profile = withEnergy({ ...p, pal: snapPal(p.pal ?? 1.6) }, goal, pace);
   return { profile, kcalChanged: !!p.kcalAuto && profile.kcal !== p.kcal };
 }
 
+// --- Goals (lose / maintain / gain at a pace): the formula target (M35) and the adaptive one (M25).
+
+export type Goal = 'lose' | 'maintain' | 'gain';
+export const GOALS: Goal[] = ['lose', 'maintain', 'gain'];
+export const PACES = [0.25, 0.5, 0.75]; // kg per week
+/** Energy in a kg of body weight (fat and the rest), the usual energy-balance figure. */
+export const KCAL_PER_KG = 7700;
+/** Fastest pace offered: % of body weight per week. */
+const MAX_PCT_PER_WEEK = 0.75;
+
+/** Paces offered for a body weight: at most 0.75 % of it per week (all of them if unknown). */
+export function allowedPaces(weightKg?: number): number[] {
+  return weightKg ? PACES.filter((x) => x <= (weightKg * MAX_PCT_PER_WEEK) / 100 + 1e-9) : PACES;
+}
+
+/** No weight goal while pregnant or breastfeeding: the target stays the need. */
+export const noGoal = (p: Profile): boolean => p.sex === 'female' && (p.status ?? 'none') !== 'none';
+
+/** Never suggested below this: 1200 kcal (women) / 1500 kcal (men), and not below the basal rate. */
+export function minIntake(p: Profile): number {
+  return Math.max(p.sex === 'female' ? 1200 : 1500, Math.round(basalKcal(p) ?? 0));
+}
+
+/** Energy target for a goal: expenditure ± the pace's energy (7700 kcal per kg), never below `floor`. */
+export function goalTarget(expenditure: number, goal: Goal, pacePerWeek: number, floor: number): { kcal: number; floored: boolean } {
+  const delta = goal === 'maintain' ? 0 : ((goal === 'lose' ? -1 : 1) * pacePerWeek * KCAL_PER_KG) / 7;
+  const kcal = Math.round((expenditure + delta) / 10) * 10;
+  return kcal < floor ? { kcal: floor, floored: true } : { kcal, floored: false };
+}
+
+/** The pace used for a goal: the chosen one, or the fastest allowed for this weight below it. */
+export function paceFor(p: Profile, pace = 0.5): number {
+  const ok = allowedPaces(p.weightKg);
+  return ok.filter((x) => x <= pace).at(-1) ?? ok[0] ?? PACES[0];
+}
+
 /**
- * The profile with `kcal` recomputed when energy is automatic. If the body data needed for the
- * estimate is missing, automatic mode is switched off (keeping the last value) instead of
- * silently showing a stale number.
+ * The profile with `kcal` recomputed when energy is automatic: the need (formula), adjusted for the
+ * goal at its pace (M35; never below minIntake). If the body data needed for the estimate is
+ * missing, automatic mode is switched off (keeping the last value) instead of silently showing a
+ * stale number.
  */
-export function withEnergy(p: Profile): Profile {
+export function withEnergy(p: Profile, goal: Goal = 'maintain', pace?: number): Profile {
   if (!p.kcalAuto) return p;
-  const kcal = energyNeed(p);
-  return kcal ? { ...p, kcal } : { ...p, kcalAuto: false };
+  const need = energyNeed(p);
+  if (!need) return { ...p, kcalAuto: false };
+  if (goal === 'maintain' || noGoal(p)) return { ...p, kcal: need };
+  return { ...p, kcal: goalTarget(need, goal, paceFor(p, pace), minIntake(p)).kcal };
 }
 
 type Pair = [female: number, male: number];

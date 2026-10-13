@@ -7,7 +7,7 @@ import type { BodyEntry } from './body';
 import { padVector, type StoredRecipe } from './recipes';
 import { MAX_TEMPLATE_ITEMS, MAX_TEMPLATE_NAME, type MealTemplate, type TemplateItem } from './templates';
 import { AMOUNT_MEMORY, type LoggedAmount } from './servings';
-import { GOALS, PACES, type Goal } from './adaptive';
+import { GOALS, PACES, type Goal } from './targets';
 import { MAX_PRICE, MAX_SHOP_ITEMS, type FoodPrice, type ShopItem } from './shopping';
 import { CHAIN_IDS } from './stores';
 import { normalizeDays, SUPPLEMENT_TIMES, type SupplementTime } from './supplements';
@@ -300,6 +300,12 @@ function settings(x: unknown): Settings | undefined {
   if (x.whatIfOff === true) out.whatIfOff = true;
   if (x.checkin === true) out.checkin = true;
   if (x.costs === true) out.costs = true;
+  if (x.adaptiveFollow === true) out.adaptiveFollow = true;
+  if (typeof x.followWeek === 'string' && /^\d{4}-W\d{2}$/.test(x.followWeek)) out.followWeek = x.followWeek;
+  const fn = x.followNote as { week?: unknown; from?: unknown; to?: unknown } | undefined;
+  if (fn && typeof fn.week === 'string' && /^\d{4}-W\d{2}$/.test(fn.week) && inRange(fn.from, 800, 6000) && inRange(fn.to, 800, 6000)) {
+    out.followNote = { week: fn.week, from: fn.from as number, to: fn.to as number };
+  }
   if (typeof x.checkinSeen === 'string' && /^\d{4}-W\d{2}$/.test(x.checkinSeen)) out.checkinSeen = x.checkinSeen;
   // Known chains only (an empty choice is a choice: no offer links).
   if (Array.isArray(x.chains)) out.chains = CHAIN_IDS.filter((id) => (x.chains as unknown[]).includes(id));

@@ -99,6 +99,7 @@ const sv = {
   dayCost: 'Matkostnad: {kr}',
   costMin: 'minst {kr}',
   costEdit: 'Pris: {name}',
+  followDone: 'Energimålet följer din förbrukning: nu {kcal} kcal/dag ({delta}).',
   back: 'Tillbaka',
   save: 'Spara',
   meal: 'Måltid',

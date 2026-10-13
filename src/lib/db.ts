@@ -8,7 +8,7 @@ import type { BodyEntry } from './body';
 import type { StoredRecipe } from './recipes';
 import type { SupplementInfo } from './supplements';
 import type { MealTemplate } from './templates';
-import type { Goal } from './adaptive';
+import type { Goal } from './targets';
 import type { FoodPrice, ShopItem } from './shopping';
 import type { LoggedAmount } from './servings';
 import type { MacroPct, MacroPreset, Profile, TargetOverride } from './targets';
@@ -62,6 +62,12 @@ export interface Settings {
   /** Goal and pace (kg/week) for the suggested energy target. */
   goal?: Goal;
   pace?: number;
+  /** Follow the adaptive estimate (M35, opt-in): the target moves ≤ 150 kcal toward it once a week. */
+  adaptiveFollow?: boolean;
+  /** ISO week the follow last ran (synced: once per user, not per device). */
+  followWeek?: string;
+  /** Its last change, shown in the diary that week until dismissed. */
+  followNote?: { week: string; from: number; to: number };
   /** Suggest foods and swaps for nutrients that run short (lib/suggest.ts; opt-in). */
   suggestions?: boolean;
   /** Hide the "what if" preview on the food screen (shown by default). */

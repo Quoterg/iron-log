@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addDays } from './db';
-import { allowedPaces, countedDays, estimate, goalTarget, minIntake, type DayIntake, type WeighIn } from './adaptive';
+import { allowedPaces, countedDays, estimate, followStep, goalTarget, minIntake, type DayIntake, type WeighIn } from './adaptive';
 import { SV_ENERGY } from './strings-energy';
 
 const START = '2026-09-01';
@@ -86,5 +86,16 @@ describe('adaptive energy expenditure', () => {
       expect(Object.keys(energy).sort(), code).toEqual(Object.keys(SV_ENERGY).sort());
       for (const [k, v] of Object.entries(SV_ENERGY)) expect(ph(energy[k]), `${code}.${k}`).toEqual(ph(v));
     }
+  });
+});
+
+describe('follow the estimate (M35)', () => {
+  it('moves the target toward the suggestion, at most 150 kcal a week, never below the floor', () => {
+    expect(followStep(3000, 2450, 1500)).toBe(2850); // weight up at 3000: −150 this week…
+    expect(followStep(2850, 2450, 1500)).toBe(2700); // …and the next, until there
+    expect(followStep(2500, 2450, 1500)).toBe(2450); // close: all the way
+    expect(followStep(2000, 2400, 1500)).toBe(2150); // up as well
+    expect(followStep(1600, 1300, 1500)).toBe(1500); // floor
+    expect(followStep(2200, 2200, 1500)).toBe(2200);
   });
 });

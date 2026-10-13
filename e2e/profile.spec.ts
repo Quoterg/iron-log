@@ -101,3 +101,31 @@ test('profile drives energy and NNR targets (age band, pregnancy)', async ({ pag
   await expect(auto).not.toBeChecked();
   await expect(page.getByText(/Fyll i ålder, vikt och längd/)).toBeVisible();
 });
+
+test('goal in the profile (M35): the automatic target is the need ± the pace, at once', async ({ page }) => {
+  await page.goto('./');
+  await settingsTab(page);
+  const kcal = page.getByLabel('Energibehov per dag (kcal)');
+  await setField(page, 'Ålder', '30');
+  await setField(page, 'Vikt (kg)', '60,4');
+  await setField(page, 'Längd (cm)', '165');
+  await page.getByLabel('Aktivitetsnivå').selectOption('1.55');
+  await page.getByLabel('Räkna ut energibehovet automatiskt').check();
+  await expect(kcal).toHaveValue('2053'); // maintain: the need (BMR 1324 × 1.55)
+
+  const goal = page.getByRole('combobox', { name: 'Mål', exact: true });
+  await goal.selectOption('lose');
+  // 0.75 % of 60.4 kg is 0.45 kg/week: only 0.25 is offered.
+  await expect(page.getByRole('combobox', { name: 'Takt' }).locator('option')).toHaveCount(1);
+  await expect(kcal).toHaveValue('1780'); // 2053 − 275, to 10
+  await expect(page.getByText('Förbrukning ca 2 053 kcal, −275 kcal/dag för 0,25 kg/vecka.')).toBeVisible();
+  await goal.selectOption('gain');
+  await expect(kcal).toHaveValue('2330');
+  // A body change recomputes with the goal; kept after a reload.
+  await setField(page, 'Vikt (kg)', '62');
+  await expect(kcal).toHaveValue('2350'); // need 2077 + 275, to 10
+  await page.reload();
+  await settingsTab(page);
+  await expect(goal).toHaveValue('gain');
+  await expect(kcal).toHaveValue('2350');
+});

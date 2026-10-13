@@ -189,7 +189,7 @@ export async function loadSettings(): Promise<void> {
     if ((s.version ?? 1) < db.SETTINGS_VERSION) {
       // One-time move to tdeecalculator.net's activity levels; saved once, and the user is told
       // if their automatic energy target changed.
-      const { profile, kcalChanged } = migrateEnergyProfile(s.profile);
+      const { profile, kcalChanged } = migrateEnergyProfile(s.profile, s.goal, s.pace);
       next = { ...next, profile, version: db.SETTINGS_VERSION, ...(kcalChanged ? { energyNotice: true } : {}) };
       await db.saveSettings(next);
     }
@@ -672,7 +672,7 @@ export async function saveBody(e: BodyEntry): Promise<void> {
   const weightKg = latest('weightKg') ?? p.weightKg;
   const bodyFatPct = latest('bodyFatPct') ?? p.bodyFatPct;
   if (weightKg !== p.weightKg || bodyFatPct !== p.bodyFatPct) {
-    await updateSettings({ profile: withEnergy({ ...p, weightKg, bodyFatPct }) });
+    await updateSettings({ profile: withEnergy({ ...p, weightKg, bodyFatPct }, settings.value.goal, settings.value.pace) });
   }
 }
 
