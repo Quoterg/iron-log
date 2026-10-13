@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { priceCalc, roundKr, sumCost } from './cost-calc';
-import { fmt } from './i18n';
+import { afterEach } from 'vitest';
+import { fmt, lang } from './i18n';
 
 // Food cost in the diary (M34).
 describe('food cost', () => {
@@ -28,10 +29,28 @@ describe('food cost', () => {
     expect(sumCost([null, null])).toBeNull();
   });
 
-  it('shows whole kronor, half kronor below 10, tenths below 1', () => {
+  afterEach(() => {
+    lang.value = 'sv';
+  });
+
+  it('shows whole kronor, half kronor below 10, tenths below 1, in the language set', () => {
     expect([roundKr(23.4), roundKr(3.3), roundKr(0.34)]).toEqual([23, 3.5, 0.3]);
-    expect(book.text({ kr: 3.3, partial: false })).toBe(`~${fmt(3.5, 1)} kr`); // "~3,5 kr" in Swedish (the decimal mark follows the locale)
+    lang.value = 'sv';
+    // The decimal mark follows the locale: "~3,5 kr" where the runtime has Swedish locale data
+    // (browsers; not every Node build), else the fallback's.
+    expect(book.text({ kr: 3.3, partial: false })).toBe(`~${fmt(3.5, 1)} kr`);
     expect(book.text({ kr: 23.4, partial: true })).toBe('minst ~23 kr');
+    lang.value = 'en';
+    expect(book.text({ kr: 3.3, partial: false })).toBe('~3.5 kr');
+  });
+
+  it('shows no cost below 0,05 kr (a pinch of salt), but counts it', () => {
+    const salt = priceCalc(new Map(), new Map([['slv:salt', 5]])).entryCost({ foodRef: 'slv:salt', grams: 3 });
+    expect(salt?.kr).toBeCloseTo(0.015);
+    expect(book.shown(salt)).toBe(false);
+    expect(book.shown({ kr: 0.05, partial: false })).toBe(true);
+    expect(book.shown(null)).toBe(false);
+    expect(sumCost([salt, { kr: 1, partial: false }])?.kr).toBeCloseTo(1.015);
   });
 
   it('a saved own price replaces the typical one; a removed one brings it back', () => {

@@ -4,7 +4,8 @@ import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang, lastLang, loadLang } from './lib/i18n';
 import { initNav, open, stack } from './nav';
-import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage } from './state';
+import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage, settings } from './state';
+import { ensurePriceBook } from './lib/cost';
 import { getSettings, hasEntries, isoDate } from './lib/db';
 import { mealAt } from './lib/usual';
 import { applyTheme, watchSystemTheme } from './lib/theme';
@@ -55,6 +56,7 @@ async function start() {
       void scanView.prefetch();
       void foodEditorView.prefetch();
       void copyView.prefetch();
+      if (settings.value.costs) ensurePriceBook(); // food cost (M34): prices for the diary
       enableUsual(); // after the food data started loading: it competes with nothing on screen
     }, 1500);
   });

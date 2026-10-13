@@ -38,7 +38,6 @@ function amountOf(item: ShopItem, units: Serving[]): string {
   return `${fmt(a.qty, a.unit === 'l' || a.unit === 'kg' ? 2 : 0)} ${a.unit}`;
 }
 
-/** Price units a food's shelf price can be typed in: kg always, l for liquids, st for pieces. */
 interface LineProps {
   item: ShopItem;
   name: string;

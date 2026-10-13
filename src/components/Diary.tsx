@@ -1,12 +1,15 @@
 import { useEffect } from 'preact/hooks';
-import { ensurePriceBook, priceBook } from '../lib/cost';
+import { ensurePriceBook, priceBook, type Cost } from '../lib/cost';
 import { entryVector, isoDate, MEALS, type Entry } from '../lib/db';
 import { activityName, fmt, fmtAmount, lang, nutrientName, t, unitLabel } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, burnedToday, recipes, clock, date, dayComplete, toggleDayComplete, dayActivities, dayTotals, dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, removeActivity, repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken, usual, usualState,
+  activityTypes, addWater, burnedToday, clock, date, dayActivities, dayComplete, dayTotals,
+  dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, recipes, removeActivity,
+  repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets,
+  toggleDayComplete, toggleSupplementTaken, usual, usualState,
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
 import { pickUsual } from '../lib/usual';
@@ -25,13 +28,22 @@ export function Diary() {
       ? pickUsual(usual.value, (m) => !entries.value.some((e) => e.meal === m && !supplementRefs.value.has(e.foodRef)), usualState.value, date.value, now)
       : null;
 
-  // Food cost (M34, opt-in): the prices load after first paint; costs appear when they are there.
+  // Food cost (M34, opt-in): the prices load when the app is idle after start (main.tsx), or right
+  // away when the setting is turned on (Settings); this is the fallback, e.g. turned on by sync.
   const costsOn = !!settings.value.costs;
   useEffect(() => {
-    if (costsOn) ensurePriceBook();
+    if (!costsOn) return;
+    const id = setTimeout(ensurePriceBook, 4000);
+    return () => clearTimeout(id);
   }, [costsOn]);
   const book = costsOn ? priceBook.value : null;
-  const costOf = (e: Entry) => (book ? book.entryCost(e, recipes.value.find((r) => r.ref === e.foodRef && !r.deleted)) : null);
+  // Each entry's cost once per render (recipes by ref).
+  const costs = new Map<string, Cost | null>();
+  if (book) {
+    const recipeOf = new Map(recipes.value.filter((r) => !r.deleted).map((r) => [r.ref, r]));
+    for (const e of entries.value) costs.set(e.id, book.entryCost(e, recipeOf.get(e.foodRef)));
+  }
+  const costOf = (e: Entry) => costs.get(e.id) ?? null;
   const dayCost = book ? book.sum(entries.value.filter((e) => !supplementRefs.value.has(e.foodRef)).map(costOf)) : null;
 
   return (
@@ -104,7 +116,7 @@ export function Diary() {
               <>
               <ul class="entries">
                 {list.map((e) => {
-                  const cost = book && costOf(e);
+                  const cost = book?.shown(costOf(e)) ? costOf(e) : null;
                   return (
                     <li key={e.id} class={cost ? 'priced' : undefined}>
                       <button class="entry" onClick={() => open({ kind: 'food', ref: e.foodRef, entryId: e.id })}>

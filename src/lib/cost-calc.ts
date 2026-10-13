@@ -24,6 +24,8 @@ export interface CostCalc {
   sum(costs: (Cost | null)[]): Cost | null;
   /** "~4 kr" (to the half krona below 10 kr, a tenth below 1 kr); "minst ~23 kr" when part has no price. */
   text(c: Cost): string;
+  /** Whether a cost is worth showing (MIN_SHOWN_KR). */
+  shown(c: Cost | null): c is Cost;
   /** A new book with this food's own price set (or removed: null). */
   withOwn(ref: string, krPerKg: number | null): CostCalc;
 }
@@ -32,6 +34,9 @@ export function sumCost(costs: (Cost | null)[]): Cost | null {
   const priced = costs.filter((c) => c) as Cost[];
   return priced.length ? { kr: priced.reduce((s, c) => s + c.kr, 0), partial: priced.length < costs.length || priced.some((c) => c.partial) } : null;
 }
+
+/** Below this an entry shows no cost (a pinch of salt is not "~0 kr"); it still counts in sums. */
+export const MIN_SHOWN_KR = 0.05;
 
 export const roundKr = (kr: number): number => (kr >= 10 ? Math.round(kr) : kr >= 1 ? Math.round(kr * 2) / 2 : Math.round(kr * 10) / 10);
 
@@ -62,6 +67,7 @@ export function priceCalc(own: Map<string, number>, typical: Map<string, number>
     },
     sum: sumCost,
     text: costText,
+    shown: (c): c is Cost => !!c && c.kr >= MIN_SHOWN_KR,
     withOwn(ref, k) {
       const next = new Map(own);
       if (k == null) next.delete(ref);
