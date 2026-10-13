@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { ITEMS } from '../../scripts/prices-spec.mjs';
 import PRICES from './prices.json';
+import { fmtMonth } from './typical-prices';
 import SOURCES from './sources.json';
 
 // The typical-price table (M33): checked as built, so a twice-yearly update can't ship nonsense.
@@ -15,6 +16,7 @@ describe('typical prices', () => {
     expect(Object.keys(table.foods).length).toBeGreaterThan(2000);
     expect(PRICES.foods).toBe(Object.keys(table.foods).length);
     expect(table.month).toBe(PRICES.month);
+    expect(fmtMonth('2026M08')).toBe('2026-08');
     for (const ref of foods.popular) expect(table.foods[ref], ref).toBeGreaterThan(0);
     for (const x of Object.values(table.foods)) expect(x > 0 && x < 5000).toBe(true);
   });

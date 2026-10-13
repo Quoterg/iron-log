@@ -7,6 +7,9 @@ import PRICES from './prices.json';
 export const TYPICAL_MONTH: string = PRICES.month;
 export const TYPICAL_COLLECTED: string = PRICES.collected;
 
+/** SCB's month key as a date-like label: "2026M08" → "2026-08". */
+export const fmtMonth = (m: string): string => m.replace(/^(\d{4})M(\d{2})$/, '$1-$2');
+
 let loading: Promise<Map<string, number>> | undefined;
 
 /** kr per kg by food ref; fetched once (and again after a failure, e.g. back online). */

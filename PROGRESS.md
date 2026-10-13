@@ -6,7 +6,8 @@ Keep entries short — this file is read at the start of every session.
 ## Next up
 
 **M34 cost per food and meal** next (planned, opt-in; uses M33's table) — only when the owner says
-go. Then **M21b**. **Owner, once:** allow "GitHub Actions to create and approve pull requests"
+go; its release (1.4.0) changelog should say devices on an older version may switch "Matkostnad" off
+until updated (they drop the unknown setting when saving). Then **M21b**. **Owner, once:** allow "GitHub Actions to create and approve pull requests"
 (repo Settings → Actions → General) so the price workflow can open its PRs. **Shelf prices** were
 collected 2026-10-13: re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce
 (fresh berries ~240 kr/kg in October) reflects that month. **M21b** (low security housekeeping) after. **Release 1.3.0** is ready to build (#49 merged)
