@@ -43,6 +43,9 @@ pnpm data:fetch            # re-download Livsmedelsverket data → data/raw (slo
 pnpm data:build            # data/raw → public/data/foods.json
 pnpm data:fetch-usda       # USDA FoodData Central CSVs → data/raw/usda (needs `unzip`)
 pnpm data:build-usda       # data/raw/usda → public/data/usda-*.json (+ src/lib/sources.json)
+pnpm data:fetch-prices     # SCB price index, Open Prices, Livsmedelsverket raw commodities → data/raw/prices
+pnpm data:build-prices     # → public/data/prices.<hash>.json (+ src/lib/prices.json); --review lists matches
+pnpm data:base-prices      # shelf prices from willys.se → data/prices-base.json (by hand, ~yearly; never in CI)
 ```
 
 ## Rules

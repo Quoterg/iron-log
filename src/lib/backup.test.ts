@@ -30,7 +30,7 @@ const data: AllData = {
     { id: 's2', text: 'Tandkräm', checked: true, kr: 25, updatedAt: 7 },
   ],
   prices: [{ foodRef: 'slv:1', krPerKg: 21.33, updatedAt: 8 }],
-  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: 2, adaptive: true, goal: 'lose', pace: 0.5 },
+  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: 2, adaptive: true, goal: 'lose', pace: 0.5, costs: true },
 };
 
 describe('backup', () => {

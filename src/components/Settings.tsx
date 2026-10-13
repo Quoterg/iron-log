@@ -9,6 +9,8 @@ import { ts } from '../lib/strings-sync';
 import { setTheme, themeChoice } from '../lib/theme';
 import { tg } from '../lib/strings-suggest';
 import { tc } from '../lib/strings-checkin';
+import { tsh } from '../lib/strings-shop';
+import { fmtMonth, TYPICAL_COLLECTED, TYPICAL_MONTH, typicalPrices } from '../lib/typical-prices';
 import { APP_VERSION } from '../lib/version';
 
 /** Loaded lazily (see app.tsx): not needed for the first screen. */
@@ -22,6 +24,7 @@ export default function Settings() {
       <SavedMealsCard />
       <SuggestCard />
       <CheckinCard />
+      <CostsCard />
       <General />
       <SyncCard />
       <YourData />
@@ -159,6 +162,29 @@ function CheckinCard() {
         {tc('checkinToggle')}
       </label>
       <p class="muted small">{tc('checkinNote')}</p>
+    </section>
+  );
+}
+
+/** Food costs (opt-in, M33): typical prices where the user typed none. */
+function CostsCard() {
+  return (
+    <section class="card form">
+      <h2>{tsh('costsTitle')}</h2>
+      <label class="check">
+        <input
+          type="checkbox"
+          checked={!!settings.value.costs}
+          onChange={(e) => {
+            const on = (e.currentTarget as HTMLInputElement).checked;
+            void updateSettings({ costs: on });
+            if (on) typicalPrices().catch(() => {}); // cached now, so it also works offline
+          }}
+        />
+        {tsh('costsToggle')}
+      </label>
+      <p class="muted small">{tsh('costsNote')}</p>
+      <p class="muted small">{tsh('costsSource').replace('{date}', TYPICAL_COLLECTED).replace('{month}', fmtMonth(TYPICAL_MONTH))}</p>
     </section>
   );
 }

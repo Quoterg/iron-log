@@ -5,7 +5,12 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M21b** (low security housekeeping) next. **Release 1.3.0** is ready to build once #49 is merged
+**M34 cost per food and meal** next (planned, opt-in; uses M33's table) — only when the owner says
+go; its release (1.4.0) changelog should say devices on an older version may switch "Matkostnad" off
+until updated (they drop the unknown setting when saving). Then **M21b**. **Owner, once:** allow "GitHub Actions to create and approve pull requests"
+(repo Settings → Actions → General) so the price workflow can open its PRs. **Shelf prices** were
+collected 2026-10-13: re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce
+(fresh berries ~240 kr/kg in October) reflects that month. **M21b** (low security housekeeping) after. **Release 1.3.0** is ready to build (#49 merged)
 (bubblewrap update + build; twa-manifest already says 1.3.0 / code 5). **Releasing** from now on:
 see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
 2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 37.6 KB of 40 after M28 moved the
@@ -14,6 +19,24 @@ the first bundle (lazy, prefetched when idle so they work offline). CI's gzip me
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-13 — M33 Typical prices (interactive session)
+
+- Coverage first, as planned: Open Prices (~5 200 SEK prices) has no meat, fish or eggs → owner
+  chose a hand-made base list: ~200 willys.se comparison prices (`scripts/prices-spec.mjs`,
+  `data/prices-base.json`, `pnpm data:base-prices`, by hand ~yearly). Livsmedelsverket's raw
+  commodities per food spread them: direct matches (cooked foods by raw weight) and dishes summed
+  from ingredients. SCB's CPI per food group (CC0) moves prices to the latest month; Open Prices
+  replaces a shelf price only with enough data and within ×1.5.
+- **2 364 of 2 606 foods** priced (all 59 popular ones); `public/data/prices.<hash>.json` 8.9 KB gzip,
+  lazy. Reviewed the matches by hand (`node scripts/build-prices.mjs --review`) and fixed over-broad
+  name rules (e.g. "margarin" matching fried onions, "Hjort" matching hjortron).
+- Twice-yearly workflow `prices.yml` (1 Mar, 1 Sep): fetch, build, test, open PR, start CI (CI got
+  `workflow_dispatch`). Setting "Matkostnad" (off by default): shopping list "≈" lines, total share,
+  editor hint. Credits in Settings, about and privacy pages.
+- Tests: unit 224 ✓ (table sanity: coverage, cooked < raw, staple ranges, every item priced; typical
+  vs own price), build ✓ (37.7 KB), e2e 135 ✓ (new: food cost off by default, on → ≈, own price
+  wins, no external request), Lighthouse ✓.
 
 ## 2026-10-13 — M32 What's new (interactive session)
 

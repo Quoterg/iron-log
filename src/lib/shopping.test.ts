@@ -88,6 +88,27 @@ describe('shopping list', () => {
     expect(costList(lines, spice).total).toBeCloseTo(10);
   });
 
+  it('typical prices (M33) price lines without an own price, marked as typical; own prices win', () => {
+    const items: ShopItem[] = [
+      { id: 'a', foodRef: 'slv:a', grams: 500, updatedAt: 1 },
+      { id: 'b', foodRef: 'slv:b', grams: 200, updatedAt: 1 },
+      { id: 'c', foodRef: 'slv:c', grams: 100, updatedAt: 1 },
+      { id: 'd', text: 'Tandkräm', kr: 25, updatedAt: 1 },
+    ];
+    const own = new Map([['slv:a', { foodRef: 'slv:a', krPerKg: 20, updatedAt: 1 }]]);
+    const typical = new Map([
+      ['slv:a', 30],
+      ['slv:b', 50],
+    ]);
+    expect(lineCost(items[0], own, typical)).toEqual({ kr: 10, estimated: true });
+    expect(lineCost(items[1], own, typical)).toEqual({ kr: 10, estimated: true, typical: true });
+    expect(lineCost(items[2], own, typical)).toBeNull();
+    const list = costList(items, own, typical);
+    expect([list.total, list.typicalKr, list.missing]).toEqual([45, 10, 1]);
+    // Off (no table): as before.
+    expect(costList(items, own)).toMatchObject({ total: 35, typicalKr: 0, missing: 2 });
+  });
+
   it('shares as plain text, sections with items only', () => {
     expect(toText('Inköpslista', [{ title: 'Frukt & grönt', lines: ['Banan 6 st'] }, { title: 'Frys', lines: [] }])).toBe('Inköpslista\n\nFrukt & grönt\n- Banan 6 st');
   });

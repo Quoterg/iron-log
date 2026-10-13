@@ -299,6 +299,7 @@ function settings(x: unknown): Settings | undefined {
   if (x.suggestions === true) out.suggestions = true;
   if (x.whatIfOff === true) out.whatIfOff = true;
   if (x.checkin === true) out.checkin = true;
+  if (x.costs === true) out.costs = true;
   if (typeof x.checkinSeen === 'string' && /^\d{4}-W\d{2}$/.test(x.checkinSeen)) out.checkinSeen = x.checkinSeen;
   // Known chains only (an empty choice is a choice: no offer links).
   if (Array.isArray(x.chains)) out.chains = CHAIN_IDS.filter((id) => (x.chains as unknown[]).includes(id));

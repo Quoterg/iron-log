@@ -185,3 +185,39 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   every language). After a release, the first start shows "Nyheter i <version>" once; a fresh
   install shows nothing; minor web deploys without a version bump show nothing. Releasing = bump the
   version and add its entry (rule in CLAUDE.md).
+- [x] **M33 Typical prices, updated twice a year** — Owner's choice (2026-10-13). A bundled table of
+  typical Swedish prices (kr/kg) for Livsmedelsverket's foods, used where the user typed no price.
+  - **Coverage check first** (as planned): Open Prices has ~5 200 SEK prices but no meat, fish or
+    eggs, and is skewed to a few contributors' baskets. Owner's choice: a **hand-made base list** of
+    ~200 shelf prices instead (`scripts/prices-spec.mjs` + `data/prices-base.json`: willys.se
+    comparison prices, median of the matching products, compiled by hand once a year with
+    `pnpm data:base-prices`). Open Prices replaces a shelf price only with ≥ 3 prices from ≥ 2 stores
+    in 12 months **and** within ×1.5 of it (22 items today).
+  - **Spread to the foods** with Livsmedelsverket's own data (raw commodities per food, with raw
+    weights): a food named by an item gets its price; cooked foods of raw-priced items by the raw
+    weight in them (cooked pasta = 50 g dry per 100 g); other raw foods and home-style dishes summed
+    from their raw commodities when ≥ 90 % of the raw weight has a price; industrial products only
+    by a shelf price. Result: **2 364 of 2 606 foods** (all 59 popular ones), 8.9 KB gzip.
+  - **Kept current** by SCB's consumer price index per food group (CC0, monthly, 85 groups): a
+    scheduled workflow (`.github/workflows/prices.yml`, 1 March and 1 September) refetches, rebuilds,
+    runs the unit tests (including sanity checks of the table) and opens a PR "Prices: …", starting
+    CI on it; it fails if coverage drops > 10 % and reminds when the shelf prices are ~a year old.
+  - **App**: setting "Visa uppskattade priser (typpriser)" in Settings → Matkostnad (off by default,
+    synced, in backups). On: the shopping list prices lines without an own price as "≈ 18 kr", the
+    total says how much is typical prices, and the price editor shows "≈ typpris … kr/kg". The table
+    is lazy (fetched when on, prefetched when idle for offline). Sources credited in Settings and on
+    the about/privacy pages; nothing is fetched from shops.
+- [ ] **M34 Cost per food and meal in the diary** — Owner's choice (2026-10-13), after M33. Setting
+  "Visa matkostnad" (Settings, **off by default**, synced like the other opt-ins) turns on M33's
+  typical prices and shows costs in the diary:
+  - each entry: "~4 kr" next to its energy (own price > typical price; recipes add up their
+    ingredients; foods with no price show nothing);
+  - each meal: total in its header ("Frukost · ~23 kr"; "minst ~23 kr" when some entries lack a
+    price), and the day's total under the day summary;
+  - tapping a cost opens the food's price editor (the same one as the shopping list), so a wrong
+    estimate is fixed in one place.
+  - Performance: when the setting is off nothing extra loads; when on, the price table loads after
+    first paint and costs appear when ready. Initial JS within +0.4 KB; Lighthouse unchanged.
+  - Tests: unit (cost per entry, recipes, units, missing prices, the typical/own precedence), e2e
+    (off by default; on → entry and meal costs; editing a price updates them; off again hides
+    them), axe and 200 % text with costs shown.

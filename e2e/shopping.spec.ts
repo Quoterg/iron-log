@@ -168,3 +168,38 @@ test('offer links for the biggest items open the chosen stores; nothing is fetch
   await expect(sheet.locator('.shop-line', { hasText: /Mjölk/ }).locator('.offer-links a')).toHaveText(['Willys', 'Coop', 'Lidl', 'Hemköp']);
   expect(external).toEqual([]); // the app itself never contacted a store
 });
+
+test('food cost (M33): off by default; on, typical prices (≈) fill lines without an own price', async ({ page }) => {
+  test.slow();
+  const external: string[] = [];
+  page.on('request', (r) => !r.url().startsWith('http://localhost') && external.push(r.url()));
+  await page.goto('./');
+  await logFood(page, 0, 'havregryn', '60');
+  await logFood(page, 0, 'mjölk', '500');
+  await page.getByRole('button', { name: 'Inköpslista' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Inköpslista' });
+  await sheet.getByRole('button', { name: '+ 2 livsmedel' }).click();
+  await expect(sheet.locator('.shop-item', { hasText: /Havregryn/ })).toContainText('60 g');
+  await expect(sheet.locator('.shop-item', { hasText: /≈/ })).toHaveCount(0); // off by default
+  await page.goBack();
+
+  // Settings → Matkostnad.
+  await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.getByLabel('Visa uppskattade priser (typpriser)').check();
+  await expect(page.getByText(/Typpriser: jämförpriser från willys\.se/)).toBeVisible();
+  await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
+  await page.getByRole('button', { name: 'Inköpslista' }).click();
+  await expect(sheet.locator('.shop-item', { hasText: /Havregryn/ })).toContainText(/≈\d/);
+  await expect(sheet.locator('.shop-item', { hasText: /Mjölk/ })).toContainText(/≈\d/);
+  await expect(sheet.locator('.shop-total')).toContainText(/varav ≈\d+ kr typpriser/);
+
+  // An own price wins over the typical one; the editor shows the typical price as a hint.
+  const oats = sheet.locator('.shop-line', { hasText: /Havregryn/ });
+  await oats.getByRole('button', { name: 'Pris', exact: true }).click();
+  await expect(oats.getByText(/≈ typpris \d+ kr\/kg/)).toBeVisible();
+  await oats.getByLabel('Jämförpris').fill('30');
+  await oats.getByRole('button', { name: 'Spara pris' }).click();
+  await expect(sheet.locator('.shop-item', { hasText: /Havregryn/ })).toContainText('~2 kr');
+  await expect(sheet.locator('.shop-item', { hasText: /Mjölk/ })).toContainText(/≈\d/);
+  expect(external).toEqual([]); // the table comes with the app
+});
