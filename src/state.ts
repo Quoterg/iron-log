@@ -10,7 +10,7 @@ import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
 import type { ActivityType } from './lib/activity-types';
 import type { BodyEntry } from './lib/body';
 import { supplementServings, UNIT_GRAMS, type SupplementInfo } from './lib/supplements';
-import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, withEnergy, type Target } from './lib/targets';
+import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, migrateGoal, normalizeOverrides, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 import { rememberAmount } from './lib/servings';
 import { itemsFromEntries, type MealTemplate, type TemplateUse } from './lib/templates';
@@ -186,11 +186,24 @@ export async function loadSettings(): Promise<void> {
   if (s) {
     // Older versions stored overrides as plain min numbers.
     let next: Settings = { ...s, targetOverrides: normalizeOverrides(s.targetOverrides) };
-    if ((s.version ?? 1) < db.SETTINGS_VERSION) {
-      // One-time move to tdeecalculator.net's activity levels; saved once, and the user is told
-      // if their automatic energy target changed.
-      const { profile, kcalChanged } = migrateEnergyProfile(s.profile, s.goal, s.pace);
-      next = { ...next, profile, version: db.SETTINGS_VERSION, ...(kcalChanged ? { energyNotice: true } : {}) };
+    const v = s.version ?? 1;
+    if (v < db.SETTINGS_VERSION) {
+      // One-time moves, saved once; the user is told if their automatic energy target changed.
+      let profile = s.profile;
+      const told: Partial<Settings> = {};
+      if (v < 2) {
+        // tdeecalculator.net's activity levels.
+        const m = migrateEnergyProfile(profile);
+        profile = m.profile;
+        if (m.kcalChanged) told.energyNotice = true;
+      }
+      if (v < 3) {
+        // M35: the goal now sets the automatic target too.
+        const m = migrateGoal(profile, s.goal, s.pace);
+        profile = m.profile;
+        if (m.changed) told.goalNotice = true;
+      }
+      next = { ...next, profile, version: db.SETTINGS_VERSION, ...told };
       await db.saveSettings(next);
     }
     settings.value = next;

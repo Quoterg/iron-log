@@ -475,7 +475,8 @@ const pack: LangPack = {
     goalWhere: 'Hadaf: {goal} (ka beddel Profile).',
     goalFormula: 'Isticmaal qiyaastii {need} kcal, {delta} kcal/maalintii {kg} kg/toddobaadkii.',
     followToggle: 'Si toos ah u raac qiyaasta (ugu badnaan ±{kcal} kcal toddobaadkii)',
-    followExplain: 'Toddobaadkii hal mar hadafkaaga tamarta wuxuu u dhaqaaqaa kan la soo jeediyey, ugu badnaan {kcal} kcal mar kasta, si aanu hal toddobaad u leexin. Isbeddelka waxaad ku arki doontaa buugga maalinlaha.',
+    followExplain: 'Toddobaadkii hal mar hadafkaaga tamarta wuxuu u dhaqaaqaa kan la soo jeediyey, ugu badnaan {kcal} kcal mar kasta, si aanu hal toddobaad u leexin. Isbeddelka waxaad ku arki doontaa buugga maalinlaha. Hadafka markaas laguma xisaabiyo qaacidada Profile.',
+    goalNotice: 'Hadafka miisaankaagu hadda wuxuu sidoo kale dejiyaa hadafka tamarta ee tooska ah, oo sidaas darteed ah {kcal} kcal/maalintii. Fadlan hubi Hadafka iyo Xawaaraha.',
     followActive: 'Hadafka tamartu wuxuu raacaa isticmaalkaaga la cabbiray toddobaadkii hal mar (Tamarta la qabsata).',
   },
   suggest: {

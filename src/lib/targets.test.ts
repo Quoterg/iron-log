@@ -8,6 +8,7 @@ import {
   normalizeMacroPct,
   normalizeOverrides,
   nnrMacroPct,
+  migrateGoal,
   overrideConflicts,
   paceFor,
   snapPal,
@@ -124,6 +125,16 @@ describe('energy need', () => {
     expect(withEnergy(w, 'lose', 0.25).kcal).toBe(1320); // basal 1320 > 1584 − 275 = 1310
     expect(withEnergy({ ...w, status: 'pregnant2' }, 'lose', 0.5).kcal).toBe(energyNeed({ ...w, status: 'pregnant2' }));
     expect(allowedPaces(60)).toEqual([0.25]);
+  });
+
+  it('settings from before M35 with a goal and automatic energy: the target changes once, and says so', () => {
+    const m: Profile = { sex: 'male', kcal: 2759, kcalAuto: true, age: 30, weightKg: 80, heightCm: 180, pal: 1.55 };
+    expect(migrateGoal(m, 'lose', 0.5)).toEqual({ profile: { ...m, kcal: 2210 }, changed: true });
+    expect(migrateGoal(m, 'maintain', 0.5).changed).toBe(false);
+    expect(migrateGoal(m, undefined).changed).toBe(false);
+    expect(migrateGoal({ ...m, kcalAuto: false, kcal: 2400 }, 'lose', 0.5)).toEqual({ profile: { ...m, kcalAuto: false, kcal: 2400 }, changed: false });
+    // Applied twice (e.g. settings synced from an older device): nothing more changes.
+    expect(migrateGoal(migrateGoal(m, 'lose', 0.5).profile, 'lose', 0.5).changed).toBe(false);
   });
 
   it('snaps activity levels to the tdeecalculator.net levels (migrates the old NNR-style ones)', () => {

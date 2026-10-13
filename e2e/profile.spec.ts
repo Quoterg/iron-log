@@ -129,3 +129,28 @@ test('goal in the profile (M35): the automatic target is the need ± the pace, a
   await expect(goal).toHaveValue('gain');
   await expect(kcal).toHaveValue('2350');
 });
+
+test('settings from before M35 with a goal: the automatic target follows it once, with a notice', async ({ page }) => {
+  await page.goto('./');
+  await page.evaluate(async () => {
+    const req = indexedDB.open('iron-log');
+    const db: IDBDatabase = await new Promise((ok, err) => ((req.onsuccess = () => ok(req.result)), (req.onerror = err)));
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(
+      {
+        lang: 'sv', version: 2, goal: 'lose', pace: 0.25, targetOverrides: {},
+        profile: { sex: 'female', kcal: 2053, kcalAuto: true, age: 30, weightKg: 60.4, heightCm: 165, pal: 1.55 },
+      },
+      'settings',
+    );
+    await new Promise((ok) => (tx.oncomplete = ok));
+    db.close();
+  });
+  await page.reload();
+  await settingsTab(page);
+  await expect(page.getByText(/Ditt viktmål gäller nu också det automatiska energimålet, som därför är 1\s780 kcal\/dag/)).toBeVisible();
+  await expect(page.getByLabel('Energibehov per dag (kcal)')).toHaveValue('1780');
+  await page.getByRole('button', { name: 'OK', exact: true }).click();
+  await expect(page.getByText(/Ditt viktmål gäller nu också/)).toHaveCount(0);
+  await expect(page.getByText(/Ditt automatiska energimål har ändrats/)).toHaveCount(0); // not the activity-level notice
+});

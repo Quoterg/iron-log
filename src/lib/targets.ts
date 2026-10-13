@@ -91,8 +91,8 @@ export function energyNeed(p: Profile): number | null {
  * new level (moderate, 1.55) rather than the new sedentary default; other levels snap to the
  * nearest. Returns whether the automatic energy target changed, so the app can say so.
  */
-export function migrateEnergyProfile(p: Profile, goal?: Goal, pace?: number): { profile: Profile; kcalChanged: boolean } {
-  const profile = withEnergy({ ...p, pal: snapPal(p.pal ?? 1.6) }, goal, pace);
+export function migrateEnergyProfile(p: Profile): { profile: Profile; kcalChanged: boolean } {
+  const profile = withEnergy({ ...p, pal: snapPal(p.pal ?? 1.6) });
   return { profile, kcalChanged: !!p.kcalAuto && profile.kcal !== p.kcal };
 }
 
@@ -395,4 +395,13 @@ export function progress(amount: number, target: Target | undefined): number | n
   if (target.min) return amount / target.min;
   if (target.max) return amount / target.max;
   return null;
+}
+
+/**
+ * Settings from before M35: a goal set in the adaptive card didn't touch the automatic target; now it
+ * does. Applied once at start (settings version 3), so the user can be told when the target changed.
+ */
+export function migrateGoal(p: Profile, goal?: Goal, pace?: number): { profile: Profile; changed: boolean } {
+  const profile = withEnergy(p, goal, pace);
+  return { profile, changed: !!p.kcalAuto && profile.kcal !== p.kcal };
 }

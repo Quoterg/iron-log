@@ -475,7 +475,8 @@ const pack: LangPack = {
     goalWhere: 'Mål: {goal} (ændres under Profil).',
     goalFormula: 'Forbrug ca. {need} kcal, {delta} kcal/dag for {kg} kg/uge.',
     followToggle: 'Følg estimatet automatisk (højst ±{kcal} kcal pr. uge)',
-    followExplain: 'Én gang om ugen flyttes dit energimål mod det foreslåede, højst {kcal} kcal ad gangen, så en enkelt uge ikke svinger det. Du ser ændringen i dagbogen.',
+    followExplain: 'Én gang om ugen flyttes dit energimål mod det foreslåede, højst {kcal} kcal ad gangen, så en enkelt uge ikke svinger det. Du ser ændringen i dagbogen. Målet beregnes så ikke længere ud fra formlen i Profil.',
+    goalNotice: 'Dit vægtmål gælder nu også det automatiske energimål, som derfor er {kcal} kcal/dag. Kontrollér Mål og Tempo.',
     followActive: 'Energimålet følger dit målte forbrug én gang om ugen (Tilpasset energiforbrug).',
   },
   suggest: {

@@ -12,7 +12,7 @@ General) so the price workflow can open its PRs. **Shelf prices** were collected
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
 ~240 kr/kg in October) reflects that month. **Releasing** from now on:
 see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
-2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 38.7 KB of 40 (M34's cost arithmetic and prices are lazy) after M28 moved the
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 38.8 KB of 40 (M34's cost arithmetic and prices are lazy) after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
@@ -28,7 +28,9 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   (and right when turned on), steps the target toward the adaptive suggestion by ≤ ±150 kcal
   (`followStep`), records `followWeek`/`followNote` (synced, in backups); the diary shows that week's
   change until dismissed. `loadEstimate` moved to `lib/adaptive-load.ts` (no UI module needed).
-- Initial JS 38.7 KB (+0.6: goal logic in targets.ts, the diary note).
+- Initial JS 38.8 KB (+0.7: goal logic in targets.ts, the diary note, the settings v3 migration).
+  Review: existing users with a goal + automatic energy get it applied once at start, with a notice
+  (settings v3); never two follow steps a week even if an older device drops `followWeek`.
 - Tests: unit 232 ✓ (goal targets, pace capping, floor, pregnancy, followStep), build ✓, e2e 143 ✓
   (profile goal → 1780/2330/2350 kcal; follow 2280 → 2430 (+150), diary note, once a week),
   Lighthouse ✓. Not a release yet (1.4.0 just shipped): bump with the next one.

@@ -475,7 +475,8 @@ const pack: LangPack = {
     goalWhere: 'Tavoite: {goal} (muuta kohdassa Profiili).',
     goalFormula: 'Kulutus noin {need} kcal, {delta} kcal/päivä tahdilla {kg} kg/viikko.',
     followToggle: 'Seuraa arviota automaattisesti (enintään ±{kcal} kcal viikossa)',
-    followExplain: 'Kerran viikossa energiatavoitteesi siirtyy kohti ehdotettua, enintään {kcal} kcal kerrallaan, jotta yksittäinen viikko ei heilauta sitä. Näet muutoksen päiväkirjassa.',
+    followExplain: 'Kerran viikossa energiatavoitteesi siirtyy kohti ehdotettua, enintään {kcal} kcal kerrallaan, jotta yksittäinen viikko ei heilauta sitä. Näet muutoksen päiväkirjassa. Tavoitetta ei silloin enää lasketa Profiilin kaavasta.',
+    goalNotice: 'Painotavoitteesi määrää nyt myös automaattisen energiatavoitteen, joka on siksi {kcal} kcal/päivä. Tarkista Tavoite ja Tahti.',
     followActive: 'Energiatavoite seuraa mitattua kulutustasi kerran viikossa (Mukautuva energiankulutus).',
   },
   suggest: {

@@ -377,7 +377,8 @@ const energy: Record<string, string> = {
   goalWhere: 'Goal: {goal} (change it under Profile).',
   goalFormula: 'Expenditure about {need} kcal, {delta} kcal/day for {kg} kg/week.',
   followToggle: 'Follow the estimate automatically (at most ±{kcal} kcal per week)',
-  followExplain: 'Once a week your energy target moves toward the suggested one, at most {kcal} kcal at a time, so a single week can’t swing it. You’ll see the change in the diary.',
+  followExplain: 'Once a week your energy target moves toward the suggested one, at most {kcal} kcal at a time, so a single week can’t swing it. You’ll see the change in the diary. The target is then no longer calculated from the formula in Profile.',
+  goalNotice: 'Your weight goal now also sets the automatic energy target, which is therefore {kcal} kcal/day. Please check Goal and Pace.',
   followActive: 'The energy target follows your measured expenditure once a week (Adaptive expenditure).',
 };
 

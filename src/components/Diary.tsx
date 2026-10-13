@@ -66,9 +66,7 @@ export function Diary() {
       {settings.value.followNote && settings.value.followNote.week === isoWeek(isoDate(now)).key && (
         <section class="card checkin-teaser" role="status">
           <span>
-            {t('followDone')
-              .replace('{kcal}', fmt(settings.value.followNote.to))
-              .replace('{delta}', `${settings.value.followNote.to > settings.value.followNote.from ? '+' : '−'}${fmt(Math.abs(settings.value.followNote.to - settings.value.followNote.from))}`)}
+            {followText(settings.value.followNote)}
           </span>
           <button class="btn small" aria-label={t('notNow')} title={t('notNow')} onClick={() => void updateSettings({ followNote: undefined })}>
             ×
@@ -191,6 +189,12 @@ export function Diary() {
       </button>
     </>
   );
+}
+
+/** "Energimålet följer din förbrukning: nu 2 430 kcal/dag (+150)." */
+function followText(n: { from: number; to: number }): string {
+  const d = n.to - n.from;
+  return t('followDone').replace('{kcal}', fmt(n.to)).replace('{delta}', `${d > 0 ? '+' : '−'}${fmt(Math.abs(d))}`);
 }
 
 function name(ref: string): string {

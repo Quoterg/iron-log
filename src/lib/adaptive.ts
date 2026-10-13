@@ -137,3 +137,11 @@ export function followStep(current: number, want: number, floor: number): number
   const next = Math.min(current + FOLLOW_STEP, Math.max(current - FOLLOW_STEP, want));
   return Math.max(floor, next);
 }
+
+/**
+ * Whether this week's step is still due. Synced settings can lose `followWeek` (an older version on
+ * another device drops keys it doesn't know), so this week's note also counts: never two steps a week.
+ */
+export function followDue(s: { followWeek?: string; followNote?: { week: string } }, week: string): boolean {
+  return s.followWeek !== week && s.followNote?.week !== week;
+}

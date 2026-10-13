@@ -4,7 +4,8 @@ import { loadEstimate } from '../lib/adaptive-load';
 import { fmt } from '../lib/i18n';
 import { te } from '../lib/strings-energy';
 import { energyNeed, noGoal as noGoalFor, paceFor } from '../lib/targets';
-import { FOLLOW_STEP, runFollow } from '../lib/follow';
+import { FOLLOW_STEP } from '../lib/adaptive';
+import { runFollow } from '../lib/follow';
 import { settings, updateSettings } from '../state';
 
 export const GOAL_LABEL: Record<Goal, 'goalLose' | 'goalMaintain' | 'goalGain'> = { lose: 'goalLose', maintain: 'goalMaintain', gain: 'goalGain' };

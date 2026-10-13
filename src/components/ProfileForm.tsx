@@ -94,6 +94,14 @@ export function ProfileForm() {
           </button>
         </div>
       )}
+      {settings.value.goalNotice && (
+        <div class="notice" role="status">
+          <p class="small">{te('goalNotice').replace('{kcal}', fmt(p.kcal))}</p>
+          <button type="button" class="btn small" onClick={() => void updateSettings({ goalNotice: false })}>
+            {t('ok')}
+          </button>
+        </div>
+      )}
       <label>
         {t('sex')}
         <select

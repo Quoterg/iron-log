@@ -475,7 +475,8 @@ const pack: LangPack = {
     goalWhere: 'Ziel: {goal} (unter Profil ändern).',
     goalFormula: 'Verbrauch etwa {need} kcal, {delta} kcal/Tag für {kg} kg/Woche.',
     followToggle: 'Der Schätzung automatisch folgen (höchstens ±{kcal} kcal pro Woche)',
-    followExplain: 'Einmal pro Woche bewegt sich dein Energieziel in Richtung des vorgeschlagenen, höchstens {kcal} kcal auf einmal, damit eine einzelne Woche es nicht umwirft. Du siehst die Änderung im Tagebuch.',
+    followExplain: 'Einmal pro Woche bewegt sich dein Energieziel in Richtung des vorgeschlagenen, höchstens {kcal} kcal auf einmal, damit eine einzelne Woche es nicht umwirft. Du siehst die Änderung im Tagebuch. Das Ziel wird dann nicht mehr aus der Formel im Profil berechnet.',
+    goalNotice: 'Dein Gewichtsziel bestimmt jetzt auch das automatische Energieziel, das deshalb {kcal} kcal/Tag beträgt. Bitte prüfe Ziel und Tempo.',
     followActive: 'Das Energieziel folgt einmal pro Woche deinem gemessenen Verbrauch (Adaptiver Energieverbrauch).',
   },
   suggest: {

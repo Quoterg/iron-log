@@ -51,6 +51,8 @@ export interface Settings {
   version?: number;
   /** One-time notice: the automatic energy target changed with the new formula. */
   energyNotice?: boolean;
+  /** The goal now sets the automatic energy target too (M35 migration): told once, on this device. */
+  goalNotice?: boolean;
   /** Food databases to search (default by language: Swedish → Livsmedelsverket; English → both). */
   sources?: ('slv' | 'usda')[];
   /** Add the day's exercise energy to the day's energy target. */
@@ -89,7 +91,7 @@ export interface DayMark {
 }
 
 /** Current settings format version. */
-export const SETTINGS_VERSION = 2;
+export const SETTINGS_VERSION = 3;
 
 /** A food the user created. Deleting only hides it, so past diary entries still resolve. */
 export interface CustomFood extends Food {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addDays } from './db';
-import { allowedPaces, countedDays, estimate, followStep, goalTarget, minIntake, type DayIntake, type WeighIn } from './adaptive';
+import { allowedPaces, countedDays, estimate, followDue, followStep, goalTarget, minIntake, type DayIntake, type WeighIn } from './adaptive';
 import { SV_ENERGY } from './strings-energy';
 
 const START = '2026-09-01';
@@ -97,5 +97,13 @@ describe('follow the estimate (M35)', () => {
     expect(followStep(2000, 2400, 1500)).toBe(2150); // up as well
     expect(followStep(1600, 1300, 1500)).toBe(1500); // floor
     expect(followStep(2200, 2200, 1500)).toBe(2200);
+  });
+
+  it("steps once a week, also when an older device dropped followWeek (this week's note counts)", () => {
+    expect(followDue({}, '2026-W43')).toBe(true);
+    expect(followDue({ followWeek: '2026-W42' }, '2026-W43')).toBe(true);
+    expect(followDue({ followWeek: '2026-W43' }, '2026-W43')).toBe(false);
+    expect(followDue({ followNote: { week: '2026-W43' } }, '2026-W43')).toBe(false); // followWeek lost in sync
+    expect(followDue({ followNote: { week: '2026-W42' } }, '2026-W43')).toBe(true);
   });
 });

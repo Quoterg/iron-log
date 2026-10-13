@@ -31,4 +31,3 @@ export async function loadEstimate(): Promise<Estimate> {
   cached = { key, est };
   return est;
 }
-
