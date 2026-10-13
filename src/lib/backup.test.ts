@@ -62,6 +62,16 @@ describe('backup', () => {
     expect(() => parseBackup(text({ supplement: { unit: 'st', perDay: -1 } }))).toThrow(BackupError);
   });
 
+  it('refuses invalid prices; drops an invalid typed line price', () => {
+    const parse = (extra: object) => parseBackup(JSON.stringify({ ...makeBackup(data), ...extra }));
+    for (const krPerKg of [-1, 0, 'x', NaN, 1e5]) {
+      expect(() => parse({ prices: [{ foodRef: 'slv:1', krPerKg, updatedAt: 1 }] }), String(krPerKg)).toThrow(BackupError);
+    }
+    for (const kr of [-5, 'x', 1e5]) {
+      expect(parse({ shopping: [{ id: 'a', text: 'Tandkräm', kr, updatedAt: 1 }] }).shopping![0].kr, String(kr)).toBeUndefined();
+    }
+  });
+
   it('keeps a whole shopping list (never cut silently); refuses only absurd sizes and invalid items', () => {
     const items = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `s${i}`, text: `Vara ${i}`, updatedAt: 1 }));
     const parse = (shopping: unknown[]) => parseBackup(JSON.stringify({ ...makeBackup(data), shopping }));

@@ -8,7 +8,7 @@ import { padVector, type StoredRecipe } from './recipes';
 import { MAX_TEMPLATE_ITEMS, MAX_TEMPLATE_NAME, type MealTemplate, type TemplateItem } from './templates';
 import { AMOUNT_MEMORY, type LoggedAmount } from './servings';
 import { GOALS, PACES, type Goal } from './adaptive';
-import { MAX_SHOP_ITEMS, type FoodPrice, type ShopItem } from './shopping';
+import { MAX_PRICE, MAX_SHOP_ITEMS, type FoodPrice, type ShopItem } from './shopping';
 import { normalizeDays, SUPPLEMENT_TIMES, type SupplementTime } from './supplements';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
@@ -212,14 +212,14 @@ function shopItem(x: unknown): ShopItem {
     } else if (isStr(x.text, 200) && x.text.trim() !== '') item.text = x.text.trim();
     else throw new BackupError('shopping');
     if (x.checked === true) item.checked = true;
-    if (isNum(x.kr) && x.kr >= 0 && x.kr < 1e6) item.kr = x.kr;
+    if (isNum(x.kr) && x.kr >= 0 && x.kr < MAX_PRICE) item.kr = x.kr;
     return item;
   }
   throw new BackupError('shopping');
 }
 
 function price(x: unknown): FoodPrice {
-  if (isObj(x) && isStr(x.foodRef, 200) && isNum(x.krPerKg) && x.krPerKg > 0 && x.krPerKg < 1e5 && isNum(x.updatedAt)) {
+  if (isObj(x) && isStr(x.foodRef, 200) && isNum(x.krPerKg) && x.krPerKg > 0 && x.krPerKg < MAX_PRICE && isNum(x.updatedAt)) {
     return { foodRef: x.foodRef, krPerKg: x.krPerKg, updatedAt: x.updatedAt };
   }
   throw new BackupError('price');

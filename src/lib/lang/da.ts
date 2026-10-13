@@ -536,6 +536,7 @@ const pack: LangPack = {
     shopPriceHint: 'Står på hyldekanten, fx 21,33 kr/kg.',
     shopPriceItem: 'Pris (kr)',
     shopSavePrice: 'Gem pris',
+    shopClearPrice: 'Fjern pris',
     secProduce: 'Frugt & grønt',
     secBread: 'Brød, gryn & pasta',
     secDairy: 'Mejeri & æg',

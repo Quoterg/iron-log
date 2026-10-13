@@ -113,9 +113,9 @@ test('restock from the last 7 days; shelf prices give an estimated total and the
   line = await openPrice(/Tandkräm/);
   await line.getByLabel('Pris (kr)').fill('25');
   await line.getByRole('button', { name: 'Spara pris' }).click();
-  await expect(sheet.locator('.shop-total')).toContainText('~33 kr');
+  await expect(sheet.locator('.shop-total')).toContainText('~34 kr');
   await sheet.getByRole('button', { name: 'Största posterna' }).click();
-  await expect(sheet.locator('.shop-item').first()).toContainText(/Tandkräm.*25 kr · 76 %/);
+  await expect(sheet.locator('.shop-item').first()).toContainText(/Tandkräm.*25 kr · 74 %/);
   await expect(sheet.locator('.shop-item').nth(1)).toContainText('Mjölk');
 
   // Prices are remembered per food (and synced/backed up like the list).
@@ -123,4 +123,11 @@ test('restock from the last 7 days; shelf prices give an estimated total and the
   await expect(page.locator('.meal').first().locator('.entry')).toHaveCount(2);
   await page.getByRole('button', { name: 'Inköpslista' }).click();
   await expect(sheet.locator('.shop-item', { hasText: /Havregryn/ })).toContainText('~1 kr');
+
+  // The editor shows what is stored (kr/kg), and a mistyped price can be removed.
+  line = await openPrice(/Havregryn/);
+  await expect(line.getByLabel('Jämförpris')).toHaveValue('21,33');
+  await line.getByRole('button', { name: 'Ta bort pris' }).click();
+  await expect(sheet.locator('.shop-item', { hasText: /Havregryn/ })).not.toContainText('kr');
+  await expect(sheet.locator('.shop-total')).toContainText('1 utan pris');
 });

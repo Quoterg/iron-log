@@ -21,8 +21,13 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   its "st" weight) → remembered per food as kr/kg in a new synced store `prices` (IndexedDB v13, in
   backups, validated). Own items take a price in kr. Estimated total with "N utan pris", and a
   "Största posterna" view with each line's share of the total.
+- Review fixes: kr/l uses the same density as the amounts (dl, else glas/2); the price editor opens
+  with the stored price and can remove it ("Ta bort pris", syncs as a tombstone); one price limit
+  (MAX_PRICE) for editor and backups; costs computed once and summed unrounded; lines re-render only
+  when their own data changed. Known (last-writer-wins): an older app version drops a typed price on
+  an own item, and its next tick of that item syncs back without the price.
 - Also: android/twa-manifest.json synced to the owner's v1.2.0 build (Hologram bar/splash colours).
-- Tests: unit 206 ✓ (kr/kg conversion, line cost, totals, ranking), build ✓ (initial JS 37.3 KB;
+- Tests: unit 207 ✓ (kr/kg conversion incl. glas, limit, line cost, unrounded totals, ranking, bad prices), build ✓ (initial JS 37.3 KB;
   ShoppingSheet 3.7 KB lazy), e2e 128 ✓ (new price/total/biggest-items/look-back test), Lighthouse ✓
   (one local run showed TBT 201 ms vs 200; the re-run passed — nothing on the first screen changed).
 

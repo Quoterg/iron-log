@@ -480,6 +480,11 @@ export async function putPrice(p: FoodPrice): Promise<void> {
   await put('prices', [p]);
 }
 
+/** Forget a food's price (a tombstone, so the removal syncs). */
+export async function deletePrice(foodRef: string): Promise<void> {
+  await del('prices', foodRef);
+}
+
 export async function listBody(): Promise<BodyEntry[]> {
   return (await db()).getAll('body');
 }

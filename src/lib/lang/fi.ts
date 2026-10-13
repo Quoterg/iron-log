@@ -536,6 +536,7 @@ const pack: LangPack = {
     shopPriceHint: 'Lukee hyllyn reunassa, esim. 21,33 kr/kg.',
     shopPriceItem: 'Hinta (kr)',
     shopSavePrice: 'Tallenna hinta',
+    shopClearPrice: 'Poista hinta',
     secProduce: 'Hedelmät & vihannekset',
     secBread: 'Leipä, ryynit & pasta',
     secDairy: 'Maito & munat',

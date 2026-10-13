@@ -441,6 +441,7 @@ const shop: Record<string, string> = {
   shopPriceHint: 'On the shelf label, e.g. 21.33 kr/kg.',
   shopPriceItem: 'Price (kr)',
   shopSavePrice: 'Save price',
+  shopClearPrice: 'Remove price',
   secProduce: 'Fruit & vegetables',
   secBread: 'Bread, grains & pasta',
   secDairy: 'Dairy & eggs',

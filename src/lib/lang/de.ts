@@ -536,6 +536,7 @@ const pack: LangPack = {
     shopPriceHint: 'Steht am Regaletikett, z. B. 21,33 kr/kg.',
     shopPriceItem: 'Preis (kr)',
     shopSavePrice: 'Preis speichern',
+    shopClearPrice: 'Preis entfernen',
     secProduce: 'Obst & Gemüse',
     secBread: 'Brot, Getreide & Pasta',
     secDairy: 'Milchprodukte & Eier',

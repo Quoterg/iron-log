@@ -536,6 +536,7 @@ const pack: LangPack = {
     shopPriceHint: 'Waxa uu ku qoran yahay khaanadda, tusaale 21,33 kr/kg.',
     shopPriceItem: 'Qiimo (kr)',
     shopSavePrice: 'Kaydi qiimaha',
+    shopClearPrice: 'Ka saar qiimaha',
     secProduce: 'Khudaar & miro',
     secBread: 'Rooti, badar & baasto',
     secDairy: 'Caano & ukun',

@@ -33,6 +33,7 @@ export const SV_SHOP = {
   shopPriceHint: 'Står på hyllkanten, t.ex. 21,33 kr/kg.',
   shopPriceItem: 'Pris (kr)',
   shopSavePrice: 'Spara pris',
+  shopClearPrice: 'Ta bort pris',
   secProduce: 'Frukt & grönt',
   secBread: 'Bröd, gryn & pasta',
   secDairy: 'Mejeri & ägg',
