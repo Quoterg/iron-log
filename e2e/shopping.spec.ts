@@ -131,3 +131,40 @@ test('restock from the last 7 days; shelf prices give an estimated total and the
   await expect(sheet.locator('.shop-item', { hasText: /Havregryn/ })).not.toContainText('kr');
   await expect(sheet.locator('.shop-total')).toContainText('1 utan pris');
 });
+
+test('offer links for the biggest items open the chosen stores; nothing is fetched', async ({ page }) => {
+  test.slow();
+  const external: string[] = [];
+  page.on('request', (r) => !r.url().startsWith('http://localhost') && external.push(r.url()));
+  await page.goto('./');
+  await logFood(page, 0, 'havregryn', '60');
+  await logFood(page, 0, 'mjölk', '500');
+  await page.getByRole('button', { name: 'Inköpslista' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Inköpslista' });
+  await sheet.getByRole('button', { name: '+ 2 livsmedel' }).click();
+  const milk = sheet.locator('.shop-line', { hasText: /Mjölk/ });
+  await milk.getByRole('button', { name: 'Pris', exact: true }).click();
+  await milk.getByLabel('Jämförpris').fill('15');
+  await milk.getByRole('button', { name: 'Spara pris' }).click();
+
+  // Only in "Största posterna", only for priced lines: links to the default stores.
+  await expect(sheet.locator('.offer-links')).toHaveCount(0);
+  await sheet.getByRole('button', { name: 'Största posterna' }).click();
+  const links = milk.locator('.offer-links a');
+  await expect(links).toHaveText(['Willys', 'ICA', 'Coop', 'Lidl']);
+  await expect(milk.getByRole('link', { name: 'Willys' })).toHaveAttribute('href', 'https://www.willys.se/sok?q=Mj%C3%B6lk');
+  await expect(milk.getByRole('link', { name: 'ICA' })).toHaveAttribute('href', 'https://www.ica.se/erbjudanden/');
+  await expect(milk.getByRole('link', { name: 'Willys' })).toHaveAttribute('target', '_blank');
+  await expect(sheet.locator('.shop-line', { hasText: /Havregryn/ }).locator('.offer-links')).toHaveCount(0);
+
+  // My stores: Hemköp on, ICA off — kept after a reload (a synced setting).
+  await sheet.getByRole('button', { name: 'Hemköp' }).click();
+  await sheet.getByRole('button', { name: 'ICA', exact: true }).click();
+  await expect(links).toHaveText(['Willys', 'Coop', 'Lidl', 'Hemköp']);
+  await page.reload();
+  await expect(page.locator('.meal').first().locator('.entry')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Inköpslista' }).click();
+  await sheet.getByRole('button', { name: 'Största posterna' }).click();
+  await expect(sheet.locator('.shop-line', { hasText: /Mjölk/ }).locator('.offer-links a')).toHaveText(['Willys', 'Coop', 'Lidl', 'Hemköp']);
+  expect(external).toEqual([]); // the app itself never contacted a store
+});
