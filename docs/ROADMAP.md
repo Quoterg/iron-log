@@ -221,3 +221,14 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   - Tests: unit (cost per entry, recipes, units, missing prices, the typical/own precedence), e2e
     (off by default; on → entry and meal costs; editing a price updates them; off again hides
     them), axe and 200 % text with costs shown.
+
+- [x] **M35 Goal in the profile; follow the estimate** — Owner's choice (2026-10-13). The goal
+  (Gå ner / Behålla / Gå upp) and pace (0.25–0.75 kg/week, ≤ 0.75 % of body weight per week) move
+  from the adaptive card into the profile, next to the energy target, always visible:
+  - the automatic (formula) target follows the goal: need ± pace × 7700 / 7 (0.5 kg/week = 550
+    kcal/day), never below 1200/1500 kcal or the basal rate; no goal while pregnant/breastfeeding;
+  - the adaptive card shows the measured expenditure and the target for that goal ("Använd");
+  - **"Följ uppskattningen automatiskt"** (opt-in): once per ISO week (synced, so once per user) the
+    target moves toward the adaptive suggestion by **at most ±150 kcal**, never below the floor; the
+    diary shows "Energimålet följer din förbrukning: nu 2 430 kcal/dag (+150)" that week. Nothing
+    happens until the estimate has enough data (10 days, 3 weigh-ins over 14 days).

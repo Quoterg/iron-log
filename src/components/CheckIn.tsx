@@ -11,7 +11,7 @@ import { te } from '../lib/strings-energy';
 import { unitOf, type Swap } from '../lib/suggest';
 import { back } from '../nav';
 import { ensureFoods, foods, settings, targets, updateSettings } from '../state';
-import { loadEstimate } from './AdaptiveEnergy';
+import { loadEstimate } from '../lib/adaptive-load';
 import { Sheet } from './Sheet';
 import { buildSuggestions, type GapHelp } from './Suggestions';
 

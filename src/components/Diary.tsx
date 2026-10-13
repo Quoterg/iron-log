@@ -9,11 +9,11 @@ import {
   activityTypes, addWater, burnedToday, clock, date, dayActivities, dayComplete, dayTotals,
   dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, recipes, removeActivity,
   repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets,
-  toggleDayComplete, toggleSupplementTaken, usual, usualState,
+  toggleDayComplete, toggleSupplementTaken, updateSettings, usual, usualState,
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
 import { pickUsual } from '../lib/usual';
-import { previousWeek } from '../lib/checkin';
+import { isoWeek, previousWeek } from '../lib/checkin';
 import { Bar } from './Bar';
 
 export function Diary() {
@@ -59,6 +59,17 @@ export function Diary() {
           <span>{t('checkinReady')}</span>
           <button class="btn small" onClick={() => open({ kind: 'checkin' })}>
             {t('checkinShow')}
+          </button>
+        </section>
+      )}
+      {/* Follow the estimate (M35): this week's change of the energy target, until dismissed. */}
+      {settings.value.followNote && settings.value.followNote.week === isoWeek(isoDate(now)).key && (
+        <section class="card checkin-teaser" role="status">
+          <span>
+            {followText(settings.value.followNote)}
+          </span>
+          <button class="btn small" aria-label={t('notNow')} title={t('notNow')} onClick={() => void updateSettings({ followNote: undefined })}>
+            ×
           </button>
         </section>
       )}
@@ -178,6 +189,12 @@ export function Diary() {
       </button>
     </>
   );
+}
+
+/** "Energimålet följer din förbrukning: nu 2 430 kcal/dag (+150)." */
+function followText(n: { from: number; to: number }): string {
+  const d = n.to - n.from;
+  return t('followDone').replace('{kcal}', fmt(n.to)).replace('{delta}', `${d > 0 ? '+' : '−'}${fmt(Math.abs(d))}`);
 }
 
 function name(ref: string): string {

@@ -57,6 +57,7 @@ async function start() {
       void foodEditorView.prefetch();
       void copyView.prefetch();
       if (settings.value.costs) ensurePriceBook(); // food cost (M34): prices for the diary
+      if (settings.value.adaptive && settings.value.adaptiveFollow) void import('./lib/follow').then((m) => m.runFollow()).catch(() => {});
       enableUsual(); // after the food data started loading: it competes with nothing on screen
     }, 1500);
   });

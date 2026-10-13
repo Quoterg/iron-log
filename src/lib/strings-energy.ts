@@ -25,6 +25,12 @@ export const SV_ENERGY = {
   adaptiveApply: 'Använd som mitt energimål',
   adaptiveIsTarget: 'Det här är ditt energimål nu. Det ändras inte av sig självt.',
   adaptiveNoGoal: 'Under graviditet och amning visas bara uppskattningen, inga mål för viktförändring.',
+  goalWhere: 'Mål: {goal} (ändras under Profil).',
+  goalFormula: 'Förbrukning ca {need} kcal, {delta} kcal/dag för {kg} kg/vecka.',
+  followToggle: 'Följ uppskattningen automatiskt (högst ±{kcal} kcal per vecka)',
+  followExplain: 'En gång i veckan flyttas ditt energimål mot det föreslagna, högst {kcal} kcal åt gången, så att en enstaka vecka inte svänger det. Du ser ändringen i dagboken. Målet räknas då inte längre fram ur formeln i Profil.',
+  goalNotice: 'Ditt viktmål gäller nu också det automatiska energimålet, som därför är {kcal} kcal/dag. Kontrollera Mål och Takt.',
+  followActive: 'Energimålet följer din uppmätta förbrukning en gång i veckan (Anpassad energiförbrukning).',
 };
 
 export type EnergyKey = keyof typeof SV_ENERGY;

@@ -2,7 +2,9 @@
 // against what they logged over the last 4 weeks — energy balance, ≈ 7700 kcal per kg of body
 // weight. Never changes a target by itself; the user can choose to apply a suggested one.
 // Loaded with the Settings screen only.
-import { basalKcal, type Profile } from './targets';
+import { KCAL_PER_KG } from './targets';
+
+export { allowedPaces, goalTarget, GOALS, minIntake, PACES, type Goal } from './targets';
 
 export const ADAPTIVE = {
   /** Days looked at (ending yesterday: today isn't finished). */
@@ -11,21 +13,15 @@ export const ADAPTIVE = {
   minWeighIns: 3,
   /** The weigh-ins must span at least this many days. */
   minSpanDays: 14,
-  kcalPerKg: 7700,
+  kcalPerKg: KCAL_PER_KG,
   /** An unmarked day below this share of the typical (median) intake counts as incomplete. */
   lowShare: 0.6,
-  /** Fastest pace offered: % of body weight per week. */
-  maxPctPerWeek: 0.75,
   /** Day-to-day scale noise (water, food in the gut) the trend can't see through, in kg. */
   scaleNoiseKg: 0.3,
 };
 
 /** Two-sided 95 % t-quantiles for 1–10 degrees of freedom (≈ 2 beyond). */
 const T95 = [12.71, 4.3, 3.18, 2.78, 2.57, 2.45, 2.36, 2.31, 2.26, 2.23];
-
-export type Goal = 'lose' | 'maintain' | 'gain';
-export const GOALS: Goal[] = ['lose', 'maintain', 'gain'];
-export const PACES = [0.25, 0.5, 0.75]; // kg per week
 
 /** One day's logged energy, and whether the user marked it complete. */
 export interface DayIntake {
@@ -133,19 +129,19 @@ export function estimate(days: DayIntake[], weighIns: WeighIn[]): Estimate {
   };
 }
 
-/** Paces offered for a body weight: at most ADAPTIVE.maxPctPerWeek % of it per week. */
-export function allowedPaces(weightKg: number): number[] {
-  return PACES.filter((p) => p <= (weightKg * ADAPTIVE.maxPctPerWeek) / 100 + 1e-9);
+/** Largest weekly change when the target follows the estimate (M35): one noisy week can't swing it. */
+export const FOLLOW_STEP = 150;
+
+/** The next target: toward `want`, at most FOLLOW_STEP from `current`, never below `floor`. */
+export function followStep(current: number, want: number, floor: number): number {
+  const next = Math.min(current + FOLLOW_STEP, Math.max(current - FOLLOW_STEP, want));
+  return Math.max(floor, next);
 }
 
-/** Never suggested below this: 1200 kcal (women) / 1500 kcal (men), and not below the basal rate. */
-export function minIntake(p: Profile): number {
-  return Math.max(p.sex === 'female' ? 1200 : 1500, Math.round(basalKcal(p) ?? 0));
-}
-
-/** Energy target for a goal: expenditure ± the pace's energy (7700 kcal per kg), never below `floor`. */
-export function goalTarget(expenditure: number, goal: Goal, pacePerWeek: number, floor: number): { kcal: number; floored: boolean } {
-  const delta = goal === 'maintain' ? 0 : ((goal === 'lose' ? -1 : 1) * pacePerWeek * ADAPTIVE.kcalPerKg) / 7;
-  const kcal = round10(expenditure + delta);
-  return kcal < floor ? { kcal: floor, floored: true } : { kcal, floored: false };
+/**
+ * Whether this week's step is still due. Synced settings can lose `followWeek` (an older version on
+ * another device drops keys it doesn't know), so this week's note also counts: never two steps a week.
+ */
+export function followDue(s: { followWeek?: string; followNote?: { week: string } }, week: string): boolean {
+  return s.followWeek !== week && s.followNote?.week !== week;
 }

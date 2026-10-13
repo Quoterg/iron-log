@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BackupError, makeBackup, parseBackup, toCsv } from './backup';
-import type { AllData } from './db';
+import { SETTINGS_VERSION, type AllData } from './db';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
 
 const data: AllData = {
@@ -30,7 +30,7 @@ const data: AllData = {
     { id: 's2', text: 'Tandkräm', checked: true, kr: 25, updatedAt: 7 },
   ],
   prices: [{ foodRef: 'slv:1', krPerKg: 21.33, updatedAt: 8 }],
-  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: 2, adaptive: true, goal: 'lose', pace: 0.5, costs: true },
+  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: SETTINGS_VERSION, adaptive: true, goal: 'lose', pace: 0.5, costs: true },
 };
 
 describe('backup', () => {
