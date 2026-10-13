@@ -191,9 +191,23 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   kronor** any more, only the consumer price index, including a monthly index for 97 food groups
   (table `PR0101A/KPI2020EPG01M`: Gryn, Ris, Mjöl, Mjukt bröd, …). So two open sources are combined:
   - **Kronor:** Open Food Facts' **Open Prices** (prices.openfoodfacts.org, ODbL; ~5 200 SEK prices
-    from Swedish stores, per product with barcode and pack size → kr/kg). A curated map of ~100
-    common foods (Livsmedelsverket number ↔ Open Food Facts categories ↔ SCB group) takes the
-    median kr/kg of the last 12 months, needing ≥ 3 prices from ≥ 2 stores; outliers trimmed.
+    from Swedish stores, per product with barcode and pack size → kr/kg). **No fixed number of
+    foods:** every food the data supports gets a price. A map of **base foods** (Open Food Facts
+    categories ↔ SCB group) takes the median kr/kg of the last 12 months, needing ≥ 3 prices from
+    ≥ 2 stores; outliers trimmed. Base foods are as many as reach that bar (expected: a few hundred).
+  - **Spreading base prices over Livsmedelsverket's ~2 600 foods**, so most of what people log is
+    covered (goal: well over 1 000 foods):
+    - *Variants* share their base food's price ("Mjölk 3 %", "Mjölk 1,5 %", "Mjölk berikad" → milk;
+      likewise cheeses, breads, minced meats), by rules on Livsmedelsverket's names and groups plus
+      a short hand-made list of exceptions.
+    - *Cooked/prepared foods* use the raw food's price adjusted for weight change (cooked pasta
+      ≈ 2,5 × dry weight → 40 % of the dry price per 100 g; rice, potatoes, fried chicken, …), using
+      Livsmedelsverket's yield factors where given, else a small table.
+    - *Recipes* add up their ingredients (M34).
+    - Foods with no reliable price show nothing rather than a guess; own prices work for any food.
+  - **First step, before building the app side:** measure coverage (base foods reaching the bar,
+    Livsmedelsverket foods covered, share of the owner's logged foods covered) and report the numbers
+    to the owner.
   - **Keeping it current:** SCB's group index moves each price from the month it was observed to
     the latest month, and fills foods with too few recent prices from their last value (marked
     with its age; dropped after 2 years). Check SCB's licence terms before use (open data; keep the
@@ -203,7 +217,7 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
     fetched by the app at runtime.
   - **Updates every 6 months:** a scheduled GitHub Actions workflow (1 March and 1 September, after
     SCB's January/July figures) runs fetch + build and opens a PR "Prices <month>" with a summary
-    (foods covered, biggest changes); it fails visibly if coverage drops below 70 foods. Needs the
+    (foods covered, biggest changes); it fails visibly if coverage drops by more than 10 % from the previous table. Needs the
     owner to allow "GitHub Actions to create pull requests" in the repo settings once. The PR is
     reviewed and merged like any other; no version bump needed (data only).
   - **Shopping list:** lines without an own price use the typical price, shown as "≈ 18 kr" and
