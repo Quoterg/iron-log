@@ -22,7 +22,7 @@ test("what's new: not on a fresh install; once after an update; again from Setti
   await expect(news.getByRole('heading', { name: 'Nytt i 1.3.0' })).toBeVisible();
   await expect(news.getByRole('heading', { name: 'Nytt i 1.2.0' })).toHaveCount(0);
   await expect(news).toContainText('senaste 7 dagarna');
-  await news.getByRole('button', { name: 'Okej' }).click();
+  await news.getByRole('button', { name: 'OK', exact: true }).click();
   await expect(news).toHaveCount(0);
   await page.reload();
   await expect(page.locator('.meal').first()).toBeVisible();

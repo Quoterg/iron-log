@@ -68,9 +68,13 @@ async function start() {
 /** Once after a release (a new version in package.json): what's new since the version last seen. */
 async function showWhatsNew() {
   if (stack.value.length) return; // a shortcut opened a sheet: next start instead
-  const { whatsNewSince } = await import('./lib/version'); // not needed for first paint
+  const { markSeen, whatsNewSince } = await import('./lib/version'); // not needed for first paint
   const since = await whatsNewSince(async () => !!(await getSettings()) || (await hasEntries()));
-  if (since && !stack.value.length) open({ kind: 'whatsnew', since });
+  // The user may have opened a sheet meanwhile (slow storage): then it's shown next start.
+  if (since && !stack.value.length) {
+    open({ kind: 'whatsnew', since });
+    markSeen();
+  }
 }
 
 /** Home-screen shortcuts (manifest.webmanifest): `?add` opens the add sheet, `?water` adds 2 dl. */

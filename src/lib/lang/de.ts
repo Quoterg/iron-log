@@ -82,6 +82,8 @@ const pack: LangPack = {
     reportError: 'Fehler in den Lebensmitteldaten melden',
     privacyPolicy: 'Datenschutz',
     aboutApp: 'Über Iron Log',
+    whatsNew: 'Neuigkeiten',
+    whatsNewIn: 'Neu in {v}',
     back: 'Zurück',
     save: 'Speichern',
     meal: 'Mahlzeit',

@@ -1,5 +1,6 @@
-// What's new per release (M32), newest first. Loaded only when shown. Releasing = bump "version" in
-// package.json and add an entry here, in every language (CLAUDE.md). Keep each note short and plain.
+// What's new per release (M32), newest first. Loaded only with the WhatsNew sheet (import it from
+// nowhere else). Releasing = bump "version" in package.json and add an entry here, in every language
+// (CLAUDE.md). Keep each note short and plain, and only the latest ~10 releases.
 import type { Lang } from './lib/i18n';
 import { compareVersions } from './lib/version';
 
@@ -97,17 +98,8 @@ export const RELEASES: Release[] = [
   },
 ];
 
-/** Labels of the "what's new" sheet, per language (loaded with it). */
-export const LABELS: Record<Lang, { title: string; heading: string; ok: string }> = {
-  sv: { title: 'Nyheter', heading: 'Nytt i {v}', ok: 'Okej' },
-  en: { title: 'What’s new', heading: 'New in {v}', ok: 'OK' },
-  da: { title: 'Nyheder', heading: 'Nyt i {v}', ok: 'OK' },
-  de: { title: 'Neuigkeiten', heading: 'Neu in {v}', ok: 'OK' },
-  fi: { title: 'Uutta', heading: 'Uutta versiossa {v}', ok: 'OK' },
-  so: { title: 'Waxa cusub', heading: 'Waxa cusub ee {v}', ok: 'Hagaag' },
-};
-
-/** Releases newer than `since` (newest first, at most `n`); the latest ones when `since` is null. */
+/** Releases newer than `since` (newest first, at most `n`); the latest ones when there are none. */
 export function releasesSince(since: string | null, n = 3): Release[] {
-  return (since ? RELEASES.filter((r) => compareVersions(r.version, since) > 0) : RELEASES).slice(0, n);
+  const newer = since ? RELEASES.filter((r) => compareVersions(r.version, since) > 0) : [];
+  return (newer.length ? newer : RELEASES).slice(0, n); // never an empty sheet
 }

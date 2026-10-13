@@ -82,6 +82,8 @@ const pack: LangPack = {
     reportError: 'Ilmoita virheestä elintarviketiedoissa',
     privacyPolicy: 'Tietosuoja',
     aboutApp: 'Tietoa Iron Logista',
+    whatsNew: 'Uutta',
+    whatsNewIn: 'Uutta versiossa {v}',
     back: 'Takaisin',
     save: 'Tallenna',
     meal: 'Ateria',

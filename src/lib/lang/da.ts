@@ -82,6 +82,8 @@ const pack: LangPack = {
     reportError: 'Rapportér fejl i fødevaredata',
     privacyPolicy: 'Privatliv',
     aboutApp: 'Om Iron Log',
+    whatsNew: 'Nyheder',
+    whatsNewIn: 'Nyt i {v}',
     back: 'Tilbage',
     save: 'Gem',
     meal: 'Måltid',

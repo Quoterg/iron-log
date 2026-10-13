@@ -8,10 +8,10 @@ const KEY = 'iron-log-seen-version';
 /** What users from before the changelog existed have certainly seen (the first APK releases). */
 export const BASELINE = '1.1.0';
 
-/** -1, 0 or 1, comparing dotted versions numerically ("1.10.0" > "1.9.2"). */
+/** -1, 0 or 1, comparing dotted versions numerically ("1.10.0" > "1.9.2"; "1.3.0-beta" counts as 1.3.0). */
 export function compareVersions(a: string, b: string): number {
-  const x = a.split('.').map(Number);
-  const y = b.split('.').map(Number);
+  const x = a.split('.').map((p) => parseInt(p, 10) || 0);
+  const y = b.split('.').map((p) => parseInt(p, 10) || 0);
   for (let i = 0; i < Math.max(x.length, y.length); i++) {
     const d = (x[i] ?? 0) - (y[i] ?? 0);
     if (d) return d > 0 ? 1 : -1;
@@ -19,19 +19,35 @@ export function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-/**
- * The version to show news since, or null: nothing when this version was seen already or on a fresh
- * install (no data yet: it's all new anyway). Records this version as seen. `hasData` is only asked
- * the first time (no version seen yet: from before M32, or a new install).
- */
-export async function whatsNewSince(hasData: () => Promise<boolean>, current = APP_VERSION): Promise<string | null> {
-  let seen: string | null;
+function read(): string | null | undefined {
   try {
-    seen = localStorage.getItem(KEY);
+    return localStorage.getItem(KEY);
+  } catch {
+    return undefined; // storage blocked
+  }
+}
+
+/** Records `current` as seen: call once the news is on screen (or there is none to show). */
+export function markSeen(current = APP_VERSION): void {
+  try {
     localStorage.setItem(KEY, current);
   } catch {
-    return null; // storage blocked: never nag on every start
+    /* blocked: whatsNewSince() then never shows anything */
   }
+}
+
+/**
+ * The version to show news since, or null: nothing when this version was seen already, on a fresh
+ * install (no data yet: it's all new anyway; recorded as seen right away) or when storage is
+ * blocked (never nag on every start). When it returns a version, the caller records it with
+ * markSeen() once the news is actually shown, so news that couldn't be shown comes next start.
+ * `hasData` is only asked when no version was seen yet (from before M32, or a new install).
+ */
+export async function whatsNewSince(hasData: () => Promise<boolean>, current = APP_VERSION): Promise<string | null> {
+  const seen = read();
+  if (seen === undefined) return null;
   if (seen) return compareVersions(current, seen) > 0 ? seen : null;
-  return (await hasData()) ? BASELINE : null;
+  if (await hasData()) return BASELINE;
+  markSeen(current);
+  return null;
 }

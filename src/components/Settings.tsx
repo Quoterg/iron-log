@@ -9,7 +9,6 @@ import { ts } from '../lib/strings-sync';
 import { setTheme, themeChoice } from '../lib/theme';
 import { tg } from '../lib/strings-suggest';
 import { tc } from '../lib/strings-checkin';
-import { LABELS } from '../changelog';
 import { APP_VERSION } from '../lib/version';
 
 /** Loaded lazily (see app.tsx): not needed for the first screen. */
@@ -200,7 +199,7 @@ function General() {
       <p class="muted small">
         Iron Log {APP_VERSION} ·{' '}
         <button type="button" class="link inline" onClick={() => open({ kind: 'whatsnew' })}>
-          {LABELS[lang.value].title}
+          {t('whatsNew')}
         </button>
       </p>
       <p class="muted small">{t('attribution')}</p>

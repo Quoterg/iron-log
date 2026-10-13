@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RELEASES, releasesSince } from '../changelog';
 import { LANGS } from './i18n';
-import { APP_VERSION, BASELINE, compareVersions, whatsNewSince } from './version';
+import { APP_VERSION, BASELINE, compareVersions, markSeen, whatsNewSince } from './version';
 
 const store = new Map<string, string>();
 beforeEach(() => {
@@ -20,6 +20,8 @@ describe('compareVersions', () => {
     expect(compareVersions('1.2.0', '1.2')).toBe(0);
     expect(compareVersions('1.2.0', '1.3.0')).toBe(-1);
     expect(compareVersions('2.0.0', '1.99.99')).toBe(1);
+    expect(compareVersions('1.3.0-beta', '1.3.0')).toBe(0); // a suffix is ignored, never NaN
+    expect(compareVersions('1.4.0-beta', '1.3.0')).toBe(1);
   });
 });
 
@@ -31,15 +33,26 @@ describe('whatsNewSince', () => {
 
   it('existing users from before the changelog see everything since the first APK release', async () => {
     expect(await whatsNewSince(yes, '1.3.0')).toBe(BASELINE);
+    markSeen('1.3.0'); // shown
     expect(await whatsNewSince(yes, '1.3.0')).toBeNull(); // once
   });
 
   it('after an update: news since the version last seen; never for the same or an older one', async () => {
     store.set('iron-log-seen-version', '1.2.0');
     expect(await whatsNewSince(no, '1.3.0')).toBe('1.2.0');
+    markSeen('1.3.0');
     expect(await whatsNewSince(no, '1.3.0')).toBeNull();
     store.set('iron-log-seen-version', '1.4.0'); // e.g. back on an older cached build
     expect(await whatsNewSince(yes, '1.3.0')).toBeNull();
+  });
+
+  it('news that could not be shown (another sheet was open) comes next start', async () => {
+    store.set('iron-log-seen-version', '1.2.0');
+    expect(await whatsNewSince(no, '1.3.0')).toBe('1.2.0'); // not shown: markSeen() not called
+    expect(await whatsNewSince(no, '1.3.0')).toBe('1.2.0');
+    store.delete('iron-log-seen-version'); // same for users from before the changelog
+    expect(await whatsNewSince(yes, '1.3.0')).toBe(BASELINE);
+    expect(await whatsNewSince(yes, '1.3.0')).toBe(BASELINE);
   });
 
   it('only asks whether there is data when no version was seen yet', async () => {
@@ -77,10 +90,10 @@ describe('changelog', () => {
     }
   });
 
-  it('picks the releases since a version (none since the newest), else the latest', () => {
+  it('picks the releases since a version, else the latest', () => {
     expect(releasesSince('1.1.0').map((r) => r.version)).toEqual(['1.3.0', '1.2.0']);
     expect(releasesSince('1.2.0').map((r) => r.version)).toEqual(['1.3.0']);
-    expect(releasesSince('1.3.0')).toEqual([]);
     expect(releasesSince(null)[0].version).toBe('1.3.0');
+    expect(releasesSince('9.0.0')[0].version).toBe('1.3.0'); // never an empty sheet
   });
 });

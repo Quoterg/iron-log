@@ -94,6 +94,8 @@ const sv = {
   reportError: 'Rapportera fel i livsmedelsdata',
   privacyPolicy: 'Integritet',
   aboutApp: 'Om Iron Log',
+  whatsNew: 'Nyheter',
+  whatsNewIn: 'Nytt i {v}',
   back: 'Tillbaka',
   save: 'Spara',
   meal: 'Måltid',
