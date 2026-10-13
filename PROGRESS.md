@@ -5,20 +5,34 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M34 cost per food and meal** next (planned, opt-in; uses M33's table) — only when the owner says
-go; its release (1.4.0) changelog should say devices on an older version may switch "Matkostnad" off
-until updated (they drop the unknown setting when saving). Then **M21b**. **Owner, once:** allow "GitHub Actions to create and approve pull requests"
-(repo Settings → Actions → General) so the price workflow can open its PRs. **Shelf prices** were
-collected 2026-10-13: re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce
-(fresh berries ~240 kr/kg in October) reflects that month. **M21b** (low security housekeeping) after. **Release 1.3.0** is ready to build (#49 merged)
-(bubblewrap update + build; twa-manifest already says 1.3.0 / code 5). **Releasing** from now on:
+**M21b** (low security housekeeping) next. **Release 1.4.0** (M33 + M34; changelog written) is ready
+to build once the M34 PR is merged (bubblewrap update + build; twa-manifest says 1.4.0 / code 6).
+**Owner, once:** allow "GitHub Actions to create and approve pull requests" (repo Settings → Actions →
+General) so the price workflow can open its PRs. **Shelf prices** were collected 2026-10-13:
+re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
+~240 kr/kg in October) reflects that month. **Releasing** from now on:
 see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
-2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 37.6 KB of 40 after M28 moved the
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 38.1 KB of 40 (M34's cost arithmetic and prices are lazy) after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-13 — M34 Cost per food and meal (interactive session)
+
+- With Matkostnad on (off by default): each diary entry shows "~4 kr" (own price > typical price;
+  recipes from their ingredients), each meal header its total, the day summary "Matkostnad: ~57 kr";
+  "minst ~23 kr" when part has no price; foods with no price show nothing.
+- Tapping a food's cost opens the price sheet — the shopping list's editor, now one component
+  (`PriceForm`); a saved/removed price updates the diary and the list (`lib/cost.ts` setOwnPrice).
+- Only a stub is in the first bundle (`lib/cost.ts`, +0.4 KB): the arithmetic and prices
+  (`lib/cost-calc.ts`, table) load after first paint when on.
+- Release 1.4.0 (version, changelog in 6 languages incl. the older-version sync caveat, twa-manifest).
+- Tests: unit 229 ✓ (entry/recipe/meal cost, own > typical, rounding), build ✓ (38.1 KB), e2e 142 ✓
+  (new cost.spec: off by default, entry/meal/day, "minst", price edit → ~6 kr everywhere, reload,
+  remove, off; axe + 200 % for the diary with costs and the price sheet; what's new now reads the
+  versions from package.json/changelog), Lighthouse ✓.
 
 ## 2026-10-13 — M33 Typical prices (interactive session)
 

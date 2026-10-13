@@ -91,9 +91,11 @@ describe('changelog', () => {
   });
 
   it('picks the releases since a version, else the latest', () => {
-    expect(releasesSince('1.1.0').map((r) => r.version)).toEqual(['1.3.0', '1.2.0']);
-    expect(releasesSince('1.2.0').map((r) => r.version)).toEqual(['1.3.0']);
-    expect(releasesSince(null)[0].version).toBe('1.3.0');
-    expect(releasesSince('9.0.0')[0].version).toBe('1.3.0'); // never an empty sheet
+    const v = RELEASES.map((r) => r.version);
+    expect(releasesSince(v[2]).map((r) => r.version)).toEqual([v[0], v[1]]);
+    expect(releasesSince(v[1]).map((r) => r.version)).toEqual([v[0]]);
+    expect(releasesSince('0.0.1')).toHaveLength(Math.min(3, v.length)); // at most 3
+    expect(releasesSince(null)[0].version).toBe(v[0]);
+    expect(releasesSince('99.0.0')[0].version).toBe(v[0]); // never an empty sheet
   });
 });

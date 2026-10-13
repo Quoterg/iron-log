@@ -1,11 +1,11 @@
 import { Component } from 'preact';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { addDays, changeShopping, deletePrice, entriesBetween, isoDate, listPrices, listShopping, newId, putPrice, type Entry } from '../lib/db';
-import { decimalComma, fmt, lang, parseNum, t } from '../lib/i18n';
+import { fmt, lang, t } from '../lib/i18n';
 import { foodName, type Serving } from '../lib/nutrients';
 import { servingsFor } from '../lib/servings';
 import {
-  addTo, costList, expand, gramsPerDl, krPerKg, MAX_PRICE, MAX_SHOP_ITEMS, sectionOf, SECTIONS, shopAmount, toText,
+  addTo, costList, expand, krPerKg, MAX_SHOP_ITEMS, sectionOf, SECTIONS, shopAmount, toText,
   type LineCost,
   type Costed, type FoodPrice, type PriceUnit, type Section, type ShopItem,
 } from '../lib/shopping';
@@ -13,6 +13,8 @@ import { tsh, type ShopKey } from '../lib/strings-shop';
 import { ensureFoods, foods, recipes, settings, supplementRefs, templates, updateSettings, userServings } from '../state';
 import { CHAINS, DEFAULT_CHAINS, OFFER_LINES, searchTerm } from '../lib/stores';
 import { Sheet } from './Sheet';
+import { numText, PriceForm } from './PriceForm';
+import { setOwnPrice } from '../lib/cost';
 import { typicalPrices } from '../lib/typical-prices';
 
 const SECTION_LABEL: Record<Section, ShopKey> = {
@@ -37,12 +39,6 @@ function amountOf(item: ShopItem, units: Serving[]): string {
 }
 
 /** Price units a food's shelf price can be typed in: kg always, l for liquids, st for pieces. */
-function priceUnits(units: Serving[]): PriceUnit[] {
-  return ['kg', ...(gramsPerDl(units) ? (['l'] as const) : []), ...(units.some((x) => x.name === 'st') ? (['st'] as const) : [])];
-}
-
-const numText = (n: number) => String(Math.round(n * 100) / 100).replace('.', decimalComma() ? ',' : '.');
-
 interface LineProps {
   item: ShopItem;
   name: string;
@@ -64,21 +60,8 @@ interface LineProps {
 function Line(props: LineProps) {
   const { item: i, name, units, cost } = props;
   const [editing, setEditing] = useState(false);
-  const [kr, setKr] = useState('');
-  const [unit, setUnit] = useState<PriceUnit>('kg');
 
-  // Opens with what is stored (a food's price as kr/kg; an own item's price), so it can be checked.
-  const open = () => {
-    if (!editing) {
-      setKr(i.foodRef ? (props.price ? numText(props.price.krPerKg) : '') : i.kr != null ? numText(i.kr) : '');
-      setUnit('kg');
-    }
-    setEditing(!editing);
-  };
-  const savePrice = (e: Event) => {
-    e.preventDefault();
-    const n = parseNum(kr);
-    if (!(n > 0 && n < MAX_PRICE)) return;
+  const savePrice = (n: number, unit: PriceUnit) => {
     if (i.foodRef) {
       const k = krPerKg(n, unit, units);
       if (k) props.onPrice({ foodRef: i.foodRef, krPerKg: k, updatedAt: Date.now() });
@@ -93,7 +76,6 @@ function Line(props: LineProps) {
     }
     setEditing(false);
   };
-  const stored = i.foodRef ? !!props.price : i.kr != null;
 
   return (
     <li class="shop-line">
@@ -107,7 +89,7 @@ function Line(props: LineProps) {
             {props.share != null && cost && ` · ${fmt(props.share * 100)} %`}
           </span>
         </label>
-        <button type="button" class="btn small" aria-expanded={editing} onClick={open}>
+        <button type="button" class="btn small" aria-expanded={editing} onClick={() => setEditing(!editing)}>
           {tsh('shopPrice')}
         </button>
         <button type="button" class="btn small" aria-label={`${t('remove')} ${name}`} onClick={() => props.onSave([], [i.id])}>
@@ -125,36 +107,15 @@ function Line(props: LineProps) {
         </p>
       )}
       {editing && (
-        <form class="row shop-price" onSubmit={savePrice}>
-          <label>
-            {i.foodRef ? tsh('shopPriceLabel') : tsh('shopPriceItem')}
-            <input type="text" inputMode="decimal" value={kr} onInput={(e) => setKr((e.currentTarget as HTMLInputElement).value)} />
-          </label>
-          {i.foodRef && (
-            <label>
-              {t('unit')}
-              <select value={unit} onChange={(e) => setUnit((e.currentTarget as HTMLSelectElement).value as PriceUnit)}>
-                {priceUnits(units).map((u) => (
-                  <option key={u} value={u}>
-                    kr/{u}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <button type="submit" class="btn" disabled={!(parseNum(kr) > 0 && parseNum(kr) < MAX_PRICE)}>
-            {tsh('shopSavePrice')}
-          </button>
-          {stored && (
-            <button type="button" class="btn danger" onClick={clearPrice}>
-              {tsh('shopClearPrice')}
-            </button>
-          )}
-          {i.foodRef && <p class="muted small block">{tsh('shopPriceHint')}</p>}
-          {i.foodRef && props.typical != null && !props.price && (
-            <p class="muted small block">{tsh('shopTypical').replace('{kr}', fmt(props.typical))}</p>
-          )}
-        </form>
+        // Opens with what is stored (a food's price as kr/kg; an own item's price), so it can be checked.
+        <PriceForm
+          units={i.foodRef ? units : null}
+          initial={i.foodRef ? (props.price ? numText(props.price.krPerKg) : '') : i.kr != null ? numText(i.kr) : ''}
+          stored={i.foodRef ? !!props.price : i.kr != null}
+          typical={props.typical}
+          onSave={savePrice}
+          onClear={clearPrice}
+        />
       )}
     </li>
   );
@@ -247,6 +208,7 @@ export default function ShoppingSheet() {
       return;
     }
     setPrices((cur) => new Map(cur).set(p.foodRef, p));
+    setOwnPrice(p.foodRef, p.krPerKg);
   }, []);
 
   /** Forget a food's price (a mistyped one shouldn't stay on every future list). */
@@ -257,6 +219,7 @@ export default function ShoppingSheet() {
       setStatus(tsh('shopSaveFailed'));
       return;
     }
+    setOwnPrice(foodRef, null);
     setPrices((cur) => {
       const next = new Map(cur);
       next.delete(foodRef);

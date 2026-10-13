@@ -43,6 +43,7 @@ export const SV_SHOP = {
   costsSource: 'Typpriser: jämförpriser från willys.se ({date}), framräknade till {month} med SCB:s konsumentprisindex (CC0); Open Food Facts Open Prices (ODbL).',
   shopTypical: '≈ typpris {kr} kr/kg (ungefärligt, inte din butik)',
   shopTotalTypical: 'varav ≈{kr} kr typpriser',
+  priceEverywhere: 'Priset används i dagboken och i inköpslistan.',
   shopClearPrice: 'Ta bort pris',
   secProduce: 'Frukt & grönt',
   secBread: 'Bröd, gryn & pasta',

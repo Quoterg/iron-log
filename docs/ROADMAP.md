@@ -207,7 +207,7 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
     total says how much is typical prices, and the price editor shows "≈ typpris … kr/kg". The table
     is lazy (fetched when on, prefetched when idle for offline). Sources credited in Settings and on
     the about/privacy pages; nothing is fetched from shops.
-- [ ] **M34 Cost per food and meal in the diary** — Owner's choice (2026-10-13), after M33. Setting
+- [x] **M34 Cost per food and meal in the diary** — Owner's choice (2026-10-13), after M33. Setting
   "Visa matkostnad" (Settings, **off by default**, synced like the other opt-ins) turns on M33's
   typical prices and shows costs in the diary:
   - each entry: "~4 kr" next to its energy (own price > typical price; recipes add up their
