@@ -304,11 +304,11 @@ export default function ShoppingSheet() {
     const m = new Map<string, { name: string; href: string }[]>();
     if (!chains.length) return m;
     for (const c of (costs?.ranked ?? []).filter((r) => r.cost && !r.item.checked).slice(0, OFFER_LINES)) {
-      const term = searchTerm(info.get(c.item.id)!.name, !!c.item.text);
+      const term = searchTerm(info.get(c.item.id)?.name ?? '', !!c.item.text);
       m.set(c.item.id, chains.map((ch) => ({ name: ch.name, href: ch.url(term) })));
     }
     return m;
-  }, [costs, info, chosen.join()]);
+  }, [costs, info, chosen]);
   const toggleChain = (id: string) =>
     void updateSettings({ chains: CHAINS.map((c) => c.id).filter((x) => (x === id ? !chosen.includes(id) : chosen.includes(x))) });
 
@@ -384,7 +384,7 @@ export default function ShoppingSheet() {
                     </button>
                   ))}
                 </div>
-                <p class="muted small">{tsh('shopOffersNote')}</p>
+                <p class="muted small">{tsh(chosen.length ? 'shopOffersNote' : 'shopNoStores')}</p>
               </section>
             ) : (
               groups.map((g) => (

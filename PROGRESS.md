@@ -7,7 +7,8 @@ Keep entries short — this file is read at the start of every session.
 
 Owner (2026-10-13): **M32 what's new** (changelog on a new app version) next, then M21b (low
 security housekeeping). **Watch:** local Lighthouse TBT hovers at the 200 ms limit (201/207 ms on
-single runs, re-runs pass) — worth a look at start-up main-thread work. **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
+single runs, re-runs pass) — worth a look at start-up main-thread work. **Store links** (`lib/stores.ts`, checked
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
