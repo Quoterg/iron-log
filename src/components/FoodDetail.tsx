@@ -39,7 +39,7 @@ const numText = (n: number) => String(n).replace('.', decimalComma() ? ',' : '.'
  * A food with all its nutrients for the chosen amount. Adds a new entry (`meal`)
  * or edits an existing one (`entryId`): amount, meal, date, or swap the food.
  */
-export function FoodDetail(props: {
+export default function FoodDetail(props: {
   foodRef: string;
   meal?: Meal;
   entryId?: string;

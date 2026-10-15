@@ -19,7 +19,7 @@ type Period = (typeof PERIODS)[number];
  * Nutrients for the selected day, or the average per logged day over the last 7 / 30 days
  * (ending on the selected day), with gaps vs. targets. Tap a nutrient for its top foods.
  */
-export function Nutrients() {
+export default function Nutrients() {
   const [period, setPeriod] = useState<Period>(1);
   const [periodEntries, setPeriodEntries] = useState<Entry[] | null>(null);
   const [days, setDays] = useState<number | null>(null);

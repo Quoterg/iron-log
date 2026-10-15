@@ -12,6 +12,9 @@ const BUDGET = {
 
 const gz = async (p) => gzipSync(await readFile(p), { level: 9 }).length;
 const html = await readFile('dist/index.html', 'utf8');
+// Loaded by the page itself: <script src> and <link href> (modulepreload). Not the asset list the
+// service worker reads (the "iron-log-assets" meta, M39), which names every chunk.
+const loaded = new Set([...html.matchAll(/<(?:script|link)\b[^>]*\b(?:src|href)="(?:\.\/)?assets\/([^"]+)"/g)].map((m) => m[1]));
 const assets = await readdir('dist/assets');
 
 // Every food-data file must fit the budget on its own (they load independently).
@@ -22,7 +25,7 @@ const sizes = { initialJs: 0, css: 0, workerJs: 0, foodData: largestData };
 for (const f of assets) {
   const size = await gz(`dist/assets/${f}`);
   if (f.endsWith('.css')) sizes.css += size;
-  else if (f.endsWith('.js') && html.includes(f)) sizes.initialJs += size;
+  else if (f.endsWith('.js') && loaded.has(f)) sizes.initialJs += size;
   else if (f.endsWith('.js') && f.includes('worker')) sizes.workerJs += size;
 }
 

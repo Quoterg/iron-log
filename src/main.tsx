@@ -1,10 +1,10 @@
 import { render } from 'preact';
-import { App, searchView, bodyView, contributorsView, copyView, foodEditorView, recipeEditorView, scanView, settingsView, targetEditorView, templateView } from './app';
+import { App, foodView, nutrientsView, searchView, bodyView, contributorsView, copyView, foodEditorView, recipeEditorView, scanView, settingsView, targetEditorView, templateView } from './app';
 import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang, lastLang, loadLang } from './lib/i18n';
 import { initNav, open, stack } from './nav';
-import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage, settings } from './state';
+import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage, settings, updateReady } from './state';
 import { ensurePriceBook } from './lib/cost';
 import { getSettings, hasEntries, isoDate } from './lib/db';
 import { mealAt } from './lib/usual';
@@ -28,7 +28,9 @@ async function start() {
   // (custom foods are also needed to resolve diary entries, including deleted ones).
   await Promise.all([loadLibrary(), loadUsage(), loadServings()]);
   render(<App />, document.getElementById('app')!);
+  performance.mark('il:render'); // M39: measured by e2e/perf.spec.ts
   await loadDay(date.value);
+  performance.mark('il:day');
   runShortcut();
   showWhatsNew().catch(() => {}); // offline and not cached yet: next start
   // Back in the foreground: time-of-day suggestions follow the clock, and a new day shows today.
@@ -48,15 +50,11 @@ async function start() {
     warmUp(lang.value);
     void searchView.prefetch(); // opened by every "Lägg till"
     setTimeout(() => {
-      void settingsView.prefetch();
-      void targetEditorView.prefetch();
-      void recipeEditorView.prefetch();
-      void bodyView.prefetch();
-      void contributorsView.prefetch();
-      void templateView.prefetch();
-      void scanView.prefetch();
-      void foodEditorView.prefetch();
-      void copyView.prefetch();
+      // One at a time when idle (M39): not a burst of fetches next to the first taps on a slow phone.
+      prefetchInTurn([
+        foodView, nutrientsView, settingsView, targetEditorView, recipeEditorView, bodyView,
+        contributorsView, templateView, scanView, foodEditorView, copyView,
+      ]);
       if (settings.value.costs) ensurePriceBook(); // food cost (M34): prices for the diary
       if (settings.value.adaptive && settings.value.adaptiveFollow) void import('./lib/follow').then((m) => m.runFollow()).catch(() => {});
       enableUsual(); // after the food data started loading: it competes with nothing on screen
@@ -64,6 +62,12 @@ async function start() {
   });
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);
+    // Pages start from the cache (M39); a newer version fetched meanwhile is offered as a restart.
+    // Asked for once listening: the worker may have found it before this code ran.
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if ((e.data as { type?: string } | null)?.type === 'update-ready') updateReady.value = true;
+    });
+    navigator.serviceWorker.controller?.postMessage({ type: 'update?' });
   }
   // Ask the browser not to evict our local data (matters on iOS/low-storage devices).
   void navigator.storage?.persist?.();
@@ -92,8 +96,16 @@ function runShortcut() {
   else open({ kind: 'search', meal: mealAt(new Date()) });
 }
 
-function requestIdleCallbackShim(fn: () => void) {
-  if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout: 2000 });
+function prefetchInTurn(views: { prefetch: () => Promise<void> }[]) {
+  const next = () => {
+    const v = views.shift();
+    if (v) requestIdleCallbackShim(() => void v.prefetch().finally(next), 300); // a short gap, not a long wait
+  };
+  next();
+}
+
+function requestIdleCallbackShim(fn: () => void, timeout = 2000) {
+  if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout });
   else setTimeout(fn, 300);
 }
 

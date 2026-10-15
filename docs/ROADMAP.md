@@ -274,6 +274,27 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   - Tests: unit (week/30-day sums and averages, partial, unlogged days), e2e (off → nothing; on →
     7/30-day lines, check-in line with the change against the week before).
 
+## Phase 6 — Faster (M39)
+
+Owner's choice (2026-10-15): five ways to make the app faster without losing anything, measured on the
+emulated Moto G4 (CPU ×4) by `e2e/perf.spec.ts` (test-results/perf.json).
+
+- [x] **M39a Snabbare: measure, start from the phone, smaller first bundle** —
+  - Timing marks (`il:render`, `il:day`) and `e2e/perf.spec.ts`: cold start, warm start, warm start
+    with the app page 2 s late (a poor connection), first search. Routes see the service worker's
+    fetches (`PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS`, playwright.config.ts).
+  - **Pages cache-first** (sw.js): a start never waits for the network; a new version is fetched in
+    the background, used at the next start, and offered as "Ny version – Starta om" (asked for by the
+    app once it listens, so the message isn't lost). Offline start unchanged. Measured: warm start
+    with a slow connection **~2 110 ms → ~115 ms** to the diary.
+  - **Smaller first bundle:** the food detail and Näringsämnen screens load right after start (with
+    the other split-out screens) instead of in it: initial JS **38.3 → 34.8 KB**.
+- [ ] **M39b Snabbare, part 2** — (a) Swedish strings not needed for the first screen move to lazy
+  sections (i18n.ts is ~14.5 KB raw of the first bundle); (b) show the diary before reading the
+  library/usage/servings (custom foods needed to name entries first); (c) food data and search index
+  prepared at build time (compact nutrient values, no tokenising in the worker); (d) diary meals that
+  re-render on their own, 30-day report sums in the worker. Each measured with perf.spec.ts.
+
 ## Later — ideas, not scheduled
 
 Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.

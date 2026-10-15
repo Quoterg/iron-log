@@ -24,6 +24,8 @@ export function lazyView<P extends object>(load: () => Promise<{ default: Compon
     const C = comp.value;
     if (C) return <C {...props} />;
     if (failed.value) {
+      // Opened (not just prefetched in the background, which must never reload under the user).
+      reloadOnce();
       return (
         <div class="pad center">
           <p class="muted">{t('loadFailed')}</p>
@@ -43,4 +45,20 @@ export function lazyView<P extends object>(load: () => Promise<{ default: Compon
     return <p class="muted center">{t('loading')}</p>;
   }
   return { Lazy, prefetch };
+}
+
+/**
+ * Online but a screen being opened couldn't load its code: most likely the version running was
+ * replaced on the server (its files are gone). Reload once per session, which starts the current
+ * version (M39). Offline (or after that one reload): the "couldn't load, retry" message instead.
+ */
+function reloadOnce() {
+  if (!navigator.onLine) return;
+  try {
+    if (sessionStorage.getItem('il-reloaded')) return;
+    sessionStorage.setItem('il-reloaded', '1');
+  } catch {
+    return;
+  }
+  location.reload();
 }

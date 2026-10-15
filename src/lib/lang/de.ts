@@ -150,6 +150,8 @@ const pack: LangPack = {
     dayComplete: 'Tag vollständig',
     usualMeal: 'Wie üblich',
     notNow: 'Nicht jetzt',
+    updateReady: 'Eine neue Version der App ist bereit.',
+    restart: 'Neu starten',
     usualSetting: 'Meine übliche Mahlzeit vorschlagen',
     usualSettingNote: 'Erscheint nur, wenn du an den meisten vergleichbaren Tagen (Werktage und Wochenenden getrennt) dasselbe in dieser Mahlzeit gegessen hast, etwa zu der Zeit, zu der du sie meist einträgst. Dreimal „Nicht jetzt“ hintereinander pausiert den Vorschlag für zwei Wochen.',
     foodsUnavailable: '{n} der Lebensmittel sind nicht mehr verfügbar und wurden nicht hinzugefügt.',
