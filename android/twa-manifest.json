@@ -33,7 +33,7 @@
     }
   ],
   "appVersionCode": 6,
-  "appVersionName": "1.4.0",
+  "appVersionName": "1.5.0",
   "signingKey": {
     "path": "./android.keystore",
     "alias": "ironlog"
