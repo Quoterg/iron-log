@@ -109,7 +109,7 @@ export default function CheckIn() {
   const food = (l: Entry[]) => l.filter((e) => !supplementRefs.value.has(e.foodRef));
   const cost = book && w ? book.period(food(w.list), recipes.value) : null;
   const prev = book && w && cost ? book.period(food(w.before), recipes.value) : null;
-  const change = cost && prev ? Math.round(((cost.total / cost.days) / (prev.total / prev.days) - 1) * 100) : null;
+  const change = cost && book ? book.change(cost, prev) : null;
 
   const done = async () => {
     if (w) await updateSettings({ checkinSeen: w.key });

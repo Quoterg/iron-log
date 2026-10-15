@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { priceCalc, roundKr, sumCost } from './cost-calc';
+import { priceCalc, roundKr, sumCost, weekChange } from './cost-calc';
 import { afterEach } from 'vitest';
 import { fmt, lang } from './i18n';
 
@@ -75,12 +75,23 @@ describe('food cost over a period (M38)', () => {
     expect(book.period([e('2026-10-12', 'recipe:1', 500)], [r])?.total).toBeCloseTo(7.5);
   });
 
-  it('says it per day and week (7 days), and per 30 days too (30 days)', () => {
+  it('says the average per day, and that average per week (7 days) and per month (30 days)', () => {
     lang.value = 'sv';
     const c = { total: 434, days: 7, partial: false }; // 62 kr/day
-    expect(book.periodText(c, 7)).toBe('Matkostnad: ~62 kr/dag · ~434 kr/vecka');
-    expect(book.periodText({ total: 1860, days: 30, partial: true }, 30)).toBe(
-      `Matkostnad: ~62 kr/dag · ~434 kr/vecka · ~${fmt(1860)} kr/30 dagar (minst – vissa livsmedel saknar pris)`,
+    expect(book.periodText(c, 7)).toBe('Matkostnad i snitt: ~62 kr/dag · ~434 kr/vecka');
+    // Only 5 of 30 days logged: still the average of those days, for a whole month — not their sum.
+    expect(book.periodText({ total: 310, days: 5, partial: true }, 30)).toBe(
+      `Matkostnad i snitt: ~62 kr/dag · ~434 kr/vecka · ~${fmt(1860)} kr/månad (minst – vissa livsmedel saknar pris)`,
     );
+  });
+
+  it('compares weeks per day, and only when both are fully priced and the week before cost something', () => {
+    const w = (total: number, days = 7, partial = false) => ({ total, days, partial });
+    expect(weekChange(w(700), w(350))).toBe(100);
+    expect(weekChange(w(600, 6), w(700))).toBe(0); // per day: 100 vs 100
+    expect(weekChange(w(700), w(0))).toBeNull(); // no "+∞ %"
+    expect(weekChange(w(700), null)).toBeNull();
+    expect(weekChange(w(700), w(350, 7, true))).toBeNull(); // "at least" isn't comparable
+    expect(weekChange(w(700, 7, true), w(350))).toBeNull();
   });
 });

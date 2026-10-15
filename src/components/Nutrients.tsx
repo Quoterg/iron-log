@@ -70,7 +70,7 @@ export function Nutrients() {
   const book = costsOn && period !== 1 ? priceBook.value : null;
   const cost = useMemo(
     () => (book && periodEntries ? book.period(periodEntries.filter((e) => !supplementRefs.value.has(e.foodRef)), recipes.value) : null),
-    [book, periodEntries, recipes.value],
+    [book, periodEntries, recipes.value, supplementRefs.value],
   );
 
   return (

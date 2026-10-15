@@ -42,9 +42,9 @@ test('food cost per day, week and 30 days in the summaries; the check-in compare
   await page.getByLabel('Visa en kort avstämning av förra veckan i dagboken').check();
   await tab(page, 'Näringsämnen');
   await page.getByRole('button', { name: '7 dagar' }).click();
-  await expect(page.locator('.period-cost')).toHaveText(/^Matkostnad: ~\d+(,5)? kr\/dag · ~\d+ kr\/vecka$/);
+  await expect(page.locator('.period-cost')).toHaveText(/^Matkostnad i snitt: ~\d+(,5)? kr\/dag · ~\d+ kr\/vecka$/);
   await page.getByRole('button', { name: '30 dagar' }).click();
-  await expect(page.locator('.period-cost')).toHaveText(/^Matkostnad: ~\d+(,5)? kr\/dag · ~\d+ kr\/vecka · ~[\d\s]+ kr\/30 dagar$/);
+  await expect(page.locator('.period-cost')).toHaveText(/^Matkostnad i snitt: ~\d+(,5)? kr\/dag · ~\d+ kr\/vecka · ~[\d\s]+ kr\/månad$/);
 
   // The weekly check-in: last week's cost, twice the milk of the week before → +100 % per day.
   await tab(page, 'Dagbok');

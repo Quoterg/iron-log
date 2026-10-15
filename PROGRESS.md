@@ -20,8 +20,8 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
 
 ## 2026-10-15 — M38 Food cost in the summaries (interactive session)
 
-- With Matkostnad on: the Näringsämnen tab (7 and 30 days) shows "Matkostnad: ~62 kr/dag · ~434
-  kr/vecka" (+ "· ~1 860 kr/30 dagar" for 30 days), per logged day like the nutrient averages,
+- With Matkostnad on: the Näringsämnen tab (7 and 30 days) shows "Matkostnad i snitt: ~62 kr/dag · ~434
+  kr/vecka" (+ "· ~1 860 kr/månad" for 30 days): averages per logged day, like the nutrient averages,
   "(minst – …)" when some foods have no price; the weekly check-in says what last week's food cost
   and the change per day against the week before. Arithmetic in the lazy cost chunk
   (`CostCalc.period/periodText`); the week before is read only with Matkostnad on.

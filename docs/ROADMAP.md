@@ -265,9 +265,9 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
     to the diary), axe and 200 % text; size: initial JS unchanged (all lazy).
 - [x] **M38 Food cost in the summaries** — Owner's choice (2026-10-15).
   For users with Matkostnad on (M33/M34), cost joins the existing summaries — no new screen:
-  - **Näringsämnen tab, 7 and 30 days:** "Matkostnad: ~62 kr/dag · ~430 kr/vecka · ~1 860 kr/30
-    dagar" (30 days: average per week as well as the total). Averages over logged days only (as the
-    nutrient averages); "minst" when some foods have no price, with how many.
+  - **Näringsämnen tab, 7 and 30 days:** "Matkostnad i snitt: ~62 kr/dag · ~434 kr/vecka" (30 days
+    also "· ~1 860 kr/månad") — averages per logged day (as the nutrient averages), and that average
+    for a week/month, not sums of the period; "(minst …)" when some foods have no price.
   - **Weekly check-in:** "Maten kostade ~430 kr förra veckan (~62 kr/dag), +5 % mot veckan innan."
   - Same prices as the diary (own > typical, recipes by ingredients); computed in the lazy cost
     chunk, nothing in the first bundle; hidden when Matkostnad is off.
