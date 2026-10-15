@@ -150,6 +150,8 @@ const pack: LangPack = {
     dayComplete: 'Päivä on valmis',
     usualMeal: 'Kuten tavallisesti',
     notNow: 'Ei nyt',
+    updateReady: 'Sovelluksesta on uusi versio.',
+    restart: 'Käynnistä uudelleen',
     usualSetting: 'Ehdota tavallista ateriaani',
     usualSettingNote: 'Näytetään vain, kun olet syönyt samaa tällä aterialla useimpina vastaavina päivinä (arkipäivät ja viikonloput erikseen), suunnilleen siihen aikaan kun yleensä kirjaat sen. Kolme ”Ei nyt” peräkkäin keskeyttää ehdotuksen kahdeksi viikoksi.',
     foodsUnavailable: '{n} elintarviketta ei ole enää saatavilla, eikä niitä lisätty.',

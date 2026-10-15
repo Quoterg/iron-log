@@ -162,6 +162,8 @@ const sv = {
   dayComplete: 'Dagen är komplett',
   usualMeal: 'Som vanligt',
   notNow: 'Inte nu',
+  updateReady: 'Det finns en ny version av appen.',
+  restart: 'Starta om',
   usualSetting: 'Föreslå min vanliga måltid',
   usualSettingNote: 'Visas bara när du har ätit samma sak i den måltiden de flesta liknande dagar (vardagar och helger var för sig), vid den tid du brukar logga den. Tre ”Inte nu” i rad pausar förslaget i två veckor.',
   foodsUnavailable: '{n} av livsmedlen finns inte längre och lades inte till.',

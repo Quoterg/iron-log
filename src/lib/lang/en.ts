@@ -149,6 +149,8 @@ const strings: Dict = {
   dayComplete: 'Day complete',
   usualMeal: 'The usual',
   notNow: 'Not now',
+  updateReady: 'A new version of the app is ready.',
+  restart: 'Restart',
   usualSetting: 'Suggest my usual meal',
   usualSettingNote: 'Only shown when you ate the same in that meal on most similar days (weekdays and weekends separately), around the time you usually log it. Three “Not now” in a row pause it for two weeks.',
   foodsUnavailable: '{n} of the foods are no longer available and were not added.',

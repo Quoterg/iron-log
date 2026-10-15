@@ -1,10 +1,10 @@
 import { render } from 'preact';
-import { App, searchView, bodyView, contributorsView, copyView, foodEditorView, recipeEditorView, scanView, settingsView, targetEditorView, templateView } from './app';
+import { App, foodView, nutrientsView, searchView, bodyView, contributorsView, copyView, foodEditorView, recipeEditorView, scanView, settingsView, targetEditorView, templateView } from './app';
 import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang, lastLang, loadLang } from './lib/i18n';
 import { initNav, open, stack } from './nav';
-import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage, settings } from './state';
+import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage, settings, updateReady } from './state';
 import { ensurePriceBook } from './lib/cost';
 import { getSettings, hasEntries, isoDate } from './lib/db';
 import { mealAt } from './lib/usual';
@@ -28,7 +28,9 @@ async function start() {
   // (custom foods are also needed to resolve diary entries, including deleted ones).
   await Promise.all([loadLibrary(), loadUsage(), loadServings()]);
   render(<App />, document.getElementById('app')!);
+  performance.mark('il:render'); // M39: measured by e2e/perf.spec.ts
   await loadDay(date.value);
+  performance.mark('il:day');
   runShortcut();
   showWhatsNew().catch(() => {}); // offline and not cached yet: next start
   // Back in the foreground: time-of-day suggestions follow the clock, and a new day shows today.
@@ -48,6 +50,8 @@ async function start() {
     warmUp(lang.value);
     void searchView.prefetch(); // opened by every "Lägg till"
     setTimeout(() => {
+      void foodView.prefetch(); // M39: out of the first bundle, loaded here
+      void nutrientsView.prefetch();
       void settingsView.prefetch();
       void targetEditorView.prefetch();
       void recipeEditorView.prefetch();
@@ -64,6 +68,12 @@ async function start() {
   });
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);
+    // Pages start from the cache (M39); a newer version fetched meanwhile is offered as a restart.
+    // Asked for once listening: the worker may have found it before this code ran.
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if ((e.data as { type?: string } | null)?.type === 'update-ready') updateReady.value = true;
+    });
+    navigator.serviceWorker.controller?.postMessage({ type: 'update?' });
   }
   // Ask the browser not to evict our local data (matters on iOS/low-storage devices).
   void navigator.storage?.persist?.();

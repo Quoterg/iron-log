@@ -150,6 +150,8 @@ const pack: LangPack = {
     dayComplete: 'Maalintu waa dhammaystiran tahay',
     usualMeal: 'Sidii caadada',
     notNow: 'Hadda maya',
+    updateReady: 'Nooc cusub oo barnaamijka ah ayaa diyaar ah.',
+    restart: 'Dib u bilow',
     usualSetting: 'Ii soo jeedi cuntadayda caadiga ah',
     usualSettingNote: 'Waxa la muujiyaa oo keliya marka aad cuntadan wax isku mid ah ku cuntay inta badan maalmaha la midka ah (maalmaha shaqada iyo dhammaadka toddobaadka si gooni ah), qiyaastii waqtiga aad caadi ahaan qorto. Saddex “Hadda maya” oo isku xiga waxay hakinayaan soo jeedinta laba toddobaad.',
     foodsUnavailable: '{n} ka mid ah cuntooyinka lama heli karo mar dambe, lamana darin.',

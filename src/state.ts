@@ -33,6 +33,8 @@ const TEMPLATE_USE_KEY = 'iron-log-meal-use';
 export const templateUse = signal<TemplateUse>(readLocal(TEMPLATE_USE_KEY));
 /** A short message for the diary (e.g. foods of a saved meal that are no longer available). */
 export const notice = signal<string | null>(null);
+/** A new version was fetched in the background (sw.js, M39): offered as a restart. */
+export const updateReady = signal(false);
 /** Today's usual meals, by meal (see lib/usual.ts); empty when switched off. */
 export const usual = signal<Partial<Record<Meal, UsualMeal>>>({});
 const USUAL_KEY = 'iron-log-usual';
