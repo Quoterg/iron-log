@@ -4,7 +4,7 @@ import { searchFoods, unavailableSources } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
 import { back, closeAll, open } from '../nav';
-import { ensureFoods, favourites, foods, logTemplate, recent, supplementRefs, templates, templateUse, updateEntry } from '../state';
+import { ensureFoods, favourites, foods, logTemplate, offFoods, recent, supplementRefs, templates, templateUse, updateEntry, usage } from '../state';
 import { sortTemplates, type MealTemplate } from '../lib/templates';
 import type { Usage } from '../lib/db';
 import { Sheet } from './Sheet';
@@ -101,6 +101,7 @@ export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIng
           <SavedMeals list={saved} meal={meal} />
           <QuickList title={t('favourites')} list={favourites.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} />
           <QuickList title={t('recent')} list={recent.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} />
+          <ScannedList pick={pick} />
           {quick.length === 0 && saved.length === 0 && <p class="muted center small pad">{t('searchHint')}</p>}
         </>
       )}
@@ -156,6 +157,26 @@ function SavedMeals({ list, meal }: { list: MealTemplate[]; meal: Meal }) {
           </li>
         ))}
       </ul>
+    </>
+  );
+}
+
+/**
+ * Every scanned product (M36), most recently used first: found again without typing its name, even
+ * long after it dropped out of "Senaste". Collapsed until asked for.
+ */
+function ScannedList({ pick }: { pick: (f: Food) => void }) {
+  const [shown, setShown] = useState(false);
+  const list = offFoods.value;
+  if (!list.length) return null;
+  const used = (ref: string) => usage.value.get(ref)?.lastUsed ?? 0;
+  const sorted = shown ? [...list].sort((a, b) => used(b.ref) - used(a.ref) || b.fetchedAt - a.fetchedAt) : [];
+  return (
+    <>
+      <button class="link list-title" aria-expanded={shown} onClick={() => setShown(!shown)}>
+        {shown ? '▾' : '▸'} {t('scannedFoods').replace('{n}', String(list.length))}
+      </button>
+      {shown && <ul class="results">{sorted.map((f) => row(foods.value.get(f.ref) ?? f, pick))}</ul>}
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { NUTRIENT_INDEX } from './nutrients';
-import { isValidBarcode, productToFood } from './off';
+import { isValidBarcode, offTerms, productToFood } from './off';
 
 describe('barcodes', () => {
   it('validates check digits', () => {
@@ -51,5 +51,18 @@ describe('Open Food Facts mapping', () => {
     expect(f.per100g[NUTRIENT_INDEX.kcal]).toBe(100);
     expect(productToFood('1', { product_name: '', nutriments: { 'energy-kcal_100g': 5 } })).toBeNull();
     expect(productToFood('1', { product_name: 'X', nutriments: {} })).toBeNull();
+  });
+});
+
+describe('search words of scanned products (M36)', () => {
+  it('keeps the generic name, the most specific categories, all brands and the barcode', () => {
+    const p = {
+      generic_name_sv: 'Proteinkvarg med vaniljsmak',
+      categories: 'Mejeriprodukter, Fermenterade mjölkprodukter, Färskost, en:quarks, Kvarg',
+      brands: 'Lindahls,Nestlé',
+    };
+    expect(offTerms(p, '7310865004703')).toBe('Proteinkvarg med vaniljsmak Färskost quarks Kvarg Lindahls Nestlé 7310865004703');
+    expect(offTerms({ generic_name: 'Yogurt' }, '123')).toBe('Yogurt 123'); // Swedish first, else any language
+    expect(offTerms({}, '7310865004703')).toBe('7310865004703');
   });
 });

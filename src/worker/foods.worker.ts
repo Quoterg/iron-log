@@ -87,7 +87,7 @@ async function ready(): Promise<string[]> {
 
 function indexFor(lang: string): SearchEntry[] {
   return (index[lang] ??= all.map((f, i) => {
-    const e = buildEntry(i, [f.sv, f.en], lang === 'en' ? (f.en ?? f.sv) : f.sv);
+    const e = buildEntry(i, [f.sv, f.en, f.terms ?? null], lang === 'en' ? (f.en ?? f.sv) : f.sv);
     e.boost = boostFor(f.ref, i >= builtInCount);
     return e;
   }));

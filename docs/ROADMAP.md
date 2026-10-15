@@ -232,3 +232,12 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
     target moves toward the adaptive suggestion by **at most ±150 kcal**, never below the floor; the
     diary shows "Energimålet följer din förbrukning: nu 2 430 kcal/dag (+150)" that week. Nothing
     happens until the estimate has enough data (10 days, 3 weigh-ins over 14 days).
+- [x] **M36 Find scanned products again** — Owner's choice (2026-10-15; options 1 and 2 of 5). Scanned
+  products were findable only by their Open Food Facts name and dropped out of "Senaste" (15):
+  - **"Skannade varor (n)"** in the food search, before typing: every scanned product, most recently
+    used first (collapsed until tapped);
+  - **search by what is on the package**: generic name, the most specific categories, all brands and
+    the barcode (any part of it, e.g. its last digits) are indexed as search words (`Food.terms`);
+    products scanned before M36 are found by their barcode (their other words come with a new scan).
+  - Later options, not done: own names for products, "Mina livsmedel" (all logged foods), scan to
+    find offline first.

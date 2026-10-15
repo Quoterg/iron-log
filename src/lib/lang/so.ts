@@ -177,6 +177,7 @@ const pack: LangPack = {
     barcode: 'Baarkood',
     lookUp: 'Raadi',
     barcodeBadge: 'Baarkood',
+    scannedFoods: 'Alaabta la iskaanay ({n})',
     scanStarting: 'Kaamerada waa la shidayaa…',
     scanHint: 'U jeedi kaamerada baarkoodka.',
     scanNoCamera: 'Kaamerada lama heli karo. Hoos ku qor baarkoodka.',

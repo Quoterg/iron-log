@@ -177,6 +177,7 @@ const pack: LangPack = {
     barcode: 'Viivakoodi',
     lookUp: 'Hae',
     barcodeBadge: 'Viivakoodi',
+    scannedFoods: 'Skannatut tuotteet ({n})',
     scanStarting: 'Kameraa käynnistetään…',
     scanHint: 'Suuntaa kamera viivakoodiin.',
     scanNoCamera: 'Kamera ei ole käytettävissä. Kirjoita viivakoodi alle.',

@@ -209,3 +209,17 @@ describe('totals', () => {
     expect(addDays('2026-03-01', -1)).toBe('2026-02-28');
   });
 });
+
+describe('finding scanned products again (M36)', () => {
+  const entries = [
+    buildEntry(0, ['Pro+ Vanilj 0,2% (Lindahls)', null, 'Proteinkvarg Kvarg Lindahls 7310865004703'], 'Pro+ Vanilj 0,2% (Lindahls)'),
+    buildEntry(1, ['Kvarg naturell fett 0,2%', null], 'Kvarg naturell fett 0,2%'),
+  ];
+  it('by a word on the package, the brand or part of the barcode', () => {
+    expect(search(entries, 'proteinkvarg')).toEqual([0]);
+    expect(search(entries, 'lindahls')).toEqual([0]);
+    expect(search(entries, 'kvarg')).toContain(0);
+    expect(search(entries, '4703')).toEqual([0]); // the last digits on the package
+    expect(search(entries, '73108650')).toEqual([0]);
+  });
+});

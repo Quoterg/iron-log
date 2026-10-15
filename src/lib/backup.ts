@@ -103,6 +103,7 @@ function offFood(x: unknown): OffFood {
     x.per100g.every((v) => v === null || (isNum(v) && v >= 0)) && isNum(x.fetchedAt)
   ) {
     const f: OffFood = { ref: x.ref, sv: x.sv, en: x.en, per100g: x.per100g, fetchedAt: x.fetchedAt };
+    if (isStr(x.terms, 300)) f.terms = x.terms;
     if (x.units !== undefined) {
       const units = servingList(x.units);
       if (!units) throw new BackupError('offFood');

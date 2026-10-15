@@ -177,6 +177,7 @@ const pack: LangPack = {
     barcode: 'Barcode',
     lookUp: 'Suchen',
     barcodeBadge: 'Barcode',
+    scannedFoods: 'Gescannte Produkte ({n})',
     scanStarting: 'Kamera wird gestartet…',
     scanHint: 'Richte die Kamera auf den Barcode.',
     scanNoCamera: 'Die Kamera ist nicht verfügbar. Gib den Barcode unten ein.',

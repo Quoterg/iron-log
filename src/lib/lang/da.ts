@@ -177,6 +177,7 @@ const pack: LangPack = {
     barcode: 'Stregkode',
     lookUp: 'Slå op',
     barcodeBadge: 'Stregkode',
+    scannedFoods: 'Scannede varer ({n})',
     scanStarting: 'Starter kameraet…',
     scanHint: 'Ret kameraet mod stregkoden.',
     scanNoCamera: 'Kameraet er ikke tilgængeligt. Indtast stregkoden nedenfor.',
