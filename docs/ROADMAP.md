@@ -263,3 +263,24 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
   - Tests: unit (solver on small known problems; constraints met; infeasible case explained; budget;
     variety), e2e (plan a 3-day menu from a seeded history → targets shown, swap, to the shopping list,
     to the diary), axe and 200 % text; size: initial JS unchanged (all lazy).
+- [ ] **M38 Food cost in the summaries** — Owner's choice (2026-10-15). **Wait for the owner's go.**
+  For users with Matkostnad on (M33/M34), cost joins the existing summaries — no new screen:
+  - **Näringsämnen tab, 7 and 30 days:** "Matkostnad: ~62 kr/dag · ~430 kr/vecka · ~1 860 kr/30
+    dagar" (30 days: average per week as well as the total). Averages over logged days only (as the
+    nutrient averages); "minst" when some foods have no price, with how many.
+  - **Weekly check-in:** "Maten kostade ~430 kr förra veckan (~62 kr/dag), +5 % mot veckan innan."
+  - Same prices as the diary (own > typical, recipes by ingredients); computed in the lazy cost
+    chunk, nothing in the first bundle; hidden when Matkostnad is off.
+  - Tests: unit (week/30-day sums and averages, partial, unlogged days), e2e (off → nothing; on →
+    7/30-day lines, check-in line with the change against the week before).
+- [ ] **M39 Träningsdagar** — Owner's choice (2026-10-15). **Wait for the owner's go.** Days with a
+  logged activity are training days:
+  - **Training/rest-day targets (opt-in):** energy and carbohydrates move toward training days and
+    away from rest days while the weekly total stays the same (so M35's goal still holds); the
+    diary shows "Träningsdag" with the day's target.
+  - **Protein per meal:** meal-by-meal protein against ~0.3–0.4 g/kg body weight per meal (shown in
+    the meal headers or a small card), with "you reached 120 g but 80 g came at dinner"-style notes.
+  - **Before/after training:** a small card on training days (carbohydrates before long sessions,
+    protein after), with foods the user already eats.
+  - Lazy where possible; initial JS within +0.4 KB. Tests: unit (target shifting keeps the weekly
+    sum, per-meal protein), e2e (activity → training day target and card; rest day), axe/200 %.
