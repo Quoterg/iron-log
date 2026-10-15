@@ -13,6 +13,36 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.5',
+    date: '2026-10-15',
+    notes: {
+      sv: [
+        'Med Matkostnad på: Näringsämnen visar vad maten kostar i snitt per dag, vecka och månad (7 och 30 dagar).',
+        'Veckans avstämning säger vad maten kostade förra veckan och hur det ändrats mot veckan innan.',
+      ],
+      en: [
+        'With Food cost on: Nutrients shows the average food cost per day, week and month (7 and 30 days).',
+        'The weekly check-in says what your food cost last week and how that changed from the week before.',
+      ],
+      da: [
+        'Med Madudgifter slået til: Næringsstoffer viser den gennemsnitlige madudgift pr. dag, uge og måned (7 og 30 dage).',
+        'Ugens status fortæller, hvad maden kostede sidste uge, og hvordan det har ændret sig fra ugen før.',
+      ],
+      de: [
+        'Mit Lebensmittelkosten: Nährstoffe zeigt die durchschnittlichen Kosten pro Tag, Woche und Monat (7 und 30 Tage).',
+        'Der Wochenrückblick sagt, was das Essen letzte Woche gekostet hat und wie sich das zur Woche davor verändert hat.',
+      ],
+      fi: [
+        'Kun Ruokakulut on päällä: Ravintoaineet näyttää ruoan keskimääräisen hinnan päivässä, viikossa ja kuukaudessa (7 ja 30 päivää).',
+        'Viikon katsaus kertoo, mitä ruoka maksoi viime viikolla ja miten se muuttui edellisestä viikosta.',
+      ],
+      so: [
+        'Marka Kharashka cuntada shidan yahay: Nafaqooyinka waxay muujinayaan celceliska kharashka cuntada maalintii, toddobaadkii iyo bishii (7 iyo 30 maalmood).',
+        'Dib-u-eegista toddobaadku waxay sheegaysaa inta cuntadu ku kacday toddobaadkii hore iyo sida ay isu beddeshay marka loo eego toddobaadkii ka horreeyay.',
+      ],
+    },
+  },
+  {
     version: '1.6.0',
     date: '2026-10-15',
     notes: {
