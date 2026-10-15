@@ -50,17 +50,11 @@ async function start() {
     warmUp(lang.value);
     void searchView.prefetch(); // opened by every "Lägg till"
     setTimeout(() => {
-      void foodView.prefetch(); // M39: out of the first bundle, loaded here
-      void nutrientsView.prefetch();
-      void settingsView.prefetch();
-      void targetEditorView.prefetch();
-      void recipeEditorView.prefetch();
-      void bodyView.prefetch();
-      void contributorsView.prefetch();
-      void templateView.prefetch();
-      void scanView.prefetch();
-      void foodEditorView.prefetch();
-      void copyView.prefetch();
+      // One at a time when idle (M39): not a burst of fetches next to the first taps on a slow phone.
+      prefetchInTurn([
+        foodView, nutrientsView, settingsView, targetEditorView, recipeEditorView, bodyView,
+        contributorsView, templateView, scanView, foodEditorView, copyView,
+      ]);
       if (settings.value.costs) ensurePriceBook(); // food cost (M34): prices for the diary
       if (settings.value.adaptive && settings.value.adaptiveFollow) void import('./lib/follow').then((m) => m.runFollow()).catch(() => {});
       enableUsual(); // after the food data started loading: it competes with nothing on screen
@@ -102,8 +96,16 @@ function runShortcut() {
   else open({ kind: 'search', meal: mealAt(new Date()) });
 }
 
-function requestIdleCallbackShim(fn: () => void) {
-  if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout: 2000 });
+function prefetchInTurn(views: { prefetch: () => Promise<void> }[]) {
+  const next = () => {
+    const v = views.shift();
+    if (v) requestIdleCallbackShim(() => void v.prefetch().finally(next), 300); // a short gap, not a long wait
+  };
+  next();
+}
+
+function requestIdleCallbackShim(fn: () => void, timeout = 2000) {
+  if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout });
   else setTimeout(fn, 300);
 }
 

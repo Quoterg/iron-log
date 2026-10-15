@@ -55,3 +55,14 @@ test('first search after start', async ({ page }) => {
   results.firstSearch = Math.round((await page.evaluate(() => performance.now())) - t0);
   expect(results.firstSearch).toBeLessThan(10_000);
 });
+
+test('Näringsämnen right after start (a lazy screen)', async ({ page }) => {
+  test.slow();
+  await page.goto('./');
+  await mark(page, 'il:day');
+  const t0 = await page.evaluate(() => performance.now());
+  await page.getByRole('button', { name: 'Näringsämnen', exact: true }).click();
+  await expect(page.getByRole('button', { name: '7 dagar' })).toBeVisible({ timeout: 10_000 });
+  results.nutrientsTab = Math.round((await page.evaluate(() => performance.now())) - t0);
+  expect(results.nutrientsTab).toBeLessThan(5000);
+});

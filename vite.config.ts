@@ -1,4 +1,6 @@
 import preact from '@preact/preset-vite';
+import { readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { defineConfig } from 'vitest/config';
 import { CSP } from './src/csp';
 
@@ -15,6 +17,21 @@ export default defineConfig({
       transformIndexHtml: () => [
         { tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: CSP }, injectTo: 'head-prepend' },
       ],
+    },
+    {
+      // Every script and style of this build, listed in the page (M39): the service worker caches a
+      // new version's whole set before switching to it, so a cached page never lacks its code
+      // (offline, or after GitHub Pages replaced the files of the version still running).
+      name: 'iron-log-asset-list',
+      apply: 'build',
+      enforce: 'post',
+      async writeBundle(options, bundle) {
+        const assets = Object.keys(bundle).filter((f) => f.startsWith('assets/') && /\.(js|css)$/.test(f)).sort();
+        const file = join(options.dir ?? 'dist', 'index.html');
+        const html = await readFile(file, 'utf8');
+        const meta = `<meta name="iron-log-assets" content="${assets.join(' ')}">`;
+        await writeFile(file, html.replace('</head>', `${meta}\n</head>`));
+      },
     },
   ],
   build: {

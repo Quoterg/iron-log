@@ -11,7 +11,7 @@ General) so the price workflow can open its PRs. **Shelf prices** were collected
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
 ~240 kr/kg in October) reflects that month. **Releasing** from now on:
 see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
-2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 34.8 KB of 40 (M39a) (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 34.9 KB of 40 (M39a) (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
@@ -28,8 +28,19 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   **~2 110 → ~115 ms**; offline start unchanged; new e2e/update.spec.ts.
 - FoodDetail and Nutrients lazy (prefetched with the other screens): **initial JS 38.3 → 34.8 KB**.
   Lighthouse (simulated slow 4G) unchanged within noise (FCP ~1.25 s, TBT ~55 ms).
-- Tests: unit 239 ✓, build ✓, e2e 150 ✓ (+ perf, update), Lighthouse ✓. M39b planned (strings, start
-  order, build-time search data, diary/report rendering).
+- Review fixes: every build lists its scripts/styles in the page (`iron-log-assets` meta, a Vite
+  plugin); a new version is stored only once its whole set is cached (never a page without its code
+  offline); at install the page + what it starts with; only Iron Log's own HTML is stored (not a
+  Wi-Fi login page); cache lookups ignore `Vary` (found: a module cached by the worker didn't match
+  the page's request → blank offline start); a screen whose code is gone reloads the app once when
+  opened (never from a background prefetch); background screen loads one at a time; the update mark
+  is a cache entry. Budget check counts only scripts the page loads.
+- Perf (isolated, CPU ×4): cold render ~190 ms, diary ~295, warm ~130, warm + slow page ~95,
+  first search ~190, Näringsämnen right after start ~250 (its code loading).
+- Tests: unit 239 ✓, build ✓ (34.9 KB), e2e 154 ✓ (update.spec: background update + restart, new
+  code offline, Wi-Fi login page, gone file → one reload then "Försök igen", offline after first
+  visit), Lighthouse ✓. Under heavy local parallel load a few unrelated tests flaked once
+  (adaptive follow note, privacy link); alone they pass 8–12×. M39b planned.
 
 ## 2026-10-15 — M38 Food cost in the summaries (interactive session)
 
