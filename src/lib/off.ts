@@ -109,8 +109,8 @@ export function productToFood(code: string, p: OffProduct): Food | null {
 export function offTerms(p: { generic_name?: string; generic_name_sv?: string; categories?: string; brands?: string }, code: string): string {
   const cats = (p.categories ?? '')
     .split(',')
-    .map((c) => c.trim().replace(/^[a-z]{2}:/, ''))
-    .filter(Boolean)
+    .map((c) => c.trim())
+    .filter((c) => c && !/^[a-z]{2}:/.test(c)) // "en:quarks": another language's tag, noise in search
     .slice(-3); // most specific last ("Mejeriprodukter, …, Kvarg")
   return [p.generic_name_sv || p.generic_name, ...cats, p.brands?.replace(/,/g, ' '), code]
     .filter(Boolean)

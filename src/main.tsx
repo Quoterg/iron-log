@@ -1,5 +1,5 @@
 import { render } from 'preact';
-import { App, bodyView, contributorsView, copyView, foodEditorView, recipeEditorView, scanView, settingsView, targetEditorView, templateView } from './app';
+import { App, searchView, bodyView, contributorsView, copyView, foodEditorView, recipeEditorView, scanView, settingsView, targetEditorView, templateView } from './app';
 import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang, lastLang, loadLang } from './lib/i18n';
@@ -46,6 +46,7 @@ async function start() {
     // Food databases first (loaded and indexed in the worker); the split-out screens are small and
     // go a moment later, so the service worker has them for offline use.
     warmUp(lang.value);
+    void searchView.prefetch(); // opened by every "Lägg till"
     setTimeout(() => {
       void settingsView.prefetch();
       void targetEditorView.prefetch();

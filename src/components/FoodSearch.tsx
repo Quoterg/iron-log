@@ -10,7 +10,7 @@ import type { Usage } from '../lib/db';
 import { Sheet } from './Sheet';
 
 /** Search foods to add to a meal, or to swap the food of an existing entry. */
-export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIngredient?: boolean }) {
+export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIngredient?: boolean }) {
   const { meal, replaceEntryId, pickIngredient } = props;
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Food[] | null>(null);
@@ -165,18 +165,28 @@ function SavedMeals({ list, meal }: { list: MealTemplate[]; meal: Meal }) {
  * Every scanned product (M36), most recently used first: found again without typing its name, even
  * long after it dropped out of "Senaste". Collapsed until asked for.
  */
+const SCANNED_PAGE = 30;
+
 function ScannedList({ pick }: { pick: (f: Food) => void }) {
-  const [shown, setShown] = useState(false);
+  const [shown, setShown] = useState(0); // rows shown; 0 = collapsed
   const list = offFoods.value;
+  const sorted = useMemo(() => {
+    if (!shown) return [];
+    const used = new Map(list.map((f) => [f.ref, usage.value.get(f.ref)?.lastUsed ?? 0]));
+    return [...list].sort((a, b) => used.get(b.ref)! - used.get(a.ref)! || b.fetchedAt - a.fetchedAt);
+  }, [list, usage.value, shown > 0]);
   if (!list.length) return null;
-  const used = (ref: string) => usage.value.get(ref)?.lastUsed ?? 0;
-  const sorted = shown ? [...list].sort((a, b) => used(b.ref) - used(a.ref) || b.fetchedAt - a.fetchedAt) : [];
   return (
     <>
-      <button class="link list-title" aria-expanded={shown} onClick={() => setShown(!shown)}>
+      <button class="link list-title" aria-expanded={shown > 0} onClick={() => setShown(shown ? 0 : SCANNED_PAGE)}>
         {shown ? '▾' : '▸'} {t('scannedFoods').replace('{n}', String(list.length))}
       </button>
-      {shown && <ul class="results">{sorted.map((f) => row(foods.value.get(f.ref) ?? f, pick))}</ul>}
+      {shown > 0 && <ul class="results">{sorted.slice(0, shown).map((f) => row(foods.value.get(f.ref) ?? f, pick))}</ul>}
+      {shown > 0 && sorted.length > shown && (
+        <button class="link" onClick={() => setShown(shown + SCANNED_PAGE)}>
+          {t('showMore')}
+        </button>
+      )}
     </>
   );
 }

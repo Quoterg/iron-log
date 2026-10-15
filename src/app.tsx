@@ -2,7 +2,6 @@ import { addDays, isoDate } from './lib/db';
 import { locale, t } from './lib/i18n';
 import { Diary } from './components/Diary';
 import { FoodDetail } from './components/FoodDetail';
-import { FoodSearch } from './components/FoodSearch';
 import { Nutrients } from './components/Nutrients';
 import { lazyView } from './lazy';
 import { stack, top, type Screen } from './nav';
@@ -12,6 +11,8 @@ const TABS: View[] = ['diary', 'nutrients', 'body', 'settings'];
 
 // Not needed for the first screen: split out and prefetched when idle (main.tsx).
 export const settingsView = lazyView(() => import('./components/Settings'));
+// The food search: opened by every "Lägg till", so prefetched first when the app is idle.
+export const searchView = lazyView(() => import('./components/FoodSearch'));
 export const targetEditorView = lazyView(() => import('./components/TargetEditor'));
 export const recipeEditorView = lazyView(() => import('./components/RecipeEditor'));
 export const bodyView = lazyView(() => import('./components/BodyView'));
@@ -80,7 +81,7 @@ function ScreenView({ screen: s }: { screen: Screen }) {
   // replaceTop can turn an editor into a detail screen at the same depth: remount by kind.
   switch (s.kind) {
     case 'search':
-      return <FoodSearch meal={s.meal} replaceEntryId={s.replaceEntryId} pickIngredient={s.pickIngredient} />;
+      return <searchView.Lazy meal={s.meal} replaceEntryId={s.replaceEntryId} pickIngredient={s.pickIngredient} />;
     case 'food':
       return (
         <FoodDetail foodRef={s.ref} meal={s.meal} entryId={s.entryId} ingredient={s.ingredient} ingredientIndex={s.ingredientIndex} />

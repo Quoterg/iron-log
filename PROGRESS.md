@@ -12,7 +12,7 @@ General) so the price workflow can open its PRs. **Shelf prices** were collected
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
 ~240 kr/kg in October) reflects that month. **Releasing** from now on:
 see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
-2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 39.0 KB of 40 (tight: make FoodSearch lazy before adding to it) (M34's cost arithmetic and prices are lazy) after M28 moved the
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 38.0 KB of 40 (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
@@ -24,8 +24,8 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
 - "Skannade varor (n)" list in the food search (all scanned products, most recently used first);
   scanned products are searchable by generic name, categories, brands and barcode digits
   (`Food.terms`, from Open Food Facts at scan time; older scans by their barcode). Kept in backups.
-- **Budget:** initial JS 39.0 KB of 40 (CI ≈ +0.2). FoodSearch is in the first bundle; the next
-  feature there should make it lazy (prefetched) or move something else out first.
+- Review: the food search is now lazy (prefetched first when idle; 1.95 KB gzip out of the first
+  bundle) → **initial JS 38.0 KB** of 40; the scanned list shows 30 rows at a time ("Visa fler").
 - Tests: unit 236 ✓ (offTerms, search by package word/brand/barcode part), build ✓, e2e 145 ✓
   (new: package words, last digits, an older scan by barcode, the scanned list), Lighthouse ✓.
 

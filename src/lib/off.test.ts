@@ -61,7 +61,7 @@ describe('search words of scanned products (M36)', () => {
       categories: 'Mejeriprodukter, Fermenterade mjölkprodukter, Färskost, en:quarks, Kvarg',
       brands: 'Lindahls,Nestlé',
     };
-    expect(offTerms(p, '7310865004703')).toBe('Proteinkvarg med vaniljsmak Färskost quarks Kvarg Lindahls Nestlé 7310865004703');
+    expect(offTerms(p, '7310865004703')).toBe('Proteinkvarg med vaniljsmak Fermenterade mjölkprodukter Färskost Kvarg Lindahls Nestlé 7310865004703'); // "en:quarks" left out
     expect(offTerms({ generic_name: 'Yogurt' }, '123')).toBe('Yogurt 123'); // Swedish first, else any language
     expect(offTerms({}, '7310865004703')).toBe('7310865004703');
   });

@@ -274,7 +274,8 @@ function toFood(f: Food & { supplement?: SupplementInfo }): Food {
   const { ref, sv, en, per100g } = f;
   const units = f.supplement ? supplementServings(f.supplement) : f.units;
   const out: Food = units ? { ref, sv, en, per100g, units } : { ref, sv, en, per100g };
-  // Search words (M36); products scanned before have at least their barcode.
+  // Search words (M36); products scanned before have at least their barcode. Older versions drop
+  // `terms` on sync/backup (unknown field): forward-compatible, a new scan brings them back.
   const terms = f.terms ?? (ref.startsWith('off:') ? ref.slice(4) : undefined);
   if (terms) out.terms = terms;
   return out;
