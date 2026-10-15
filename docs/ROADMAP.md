@@ -273,14 +273,14 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
     chunk, nothing in the first bundle; hidden when Matkostnad is off.
   - Tests: unit (week/30-day sums and averages, partial, unlogged days), e2e (off → nothing; on →
     7/30-day lines, check-in line with the change against the week before).
-- [ ] **M39 Träningsdagar** — Owner's choice (2026-10-15). **Wait for the owner's go.** Days with a
-  logged activity are training days:
-  - **Training/rest-day targets (opt-in):** energy and carbohydrates move toward training days and
-    away from rest days while the weekly total stays the same (so M35's goal still holds); the
-    diary shows "Träningsdag" with the day's target.
-  - **Protein per meal:** meal-by-meal protein against ~0.3–0.4 g/kg body weight per meal (shown in
-    the meal headers or a small card), with "you reached 120 g but 80 g came at dinner"-style notes.
-  - **Before/after training:** a small card on training days (carbohydrates before long sessions,
-    protein after), with foods the user already eats.
-  - Lazy where possible; initial JS within +0.4 KB. Tests: unit (target shifting keeps the weekly
-    sum, per-meal protein), e2e (activity → training day target and card; rest day), axe/200 %.
+
+## Later — ideas, not scheduled
+
+Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.
+
+- **Athlete option (was M39 "Träningsdagar")** — an opt-in mode for people who train a lot:
+  training/rest-day energy targets (the weekly total stays the same, carbohydrates carry most of the
+  shift; a choice next to today's "Lägg till förbränd energi"), protein per main meal (~0.3–0.4 g/kg),
+  a training-day card with the user's own foods before/after longer sessions; training days from
+  logged activities (≥ 20 min) and an optional weekly schedule. Initial JS ≈ +0.2 KB, the rest lazy.
+
