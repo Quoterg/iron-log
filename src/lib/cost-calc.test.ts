@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { priceCalc, roundKr, sumCost } from './cost-calc';
+import { priceCalc, roundKr, sumCost, weekChange } from './cost-calc';
 import { afterEach } from 'vitest';
 import { fmt, lang } from './i18n';
 
@@ -58,5 +58,40 @@ describe('food cost', () => {
     expect(b.entryCost({ foodRef: 'slv:oats', grams: 50 })?.kr).toBe(2);
     expect(b.withOwn('slv:oats', null).entryCost({ foodRef: 'slv:oats', grams: 50 })?.kr).toBe(1);
     expect(book.entryCost({ foodRef: 'slv:oats', grams: 50 })?.kr).toBe(1); // unchanged
+  });
+});
+
+describe('food cost over a period (M38)', () => {
+  const book = priceCalc(new Map(), new Map([['slv:milk', 15], ['slv:oats', 20]]));
+  const e = (date: string, foodRef: string, grams: number) => ({ date, foodRef, grams });
+
+  it('sums the period over the days with something logged; "at least" when a food has no price', () => {
+    const week = [e('2026-10-12', 'slv:milk', 1000), e('2026-10-12', 'slv:oats', 100), e('2026-10-13', 'slv:milk', 1000)];
+    expect(book.period(week, [])).toEqual({ total: 32, days: 2, partial: false }); // 15 + 2 + 15 kr
+    expect(book.period([...week, e('2026-10-14', 'custom:x', 100)], [])).toEqual({ total: 32, days: 3, partial: true });
+    expect(book.period([e('2026-10-14', 'custom:x', 100)], [])).toBeNull();
+    // A recipe by its ingredients.
+    const r = { ref: 'recipe:1', totalG: 1000, ingredients: [{ foodRef: 'slv:milk', grams: 1000 }] };
+    expect(book.period([e('2026-10-12', 'recipe:1', 500)], [r])?.total).toBeCloseTo(7.5);
+  });
+
+  it('says the average per day, and that average per week (7 days) and per month (30 days)', () => {
+    lang.value = 'sv';
+    const c = { total: 434, days: 7, partial: false }; // 62 kr/day
+    expect(book.periodText(c, 7)).toBe('Matkostnad i snitt: ~62 kr/dag · ~434 kr/vecka');
+    // Only 5 of 30 days logged: still the average of those days, for a whole month — not their sum.
+    expect(book.periodText({ total: 310, days: 5, partial: true }, 30)).toBe(
+      `Matkostnad i snitt: ~62 kr/dag · ~434 kr/vecka · ~${fmt(1860)} kr/månad (minst – vissa livsmedel saknar pris)`,
+    );
+  });
+
+  it('compares weeks per day, and only when both are fully priced and the week before cost something', () => {
+    const w = (total: number, days = 7, partial = false) => ({ total, days, partial });
+    expect(weekChange(w(700), w(350))).toBe(100);
+    expect(weekChange(w(600, 6), w(700))).toBe(0); // per day: 100 vs 100
+    expect(weekChange(w(700), w(0))).toBeNull(); // no "+∞ %"
+    expect(weekChange(w(700), null)).toBeNull();
+    expect(weekChange(w(700), w(350, 7, true))).toBeNull(); // "at least" isn't comparable
+    expect(weekChange(w(700, 7, true), w(350))).toBeNull();
   });
 });

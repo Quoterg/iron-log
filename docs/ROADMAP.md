@@ -241,3 +241,46 @@ must never feel preachy. Everything stays on the device, lazy-loaded, within the
     products scanned before M36 are found by their barcode (their other words come with a new scan).
   - Later options, not done: own names for products, "Mina livsmedel" (all logged foods), scan to
     find offline first.
+- [ ] **M37 Veckomenyn** — Owner's choice (2026-10-15). **Wait for the owner's go before starting.**
+  "Make me a week from foods I actually eat that hits my targets and budget": a meal plan for 1–7
+  days built from the user's own history, saved meals and recipes, then sent to the shopping list.
+  - **Input** (a small sheet, from the diary and the shopping list): days (1–7), which meals, energy
+    target (the profile's, goal included), budget per week in kr (optional, uses M33/M34 prices),
+    nutrients to prioritise (default: those the user is often low in, from the reports), foods to
+    avoid; "use only foods I have logged" on by default.
+  - **Building it** (in the worker, lazy): candidate foods = the user's logged foods + saved meals +
+    recipes from the last ~90 days, with their usual portion and meal; a small linear/integer
+    optimisation (own simplex/branch-and-bound, no library, a few KB) picks portions per meal that
+    meet energy (±5 %) and protein, reach NNR recommended intakes for the chosen nutrients, stay
+    under the budget and within the upper limits, and varies the days (a food at most N times a
+    week, meals look like the user's real meals — breakfast foods for breakfast). Falls back to the
+    closest plan when no plan meets everything, and says which targets it couldn't reach and why.
+  - **Result**: day by day, meal by meal, with kcal, cost per day/week and the nutrients reached
+    (bars as in the reports); swap any item ("byt", next-best food for that slot) or lock it and
+    re-plan; "Lägg i dagboken" puts a day as planned entries; "Till inköpslistan" adds the week.
+  - Nothing leaves the device; no new network requests. Fast on old phones: the candidate list is
+    hundreds of foods, not the whole database; target < 1 s for 7 days on a Moto G4 profile (CPU ×4).
+  - Tests: unit (solver on small known problems; constraints met; infeasible case explained; budget;
+    variety), e2e (plan a 3-day menu from a seeded history → targets shown, swap, to the shopping list,
+    to the diary), axe and 200 % text; size: initial JS unchanged (all lazy).
+- [x] **M38 Food cost in the summaries** — Owner's choice (2026-10-15).
+  For users with Matkostnad on (M33/M34), cost joins the existing summaries — no new screen:
+  - **Näringsämnen tab, 7 and 30 days:** "Matkostnad i snitt: ~62 kr/dag · ~434 kr/vecka" (30 days
+    also "· ~1 860 kr/månad") — averages per logged day (as the nutrient averages), and that average
+    for a week/month, not sums of the period; "(minst …)" when some foods have no price.
+  - **Weekly check-in:** "Maten kostade ~430 kr förra veckan (~62 kr/dag), +5 % mot veckan innan."
+  - Same prices as the diary (own > typical, recipes by ingredients); computed in the lazy cost
+    chunk, nothing in the first bundle; hidden when Matkostnad is off.
+  - Tests: unit (week/30-day sums and averages, partial, unlogged days), e2e (off → nothing; on →
+    7/30-day lines, check-in line with the change against the week before).
+
+## Later — ideas, not scheduled
+
+Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.
+
+- **Athlete option (was M39 "Träningsdagar")** — an opt-in mode for people who train a lot:
+  training/rest-day energy targets (the weekly total stays the same, carbohydrates carry most of the
+  shift; a choice next to today's "Lägg till förbränd energi"), protein per main meal (~0.3–0.4 g/kg),
+  a training-day card with the user's own foods before/after longer sessions; training days from
+  logged activities (≥ 20 min) and an optional weekly schedule. Initial JS ≈ +0.2 KB, the rest lazy.
+
