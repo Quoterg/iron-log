@@ -13,6 +13,72 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.0',
+    date: '2026-10-15',
+    notes: {
+      sv: [
+        'Hitta skannade varor igen: under ”Skannade varor” i sökningen finns allt du någonsin skannat, senast använda först.',
+        'Sök på det som står på förpackningen – t.ex. ”proteinkvarg”, märket eller de sista siffrorna i streckkoden.',
+      ],
+      en: [
+        'Find scanned products again: “Scanned products” in the search lists everything you have ever scanned, most recently used first.',
+        'Search for what is on the package – e.g. “protein quark”, the brand or the last digits of the barcode.',
+      ],
+      da: [
+        'Find scannede varer igen: under ”Scannede varer” i søgningen ligger alt, du nogensinde har scannet, senest brugte først.',
+        'Søg på det, der står på pakken – f.eks. ”proteinkvark”, mærket eller de sidste cifre i stregkoden.',
+      ],
+      de: [
+        'Gescannte Produkte wiederfinden: Unter „Gescannte Produkte“ in der Suche steht alles, was du je gescannt hast, zuletzt verwendete zuerst.',
+        'Suche nach dem, was auf der Packung steht – z. B. „Proteinquark“, der Marke oder den letzten Ziffern des Barcodes.',
+      ],
+      fi: [
+        'Löydä skannatut tuotteet uudelleen: haun kohdassa ”Skannatut tuotteet” on kaikki, mitä olet koskaan skannannut, viimeksi käytetyt ensin.',
+        'Hae sillä, mitä pakkauksessa lukee – esim. ”proteiinirahka”, merkki tai viivakoodin viimeiset numerot.',
+      ],
+      so: [
+        'Mar kale hel alaabta la iskaanay: ”Alaabta la iskaanay” ee raadinta waxaa ku jira wax kasta oo aad weligaa iskaanay, kuwii ugu dambeeyay marka hore.',
+        'Ka raadi waxa ku qoran baakadda – tusaale ”proteinkvarg”, sumadda ama lambarrada ugu dambeeya ee baarkoodka.',
+      ],
+    },
+  },
+  {
+    version: '1.5.0',
+    date: '2026-10-14',
+    notes: {
+      sv: [
+        'Mål och takt finns nu i Inställningar → Profil, bredvid energimålet: Gå ner, Behålla eller Gå upp, 0,25–0,75 kg i veckan.',
+        'Det automatiska energimålet följer målet direkt (t.ex. −550 kcal/dag för 0,5 kg i veckan), aldrig under en säker miniminivå.',
+        'Valbart: låt energimålet följa din uppmätta förbrukning en gång i veckan, högst ±150 kcal åt gången. Du ser ändringen i dagboken.',
+      ],
+      en: [
+        'Goal and pace are now in Settings → Profile, next to the energy target: Lose, Maintain or Gain, 0.25–0.75 kg a week.',
+        'The automatic energy target follows the goal right away (e.g. −550 kcal/day for 0.5 kg a week), never below a safe minimum.',
+        'Optional: let the energy target follow your measured expenditure once a week, at most ±150 kcal at a time. You’ll see the change in the diary.',
+      ],
+      da: [
+        'Mål og tempo findes nu under Indstillinger → Profil ved siden af energimålet: Tabe, Holde eller Tage på, 0,25–0,75 kg om ugen.',
+        'Det automatiske energimål følger målet med det samme (f.eks. −550 kcal/dag for 0,5 kg om ugen), aldrig under et sikkert minimum.',
+        'Valgfrit: lad energimålet følge dit målte forbrug én gang om ugen, højst ±150 kcal ad gangen. Du ser ændringen i dagbogen.',
+      ],
+      de: [
+        'Ziel und Tempo stehen jetzt unter Einstellungen → Profil neben dem Energieziel: Abnehmen, Halten oder Zunehmen, 0,25–0,75 kg pro Woche.',
+        'Das automatische Energieziel folgt dem Ziel sofort (z. B. −550 kcal/Tag für 0,5 kg pro Woche), nie unter einem sicheren Minimum.',
+        'Optional: Das Energieziel folgt einmal pro Woche deinem gemessenen Verbrauch, höchstens ±150 kcal auf einmal. Die Änderung siehst du im Tagebuch.',
+      ],
+      fi: [
+        'Tavoite ja tahti ovat nyt kohdassa Asetukset → Profiili energiatavoitteen vieressä: Laihdu, Pidä tai Lihoa, 0,25–0,75 kg viikossa.',
+        'Automaattinen energiatavoite seuraa tavoitetta heti (esim. −550 kcal/päivä 0,5 kg:lle viikossa), ei koskaan turvallisen minimin alle.',
+        'Valinnainen: anna energiatavoitteen seurata mitattua kulutustasi kerran viikossa, enintään ±150 kcal kerrallaan. Näet muutoksen päiväkirjassa.',
+      ],
+      so: [
+        'Hadafka iyo xawaaraha hadda waxay ku jiraan Dejinta → Profile, oo ku xiga hadafka tamarta: Dhimis, Ilaali ama Kordhin, 0.25–0.75 kg toddobaadkii.',
+        'Hadafka tamarta ee tooska ahi wuxuu isla markiiba raacaa hadafka (tusaale −550 kcal/maalintii 0.5 kg toddobaadkii), weligiisna kama hooseeyo heer ugu yar oo ammaan ah.',
+        'Ikhtiyaari: u oggolow hadafka tamarta inuu raaco isticmaalkaaga la cabbiray toddobaadkii hal mar, ugu badnaan ±150 kcal mar kasta. Isbeddelka waxaad ku arki doontaa buugga maalinlaha.',
+      ],
+    },
+  },
+  {
     version: '1.4.0',
     date: '2026-10-13',
     notes: {

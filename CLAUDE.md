@@ -63,6 +63,9 @@ pnpm data:base-prices      # shelf prices from willys.se → data/prices-base.js
   `src/changelog.ts` in every language (short, plain notes for users; a unit test checks both), and
   set `appVersionName`/`appVersionCode` in android/twa-manifest.json to match. The first start
   after a version bump shows "Nyheter" once; ordinary deploys without a bump show nothing.
+  **Order:** the version PR (on a `milestone/` branch — the reviewer only picks those up) is merged
+  and deployed *before* the owner builds the APK: the APK is only a shell around the web app, whose
+  version is what Settings and "Nyheter" show.
 - Data licenses: Livsmedelsverket CC BY 4.0, Open Food Facts ODbL, USDA public domain —
   keep attribution visible in Settings.
 - Never `cat`/read `public/data/foods.json` or `data/raw/*` whole — they're large. Use `python3 -c`/`node -e` to query them.
