@@ -68,3 +68,58 @@ test('unknown products offer to create a custom food', async ({ page }) => {
   await page.getByRole('button', { name: /Skapa eget livsmedel/ }).click();
   await expect(page.getByLabel('Namn', { exact: true })).toBeVisible();
 });
+
+test('find scanned products again (M36): by the package words or barcode digits, or in the scanned list', async ({ page }) => {
+  await page.unroute('**/world.openfoodfacts.org/**');
+  await page.route('**/world.openfoodfacts.org/**', (route) =>
+    route.fulfill({
+      json: {
+        status: 1,
+        product: {
+          ...PRODUCT.product,
+          product_name_sv: 'Pro+ Vanilj 0,2%',
+          brands: 'Lindahls',
+          generic_name_sv: 'Proteinkvarg med vaniljsmak',
+          categories: 'Mejeriprodukter, Färskost, Kvarg',
+        },
+      },
+    }),
+  );
+  await page.goto('./');
+  // An older scan, saved before M36 (no search words): still findable by its barcode.
+  await page.evaluate(async () => {
+    const req = indexedDB.open('iron-log');
+    const db: IDBDatabase = await new Promise((ok, err) => ((req.onsuccess = () => ok(req.result)), (req.onerror = err)));
+    const tx = db.transaction('offFoods', 'readwrite');
+    tx.objectStore('offFoods').put({ ref: 'off:7350042716514', sv: 'Hjärtekrossare Mint Original', en: null, per100g: [390], fetchedAt: 1 });
+    await new Promise((ok) => (tx.oncomplete = ok));
+    db.close();
+  });
+  await page.reload();
+  await meal(page, 0).getByRole('button', { name: /Lägg till/ }).click();
+  await page.getByRole('button', { name: /Skanna streckkod/ }).click();
+  await page.getByLabel('Streckkod', { exact: true }).fill('7310865004703');
+  await page.getByRole('button', { name: 'Sök', exact: true }).click();
+  await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
+  await expect(meal(page, 0).locator('.entry')).toContainText(/Pro\+ Vanilj/);
+
+  await meal(page, 1).getByRole('button', { name: /Lägg till/ }).click();
+  const search = page.getByPlaceholder(/Sök livsmedel/);
+  for (const q of ['proteinkvarg', 'lindahls', '4703']) {
+    await search.fill(q);
+    await expect(page.locator('.result', { hasText: 'Pro+ Vanilj' }), q).toBeVisible();
+  }
+  await search.fill('6514');
+  await expect(page.locator('.result', { hasText: 'Hjärtekrossare' })).toBeVisible();
+
+  // Before typing: every scanned product, most recently used first.
+  await search.fill('');
+  const toggle = page.getByRole('button', { name: /Skannade varor \(2\)/ });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
+  const scanned = page.locator('.results').last().locator('.result');
+  await expect(scanned).toHaveCount(2);
+  await expect(scanned.first()).toContainText('Pro+ Vanilj');
+  await scanned.nth(1).click();
+  await expect(page.getByRole('heading', { name: /Hjärtekrossare/ })).toBeVisible();
+});

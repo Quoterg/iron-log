@@ -4,13 +4,13 @@ import { searchFoods, unavailableSources } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
 import { back, closeAll, open } from '../nav';
-import { ensureFoods, favourites, foods, logTemplate, recent, supplementRefs, templates, templateUse, updateEntry } from '../state';
+import { ensureFoods, favourites, foods, logTemplate, offFoods, recent, supplementRefs, templates, templateUse, updateEntry, usage } from '../state';
 import { sortTemplates, type MealTemplate } from '../lib/templates';
 import type { Usage } from '../lib/db';
 import { Sheet } from './Sheet';
 
 /** Search foods to add to a meal, or to swap the food of an existing entry. */
-export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIngredient?: boolean }) {
+export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIngredient?: boolean }) {
   const { meal, replaceEntryId, pickIngredient } = props;
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Food[] | null>(null);
@@ -101,6 +101,7 @@ export function FoodSearch(props: { meal: Meal; replaceEntryId?: string; pickIng
           <SavedMeals list={saved} meal={meal} />
           <QuickList title={t('favourites')} list={favourites.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} />
           <QuickList title={t('recent')} list={recent.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} />
+          <ScannedList pick={pick} />
           {quick.length === 0 && saved.length === 0 && <p class="muted center small pad">{t('searchHint')}</p>}
         </>
       )}
@@ -156,6 +157,36 @@ function SavedMeals({ list, meal }: { list: MealTemplate[]; meal: Meal }) {
           </li>
         ))}
       </ul>
+    </>
+  );
+}
+
+/**
+ * Every scanned product (M36), most recently used first: found again without typing its name, even
+ * long after it dropped out of "Senaste". Collapsed until asked for.
+ */
+const SCANNED_PAGE = 30;
+
+function ScannedList({ pick }: { pick: (f: Food) => void }) {
+  const [shown, setShown] = useState(0); // rows shown; 0 = collapsed
+  const list = offFoods.value;
+  const sorted = useMemo(() => {
+    if (!shown) return [];
+    const used = new Map(list.map((f) => [f.ref, usage.value.get(f.ref)?.lastUsed ?? 0]));
+    return [...list].sort((a, b) => used.get(b.ref)! - used.get(a.ref)! || b.fetchedAt - a.fetchedAt);
+  }, [list, usage.value, shown > 0]);
+  if (!list.length) return null;
+  return (
+    <>
+      <button class="link list-title" aria-expanded={shown > 0} onClick={() => setShown(shown ? 0 : SCANNED_PAGE)}>
+        {shown ? '▾' : '▸'} {t('scannedFoods').replace('{n}', String(list.length))}
+      </button>
+      {shown > 0 && <ul class="results">{sorted.slice(0, shown).map((f) => row(foods.value.get(f.ref) ?? f, pick))}</ul>}
+      {shown > 0 && sorted.length > shown && (
+        <button class="link" onClick={() => setShown(shown + SCANNED_PAGE)}>
+          {t('showMore')}
+        </button>
+      )}
     </>
   );
 }

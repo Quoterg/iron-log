@@ -175,6 +175,8 @@ const strings: Dict = {
   barcode: 'Barcode',
   lookUp: 'Look up',
   barcodeBadge: 'Barcode',
+  scannedFoods: 'Scanned products ({n})',
+  showMore: 'Show more',
   scanStarting: 'Starting the camera…',
   scanHint: 'Point the camera at the barcode.',
   scanNoCamera: 'The camera is not available. Type the barcode below.',

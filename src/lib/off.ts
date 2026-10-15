@@ -3,7 +3,7 @@
 import { NUTRIENT_INDEX, NUTRIENTS, type Food, type NutrientVector, type Serving } from './nutrients';
 
 export const OFF_API = 'https://world.openfoodfacts.org/api/v2/product/';
-const FIELDS = 'code,product_name,product_name_sv,product_name_en,brands,nutriments,product_quantity,serving_quantity';
+const FIELDS = 'code,product_name,product_name_sv,product_name_en,generic_name,generic_name_sv,categories,brands,nutriments,product_quantity,serving_quantity';
 
 /** EAN-8, UPC-A (12), EAN-13 or GTIN-14 with a valid check digit. */
 export function isValidBarcode(code: string): boolean {
@@ -56,6 +56,9 @@ export interface OffProduct {
   product_name_sv?: string;
   product_name_en?: string;
   brands?: string;
+  generic_name?: string;
+  generic_name_sv?: string;
+  categories?: string;
   nutriments?: Record<string, unknown>;
   product_quantity?: number | string;
   serving_quantity?: number | string;
@@ -97,7 +100,22 @@ export function productToFood(code: string, p: OffProduct): Food | null {
   const en = p.product_name_en?.trim();
   const food: Food = { ref: `off:${code}`, sv: full(name), en: en && en !== name ? full(en) : null, per100g: v };
   if (units.length) food.units = units;
+  // Searchable by what is on the package besides the name (M36): "kvarg", "lindahls", the barcode.
+  food.terms = offTerms(p, code);
   return food;
+}
+
+/** Generic name, the most specific categories, all brands and the barcode, as search words. */
+export function offTerms(p: { generic_name?: string; generic_name_sv?: string; categories?: string; brands?: string }, code: string): string {
+  const cats = (p.categories ?? '')
+    .split(',')
+    .map((c) => c.trim())
+    .filter((c) => c && !/^[a-z]{2}:/.test(c)) // "en:quarks": another language's tag, noise in search
+    .slice(-3); // most specific last ("Mejeriprodukter, …, Kvarg")
+  return [p.generic_name_sv || p.generic_name, ...cats, p.brands?.replace(/,/g, ' '), code]
+    .filter(Boolean)
+    .join(' ')
+    .slice(0, 300);
 }
 
 export class OffError extends Error {

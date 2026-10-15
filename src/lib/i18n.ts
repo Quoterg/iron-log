@@ -188,6 +188,8 @@ const sv = {
   barcode: 'Streckkod',
   lookUp: 'Sök',
   barcodeBadge: 'Streckkod',
+  scannedFoods: 'Skannade varor ({n})',
+  showMore: 'Visa fler',
   scanStarting: 'Startar kameran…',
   scanHint: 'Rikta kameran mot streckkoden.',
   scanNoCamera: 'Kameran är inte tillgänglig. Skriv in streckkoden nedan.',
