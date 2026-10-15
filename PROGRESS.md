@@ -5,7 +5,7 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M21b** (low security housekeeping) next. **Released v1.5.0** (2026-10-14, M35; v1.4.0 had M33 + M34).
+**M21b** (low security housekeeping) next. **Released v1.6.0** (2026-10-15, M36; v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
 **Owner, once:** allow "GitHub Actions to create and approve pull requests" (repo Settings → Actions →
 General) so the price workflow can open its PRs. **Shelf prices** were collected 2026-10-13:
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries

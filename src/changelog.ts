@@ -13,6 +13,36 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.0',
+    date: '2026-10-15',
+    notes: {
+      sv: [
+        'Hitta skannade varor igen: under ”Skannade varor” i sökningen finns allt du någonsin skannat, senast använda först.',
+        'Sök på det som står på förpackningen – t.ex. ”proteinkvarg”, märket eller de sista siffrorna i streckkoden.',
+      ],
+      en: [
+        'Find scanned products again: “Scanned products” in the search lists everything you have ever scanned, most recently used first.',
+        'Search for what is on the package – e.g. “protein quark”, the brand or the last digits of the barcode.',
+      ],
+      da: [
+        'Find scannede varer igen: under ”Scannede varer” i søgningen ligger alt, du nogensinde har scannet, senest brugte først.',
+        'Søg på det, der står på pakken – f.eks. ”proteinkvark”, mærket eller de sidste cifre i stregkoden.',
+      ],
+      de: [
+        'Gescannte Produkte wiederfinden: Unter „Gescannte Produkte“ in der Suche steht alles, was du je gescannt hast, zuletzt verwendete zuerst.',
+        'Suche nach dem, was auf der Packung steht – z. B. „Proteinquark“, der Marke oder den letzten Ziffern des Barcodes.',
+      ],
+      fi: [
+        'Löydä skannatut tuotteet uudelleen: haun kohdassa ”Skannatut tuotteet” on kaikki, mitä olet koskaan skannannut, viimeksi käytetyt ensin.',
+        'Hae sillä, mitä pakkauksessa lukee – esim. ”proteiinirahka”, merkki tai viivakoodin viimeiset numerot.',
+      ],
+      so: [
+        'Mar kale hel alaabta la iskaanay: ”Alaabta la iskaanay” ee raadinta waxaa ku jira wax kasta oo aad weligaa iskaanay, kuwii ugu dambeeyay marka hore.',
+        'Ka raadi waxa ku qoran baakadda – tusaale ”proteinkvarg”, sumadda ama lambarrada ugu dambeeya ee baarkoodka.',
+      ],
+    },
+  },
+  {
     version: '1.5.0',
     date: '2026-10-14',
     notes: {
