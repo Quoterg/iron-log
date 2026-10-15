@@ -15,6 +15,14 @@ interface CostedRecipe {
   ingredients: { foodRef: string; grams: number }[];
 }
 
+/** A period's food cost: the total over the days with something logged; partial when some lack a price. */
+export interface PeriodCost {
+  total: number;
+  /** Days with anything logged (averages are per logged day, like the nutrient averages). */
+  days: number;
+  partial: boolean;
+}
+
 export interface CostCalc {
   own: Map<string, number>;
   typical: Map<string, number>;
@@ -28,6 +36,10 @@ export interface CostCalc {
   shown(c: Cost | null): c is Cost;
   /** A new book with this food's own price set (or removed: null). */
   withOwn(ref: string, krPerKg: number | null): CostCalc;
+  /** A period's cost (M38); null when nothing in it has a price. */
+  period(entries: { foodRef: string; grams: number; date: string }[], recipes: (CostedRecipe & { ref: string; deleted?: boolean })[]): PeriodCost | null;
+  /** "Matkostnad: ~62 kr/dag · ~430 kr/vecka" (+ "· ~1 860 kr/30 dagar" for 30 days). */
+  periodText(c: PeriodCost, days: number): string;
 }
 
 export function sumCost(costs: (Cost | null)[]): Cost | null {
@@ -68,6 +80,20 @@ export function priceCalc(own: Map<string, number>, typical: Map<string, number>
     sum: sumCost,
     text: costText,
     shown: (c): c is Cost => !!c && c.kr >= MIN_SHOWN_KR,
+    period(entries, recipes) {
+      const recipeOf = new Map(recipes.filter((r) => !r.deleted).map((r) => [r.ref, r]));
+      const c = sumCost(entries.map((e) => this.entryCost(e, recipeOf.get(e.foodRef))));
+      return c ? { total: c.kr, days: new Set(entries.map((e) => e.date)).size, partial: c.partial } : null;
+    },
+    periodText(c, days) {
+      const day = c.total / c.days;
+      const kr = (x: number) => `~${fmt(roundKr(x), 1)}`;
+      const text = t(days >= 30 ? 'costMonth' : 'costWeek')
+        .replace('{day}', kr(day))
+        .replace('{week}', kr(day * 7))
+        .replace('{total}', kr(day * 30));
+      return c.partial ? `${text} ${t('costPartial')}` : text;
+    },
     withOwn(ref, k) {
       const next = new Map(own);
       if (k == null) next.delete(ref);

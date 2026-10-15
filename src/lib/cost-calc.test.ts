@@ -60,3 +60,27 @@ describe('food cost', () => {
     expect(book.entryCost({ foodRef: 'slv:oats', grams: 50 })?.kr).toBe(1); // unchanged
   });
 });
+
+describe('food cost over a period (M38)', () => {
+  const book = priceCalc(new Map(), new Map([['slv:milk', 15], ['slv:oats', 20]]));
+  const e = (date: string, foodRef: string, grams: number) => ({ date, foodRef, grams });
+
+  it('sums the period over the days with something logged; "at least" when a food has no price', () => {
+    const week = [e('2026-10-12', 'slv:milk', 1000), e('2026-10-12', 'slv:oats', 100), e('2026-10-13', 'slv:milk', 1000)];
+    expect(book.period(week, [])).toEqual({ total: 32, days: 2, partial: false }); // 15 + 2 + 15 kr
+    expect(book.period([...week, e('2026-10-14', 'custom:x', 100)], [])).toEqual({ total: 32, days: 3, partial: true });
+    expect(book.period([e('2026-10-14', 'custom:x', 100)], [])).toBeNull();
+    // A recipe by its ingredients.
+    const r = { ref: 'recipe:1', totalG: 1000, ingredients: [{ foodRef: 'slv:milk', grams: 1000 }] };
+    expect(book.period([e('2026-10-12', 'recipe:1', 500)], [r])?.total).toBeCloseTo(7.5);
+  });
+
+  it('says it per day and week (7 days), and per 30 days too (30 days)', () => {
+    lang.value = 'sv';
+    const c = { total: 434, days: 7, partial: false }; // 62 kr/day
+    expect(book.periodText(c, 7)).toBe('Matkostnad: ~62 kr/dag · ~434 kr/vecka');
+    expect(book.periodText({ total: 1860, days: 30, partial: true }, 30)).toBe(
+      `Matkostnad: ~62 kr/dag · ~434 kr/vecka · ~${fmt(1860)} kr/30 dagar (minst – vissa livsmedel saknar pris)`,
+    );
+  });
+});

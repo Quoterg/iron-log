@@ -5,18 +5,28 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M37 Veckomenyn, M38 food cost in the summaries** planned (owner, 2026-10-15) — **don't start either until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (low security housekeeping) next. **Released v1.6.0** (2026-10-15, M36; v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
+**M37 Veckomenyn** planned (owner, 2026-10-15) — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (low security housekeeping) next. **Released v1.6.0** (2026-10-15, M36; v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
 **Owner, once:** allow "GitHub Actions to create and approve pull requests" (repo Settings → Actions →
 General) so the price workflow can open its PRs. **Shelf prices** were collected 2026-10-13:
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
 ~240 kr/kg in October) reflects that month. **Releasing** from now on:
 see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
-2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 38.0 KB of 40 (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 38.1 KB of 40 (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-15 — M38 Food cost in the summaries (interactive session)
+
+- With Matkostnad on: the Näringsämnen tab (7 and 30 days) shows "Matkostnad: ~62 kr/dag · ~434
+  kr/vecka" (+ "· ~1 860 kr/30 dagar" for 30 days), per logged day like the nutrient averages,
+  "(minst – …)" when some foods have no price; the weekly check-in says what last week's food cost
+  and the change per day against the week before. Arithmetic in the lazy cost chunk
+  (`CostCalc.period/periodText`); the week before is read only with Matkostnad on.
+- Initial JS 38.1 KB (+0.1). Tests: unit 238 ✓ (period sums, partial, recipes, texts), build ✓,
+  e2e 146 ✓ (new cost-summary: off → nothing; on → 7/30-day lines; check-in "+100 %"), Lighthouse ✓.
 
 ## 2026-10-15 — M36 Find scanned products again (interactive session)
 
