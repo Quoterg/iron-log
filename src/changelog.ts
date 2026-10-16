@@ -13,6 +13,36 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.6',
+    date: '2026-10-16',
+    notes: {
+      sv: [
+        'Snabbare start: appen startar från telefonen och väntar inte på nätet – även med dålig täckning.',
+        'När en ny version har hämtats i bakgrunden visas ”Starta om” – annars används den nästa gång du öppnar appen.',
+      ],
+      en: [
+        'Faster start: the app starts from your phone and doesn’t wait for the network – even with poor signal.',
+        'When a new version has been downloaded in the background, “Restart” is offered – otherwise it’s used the next time you open the app.',
+      ],
+      da: [
+        'Hurtigere start: appen starter fra telefonen og venter ikke på nettet – heller ikke med dårlig dækning.',
+        'Når en ny version er hentet i baggrunden, vises ”Genstart” – ellers bruges den næste gang, du åbner appen.',
+      ],
+      de: [
+        'Schnellerer Start: Die App startet vom Handy und wartet nicht auf das Netz – auch bei schlechtem Empfang.',
+        'Wurde eine neue Version im Hintergrund geladen, erscheint „Neu starten“ – sonst wird sie beim nächsten Öffnen verwendet.',
+      ],
+      fi: [
+        'Nopeampi käynnistys: sovellus käynnistyy puhelimesta eikä odota verkkoa – huonollakaan kuuluvuudella.',
+        'Kun uusi versio on ladattu taustalla, tarjotaan ”Käynnistä uudelleen” – muuten sitä käytetään, kun avaat sovelluksen seuraavan kerran.',
+      ],
+      so: [
+        'Bilow degdeg ah: barnaamijku wuxuu ka bilaabmaa taleefanka mana sugo shabakadda – xitaa marka xiriirku liito.',
+        'Marka nooc cusub gadaal laga soo dejiyo, waxaa la soo bandhigayaa ”Dib u bilow” – haddii kale waxaa la isticmaalayaa marka xigta ee aad furto barnaamijka.',
+      ],
+    },
+  },
+  {
     version: '1.6.5',
     date: '2026-10-15',
     notes: {
