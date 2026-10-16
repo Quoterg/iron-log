@@ -6,6 +6,7 @@ import type { Dict, LangPack } from './i18n';
 // The Swedish strings are the source of truth (built into i18n.ts); read them through t().
 async function swedish(): Promise<Dict> {
   const i18n = await import('./i18n');
+  await import('./strings-later'); // the later screens' Swedish strings (M39b)
   i18n.lang.value = 'sv';
   const en = (await import('./lang/en')).default.strings as Dict;
   return Object.fromEntries(Object.keys(en).map((k) => [k, i18n.t(k as keyof Dict)])) as Dict;
