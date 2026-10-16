@@ -9,8 +9,9 @@ export function lazyView<P extends object>(load: () => Promise<{ default: Compon
   const comp = signal<ComponentType<P> | null>(null);
   const failed = signal(false);
   let pending: Promise<void> | undefined;
+  // The later screens' Swedish strings come with any of them (M39b; one shared chunk).
   const prefetch = () =>
-    (pending ??= load().then(
+    (pending ??= Promise.all([load(), import('./lib/strings-later')]).then(([m]) => m).then(
       (m) => {
         failed.value = false;
         comp.value = m.default;

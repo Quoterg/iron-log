@@ -21,12 +21,16 @@ async function start() {
   // pack isn't a second round trip before first paint. If it can't load (offline before it was
   // ever cached), start anyway with the built-in strings.
   const early = loadLang(lastLang() ?? lang.value).catch(() => {});
+  performance.mark('il:start');
   await loadSettings();
+  performance.mark('il:settings');
   await Promise.all([early, loadLang(lang.value).catch(() => {})]);
   document.documentElement.lang = lang.value;
   // Small local tables, loaded before first render so every screen starts with complete data
   // (custom foods are also needed to resolve diary entries, including deleted ones).
+  performance.mark('il:lang');
   await Promise.all([loadLibrary(), loadUsage(), loadServings()]);
+  performance.mark('il:library');
   render(<App />, document.getElementById('app')!);
   performance.mark('il:render'); // M39: measured by e2e/perf.spec.ts
   await loadDay(date.value);
