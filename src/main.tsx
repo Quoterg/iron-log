@@ -52,6 +52,9 @@ async function start() {
     // Food databases first (loaded and indexed in the worker); the split-out screens are small and
     // go a moment later, so the service worker has them for offline use.
     warmUp(lang.value);
+    // The later screens' Swedish strings first (M39b): every sheet needs them, so they're cached
+    // (offline) and in memory before the first one opens.
+    void import('./lib/strings-later').catch(() => {});
     void searchView.prefetch(); // opened by every "Lägg till"
     setTimeout(() => {
       // One at a time when idle (M39): not a burst of fetches next to the first taps on a slow phone.

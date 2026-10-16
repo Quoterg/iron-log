@@ -79,13 +79,19 @@ const sv = {
   ingredients: 'Ingredienser',
   loadFailed: 'Kunde inte ladda. Kontrollera anslutningen.',
   retry: 'Försök igen',
+  // Supplement times: the diary builds the key (t(`time_${…}`)), so they stay here (M39b review).
+  time_any: 'Ingen särskild tid',
+  time_morning: 'Morgon',
+  time_midday: 'Mitt på dagen',
+  time_evening: 'Kväll',
+  time_night: 'Natt',
 };
 
 /** All strings: the first screen's (above) and the later screens' (strings-later.ts, M39b). */
 export type Dict = typeof sv & typeof import('./strings-later').SV_LATER;
 
 /** Adds the later screens' Swedish strings (strings-later.ts registers them when it loads). */
-export function registerSv(later: Partial<Dict>): void {
+export function registerSv(later: typeof import('./strings-later').SV_LATER): void {
   Object.assign(sv, later);
 }
 

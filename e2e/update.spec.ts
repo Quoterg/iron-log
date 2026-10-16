@@ -99,10 +99,16 @@ test('a screen whose code is gone from the server: the app reloads once instead 
   await context.unrouteAll();
 });
 
-test('offline after the first visit: the app still starts', async ({ page, context }) => {
+test('offline after the first visit: the app still starts, and its screens open', async ({ page, context }) => {
   await cachedStart(page);
+  // The later screens' strings and the search come first after start (M39b): cached by then.
+  await expect
+    .poll(() => page.evaluate(async () => (await (await caches.open('iron-log-v2')).keys()).some((r) => /strings-later-.*\.js$/.test(r.url))), { timeout: 20_000 })
+    .toBe(true);
   await context.setOffline(true);
   await page.reload();
   await expect(page.locator('.meal').first()).toBeVisible();
+  await page.locator('.meal').first().getByRole('button', { name: /Lägg till/ }).click();
+  await expect(page.getByPlaceholder(/Sök livsmedel/)).toBeVisible(); // a sheet, offline
   await context.setOffline(false);
 });

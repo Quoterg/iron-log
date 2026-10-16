@@ -11,7 +11,7 @@ General) so the price workflow can open its PRs. **Shelf prices** were collected
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
 ~240 kr/kg in October) reflects that month. **Releasing** from now on:
 see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
-2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 30.4 KB of 40 (M39b; later screens' Swedish strings in strings-later.ts) (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 30.5 KB of 40 (M39b; later screens' Swedish strings in strings-later.ts) (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
@@ -27,7 +27,12 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   `strings-split.test.ts` checks from the import graph that no first-bundle module uses them and
   that every user has them loaded. **Initial JS 34.9 → 30.4 KB**; Lighthouse FCP −64 ms, TTI −76 ms,
   TBT 58 → 37 ms, script start-up 174 → 125 ms.
-- Tests: unit 242 ✓, build ✓, e2e 156 ✓, Lighthouse ✓.
+- Review: the supplement times (`t(`time_${…}`)` in the diary) had been moved — an empty label right
+  after start; back in i18n.ts. The guard now expands template keys, allows only checked dynamic keys
+  in the first bundle, and checks at runtime that every first-bundle key has text without the later
+  strings (it fails on the original bug). The later strings load first after start (cached for
+  offline). Initial JS 30.5 KB.
+- Tests: unit 245 ✓, build ✓, e2e 156 ✓ (+ a sheet offline after the first visit), Lighthouse ✓.
 
 ## 2026-10-15 — M39a Snabbare: measure, start from the phone, smaller first bundle (interactive session)
 

@@ -39,7 +39,19 @@ const keysOf = (f: string, start: string) => {
 };
 const later = keysOf(join('src', 'lib', 'strings-later.ts'), 'export const SV_LATER = {');
 const base = keysOf(join('src', 'lib', 'i18n.ts'), 'const sv = {');
-const uses = (f: string, k: string) => code.get(f)!.includes(`'${k}'`);
+/** Keys built at runtime: t(`time_${x}`) uses every key starting with "time_". */
+const templatePrefixes = (f: string) => [...code.get(f)!.matchAll(/\bt\(`([A-Za-z0-9_]*)\$\{/g)].map((m) => m[1]);
+const uses = (f: string, k: string) => code.get(f)!.includes(`'${k}'`) || templatePrefixes(f).some((p) => p && k.startsWith(p));
+const initial = closure([join('src', 'main.tsx')]);
+initial.delete(join('src', 'lib', 'i18n.ts'));
+/**
+ * Other non-literal keys in the first bundle, checked by hand: each takes its keys from literal
+ * lists that are in the first bundle too (so `uses` sees them).
+ */
+const CHECKED_DYNAMIC: Record<string, string[]> = {
+  [join('src', 'app.tsx')]: ['view.value', 'v'], // views: the TABS list and View type in app.tsx/state.ts
+  [join('src', 'components', 'Diary.tsx')]: ['meal'], // meals: MEALS in db.ts
+};
 
 describe('the split Swedish strings (M39b)', () => {
   it('are split, not lost or doubled', () => {
@@ -47,9 +59,12 @@ describe('the split Swedish strings (M39b)', () => {
     expect(later.filter((k) => base.includes(k))).toEqual([]);
   });
 
+  it('finds the keys of both parts (a format change would make these lists empty)', () => {
+    expect(base.length).toBeGreaterThan(30);
+    expect(base).toContain('time_morning');
+  });
+
   it('the first bundle uses only the first screen’s strings', () => {
-    const initial = closure([join('src', 'main.tsx')]);
-    initial.delete(join('src', 'lib', 'i18n.ts'));
     const bad = [...initial].flatMap((f) => later.filter((k) => uses(f, k)).map((k) => `${f}: ${k}`));
     expect(bad).toEqual([]);
   });
@@ -58,12 +73,26 @@ describe('the split Swedish strings (M39b)', () => {
     const app = code.get(join('src', 'app.tsx'))!;
     const lazyRoots = [...app.matchAll(/lazyView\(\(\) => import\('([^']+)'\)\)/g)].map((m) => resolve(join('src', 'app.tsx'), m[1])!);
     const importers = files.filter((f) => staticImports(f).includes(join('src', 'lib', 'strings-later.ts')));
-    const initial = closure([join('src', 'main.tsx')]);
     // Covered: reached from a lazy screen or a module importing the strings (not via the first bundle).
     const covered = closure([...lazyRoots, ...importers], initial);
     const bad = files
       .filter((f) => f !== join('src', 'lib', 'strings-later.ts') && !initial.has(f) && !covered.has(f))
       .flatMap((f) => later.filter((k) => uses(f, k)).map((k) => `${f}: ${k}`));
     expect(bad).toEqual([]);
+  });
+
+  it('the first bundle builds no other keys at runtime than the checked ones', () => {
+    const dynamic = [...initial].flatMap((f) =>
+      [...code.get(f)!.matchAll(/\bt\(([^'`)][^)]*)\)/g)].map((m) => m[1].trim()).filter((e) => !(CHECKED_DYNAMIC[f] ?? []).includes(e)).map((e) => `${f}: t(${e})`),
+    );
+    expect(dynamic).toEqual([]);
+  });
+
+  it('every string the first bundle uses works without the later strings loaded', async () => {
+    const { lang, t } = await import('./i18n'); // strings-later is never imported in this file
+    lang.value = 'sv';
+    const used = [...base, ...later].filter((k) => [...initial].some((f) => uses(f, k)));
+    expect(used.length).toBeGreaterThan(20);
+    expect(used.filter((k) => !t(k as never))).toEqual([]);
   });
 });
