@@ -289,11 +289,18 @@ emulated Moto G4 (CPU ×4) by `e2e/perf.spec.ts` (test-results/perf.json).
     with a slow connection **~2 110 ms → ~115 ms** to the diary.
   - **Smaller first bundle:** the food detail and Näringsämnen screens load right after start (with
     the other split-out screens) instead of in it: initial JS **38.3 → 34.8 KB**.
-- [ ] **M39b Snabbare, part 2** — (a) Swedish strings not needed for the first screen move to lazy
-  sections (i18n.ts is ~14.5 KB raw of the first bundle); (b) show the diary before reading the
-  library/usage/servings (custom foods needed to name entries first); (c) food data and search index
-  prepared at build time (compact nutrient values, no tokenising in the worker); (d) diary meals that
-  re-render on their own, 30-day report sums in the worker. Each measured with perf.spec.ts.
+- [x] **M39b Snabbare, part 2** — measured first (perf.spec.ts now also: a logged day, a search right
+  after start, the start's steps), then only what measurably helps:
+  - **Done (a):** the 229 Swedish strings only later screens use moved from i18n.ts to
+    `strings-later.ts`, loaded with every lazy screen (lazy.tsx) and by the one other module that
+    needs them; `strings-split.test.ts` guards the split from the import graph. **Initial JS 34.9 →
+    30.4 KB.** Lighthouse (median of 3): FCP 1 253 → 1 189 ms, TTI 1 646 → 1 570 ms, TBT 58 → 37 ms,
+    script start-up 174 → 125 ms.
+  - **Not done, by measurement:** (b) diary before the library — reading it takes ~5–40 ms;
+    (c) build-time food data/index — a search right after start already answers in ~190 ms (80 ms
+    of it the typing pause) and a columnar layout is only 11–15 % smaller while every existing user
+    would download the data again; (d) diary/report rendering — no stutter measured. Revisit if the
+    numbers change.
 
 ## Later — ideas, not scheduled
 

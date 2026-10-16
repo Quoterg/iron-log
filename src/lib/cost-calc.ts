@@ -2,6 +2,7 @@
 // the first bundle: own prices from the device, typical ones from the table (M33), own ones win.
 import { listPrices } from './db';
 import { fmt, t } from './i18n';
+import './strings-later'; // its texts are later-screen strings (M39b)
 import { typicalPrices } from './typical-prices';
 
 export interface Cost {

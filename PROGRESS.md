@@ -5,18 +5,34 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M39b Snabbare part 2** next when the owner says go; **M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (low security housekeeping) next. **Released v1.6.6** (2026-10-16, M39a; v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
+**M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (low security housekeeping) next. **Released v1.6.6** (2026-10-16, M39a; v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
 **Owner, once:** allow "GitHub Actions to create and approve pull requests" (repo Settings → Actions →
 General) so the price workflow can open its PRs. **Shelf prices** were collected 2026-10-13:
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
 ~240 kr/kg in October) reflects that month. **Releasing** from now on:
 see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
-2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 34.9 KB of 40 (M39a) (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 30.5 KB of 40 (M39b; later screens' Swedish strings in strings-later.ts) (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+
+## 2026-10-16 — M39b Snabbare part 2 (interactive session)
+
+- Measured first: a logged day starts in ~145 ms with all names by ~210 ms; a search right after
+  start ~185 ms; reading the library before render ~5–40 ms. So only (a) was worth doing.
+- 229 Swedish strings used only by later screens → `src/lib/strings-later.ts` (registers into the
+  Swedish dictionary on load; lazy.tsx loads it with every lazy screen; cost-calc imports it).
+  `strings-split.test.ts` checks from the import graph that no first-bundle module uses them and
+  that every user has them loaded. **Initial JS 34.9 → 30.4 KB**; Lighthouse FCP −64 ms, TTI −76 ms,
+  TBT 58 → 37 ms, script start-up 174 → 125 ms.
+- Review: the supplement times (`t(`time_${…}`)` in the diary) had been moved — an empty label right
+  after start; back in i18n.ts. The guard now expands template keys, allows only checked dynamic keys
+  in the first bundle, and checks at runtime that every first-bundle key has text without the later
+  strings (it fails on the original bug). The later strings load first after start (cached for
+  offline). Initial JS 30.5 KB.
+- Tests: unit 245 ✓, build ✓, e2e 156 ✓ (+ a sheet offline after the first visit), Lighthouse ✓.
 
 ## 2026-10-15 — M39a Snabbare: measure, start from the phone, smaller first bundle (interactive session)
 
