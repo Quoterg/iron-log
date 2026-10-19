@@ -34,6 +34,8 @@ export interface Food {
   per100g: NutrientVector;
   /** Built-in household measures (approximate), from data/units.json. */
   units?: Serving[];
+  /** Extra words search finds it by, not shown (scanned products: barcode, generic name, categories; M36). */
+  terms?: string;
 }
 
 /**

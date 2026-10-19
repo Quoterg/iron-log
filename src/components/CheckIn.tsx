@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { allowedPaces, goalTarget, minIntake, type Estimate } from '../lib/adaptive';
 import { previousWeek } from '../lib/checkin';
 import { positives, weightChange, type Positive } from '../lib/checkin-report';
-import { bodyBetween, entriesBetween, isoDate, addDays } from '../lib/db';
+import { bodyBetween, entriesBetween, isoDate, addDays, type Entry } from '../lib/db';
 import { fmt, fmtAmount, lang, locale, nutrientName } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
 import { averagePerDay, coverage, dailyTotals, gaps, MIN_COVERAGE } from '../lib/report';
@@ -10,8 +10,9 @@ import { tc } from '../lib/strings-checkin';
 import { te } from '../lib/strings-energy';
 import { unitOf, type Swap } from '../lib/suggest';
 import { back } from '../nav';
-import { ensureFoods, foods, settings, targets, updateSettings } from '../state';
-import { loadEstimate } from './AdaptiveEnergy';
+import { ensureFoods, foods, recipes, settings, supplementRefs, targets, updateSettings } from '../state';
+import { ensurePriceBook, priceBook } from '../lib/cost';
+import { loadEstimate } from '../lib/adaptive-load';
 import { Sheet } from './Sheet';
 import { buildSuggestions, type GapHelp } from './Suggestions';
 
@@ -25,13 +26,20 @@ interface Week {
   well: Positive[];
   tip: { gap?: GapHelp; swap?: Swap } | null;
   estimate: Estimate | null;
+  /** The week's entries and the week before's (food cost, M38). */
+  list: Entry[];
+  before: Entry[];
 }
 
 async function load(): Promise<Week> {
   const week = previousWeek(isoDate(new Date()));
   // The M25 estimate (last 4 weeks) loads alongside the week's data.
   const estimate = settings.value.adaptive ? loadEstimate() : Promise.resolve(null);
-  const [list, body] = await Promise.all([entriesBetween(week.start, week.end), bodyBetween(addDays(week.start, -7), week.end)]);
+  const [list, body, before] = await Promise.all([
+    entriesBetween(week.start, week.end),
+    bodyBetween(addDays(week.start, -7), week.end),
+    settings.value.costs ? entriesBetween(addDays(week.start, -7), addDays(week.start, -1)) : Promise.resolve([]),
+  ]);
   await ensureFoods(list.map((e) => e.foodRef));
   const perDay = dailyTotals(list, foods.value);
   const amounts = averagePerDay(perDay);
@@ -54,6 +62,8 @@ async function load(): Promise<Week> {
     well: perDay.size ? positives(amounts, tgt, perDay.size, covered) : [],
     tip,
     estimate: await estimate,
+    list,
+    before,
   };
 }
 
@@ -93,6 +103,14 @@ export default function CheckIn() {
   const pace = paces.includes(s.pace ?? 0) ? s.pace! : paces[0];
   const suggested = est && !noGoal && (goal === 'maintain' || pace) ? goalTarget(est.kcal, goal, pace ?? 0, minIntake(p)).kcal : null;
 
+  // Food cost (M38, with Matkostnad on): the week, and its change per day against the week before.
+  useEffect(() => void (s.costs && ensurePriceBook()), [s.costs]);
+  const book = s.costs ? priceBook.value : null;
+  const food = (l: Entry[]) => l.filter((e) => !supplementRefs.value.has(e.foodRef));
+  const cost = book && w ? book.period(food(w.list), recipes.value) : null;
+  const prev = book && w && cost ? book.period(food(w.before), recipes.value) : null;
+  const change = cost && book ? book.change(cost, prev) : null;
+
   const done = async () => {
     if (w) await updateSettings({ checkinSeen: w.key });
     back();
@@ -123,6 +141,14 @@ export default function CheckIn() {
                   {w.weight == null ? tc('checkinNoWeight') : tc('checkinWeight').replace('{change}', `${w.weight > 0 ? '+' : ''}${fmt(w.weight, 1)}`)}
                 </p>
                 {est && <p class="small">{tc('checkinExpenditure').replace('{kcal}', fmt(est.kcal))}</p>}
+                {cost && book && (
+                  <p class="small">
+                    {tc('checkinCost')
+                      .replace('{kr}', book.text({ kr: cost.total, partial: cost.partial }))
+                      .replace('{day}', book.text({ kr: cost.total / cost.days, partial: false }))}
+                    {change != null && ` ${tc('checkinCostChange').replace('{pct}', `${change > 0 ? '+' : change < 0 ? '−' : '±'}${fmt(Math.abs(change))}`)}`}
+                  </p>
+                )}
                 {suggested && suggested !== p.kcal && applied == null && (
                   <div class="checkin-target">
                     <p class="small">

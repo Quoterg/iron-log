@@ -12,7 +12,93 @@ export interface ShopItem {
   /** …a free-text item ("tandkräm"). */
   text?: string;
   checked?: boolean;
+  /** What this line costs, when the user typed it (own items; a food's price is its FoodPrice). */
+  kr?: number;
   updatedAt: number;
+}
+
+/** What the user pays for a food, normalised to kr per kg (from the shelf's comparison price). */
+export interface FoodPrice {
+  foodRef: string;
+  krPerKg: number;
+  updatedAt: number;
+}
+
+export type PriceUnit = 'kg' | 'l' | 'st';
+
+/** Prices above this (kr, or kr per kg) are refused as typos — in the editor and in backups/sync. */
+export const MAX_PRICE = 1e5;
+
+/** Grams in one dl of a food: its "dl" measure, else half its "glas" (2 dl); 0 if neither. */
+export function gramsPerDl(units: Serving[]): number {
+  return units.find((u) => u.name === 'dl')?.g ?? (units.find((u) => u.name === 'glas')?.g ?? 0) / 2;
+}
+
+/**
+ * The shelf's comparison price ("jämförpris") as kr per kg: kr/l via the food's density (its dl or
+ * glas measure; 1 kg per litre if neither is known), kr/st via its "st" measure. Null when the unit
+ * can't be converted for this food.
+ */
+export function krPerKg(kr: number, unit: PriceUnit, units: Serving[] = []): number | null {
+  if (!(kr > 0 && kr < MAX_PRICE)) return null;
+  let gramsPerUnit: number;
+  if (unit === 'kg') gramsPerUnit = 1000;
+  else if (unit === 'l') gramsPerUnit = gramsPerDl(units) * 10 || 1000;
+  else gramsPerUnit = units.find((u) => u.name === 'st')?.g ?? 0;
+  return gramsPerUnit ? Math.round((kr / gramsPerUnit) * 1000 * 100) / 100 : null;
+}
+
+/** A line's cost; `typical` when it comes from the typical-price table (M33), not the user's price. */
+export interface LineCost {
+  kr: number;
+  estimated: boolean;
+  typical?: boolean;
+}
+
+/**
+ * A line's cost (unrounded: round only for display, so totals don't drift): typed for the line, else
+ * estimated from the food's price and the amount on the list, else from its typical price (when the
+ * user turned food costs on).
+ */
+export function lineCost(i: ShopItem, prices: Map<string, FoodPrice>, typical?: Map<string, number>): LineCost | null {
+  if (i.kr != null) return { kr: i.kr, estimated: false };
+  if (!i.foodRef || !i.grams) return null;
+  const p = prices.get(i.foodRef);
+  if (p) return { kr: (p.krPerKg * i.grams) / 1000, estimated: true };
+  const t = typical?.get(i.foodRef);
+  return t ? { kr: (t * i.grams) / 1000, estimated: true, typical: true } : null;
+}
+
+export interface Costed {
+  item: ShopItem;
+  cost: LineCost | null;
+  /** Share of the list's total (0–1). */
+  share: number;
+}
+
+/**
+ * Every line's cost (computed once), the total (and how much of it is typical prices) and how many
+ * lines have no price yet; `ranked` is the lines by cost, most expensive first (unpriced last).
+ */
+export function costList(
+  items: ShopItem[],
+  prices: Map<string, FoodPrice>,
+  typical?: Map<string, number>,
+): { total: number; typicalKr: number; missing: number; ranked: Costed[] } {
+  const costed = items.map((item) => ({ item, cost: lineCost(item, prices, typical), share: 0 }));
+  let total = 0;
+  let typicalKr = 0;
+  let missing = 0;
+  for (const c of costed) {
+    if (!c.cost) missing++;
+    else {
+      total += c.cost.kr;
+      if (c.cost.typical) typicalKr += c.cost.kr;
+    }
+  }
+  for (const c of costed) c.share = c.cost && total ? c.cost.kr / total : 0;
+  costed.sort((a, b) => (b.cost?.kr ?? -1) - (a.cost?.kr ?? -1));
+  return { total, typicalKr, missing, ranked: costed };
 }
 
 export const MAX_SHOP_ITEMS = 300;
@@ -76,7 +162,7 @@ export function sectionOf(name: string): Section {
 export function shopAmount(grams: number, units: Serving[] = []): { qty: number; unit: 'st' | 'l' | 'dl' | 'g' | 'kg' } {
   const st = units.find((u) => u.name === 'st');
   if (st && st.g > 0) return { qty: Math.max(1, Math.ceil(grams / st.g - 0.05)), unit: 'st' };
-  const dl = units.find((u) => u.name === 'dl')?.g ?? (units.find((u) => u.name === 'glas')?.g ?? 0) / 2;
+  const dl = gramsPerDl(units);
   if (dl >= 95 && dl <= 115) {
     const dls = grams / dl;
     return dls >= 10 ? { qty: Math.ceil(dls / 2.5) / 4, unit: 'l' } : { qty: Math.ceil(dls - 0.05), unit: 'dl' };

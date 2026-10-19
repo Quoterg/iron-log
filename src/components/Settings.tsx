@@ -9,6 +9,10 @@ import { ts } from '../lib/strings-sync';
 import { setTheme, themeChoice } from '../lib/theme';
 import { tg } from '../lib/strings-suggest';
 import { tc } from '../lib/strings-checkin';
+import { tsh } from '../lib/strings-shop';
+import { fmtMonth, TYPICAL_COLLECTED, TYPICAL_MONTH } from '../lib/typical-prices';
+import { ensurePriceBook } from '../lib/cost';
+import { APP_VERSION } from '../lib/version';
 
 /** Loaded lazily (see app.tsx): not needed for the first screen. */
 export default function Settings() {
@@ -21,6 +25,7 @@ export default function Settings() {
       <SavedMealsCard />
       <SuggestCard />
       <CheckinCard />
+      <CostsCard />
       <General />
       <SyncCard />
       <YourData />
@@ -162,6 +167,29 @@ function CheckinCard() {
   );
 }
 
+/** Food costs (opt-in, M33): typical prices where the user typed none. */
+function CostsCard() {
+  return (
+    <section class="card form">
+      <h2>{tsh('costsTitle')}</h2>
+      <label class="check">
+        <input
+          type="checkbox"
+          checked={!!settings.value.costs}
+          onChange={(e) => {
+            const on = (e.currentTarget as HTMLInputElement).checked;
+            void updateSettings({ costs: on });
+            if (on) ensurePriceBook(); // loaded (and cached for offline use) now
+          }}
+        />
+        {tsh('costsToggle')}
+      </label>
+      <p class="muted small">{tsh('costsNote')}</p>
+      <p class="muted small">{tsh('costsSource').replace('{date}', TYPICAL_COLLECTED).replace('{month}', fmtMonth(TYPICAL_MONTH))}</p>
+    </section>
+  );
+}
+
 function General() {
   const s = settings.value;
   return (
@@ -194,6 +222,12 @@ function General() {
       <p class="muted small">
         {t('privacy')} <a href={lang.value === 'sv' ? 'privacy.html' : 'privacy.html#en'}>{t('privacyPolicy')}</a> ·{' '}
         <a href={lang.value === 'sv' ? 'about.html' : 'about.html#en'}>{t('aboutApp')}</a>
+      </p>
+      <p class="muted small">
+        Iron Log {APP_VERSION} ·{' '}
+        <button type="button" class="link inline" onClick={() => open({ kind: 'whatsnew' })}>
+          {t('whatsNew')}
+        </button>
       </p>
       <p class="muted small">{t('attribution')}</p>
       <fieldset class="sources">

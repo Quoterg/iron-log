@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BackupError, makeBackup, parseBackup, toCsv } from './backup';
-import type { AllData } from './db';
+import { SETTINGS_VERSION, type AllData } from './db';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
 
 const data: AllData = {
@@ -27,9 +27,10 @@ const data: AllData = {
   days: [{ date: '2026-10-08', updatedAt: 5 }],
   shopping: [
     { id: 's1', foodRef: 'slv:1', grams: 300, updatedAt: 6 },
-    { id: 's2', text: 'Tandkräm', checked: true, updatedAt: 7 },
+    { id: 's2', text: 'Tandkräm', checked: true, kr: 25, updatedAt: 7 },
   ],
-  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: 2, adaptive: true, goal: 'lose', pace: 0.5 },
+  prices: [{ foodRef: 'slv:1', krPerKg: 21.33, updatedAt: 8 }],
+  settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: { iron: { min: 12 } }, version: SETTINGS_VERSION, adaptive: true, goal: 'lose', pace: 0.5, costs: true },
 };
 
 describe('backup', () => {
@@ -59,6 +60,16 @@ describe('backup', () => {
     expect(parseBackup(text({})).customFoods[0].supplement).toEqual({ unit: 'kapsel', perDay: 2 });
     expect(() => parseBackup(text({ supplement: { unit: '', perDay: 1 } }))).toThrow(BackupError);
     expect(() => parseBackup(text({ supplement: { unit: 'st', perDay: -1 } }))).toThrow(BackupError);
+  });
+
+  it('refuses invalid prices; drops an invalid typed line price', () => {
+    const parse = (extra: object) => parseBackup(JSON.stringify({ ...makeBackup(data), ...extra }));
+    for (const krPerKg of [-1, 0, 'x', NaN, 1e5]) {
+      expect(() => parse({ prices: [{ foodRef: 'slv:1', krPerKg, updatedAt: 1 }] }), String(krPerKg)).toThrow(BackupError);
+    }
+    for (const kr of [-5, 'x', 1e5]) {
+      expect(parse({ shopping: [{ id: 'a', text: 'Tandkräm', kr, updatedAt: 1 }] }).shopping![0].kr, String(kr)).toBeUndefined();
+    }
   });
 
   it('keeps a whole shopping list (never cut silently); refuses only absurd sizes and invalid items', () => {

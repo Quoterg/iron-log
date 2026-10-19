@@ -53,6 +53,19 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await page.locator('.meal .entry').first().click();
     await expect(page.getByLabel('Måltid')).toBeVisible();
   },
+  'diary with food cost': async (page) => {
+    await tab(page, 'Inställningar');
+    await page.getByLabel('Visa uppskattade priser (typpriser)').check();
+    await tab(page, 'Dagbok');
+    await SCREENS['food amount'](page);
+    await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
+    await expect(page.locator('.day-cost')).toBeVisible();
+  },
+  'price editor (from the diary)': async (page) => {
+    await SCREENS['diary with food cost'](page);
+    await page.locator('.meal button.cost').first().click();
+    await expect(dialog(page).getByLabel('Jämförpris')).toBeVisible();
+  },
   'custom food editor': async (page) => {
     await page.locator('.meal').first().getByRole('button', { name: /Lägg till/ }).click();
     await page.getByPlaceholder(/Sök livsmedel/).fill('Min gröt');
@@ -125,6 +138,11 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await dialog(page).getByRole('button', { name: 'Lägg till', exact: true }).click();
     await dialog(page).locator('.shop-item').first().getByRole('checkbox').check();
     await expect(dialog(page).getByRole('heading', { name: 'Övrigt' })).toBeVisible();
+  },
+  "what's new": async (page) => {
+    await tab(page, 'Inställningar');
+    await page.getByRole('button', { name: 'Nyheter' }).click();
+    await expect(dialog(page).getByRole('heading', { name: /^Nytt i / }).first()).toBeVisible();
   },
   'weekly check-in': async (page) => {
     await tab(page, 'Inställningar');

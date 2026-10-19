@@ -4,6 +4,8 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Started by the price update (prices.yml): a PR opened by the workflow token starts no CI itself.
+  workflow_dispatch:
 
 permissions:
   contents: read

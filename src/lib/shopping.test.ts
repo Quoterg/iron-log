@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addTo, expand, sectionOf, shopAmount, toText, type ShopItem } from './shopping';
+import { addTo, costList, expand, krPerKg, lineCost, sectionOf, shopAmount, toText, type ShopItem } from './shopping';
 import type { StoredRecipe } from './recipes';
 
 describe('shopping list', () => {
@@ -54,6 +54,59 @@ describe('shopping list', () => {
     expect(shopAmount(37)).toEqual({ qty: 40, unit: 'g' });
     expect(shopAmount(260)).toEqual({ qty: 300, unit: 'g' });
     expect(shopAmount(1230)).toEqual({ qty: 1.3, unit: 'kg' });
+  });
+
+  it('turns the shelf comparison price into kr/kg (kg, l via density, st via piece weight)', () => {
+    expect(krPerKg(32, 'kg')).toBe(32);
+    expect(krPerKg(15, 'l', [{ name: 'dl', g: 103 }])).toBeCloseTo(14.56); // milk: 1 l ≈ 1.03 kg
+    expect(krPerKg(15, 'l')).toBe(15); // no density known: 1 l ≈ 1 kg
+    expect(krPerKg(15, 'l', [{ name: 'glas', g: 206 }])).toBeCloseTo(14.56); // only a glass (2 dl): same density
+    expect(krPerKg(1e5, 'kg')).toBeNull(); // over the limit: a typo
+    expect(krPerKg(3.5, 'st', [{ name: 'st', g: 55 }])).toBeCloseTo(63.64); // eggs
+    expect(krPerKg(3.5, 'st')).toBeNull(); // no piece weight known
+    expect(krPerKg(0, 'kg')).toBeNull();
+  });
+
+  it('costs lines from typed prices or food prices, totals the list and sorts the biggest first', () => {
+    const prices = new Map([['slv:chicken', { foodRef: 'slv:chicken', krPerKg: 120, updatedAt: 1 }], ['slv:oats', { foodRef: 'slv:oats', krPerKg: 20, updatedAt: 1 }]]);
+    const items: ShopItem[] = [
+      { id: 'a', foodRef: 'slv:oats', grams: 500, updatedAt: 1 },
+      { id: 'b', foodRef: 'slv:chicken', grams: 800, updatedAt: 1 },
+      { id: 'c', text: 'Tandkräm', kr: 25, updatedAt: 1 },
+      { id: 'd', foodRef: 'slv:milk', grams: 1000, updatedAt: 1 },
+    ];
+    expect(lineCost(items[1], prices)).toEqual({ kr: 96, estimated: true });
+    expect(lineCost(items[2], prices)).toEqual({ kr: 25, estimated: false });
+    expect(lineCost(items[3], prices)).toBeNull();
+    const list = costList(items, prices);
+    expect([list.total, list.missing]).toEqual([131, 1]);
+    expect(list.ranked.map((x) => x.item.id)).toEqual(['b', 'c', 'a', 'd']);
+    expect(list.ranked[0].share).toBeCloseTo(96 / 131);
+    // Unrounded per line: ten 5 g spice lines at 200 kr/kg add up to 10 kr, not 10 × round(1).
+    const spice = new Map([['slv:s', { foodRef: 'slv:s', krPerKg: 200, updatedAt: 1 }]]);
+    const lines = Array.from({ length: 10 }, (_, k): ShopItem => ({ id: `s${k}`, foodRef: 'slv:s', grams: 5, updatedAt: 1 }));
+    expect(costList(lines, spice).total).toBeCloseTo(10);
+  });
+
+  it('typical prices (M33) price lines without an own price, marked as typical; own prices win', () => {
+    const items: ShopItem[] = [
+      { id: 'a', foodRef: 'slv:a', grams: 500, updatedAt: 1 },
+      { id: 'b', foodRef: 'slv:b', grams: 200, updatedAt: 1 },
+      { id: 'c', foodRef: 'slv:c', grams: 100, updatedAt: 1 },
+      { id: 'd', text: 'Tandkräm', kr: 25, updatedAt: 1 },
+    ];
+    const own = new Map([['slv:a', { foodRef: 'slv:a', krPerKg: 20, updatedAt: 1 }]]);
+    const typical = new Map([
+      ['slv:a', 30],
+      ['slv:b', 50],
+    ]);
+    expect(lineCost(items[0], own, typical)).toEqual({ kr: 10, estimated: true });
+    expect(lineCost(items[1], own, typical)).toEqual({ kr: 10, estimated: true, typical: true });
+    expect(lineCost(items[2], own, typical)).toBeNull();
+    const list = costList(items, own, typical);
+    expect([list.total, list.typicalKr, list.missing]).toEqual([45, 10, 1]);
+    // Off (no table): as before.
+    expect(costList(items, own)).toMatchObject({ total: 35, typicalKr: 0, missing: 2 });
   });
 
   it('shares as plain text, sections with items only', () => {

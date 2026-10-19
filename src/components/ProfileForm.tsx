@@ -2,9 +2,16 @@ import { fmt, parseNum, t } from '../lib/i18n';
 import {
   defaultKcal,
   DEFAULT_PAL,
+  allowedPaces,
   energyNeed,
+  goalTarget,
+  GOALS,
+  minIntake,
+  noGoal,
+  paceFor,
   PAL_LEVELS,
   withEnergy,
+  type Goal,
   type Profile,
   type Sex,
   type Status,
@@ -12,6 +19,8 @@ import {
 import { lang as langSignal } from '../lib/i18n';
 import { open } from '../nav';
 import { settings, updateSettings } from '../state';
+import { te } from '../lib/strings-energy';
+import { GOAL_LABEL } from './AdaptiveEnergy';
 
 const lang = () => langSignal.value;
 
@@ -26,8 +35,14 @@ const PAL_LABEL: Record<number, 'palSedentary' | 'palLight' | 'palModerate' | 'p
 /** Body data → NNR 2023 targets for age band, pregnancy/lactation, and an energy estimate. */
 export function ProfileForm() {
   const p = settings.value.profile;
-  const save = (patch: Partial<Profile>) => void updateSettings({ profile: withEnergy({ ...p, ...patch }) });
+  const s = settings.value;
+  const goal = s.goal ?? 'maintain';
+  const save = (patch: Partial<Profile>) => void updateSettings({ profile: withEnergy({ ...p, ...patch }, goal, s.pace) });
+  // The goal (M35) sets the automatic target too: the need ± the pace's energy.
+  const setGoal = (g: Goal, pace = s.pace) => void updateSettings({ goal: g, pace, profile: withEnergy(p, g, pace) });
   const estimate = energyNeed(p);
+  const pace = paceFor(p, s.pace);
+  const goalKcal = estimate && goal !== 'maintain' && !noGoal(p) ? goalTarget(estimate, goal, pace, minIntake(p)) : null;
 
   const pregnant = p.sex === 'female' && (p.status ?? 'none').startsWith('pregnant');
   const shown = (key: 'age' | 'weightKg' | 'heightCm' | 'bodyFatPct', decimals: boolean) =>
@@ -75,6 +90,14 @@ export function ProfileForm() {
         <div class="notice" role="status">
           <p class="small">{t('energyNotice')}</p>
           <button type="button" class="btn small" onClick={() => void updateSettings({ energyNotice: false })}>
+            {t('ok')}
+          </button>
+        </div>
+      )}
+      {settings.value.goalNotice && (
+        <div class="notice" role="status">
+          <p class="small">{te('goalNotice').replace('{kcal}', fmt(p.kcal))}</p>
+          <button type="button" class="btn small" onClick={() => void updateSettings({ goalNotice: false })}>
             {t('ok')}
           </button>
         </div>
@@ -133,6 +156,34 @@ export function ProfileForm() {
           )}
         </>
       )}
+      {noGoal(p) ? (
+        <p class="muted small">{te('adaptiveNoGoal')}</p>
+      ) : (
+        <div class="grid2">
+          <label>
+            {te('goal')}
+            <select value={goal} onChange={(e) => setGoal((e.currentTarget as HTMLSelectElement).value as Goal)}>
+              {GOALS.map((g) => (
+                <option key={g} value={g}>
+                  {te(GOAL_LABEL[g])}
+                </option>
+              ))}
+            </select>
+          </label>
+          {goal !== 'maintain' && (
+            <label>
+              {te('pace')}
+              <select value={String(pace)} onChange={(e) => setGoal(goal, Number((e.currentTarget as HTMLSelectElement).value))}>
+                {allowedPaces(p.weightKg).map((x) => (
+                  <option key={x} value={String(x)}>
+                    {te('paceOption').replace('{kg}', fmt(x, 2))}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
+      )}
       <label class="check">
         <input
           type="checkbox"
@@ -163,9 +214,19 @@ export function ProfileForm() {
       </label>
       {estimate && !p.kcalAuto && (
         <p class="muted small">
-          {t('kcalEstimate')}: {fmt(estimate)} kcal
+          {t('kcalEstimate')}: {fmt(goalKcal?.kcal ?? estimate)} kcal
         </p>
       )}
+      {goalKcal && (
+        <p class="muted small">
+          {te('goalFormula')
+            .replace('{need}', fmt(estimate!))
+            .replace('{delta}', `${goal === 'lose' ? '−' : '+'}${fmt(Math.round((pace * 7700) / 7))}`)
+            .replace('{kg}', fmt(pace, 2))}
+        </p>
+      )}
+      {goalKcal?.floored && <p class="small warn">{te('adaptiveFloored').replace('{kcal}', fmt(goalKcal.kcal))}</p>}
+      {s.adaptive && s.adaptiveFollow && <p class="muted small">{te('followActive')}</p>}
       {estimate && <p class="muted small">{p.bodyFatPct != null && p.weightKg ? t('formulaKatch') : t('formulaMifflin')}</p>}
       <label class="check">
         <input

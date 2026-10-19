@@ -7,8 +7,9 @@ import type { BodyEntry } from './body';
 import { padVector, type StoredRecipe } from './recipes';
 import { MAX_TEMPLATE_ITEMS, MAX_TEMPLATE_NAME, type MealTemplate, type TemplateItem } from './templates';
 import { AMOUNT_MEMORY, type LoggedAmount } from './servings';
-import { GOALS, PACES, type Goal } from './adaptive';
-import { MAX_SHOP_ITEMS, type ShopItem } from './shopping';
+import { GOALS, PACES, type Goal } from './targets';
+import { MAX_PRICE, MAX_SHOP_ITEMS, type FoodPrice, type ShopItem } from './shopping';
+import { CHAIN_IDS } from './stores';
 import { normalizeDays, SUPPLEMENT_TIMES, type SupplementTime } from './supplements';
 import { energyNeed, normalizeMacroPct, normalizeOverrides, snapPal } from './targets';
 import { scale } from './totals';
@@ -102,6 +103,7 @@ function offFood(x: unknown): OffFood {
     x.per100g.every((v) => v === null || (isNum(v) && v >= 0)) && isNum(x.fetchedAt)
   ) {
     const f: OffFood = { ref: x.ref, sv: x.sv, en: x.en, per100g: x.per100g, fetchedAt: x.fetchedAt };
+    if (isStr(x.terms, 300)) f.terms = x.terms;
     if (x.units !== undefined) {
       const units = servingList(x.units);
       if (!units) throw new BackupError('offFood');
@@ -212,9 +214,17 @@ function shopItem(x: unknown): ShopItem {
     } else if (isStr(x.text, 200) && x.text.trim() !== '') item.text = x.text.trim();
     else throw new BackupError('shopping');
     if (x.checked === true) item.checked = true;
+    if (isNum(x.kr) && x.kr >= 0 && x.kr < MAX_PRICE) item.kr = x.kr;
     return item;
   }
   throw new BackupError('shopping');
+}
+
+function price(x: unknown): FoodPrice {
+  if (isObj(x) && isStr(x.foodRef, 200) && isNum(x.krPerKg) && x.krPerKg > 0 && x.krPerKg < MAX_PRICE && isNum(x.updatedAt)) {
+    return { foodRef: x.foodRef, krPerKg: x.krPerKg, updatedAt: x.updatedAt };
+  }
+  throw new BackupError('price');
 }
 
 function dayMark(x: unknown): DayMark {
@@ -290,7 +300,16 @@ function settings(x: unknown): Settings | undefined {
   if (x.suggestions === true) out.suggestions = true;
   if (x.whatIfOff === true) out.whatIfOff = true;
   if (x.checkin === true) out.checkin = true;
+  if (x.costs === true) out.costs = true;
+  if (x.adaptiveFollow === true) out.adaptiveFollow = true;
+  if (typeof x.followWeek === 'string' && /^\d{4}-W\d{2}$/.test(x.followWeek)) out.followWeek = x.followWeek;
+  const fn = x.followNote as { week?: unknown; from?: unknown; to?: unknown } | undefined;
+  if (fn && typeof fn.week === 'string' && /^\d{4}-W\d{2}$/.test(fn.week) && inRange(fn.from, 800, 6000) && inRange(fn.to, 800, 6000)) {
+    out.followNote = { week: fn.week, from: fn.from as number, to: fn.to as number };
+  }
   if (typeof x.checkinSeen === 'string' && /^\d{4}-W\d{2}$/.test(x.checkinSeen)) out.checkinSeen = x.checkinSeen;
+  // Known chains only (an empty choice is a choice: no offer links).
+  if (Array.isArray(x.chains)) out.chains = CHAIN_IDS.filter((id) => (x.chains as unknown[]).includes(id));
   if (Array.isArray(x.sources)) {
     const src = (['slv', 'usda'] as const).filter((s) => (x.sources as unknown[]).includes(s));
     if (src.length) out.sources = src;
@@ -312,6 +331,7 @@ export const SYNC_VALIDATORS: Record<SyncStore, (x: unknown) => unknown> = {
   templates: template,
   days: dayMark,
   shopping: shopItem,
+  prices: price,
   kv: (x) => {
     const s = settings(x);
     if (!s) throw new BackupError('settings');
@@ -347,6 +367,7 @@ export function parseBackup(text: string): AllData {
     water: list('water').map(water),
     templates: list('templates').map(template),
     days: list('days').map(dayMark),
+    prices: list('prices').map(price),
     // The app keeps lists to MAX_SHOP_ITEMS; only absurd sizes are refused (never silently cut).
     shopping: (() => {
       const items = list('shopping');

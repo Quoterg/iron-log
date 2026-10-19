@@ -4,7 +4,8 @@ import { fmt, nutrientName, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
 import { averagePerDay, coverage, dailyTotals, gaps, knownNutrients, MIN_COVERAGE, streak } from '../lib/report';
 import { open } from '../nav';
-import { date, dayTotals, ensureFoods, entries as dayEntries, foods, periodCache, settings, targets } from '../state';
+import { date, dayTotals, ensureFoods, entries as dayEntries, foods, periodCache, recipes, settings, supplementRefs, targets } from '../state';
+import { ensurePriceBook, priceBook } from '../lib/cost';
 import { lazyView } from '../lazy';
 import { NutrientGroups } from './NutrientGroups';
 
@@ -18,7 +19,7 @@ type Period = (typeof PERIODS)[number];
  * Nutrients for the selected day, or the average per logged day over the last 7 / 30 days
  * (ending on the selected day), with gaps vs. targets. Tap a nutrient for its top foods.
  */
-export function Nutrients() {
+export default function Nutrients() {
   const [period, setPeriod] = useState<Period>(1);
   const [periodEntries, setPeriodEntries] = useState<Entry[] | null>(null);
   const [days, setDays] = useState<number | null>(null);
@@ -63,6 +64,14 @@ export function Nutrients() {
     [report, targets.value],
   );
   const label = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
+  // Food cost over the period (M38, with Matkostnad on): per day, per week, per 30 days.
+  const costsOn = !!settings.value.costs;
+  useEffect(() => void (costsOn && ensurePriceBook()), [costsOn]);
+  const book = costsOn && period !== 1 ? priceBook.value : null;
+  const cost = useMemo(
+    () => (book && periodEntries ? book.period(periodEntries.filter((e) => !supplementRefs.value.has(e.foodRef)), recipes.value) : null),
+    [book, periodEntries, recipes.value, supplementRefs.value],
+  );
 
   return (
     <>
@@ -79,6 +88,7 @@ export function Nutrients() {
           {t('averageNote').replace('{n}', String(perDay.size)).replace('{d}', String(period))}
         </p>
       )}
+      {book && cost && <p class="small period-cost">{book.periodText(cost, period)}</p>}
       {g && (g.low.length > 0 || g.high.length > 0) && (
         <section class="card">
           <h2>{t('insights')}</h2>

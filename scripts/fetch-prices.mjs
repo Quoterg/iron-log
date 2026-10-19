@@ -1,0 +1,110 @@
+// Downloads the inputs of the typical-price table (M33) into data/raw/prices/:
+// - open-prices-sek.json: every SEK price on Open Food Facts' Open Prices (ODbL), slimmed to what
+//   build-prices.mjs uses (product categories and pack size, store, date);
+// - scb-kpi.json: SCB's monthly consumer price index per food and drink group (COICOP 01.1, 01.2,
+//   02.1; CC0).
+// - slv-ravaror.json: Livsmedelsverket's foods (Swedish name), each with its raw commodities (share
+//   and raw-weight factor, used to price cooked foods and dishes) and EuroFIR group (bröd, godis,
+//   maträtter …). The commodities rarely change: fetched only for new foods, or all with
+//   --refresh-slv (~5 200 requests).
+// Usage: node scripts/fetch-prices.mjs [--refresh-slv]
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+
+const OUT = 'data/raw/prices';
+await mkdir(OUT, { recursive: true });
+
+const SLV = 'https://dataportal.livsmedelsverket.se/livsmedel/api/v1';
+const RAVAROR = `${OUT}/slv-ravaror.json`;
+let slv = {};
+if (!process.argv.includes('--refresh-slv')) {
+  try {
+    slv = JSON.parse(await readFile(RAVAROR, 'utf8'));
+  } catch {
+    // first run
+  }
+}
+const list = (await json(`${SLV}/livsmedel?offset=0&limit=5000&sprak=1`)).livsmedel;
+const todo = list.filter((f) => !slv[f.nummer]?.raw);
+let next = 0;
+const worker = async () => {
+  while (next < todo.length) {
+    const f = todo[next++];
+    const rows = await json(`${SLV}/livsmedel/${f.nummer}/ravaror?sprak=1`);
+    const classes = await json(`${SLV}/livsmedel/${f.nummer}/klassificeringar?sprak=1`);
+    slv[f.nummer] = {
+      group: classes.find((c) => c.fasett.startsWith('A '))?.namn ?? null,
+      // [FoodEx2 code, name, cooked?, share %, raw grams per 100 g of the food]
+      raw: rows.map((r) => [r.foodEx2, r.namn.trim(), r.tillagning === 'Tillagad', r.andel, r.omraknadTillRa]),
+    };
+    if (next % 200 === 0) process.stdout.write(`\rLivsmedelsverket: ${next}/${todo.length}`);
+  }
+};
+await Promise.all(Array.from({ length: 4 }, worker));
+const current = new Set(list.map((f) => String(f.nummer)));
+for (const id of Object.keys(slv)) if (!current.has(id)) delete slv[id]; // removed from the database
+for (const f of list) slv[f.nummer].sv = f.namn;
+await writeFile(RAVAROR, JSON.stringify(slv));
+console.log(`\nLivsmedelsverket: ${list.length} foods (${todo.length} fetched)`);
+
+async function json(url, init) {
+  for (let attempt = 1; ; attempt++) {
+    const res = await fetch(url, init);
+    if (res.ok) return res.json();
+    if (attempt === 4) throw new Error(`${res.status} ${url}`);
+    await new Promise((r) => setTimeout(r, 2000 * attempt)); // both APIs rate-limit
+  }
+}
+
+// Open Prices: 100 per page (the API's maximum).
+const prices = [];
+for (let page = 1, pages = 1; page <= pages; page++) {
+  const d = await json(`https://prices.openfoodfacts.org/api/v1/prices?currency=SEK&size=100&page=${page}&order_by=id`);
+  pages = d.pages;
+  for (const p of d.items) {
+    prices.push({
+      id: p.id,
+      date: p.date,
+      price: p.price,
+      per: p.price_per, // for category prices: KILOGRAM / UNIT
+      discounted: p.price_is_discounted,
+      code: p.product_code,
+      category: p.category_tag, // prices without a barcode (loose fruit, vegetables …)
+      name: p.product?.product_name ?? p.product_name,
+      qty: p.product?.product_quantity,
+      unit: p.product?.product_quantity_unit,
+      categories: p.product?.categories_tags ?? [],
+      store: p.location?.osm_brand ?? p.location?.osm_name ?? null,
+      location: p.location_id,
+      country: p.location?.osm_address_country_code ?? null,
+    });
+  }
+  process.stdout.write(`\rOpen Prices: page ${page}/${pages}`);
+}
+console.log(`\nOpen Prices: ${prices.length} SEK prices`);
+await writeFile(`${OUT}/open-prices-sek.json`, JSON.stringify(prices));
+
+// SCB: index (2020=100) per food group, the last 36 months.
+const TABLE = 'https://api.scb.se/OV0104/v1/doris/sv/ssd/PR/PR0101/PR0101A/KPI2020COICOPM';
+const meta = await json(TABLE);
+const groups = meta.variables[0].values.filter((v) => /^(01\.1|01\.2|02\.1)(\.|$)/.test(v)); // food, drinks
+const d = await json(TABLE, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    query: [
+      { code: 'VaruTjanstegrupp', selection: { filter: 'item', values: groups } },
+      { code: 'ContentsCode', selection: { filter: 'item', values: ['0000080H'] } },
+      { code: 'Tid', selection: { filter: 'top', values: ['36'] } },
+    ],
+    response: { format: 'json' },
+  }),
+});
+const names = Object.fromEntries(meta.variables[0].values.map((v, i) => [v, meta.variables[0].valueTexts[i]]));
+const index = {};
+for (const r of d.data) {
+  const [group, month] = r.key;
+  const v = Number(r.values[0]);
+  if (Number.isFinite(v)) ((index[group] ??= { name: names[group], months: {} }).months[month] = v);
+}
+console.log(`SCB: ${Object.keys(index).length} food groups`);
+await writeFile(`${OUT}/scb-kpi.json`, JSON.stringify(index, null, 1));

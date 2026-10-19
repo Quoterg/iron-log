@@ -1,0 +1,2037 @@
+{
+ "items": {
+  "mellanmjolk": {
+   "kr": 13.3,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Mellanmjölk Längre Hållbarhet 1,5%",
+    "Mellanmjölk Längre Hållbarhet 1,5%",
+    "Mellanmjölk 1,5%"
+   ]
+  },
+  "standardmjolk": {
+   "kr": 13.3,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Mjölk Längre Hållbarhet 3%",
+    "Mjölk Längre Hållbarhet 3%",
+    "Mjölk 3%"
+   ]
+  },
+  "lattmjolk": {
+   "kr": 11.9,
+   "n": 5,
+   "date": "2026-10-13",
+   "examples": [
+    "Lättmjölk Längre Hållbarhet 0,5%",
+    "Lättmjölk Ekologisk 0,5%",
+    "Lättmjölk Färsk 0,5%"
+   ]
+  },
+  "filmjolk": {
+   "kr": 15.3,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Filmjölk Original 3%",
+    "Fil Original Naturell 3%",
+    "A-fil 3%"
+   ]
+  },
+  "yoghurt": {
+   "kr": 16.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Naturell Mild Yoghurt 3%",
+    "Naturell Mild Yoghurt 3%",
+    "Lätt Naturell Mild Yoghurt 0,5%"
+   ]
+  },
+  "yoghurt-smak": {
+   "kr": 21.9,
+   "n": 11,
+   "date": "2026-10-13",
+   "examples": [
+    "Jordgubb Smultron Original Yoghurt 2%",
+    "Jordgubb Familjefavoriter Yoghurt 1,8%",
+    "Jordgubb Mild Yoghurt Mindre Socker 1,5%"
+   ]
+  },
+  "kvarg": {
+   "kr": 44.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Vanilj Mild Kvarg 0,2%",
+    "Vanilj Mild Kvarg 0,2%",
+    "Persika Passio Mild Kvarg 0,2%"
+   ]
+  },
+  "grekisk": {
+   "kr": 34.4,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Turkisk Yoghurt 10%",
+    "Turkisk Yoghurt 10%",
+    "Turkisk Yoghurt 3,5%"
+   ]
+  },
+  "vispgradde": {
+   "kr": 61.3,
+   "n": 10,
+   "date": "2026-10-13",
+   "examples": [
+    "Vispgrädde Lång Hållbarhet 36%",
+    "Vispgrädde 40%",
+    "Vispgrädde 40%"
+   ]
+  },
+  "matlagningsgradde": {
+   "kr": 42.8,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Matgrädde 13%",
+    "Matgrädde Kokbar 13%",
+    "Matlagnings Grädde Lång Hållbarhet 15%"
+   ]
+  },
+  "cremefraiche": {
+   "kr": 56.7,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Crème Fraiche 32%",
+    "Crème Fraiche 32%",
+    "Crème Fraiche Lätt 13%"
+   ]
+  },
+  "graddfil": {
+   "kr": 49,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Gräddfil 12'%",
+    "Gräddfil 12%",
+    "Gräddfil 12%"
+   ]
+  },
+  "hardost": {
+   "kr": 106.9,
+   "n": 11,
+   "date": "2026-10-13",
+   "examples": [
+    "Hushållsost 26%",
+    "Hushållsost 26%",
+    "Hushållsost Götene 26%"
+   ]
+  },
+  "parmesan": {
+   "kr": 369.9,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Parmigiano Reggiano 12mån",
+    "Parmigiano Reggiano 22månader",
+    "Parmigiano Reggiano 22månader"
+   ]
+  },
+  "farskost": {
+   "kr": 103.3,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Naturell Färskost 23%",
+    "Naturell Färskost 23%",
+    "Naturell Light Färskost 4%"
+   ]
+  },
+  "keso": {
+   "kr": 57.8,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Cottage Cheese 0,4%",
+    "Keso Naturell 4%",
+    "Keso Supermini Naturell 0,2%"
+   ]
+  },
+  "ricotta": {
+   "kr": 115.6,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Ricotta Mild Färskost 9%",
+    "Ricotta 12%",
+    "Ravioli Ricotta E Spinaci Färsk Pasta"
+   ]
+  },
+  "mozzarella": {
+   "kr": 151.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Mozzarella",
+    "Mozzarella",
+    "Mozzarella Laktosfri"
+   ]
+  },
+  "halloumi": {
+   "kr": 169.5,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Halloumi 26%",
+    "Halloumi Laktosfri 24%",
+    "Halloumi Burgare 24%"
+   ]
+  },
+  "fetaost": {
+   "kr": 162.3,
+   "n": 10,
+   "date": "2026-10-13",
+   "examples": [
+    "Feta Traditionell Smak 23%",
+    "Feta Laktosfri 23%",
+    "Fetaost"
+   ]
+  },
+  "mjukost": {
+   "kr": 109.8,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Hot Jalapeno Mjukost 16%",
+    "C'est La Brie Mjukost 19%",
+    "Ädelost Mjukost 18%"
+   ]
+  },
+  "brie": {
+   "kr": 173.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Brie 33%",
+    "Brie",
+    "French Brie"
+   ]
+  },
+  "chevre": {
+   "kr": 199.3,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Chèvre Getost",
+    "Chèvre Färsk Getost",
+    "Chèvre 23%"
+   ]
+  },
+  "adelost": {
+   "kr": 232.7,
+   "n": 5,
+   "date": "2026-10-13",
+   "examples": [
+    "Ädelost Mjukost 18%",
+    "Gorgonzola Dop Dolce",
+    "Gorgonzola Cremoso"
+   ]
+  },
+  "mesost": {
+   "kr": 66.3,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Messmör Original 5%",
+    "Messmör 8%",
+    "Mesost Gudbrandsdalen 28%"
+   ]
+  },
+  "smor": {
+   "kr": 109.8,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Smör Normalsaltat 82%",
+    "Smör Normalsaltat 80%",
+    "Smör Normalsaltat 82%"
+   ]
+  },
+  "bregott": {
+   "kr": 107,
+   "n": 11,
+   "date": "2026-10-13",
+   "examples": [
+    "Normalsaltat Smör & Rapsolja 75%",
+    "Extrasaltat Smör & Rapsolja 75%",
+    "Normalsaltat Smör & Rapsolja 75%"
+   ]
+  },
+  "margarin": {
+   "kr": 36.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Margarin Mat & Bak",
+    "Margarin Mat & Bak",
+    "Mat & Bak Margarin 79% Växtbaserat"
+   ]
+  },
+  "agg": {
+   "kr": 59.3,
+   "n": 10,
+   "date": "2026-10-13",
+   "examples": [
+    "Ägg 15p Eko Ekologisk Produktion Medium",
+    "Ägg 10p Eko Ekologisk Produktion Medium/large",
+    "Ägg 6p Frigående Large Eko"
+   ]
+  },
+  "havredryck": {
+   "kr": 17.7,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Havredryck Vegetabilisk 1,5%",
+    "Oat Drink 2,8% Fat Havredryck",
+    "Matcha Strawberry Havredryck 2,8%"
+   ]
+  },
+  "havredryck-choklad": {
+   "kr": 16.6,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Choklad Havredryck 1,5%",
+    "Choklad Havredryck 1,5%",
+    "Choklad Havredryck"
+   ]
+  },
+  "sojadryck": {
+   "kr": 21.9,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Soya No Sugars Sojadryck",
+    "Soya Sojadryck",
+    "Vanilla Soya Sojadryck"
+   ]
+  },
+  "mandeldryck": {
+   "kr": 20.9,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Mandeldryck Utan Tillsatt Socker 1,2%",
+    "Almond No Sugars Mandeldryck",
+    "Almond Roasted Mandeldryck"
+   ]
+  },
+  "havregurt": {
+   "kr": 29.6,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Naturell Havregurt 3%",
+    "Raspberry Havregurt Glutenfri",
+    "Vanilla Soygurt"
+   ]
+  },
+  "havrefraiche": {
+   "kr": 20.4,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Matbas Havre Ekologisk 13%",
+    "Ikaffe Barista Edition Havredryck",
+    "Ikaffe Light Havredryck"
+   ]
+  },
+  "tofu": {
+   "kr": 82.5,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Tofu Fast Naturell Ekologisk",
+    "Naturell Tofu Fast Vegansk",
+    "Tofu Naturell Ekologisk Vegansk"
+   ]
+  },
+  "notfars": {
+   "kr": 139.9,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Nötfärs 12% Sverige",
+    "Nötfärs 12% Sverige",
+    "Nötfärs 5% Sverige"
+   ]
+  },
+  "blandfars": {
+   "kr": 117.4,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Blandfärs 20% Sverige",
+    "Blandfärs 20% Sverige",
+    "Blandfärs 20% Irland/danmark"
+   ]
+  },
+  "notgryt": {
+   "kr": 187.4,
+   "n": 10,
+   "date": "2026-10-13",
+   "examples": [
+    "Högrev Nötkött Irland",
+    "Högrev Irland",
+    "Högrev Bit Sverige"
+   ]
+  },
+  "notdyr": {
+   "kr": 439,
+   "n": 7,
+   "date": "2026-10-13",
+   "examples": [
+    "Ryggbiff i Skivor Sverige",
+    "Ryggbiff Bit Sverige",
+    "Ryggbiff Skivad Utvald Sverige"
+   ]
+  },
+  "kalv": {
+   "kr": 135,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Kalvfärs Fryst",
+    "Kalvfärs 16% Rullpack Sverige",
+    "Kalvfärsbiffar Italienska Fryst/1 Port"
+   ]
+  },
+  "lever": {
+   "kr": 100.6,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Paté Oxlever Hundmat Våt",
+    "Turkey Liver Kalkon & Lever Kattmat Våt",
+    "Turkey Liver Kalkon Lever Hundmat Våt"
+   ]
+  },
+  "flaskfars": {
+   "kr": 76.9,
+   "n": 2,
+   "date": "2026-10-13",
+   "examples": [
+    "Fläskfärs 20% Sverige",
+    "Fläskfärs 20% Sverige"
+   ]
+  },
+  "flaskkarre": {
+   "kr": 117,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Fläskkarré Benfri i Bit Sverige",
+    "Fläskkarré med Ben Skivad Sverige",
+    "Fläskkarré Skivad Utan Ben Sverige"
+   ]
+  },
+  "flaskfile": {
+   "kr": 142.5,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Fläskfilé",
+    "Fläskfilé Vakuumförpackad Sverige",
+    "Fläskfilé Sverige"
+   ]
+  },
+  "sidflask": {
+   "kr": 105,
+   "n": 5,
+   "date": "2026-10-13",
+   "examples": [
+    "Rökt Sidfläsk med Svål Bit",
+    "Sidfläsk Rimmat Bit",
+    "Sidfläsk Bit Sverige"
+   ]
+  },
+  "bacon": {
+   "kr": 103.1,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Skivat Bacon 3-pack",
+    "Bacon Skivat",
+    "Skivat Bacon Originalet"
+   ]
+  },
+  "skinka-palagg": {
+   "kr": 157.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Rökt Skinka Tunna Skivor",
+    "Gourmetskinka Rökt Skivad",
+    "Skinka Basturökt Deliskivor"
+   ]
+  },
+  "lufttorkad": {
+   "kr": 488.1,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Skinka Lufttorkad",
+    "Skinka Lufttorkad Skivad",
+    "Långlagrad Skinka Lufttorkad"
+   ]
+  },
+  "lamm": {
+   "kr": 289,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Lammgrytbitar Fryst Nya Zeeland",
+    "Lammframdel med Ben Fryst Nya Zeeland",
+    "Lammstek med Ben Fryst Nya Zeeland"
+   ]
+  },
+  "vilt": {
+   "kr": 226.7,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Älgfärs Fryst Sverige",
+    "Älgstek Benfri Fryst Sverige",
+    "Älggrytkött Fryst"
+   ]
+  },
+  "kycklingfile": {
+   "kr": 139.7,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Kycklingfilé Svensk Fryst",
+    "Kycklingfilé Fryst",
+    "Kycklingfilé Bröstfilé Sverige"
+   ]
+  },
+  "kycklinglar": {
+   "kr": 137.4,
+   "n": 10,
+   "date": "2026-10-13",
+   "examples": [
+    "Kyckling Lårfilé Färsk Sverige",
+    "Lårfilé Kyckling",
+    "Kyckling Lårfilé Sverige"
+   ]
+  },
+  "kyckling-hel": {
+   "kr": 77.9,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Kyckling Hel Färsk Sverige",
+    "Majskyckling Hel Sverige",
+    "Kyckling Hel Sverige"
+   ]
+  },
+  "kycklingfars": {
+   "kr": 95.8,
+   "n": 2,
+   "date": "2026-10-13",
+   "examples": [
+    "Kycklingfärs Naturell Sverige",
+    "Kycklingfärs Sverige"
+   ]
+  },
+  "anka": {
+   "kr": 254.1,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Ankbröst Barbarie",
+    "Anka Hel Fryst",
+    "Lamm Anka Paté Gourmet Gold Kattmat Våt"
+   ]
+  },
+  "falukorv": {
+   "kr": 49.7,
+   "n": 11,
+   "date": "2026-10-13",
+   "examples": [
+    "Falukorv Ring",
+    "Falukorv",
+    "Falukorv Delikatess"
+   ]
+  },
+  "grillkorv": {
+   "kr": 81.4,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Grillkorv Hög Kötthalt",
+    "Grillkorv med Skinn",
+    "Grillkorv Hots"
+   ]
+  },
+  "kycklingkorv": {
+   "kr": 56.1,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Grillkorv Kyckling",
+    "Kyckling- Chorizo",
+    "Grillkorv Kyckling Tjock"
+   ]
+  },
+  "chorizo": {
+   "kr": 141.4,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Chorizo",
+    "Chorizo",
+    "Chorizo Red Hot"
+   ]
+  },
+  "salami": {
+   "kr": 166,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Salami Milano Deliskivor",
+    "Dansk Salami Klassisk Skivad",
+    "Pepparsalami Skivad"
+   ]
+  },
+  "blodpudding": {
+   "kr": 25.6,
+   "n": 2,
+   "date": "2026-10-13",
+   "examples": [
+    "Blodpudding",
+    "Blodpudding Glutenfri"
+   ]
+  },
+  "leverpastej": {
+   "kr": 64.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Leverpastej Original Bredbar",
+    "Leverpastej Bredbar",
+    "Original Leverpastej 2-pack"
+   ]
+  },
+  "kottbullar": {
+   "kr": 76.7,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Köttbullar Färdiglagade",
+    "Köttbullar",
+    "Köttbullar Delikatess"
+   ]
+  },
+  "kebab": {
+   "kr": 170.3,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Klassisk Kebab",
+    "Big-pack Kebab",
+    "Kebab av Fläskkarré Sverige"
+   ]
+  },
+  "lax": {
+   "kr": 189.1,
+   "n": 5,
+   "date": "2026-10-13",
+   "examples": [
+    "Laxfilé Fryst",
+    "Laxfilé i Bit Refreshed",
+    "Laxfilé 4x125 G 4-pack"
+   ]
+  },
+  "torsk": {
+   "kr": 172.5,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Torskfilé",
+    "Torskfilé Portionbitar Frysta",
+    "Sejfilé"
+   ]
+  },
+  "panerad-fisk": {
+   "kr": 83.9,
+   "n": 9,
+   "date": "2026-10-13",
+   "examples": [
+    "Frasig Firre Panerad Alaska Frysta/4 Port",
+    "Fiskpinnar Frasiga Frysta/15-pack",
+    "Fiskfiléer Frasiga Glutenfria Frysta/4-pack"
+   ]
+  },
+  "tonfisk": {
+   "kr": 146.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Tonfisk Vatten 3x170g",
+    "Tonfisk Vatten",
+    "Tonfisk Vatten 3x80g"
+   ]
+  },
+  "rakor": {
+   "kr": 318,
+   "n": 7,
+   "date": "2026-10-13",
+   "examples": [
+    "Räkor Skalade Frysta",
+    "Räkor Skalade",
+    "Räkor i Lake Handskalade"
+   ]
+  },
+  "rokt-lax": {
+   "kr": 314.8,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Kallrökt Lax Skivad",
+    "Kallrökt Lax Skivad",
+    "Kallrökt Lax"
+   ]
+  },
+  "sill": {
+   "kr": 160.9,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Sill Inlagd",
+    "Inlagd Sill",
+    "Inlagd Sill"
+   ]
+  },
+  "makrill-tomat": {
+   "kr": 111.7,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Makrillfiléer i Tomatsås 3x125g",
+    "Makrillbitar i Tomatsås 3x125g",
+    "Makrillfilé i Tomatsås"
+   ]
+  },
+  "kaviar": {
+   "kr": 114.1,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Kaviar Mild",
+    "Kaviar Original",
+    "Kaviar Original"
+   ]
+  },
+  "fiskbullar": {
+   "kr": 62.8,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Fiskbullar i Hummersås",
+    "Fiskbullar i Dillsås",
+    "Fiskbullar i Buljong"
+   ]
+  },
+  "vetemjol": {
+   "kr": 12.9,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Vetemjöl",
+    "Vetemjöl",
+    "Tipo 00 Siktat Vetemjöl"
+   ]
+  },
+  "grahamsmjol": {
+   "kr": 22.4,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Grahamsmjöl",
+    "Grahamsmjöl Ekologiskt",
+    "Dinkelmjöl Siktat"
+   ]
+  },
+  "ragmjol": {
+   "kr": 13.3,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Rågmjöl Finmalt",
+    "Rågmjöl Grovmalt",
+    "Rågsikt"
+   ]
+  },
+  "havregryn": {
+   "kr": 20,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Havregryn",
+    "Havregryn",
+    "Havregryn"
+   ]
+  },
+  "majsmjol": {
+   "kr": 26.6,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Majsstärkelse",
+    "Majsmjöl Finmalet",
+    "Majsmjöl Grovmalet"
+   ]
+  },
+  "potatismjol": {
+   "kr": 27.8,
+   "n": 1,
+   "date": "2026-10-13",
+   "examples": [
+    "Potatismjöl"
+   ]
+  },
+  "mannagryn": {
+   "kr": 16.5,
+   "n": 2,
+   "date": "2026-10-13",
+   "examples": [
+    "Mannagryn",
+    "Mannagryn"
+   ]
+  },
+  "ris": {
+   "kr": 36.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Jasminris",
+    "Jasminris",
+    "Jasminris"
+   ]
+  },
+  "bulgur": {
+   "kr": 23.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Bulgur av Durumvete",
+    "Bulgur Grov Pilavlik",
+    "Grov Bulgur av Durumvete"
+   ]
+  },
+  "pasta": {
+   "kr": 28.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Fusilli Pasta",
+    "Penne Rigate Pasta",
+    "Mezze Maniche Rigate Pasta"
+   ]
+  },
+  "pasta-fullkorn": {
+   "kr": 31.6,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Fusilli Fullkornpasta",
+    "Conchiglie Fullkornspasta",
+    "Makaroner Fullkornspasta"
+   ]
+  },
+  "pasta-glutenfri": {
+   "kr": 48,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Fusilli Glutenfri",
+    "Spaghetti Glutenfri",
+    "Mafalda Corta Glutenfri Pasta"
+   ]
+  },
+  "pasta-farsk": {
+   "kr": 90.8,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Fettuccine Färsk Pasta",
+    "Pappardelle Färsk Pasta",
+    "Gnocchi Färsk Pasta"
+   ]
+  },
+  "nudlar": {
+   "kr": 109.9,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Buldak Carbonara Nudlar",
+    "Demae Ramen Biff Nudlar",
+    "Demae Ramen Kyckling Nudlar"
+   ]
+  },
+  "formfranska": {
+   "kr": 37.6,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Jättefranska",
+    "Roast'n Toast",
+    "Rostbröd Klassiskt"
+   ]
+  },
+  "rostbrod": {
+   "kr": 58.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Rågbröd Mustigt 6-pack",
+    "Rågbröd Solros & Pumpa 6-pack",
+    "Rågbröd Grovt Surdeg 6-pack"
+   ]
+  },
+  "polarbrod": {
+   "kr": 71.2,
+   "n": 10,
+   "date": "2026-10-13",
+   "examples": [
+    "Tunnbröd 8p",
+    "Tunnbröd Hårt",
+    "Originalet Hönökaka 5p"
+   ]
+  },
+  "glutenfritt-brod": {
+   "kr": 101.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Vita Toast Formbröd Glutenfri Fryst",
+    "Sesam&havssalt Laktos- & Glutenfri 4-pack",
+    "Grova Formbröd Glutenfri Fryst"
+   ]
+  },
+  "tortilla": {
+   "kr": 63.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Tortilla Original Medium 8-pack",
+    "Tortilla Original Medium 8-pack",
+    "Tortilla Original Medium 12-pack"
+   ]
+  },
+  "knackebrod": {
+   "kr": 63,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Husman Knäckebröd",
+    "Sport Knäckebröd",
+    "Delikatess Sesam Knäckebröd"
+   ]
+  },
+  "skorpor": {
+   "kr": 62.3,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Kardemumma Skorpor",
+    "Fullkorns Skorpor",
+    "Kanel Skorpor"
+   ]
+  },
+  "kanelbulle": {
+   "kr": 121.5,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Kanelbulle",
+    "Kanellängd",
+    "Vaniljyoghurt Kanelbulle 2,2%"
+   ]
+  },
+  "kakor": {
+   "kr": 142.4,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Oreo Original Kakor",
+    "Oreo Double Cream Kakor",
+    "Homestyle Chocolate Kakor"
+   ]
+  },
+  "mjuk-kaka": {
+   "kr": 74.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Sockerkaka",
+    "Chocolate Muffins 4-pack",
+    "Blueberry Muffins 4-pack"
+   ]
+  },
+  "frukostflingor": {
+   "kr": 81.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Kalaspuffar",
+    "Red Berries Special K",
+    "Flingor Bluey"
+   ]
+  },
+  "musli": {
+   "kr": 52.4,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Frukt Müsli",
+    "Frukt & Bär Müsli",
+    "Berries Müsli"
+   ]
+  },
+  "gryningsvalling": {
+   "kr": 17.9,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Välling Fullkorn Från 12 Månader",
+    "Välling Fullkorn Från 12 Mån/4-pack",
+    "Välling Multikorn Från 2 År"
+   ]
+  },
+  "pannkaka": {
+   "kr": 67.9,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Pannkakor",
+    "Pannkakor 16-pack Frysta",
+    "Mums Pannkakor"
+   ]
+  },
+  "potatis": {
+   "kr": 18.9,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Potatis Fast Klass 1",
+    "Potatis Fast Klass 1",
+    "Potatis Fast Klass 2"
+   ]
+  },
+  "pommes": {
+   "kr": 31.4,
+   "n": 9,
+   "date": "2026-10-13",
+   "examples": [
+    "Pommes Strips Frysta",
+    "Pommes Frites Räfflade Frysta",
+    "Pommes Frites Fryst"
+   ]
+  },
+  "potatismos-pulver": {
+   "kr": 12.3,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Potatismos 12 Port",
+    "Potatismos Klassiskt 6 Port",
+    "Potatismos 3-pack/12 Port"
+   ]
+  },
+  "sotpotatis": {
+   "kr": 69.2,
+   "n": 7,
+   "date": "2026-10-13",
+   "examples": [
+    "Sötpotatis Klass 1",
+    "Sötpotatis Eko",
+    "Banan Mango Sötpotatis Från 6 Månader"
+   ]
+  },
+  "morot": {
+   "kr": 29.8,
+   "n": 11,
+   "date": "2026-10-13",
+   "examples": [
+    "Morötter Klass 1",
+    "Morötter Klass 1",
+    "Morötter Klass 1"
+   ]
+  },
+  "lok": {
+   "kr": 22,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Lök Gul Klass 1",
+    "Lök Gul i Påse Klass 1",
+    "Lök Gul Eko Klass 1"
+   ]
+  },
+  "tomat": {
+   "kr": 49.9,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Kvisttomat Import Klass 1",
+    "Plommontomater Klass 1",
+    "Tomat Runda Import Klass 1"
+   ]
+  },
+  "gurka": {
+   "kr": 55.3,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Gurka Import Klass 1",
+    "Gurka med Dill",
+    "Gurka Libanesisk"
+   ]
+  },
+  "paprika": {
+   "kr": 87.1,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Paprika Röd Klass 1",
+    "Paprika Mix Klass 1",
+    "Paprika Gul Klass 1"
+   ]
+  },
+  "sallad": {
+   "kr": 230.8,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Ruccola Ekologisk Klass 1",
+    "Ruccola Klass 1",
+    "Småbladsmix Ruccola Röd/grön Klass 1"
+   ]
+  },
+  "kal": {
+   "kr": 34.8,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Vitkål Sverige Klass 1",
+    "Vitkål Strimlad Klass 1",
+    "Kålmix Vitkål&morot Klass 1"
+   ]
+  },
+  "broccoli": {
+   "kr": 32.4,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Broccoli Klass 1",
+    "Blomkål Ofilmad Klass 1",
+    "Blomkål Lila"
+   ]
+  },
+  "frysta-gronsaker": {
+   "kr": 27.3,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Grönsaker Sommar Frysta",
+    "Broccoli Buketter Frysta",
+    "Ärter Majs Paprika Fryst"
+   ]
+  },
+  "champinjon": {
+   "kr": 69.9,
+   "n": 11,
+   "date": "2026-10-13",
+   "examples": [
+    "Champinjoner Klass 1",
+    "Champinjoner Klass 1",
+    "Champinjoner Skivade"
+   ]
+  },
+  "avokado": {
+   "kr": 93.6,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Avokado 3-pack Mogen Klass 1",
+    "Avokado Klass 1",
+    "Avokado Klass 1"
+   ]
+  },
+  "orter": {
+   "kr": 179,
+   "n": 9,
+   "date": "2026-10-13",
+   "examples": [
+    "Basilika i Kruka Ekologisk",
+    "Thaibasilika i Kruka Ekologisk",
+    "Persilja Blad"
+   ]
+  },
+  "ingefara": {
+   "kr": 216.7,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Ingefära",
+    "Ingefära Eko",
+    "Ingefära Riven"
+   ]
+  },
+  "krossade-tomater": {
+   "kr": 33.1,
+   "n": 11,
+   "date": "2026-10-13",
+   "examples": [
+    "Tomater Finkrossade 3-pack",
+    "Tomater Krossade",
+    "Tomater Krossade"
+   ]
+  },
+  "tomatpure": {
+   "kr": 78.3,
+   "n": 9,
+   "date": "2026-10-13",
+   "examples": [
+    "Tomatpuré",
+    "Tomatpuré Dubbelkoncentrerad",
+    "Tomatpuré"
+   ]
+  },
+  "konserv-gronsaker": {
+   "kr": 55.8,
+   "n": 7,
+   "date": "2026-10-13",
+   "examples": [
+    "Majskorn",
+    "Majs 3-pack",
+    "Majskorn 3-pack"
+   ]
+  },
+  "inlagd-gurka": {
+   "kr": 74.4,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Smörgåsgurka Skivad Från Svenska Gårdar",
+    "Smörgåsgurka Skivad",
+    "Gammaldags Gurka"
+   ]
+  },
+  "oliver": {
+   "kr": 208,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Halkidiki Oliver Utan Kärnor",
+    "Svarta Oliver Spanska Utan Kärnor",
+    "Kalamata Oliver Utan Kärnor"
+   ]
+  },
+  "soltorkad": {
+   "kr": 148.9,
+   "n": 11,
+   "date": "2026-10-13",
+   "examples": [
+    "Soltorkade Tomater",
+    "Tomater Soltorkade Bitar",
+    "Pomodori Secchi Soltorkade Tomater"
+   ]
+  },
+  "bonor-konserv": {
+   "kr": 51.7,
+   "n": 7,
+   "date": "2026-10-13",
+   "examples": [
+    "Kidneybönor Naturella",
+    "Kidneybönor Ekologiska",
+    "Kidneybönor Ekologiska Naturella"
+   ]
+  },
+  "bonor-torkade": {
+   "kr": 38.9,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Röda Linser",
+    "Kidneybönor Röda",
+    "Linser Hela Röda"
+   ]
+  },
+  "bonor-tomatsas": {
+   "kr": 22.8,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Vita Bönor i Tomatsås",
+    "Vita Bönor i Tomatsås",
+    "Vita Bönor i  Tomatsås"
+   ]
+  },
+  "hummus": {
+   "kr": 112.2,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Hummus Original",
+    "Hummus Original",
+    "Hummus Mix Original Chili Soltorkade Tomater"
+   ]
+  },
+  "apple": {
+   "kr": 32.4,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Äpple Royal Gala Klass 1",
+    "Äpple Pink Lady Klass 1",
+    "Äpple Granny Smith Klass 1"
+   ]
+  },
+  "banan": {
+   "kr": 20.9,
+   "n": 2,
+   "date": "2026-10-13",
+   "examples": [
+    "Banan Klass 1",
+    "Banan Eko Klass 1"
+   ]
+  },
+  "tropisk": {
+   "kr": 50.8,
+   "n": 13,
+   "date": "2026-10-13",
+   "examples": [
+    "Mango",
+    "Mango Passionsfrukt Sweet & Sour",
+    "Mango Pineapple Coconut"
+   ]
+  },
+  "vindruvor": {
+   "kr": 69.8,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Druvor Gröna Klass 1",
+    "Druvor Röda Klass 1",
+    "Druvor Mix Kärnfri Klass 1"
+   ]
+  },
+  "bar-farska": {
+   "kr": 239.2,
+   "n": 5,
+   "date": "2026-10-13",
+   "examples": [
+    "Jordgubbar Import Klass 1",
+    "Jordgubbar Klass 1",
+    "Hallon Klass 1"
+   ]
+  },
+  "bar-frysta": {
+   "kr": 117.3,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Stora Blåbär Odlade Frysta",
+    "Blåbär Odlade Fryst",
+    "Blåbär Ekologiska Frysta"
+   ]
+  },
+  "torkad-frukt": {
+   "kr": 88.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Russin Soltorkade",
+    "Russin Soltorkade 6-pack",
+    "Russin Kärnfria"
+   ]
+  },
+  "fruktkonserv": {
+   "kr": 82.1,
+   "n": 5,
+   "date": "2026-10-13",
+   "examples": [
+    "Persikor Halvor",
+    "Ananas Bitar i Egen Juice",
+    "Ananas Skivad i Egen Juice"
+   ]
+  },
+  "appelmos": {
+   "kr": 36.3,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Äppelmos Lågkalori",
+    "Äppelmos Refill",
+    "Äppelmos"
+   ]
+  },
+  "notter": {
+   "kr": 189.7,
+   "n": 9,
+   "date": "2026-10-13",
+   "examples": [
+    "Cashewnötter Rostade & Saltade",
+    "Naturella Cashewnötter",
+    "Cashewnötter Rostade Osaltade"
+   ]
+  },
+  "jordnotter": {
+   "kr": 71.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Jordnötter Rostade & Saltade",
+    "Jordnötter Rostade & Saltade",
+    "Jordnötter Salta"
+   ]
+  },
+  "jordnotssmor": {
+   "kr": 99.7,
+   "n": 9,
+   "date": "2026-10-13",
+   "examples": [
+    "Jordnötssmör Creamy Ekologiskt",
+    "Crunchy Jordnötssmör",
+    "Peanut Butter Creamy Jordnötssmör"
+   ]
+  },
+  "fron": {
+   "kr": 91.6,
+   "n": 11,
+   "date": "2026-10-13",
+   "examples": [
+    "Solrosfrön Svarta Rostade & Saltade",
+    "Solrosfrön med Skal",
+    "Pumpakärnor"
+   ]
+  },
+  "tahini": {
+   "kr": 102.5,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Tahina Sesampasta",
+    "Tahini Sesampasta",
+    "Tahini Sesampasta"
+   ]
+  },
+  "mandelmassa": {
+   "kr": 132.2,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Mandelmassa",
+    "Mandelmassa",
+    "Mandelmassa"
+   ]
+  },
+  "kokosmjolk": {
+   "kr": 60.8,
+   "n": 10,
+   "date": "2026-10-13",
+   "examples": [
+    "Kokosmjölk 17-18%",
+    "Kokosmjölk 7%",
+    "Coconut Milk Original"
+   ]
+  },
+  "rapsolja": {
+   "kr": 48.7,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Rapsolja",
+    "Rapsolja D-vitaminberikad",
+    "Rapsolja med Smörsmak"
+   ]
+  },
+  "olivolja": {
+   "kr": 141.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Olivolja Classico Extra Virgin",
+    "Olivolja Extra Virgin",
+    "Olivolja Classico Extra Virgin"
+   ]
+  },
+  "kokosolja": {
+   "kr": 159.8,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Kokosolja Neutral",
+    "Kokosolja Kallpressad Virgin",
+    "Kokosolja Kallpressad Virgin"
+   ]
+  },
+  "sesamolja": {
+   "kr": 184.4,
+   "n": 1,
+   "date": "2026-10-13",
+   "examples": [
+    "Sesamolja"
+   ]
+  },
+  "socker": {
+   "kr": 26,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Strösocker",
+    "Strösocker",
+    "Strösocker Påse"
+   ]
+  },
+  "sirap": {
+   "kr": 68.7,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Ljus Sirap",
+    "Mörk Sirap",
+    "Ljus Sirap"
+   ]
+  },
+  "honung": {
+   "kr": 106.6,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Honung Flytande",
+    "Honung Flytande",
+    "Blomsterhonung"
+   ]
+  },
+  "sylt": {
+   "kr": 79.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Hallonsylt",
+    "Hallonsylt Squeeze",
+    "Hallonsylt 45% Bär Lättsockrad"
+   ]
+  },
+  "choklad": {
+   "kr": 149.4,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Mjölkchoklad Chokladkaka",
+    "Mjölkchoklad",
+    "Schweizernöt Mjölkchoklad Chokladkaka"
+   ]
+  },
+  "kakao": {
+   "kr": 236.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Kakao",
+    "Kakao Eko",
+    "Hasselnöts Kakao Kräm Nella"
+   ]
+  },
+  "godis": {
+   "kr": 122.6,
+   "n": 9,
+   "date": "2026-10-13",
+   "examples": [
+    "Vingummin Klassiska",
+    "Syrliga Vingummin",
+    "Saltlakrits Ahlgrens Bilar"
+   ]
+  },
+  "tuggummi": {
+   "kr": 460.6,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Spearmint Extra White Sugarfree Gum",
+    "Sweet Mint Extra White Sugarfree Gum",
+    "Sweet Mint Extra White Tuggummi"
+   ]
+  },
+  "chokladbar": {
+   "kr": 231.4,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Bounty Kokos Chokladbar",
+    "Kinder Bueno Chokladbit",
+    "Kinder Bueno White Chokladbit"
+   ]
+  },
+  "glass": {
+   "kr": 58.6,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Vanilj Gammaldags Glass",
+    "Vanilj Krossad Choklad Gräddglass",
+    "Cookies&cream Glass"
+   ]
+  },
+  "glasspinne": {
+   "kr": 108.1,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Cola&hallon Kalas Glasspinnar",
+    "Klassisk Mandel Glasspinne",
+    "Mini Glass Klassisk Glasspinnar"
+   ]
+  },
+  "efterratt": {
+   "kr": 42.5,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Vaniljsås Färdig",
+    "Vaniljsås Klassisk",
+    "Vaniljsås Klassisk Färdigblandad"
+   ]
+  },
+  "chips": {
+   "kr": 94.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Sourcream Onion Chips",
+    "Sourcream Onion Chips",
+    "Saltade Chips"
+   ]
+  },
+  "snacks": {
+   "kr": 122.8,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Ostbågar Cheddar Extra Stora",
+    "Jordnötsringar Originalet",
+    "Linsbågar Cheddar"
+   ]
+  },
+  "ketchup": {
+   "kr": 39.7,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Ketchup Magnum",
+    "Tomatketchup",
+    "Ketchup"
+   ]
+  },
+  "senap": {
+   "kr": 63.2,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Senap Sötstark",
+    "Senap Sötstark",
+    "Senap Original"
+   ]
+  },
+  "majonnas": {
+   "kr": 73.5,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Äkta Majonnäs",
+    "Original Amerikansk Dressing",
+    "Lättmajonnäs"
+   ]
+  },
+  "sojasas": {
+   "kr": 112.6,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Sojasås Japansk Vegan",
+    "Japansk Soja Låg Salthalt",
+    "Mörk Sojasås"
+   ]
+  },
+  "pastasas": {
+   "kr": 49.8,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Basilico Pastasås",
+    "Vitlök Pastasås",
+    "Mild Ost Pastasås"
+   ]
+  },
+  "gravlaxsas": {
+   "kr": 90.9,
+   "n": 2,
+   "date": "2026-10-13",
+   "examples": [
+    "Hovmästarsås Klassisk",
+    "Skagenröra"
+   ]
+  },
+  "buljong": {
+   "kr": 3.7,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Köttbuljong Tärningar",
+    "Grönsaks Buljong Tärningar",
+    "Grönsak Buljong Tärning"
+   ]
+  },
+  "salt": {
+   "kr": 37.7,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Salt med Jod",
+    "Fint Salt med Jod",
+    "Salt med Jod Extra Fint"
+   ]
+  },
+  "vinager": {
+   "kr": 75.5,
+   "n": 7,
+   "date": "2026-10-13",
+   "examples": [
+    "Ättika 24%",
+    "Vitvinsvinäger",
+    "Rödvinsvinäger"
+   ]
+  },
+  "kryddor": {
+   "kr": 589.4,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Oregano Burk",
+    "Svartpeppar Grovmalen Burk",
+    "Citronpeppar Burk"
+   ]
+  },
+  "jast": {
+   "kr": 155.2,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Jäst Matbröd Färsk",
+    "Jäst Söt Deg Färsk",
+    "Torrjäst Matbröd"
+   ]
+  },
+  "bakpulver": {
+   "kr": 99.4,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Bakpulver",
+    "Bakpulver",
+    "Bakpulver"
+   ]
+  },
+  "vegfars": {
+   "kr": 79.3,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Vegofärs Fryst",
+    "Vegofärs Fryst",
+    "Vegofärs Formbar Fryst"
+   ]
+  },
+  "vegkorv": {
+   "kr": 124.8,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Vegokorv Ovo-vegetarisk 4-pack",
+    "Vegokorv Fryst",
+    "Middagskorv Vego"
+   ]
+  },
+  "falafel": {
+   "kr": 81.2,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Falafel Fryst",
+    "Falafel Fryst",
+    "Falafel Fryst"
+   ]
+  },
+  "fryspizza": {
+   "kr": 84.4,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Pizza Salame Ristorante Fryst",
+    "Mozzarella Pizza Ristorante Fryst",
+    "Mozzarella Pesto Pizza Fryst"
+   ]
+  },
+  "pizzadeg": {
+   "kr": 63.1,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Pizzadeg",
+    "Pizzadeg Xxl",
+    "Pizzadeg Napoli"
+   ]
+  },
+  "pirog": {
+   "kr": 73.2,
+   "n": 2,
+   "date": "2026-10-13",
+   "examples": [
+    "The Original Pirog Frysta/10-pack",
+    "The Original Pirog Fryst"
+   ]
+  },
+  "pyttipanna": {
+   "kr": 61.9,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Krögarpytt Klassisk Fryst",
+    "Krögarpytt Fryst",
+    "Pytt i Panna Fryst"
+   ]
+  },
+  "potatisgratang": {
+   "kr": 30.4,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Potatisgratäng",
+    "Potatisgratäng",
+    "Potatisgratäng med Paprika"
+   ]
+  },
+  "potatissallad": {
+   "kr": 55.9,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Potatissallad Original",
+    "Potatissallad Original",
+    "Potatissallad"
+   ]
+  },
+  "farsk-sallad": {
+   "kr": 40,
+   "n": 5,
+   "date": "2026-10-13",
+   "examples": [
+    "Rödbetssallad",
+    "Rödbetssallad",
+    "Rödbetssallad"
+   ]
+  },
+  "lasagne-fryst": {
+   "kr": 76.5,
+   "n": 6,
+   "date": "2026-10-13",
+   "examples": [
+    "Karins Lasagne Fryst/1 Port",
+    "Lasagne Di Verdure Grönsaks Fryst/1 Port",
+    "Lyx Lasagne Fryst/1 Port"
+   ]
+  },
+  "apelsinjuice": {
+   "kr": 29.9,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Apelsinjuice Utan Fruktkött",
+    "Apelsinjuice",
+    "Apelsinjuice med Fruktkött"
+   ]
+  },
+  "saft": {
+   "kr": 5.3,
+   "n": 8,
+   "date": "2026-10-13",
+   "examples": [
+    "Jordgubb Blandsaft Saft Pet",
+    "Apelsin Saft Pet",
+    "Hallon Blandsaft Saft Pet"
+   ]
+  },
+  "lask": {
+   "kr": 20.9,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Pepsi Max Läsk Burk",
+    "Pepsi Max Läsk Burk",
+    "Coca-cola Zero Läsk Burk"
+   ]
+  },
+  "kolsyrat-vatten": {
+   "kr": 7.3,
+   "n": 10,
+   "date": "2026-10-13",
+   "examples": [
+    "San Pellegrino Mineralvatten Kolsyrat Vatten Pet",
+    "Nektarin Kolsyrat Vatten Pet",
+    "Granatäpple Kolsyrat Vatten Pet"
+   ]
+  },
+  "kaffe": {
+   "kr": 133.1,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Mellanrost Perfekt med Mjölk Bryggkaffe",
+    "Kharisma Mörkrost Bryggkaffe",
+    "Mörkrost Bryggkaffe 100% Arabica"
+   ]
+  },
+  "snabbkaffe": {
+   "kr": 356.1,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Snabbkaffe Mellanrost Refill",
+    "Snabbkaffe Mellanrost Refill",
+    "Snabbkaffe Mellanrost"
+   ]
+  },
+  "lattol": {
+   "kr": 24.3,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Gränges 2,1% Lättöl Burk",
+    "Ljus Lager 2,2 Pripps Blå Lättöl Burk",
+    "Ljus Lager Premium 2,25% Lättöl Burk"
+   ]
+  },
+  "notstek": {
+   "kr": 229,
+   "n": 5,
+   "date": "2026-10-13",
+   "examples": [
+    "Rostbiff",
+    "Rostbiff Innanlår",
+    "Rostbiff Nöt i Bit Sverige"
+   ]
+  },
+  "kalkon": {
+   "kr": 169,
+   "n": 3,
+   "date": "2026-10-13",
+   "examples": [
+    "Kalkonfärs Fryst",
+    "Kalkon Bröstfilé Mörad Fryst",
+    "Kalkon Bröstfilé"
+   ]
+  },
+  "nutella": {
+   "kr": 160.7,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Nutella",
+    "Hasselnöts Kakao Kräm Nella",
+    "Nutella & Go"
+   ]
+  },
+  "fardigratt": {
+   "kr": 81.8,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Karins Lasagne Fryst/1 Port",
+    "Kalvfärsbiffar Italienska Fryst/1 Port",
+    "Köttbullar Farfars Delikatess Fryst/1 Port"
+   ]
+  },
+  "te": {
+   "kr": 350,
+   "n": 12,
+   "date": "2026-10-13",
+   "examples": [
+    "Mango Jordgubb Te",
+    "Gamla Söder Te",
+    "Svartvinbär Te"
+   ]
+  },
+  "sylta": {
+   "kr": 70,
+   "n": 1,
+   "date": "2026-10-13",
+   "examples": [
+    "Sylta med Kalvkött"
+   ]
+  },
+  "isberg": {
+   "kr": 29.9,
+   "n": 1,
+   "date": "2026-10-13",
+   "examples": [
+    "Sallad Isberg Klass 1"
+   ]
+  },
+  "apelsin": {
+   "kr": 35.3,
+   "n": 2,
+   "date": "2026-10-13",
+   "examples": [
+    "Apelsin Klass 1",
+    "Clementin Kl 1"
+   ]
+  },
+  "citron": {
+   "kr": 60.1,
+   "n": 4,
+   "date": "2026-10-13",
+   "examples": [
+    "Citron Klass 1",
+    "Citron Eko Klass 1",
+    "Citroner Klass 2"
+   ]
+  },
+  "mjolkpulver": {
+   "kr": 165.4,
+   "n": 1,
+   "date": "2026-10-13",
+   "examples": [
+    "Mjölkpulver"
+   ]
+  },
+  "artsoppa": {
+   "kr": 37.1,
+   "n": 2,
+   "date": "2026-10-13",
+   "examples": [
+    "Ärtsoppa Soldatens",
+    "Ärtsoppa Vegetarisk"
+   ]
+  }
+ },
+ "source": "willys.se jämförpriser",
+ "collected": "2026-10-13"
+}

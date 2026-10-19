@@ -1,0 +1,273 @@
+// What's new per release (M32), newest first. Loaded only with the WhatsNew sheet (import it from
+// nowhere else). Releasing = bump "version" in package.json and add an entry here, in every language
+// (CLAUDE.md). Keep each note short and plain, and only the latest ~10 releases.
+import type { Lang } from './lib/i18n';
+import { compareVersions } from './lib/version';
+
+export interface Release {
+  version: string;
+  /** YYYY-MM-DD */
+  date: string;
+  notes: Record<Lang, string[]>;
+}
+
+export const RELEASES: Release[] = [
+  {
+    version: '1.6.6',
+    date: '2026-10-16',
+    notes: {
+      sv: [
+        'Snabbare start: appen startar från telefonen och väntar inte på nätet – även med dålig täckning.',
+        'När en ny version har hämtats i bakgrunden visas ”Starta om” – annars används den nästa gång du öppnar appen.',
+      ],
+      en: [
+        'Faster start: the app starts from your phone and doesn’t wait for the network – even with poor signal.',
+        'When a new version has been downloaded in the background, “Restart” is offered – otherwise it’s used the next time you open the app.',
+      ],
+      da: [
+        'Hurtigere start: appen starter fra telefonen og venter ikke på nettet – heller ikke med dårlig dækning.',
+        'Når en ny version er hentet i baggrunden, vises ”Genstart” – ellers bruges den næste gang, du åbner appen.',
+      ],
+      de: [
+        'Schnellerer Start: Die App startet vom Handy und wartet nicht auf das Netz – auch bei schlechtem Empfang.',
+        'Wurde eine neue Version im Hintergrund geladen, erscheint „Neu starten“ – sonst wird sie beim nächsten Öffnen verwendet.',
+      ],
+      fi: [
+        'Nopeampi käynnistys: sovellus käynnistyy puhelimesta eikä odota verkkoa – huonollakaan kuuluvuudella.',
+        'Kun uusi versio on ladattu taustalla, tarjotaan ”Käynnistä uudelleen” – muuten sitä käytetään, kun avaat sovelluksen seuraavan kerran.',
+      ],
+      so: [
+        'Bilow degdeg ah: barnaamijku wuxuu ka bilaabmaa taleefanka mana sugo shabakadda – xitaa marka xiriirku liito.',
+        'Marka nooc cusub gadaal laga soo dejiyo, waxaa la soo bandhigayaa ”Dib u bilow” – haddii kale waxaa la isticmaalayaa marka xigta ee aad furto barnaamijka.',
+      ],
+    },
+  },
+  {
+    version: '1.6.5',
+    date: '2026-10-15',
+    notes: {
+      sv: [
+        'Med Matkostnad på: Näringsämnen visar vad maten kostar i snitt per dag, vecka och månad (7 och 30 dagar).',
+        'Veckans avstämning säger vad maten kostade förra veckan och hur det ändrats mot veckan innan.',
+      ],
+      en: [
+        'With Food cost on: Nutrients shows the average food cost per day, week and month (7 and 30 days).',
+        'The weekly check-in says what your food cost last week and how that changed from the week before.',
+      ],
+      da: [
+        'Med Madudgifter slået til: Næringsstoffer viser den gennemsnitlige madudgift pr. dag, uge og måned (7 og 30 dage).',
+        'Ugens status fortæller, hvad maden kostede sidste uge, og hvordan det har ændret sig fra ugen før.',
+      ],
+      de: [
+        'Mit Lebensmittelkosten: Nährstoffe zeigt die durchschnittlichen Kosten pro Tag, Woche und Monat (7 und 30 Tage).',
+        'Der Wochenrückblick sagt, was das Essen letzte Woche gekostet hat und wie sich das zur Woche davor verändert hat.',
+      ],
+      fi: [
+        'Kun Ruokakulut on päällä: Ravintoaineet näyttää ruoan keskimääräisen hinnan päivässä, viikossa ja kuukaudessa (7 ja 30 päivää).',
+        'Viikon katsaus kertoo, mitä ruoka maksoi viime viikolla ja miten se muuttui edellisestä viikosta.',
+      ],
+      so: [
+        'Marka Kharashka cuntada shidan yahay: Nafaqooyinka waxay muujinayaan celceliska kharashka cuntada maalintii, toddobaadkii iyo bishii (7 iyo 30 maalmood).',
+        'Dib-u-eegista toddobaadku waxay sheegaysaa inta cuntadu ku kacday toddobaadkii hore iyo sida ay isu beddeshay marka loo eego toddobaadkii ka horreeyay.',
+      ],
+    },
+  },
+  {
+    version: '1.6.0',
+    date: '2026-10-15',
+    notes: {
+      sv: [
+        'Hitta skannade varor igen: under ”Skannade varor” i sökningen finns allt du någonsin skannat, senast använda först.',
+        'Sök på det som står på förpackningen – t.ex. ”proteinkvarg”, märket eller de sista siffrorna i streckkoden.',
+      ],
+      en: [
+        'Find scanned products again: “Scanned products” in the search lists everything you have ever scanned, most recently used first.',
+        'Search for what is on the package – e.g. “protein quark”, the brand or the last digits of the barcode.',
+      ],
+      da: [
+        'Find scannede varer igen: under ”Scannede varer” i søgningen ligger alt, du nogensinde har scannet, senest brugte først.',
+        'Søg på det, der står på pakken – f.eks. ”proteinkvark”, mærket eller de sidste cifre i stregkoden.',
+      ],
+      de: [
+        'Gescannte Produkte wiederfinden: Unter „Gescannte Produkte“ in der Suche steht alles, was du je gescannt hast, zuletzt verwendete zuerst.',
+        'Suche nach dem, was auf der Packung steht – z. B. „Proteinquark“, der Marke oder den letzten Ziffern des Barcodes.',
+      ],
+      fi: [
+        'Löydä skannatut tuotteet uudelleen: haun kohdassa ”Skannatut tuotteet” on kaikki, mitä olet koskaan skannannut, viimeksi käytetyt ensin.',
+        'Hae sillä, mitä pakkauksessa lukee – esim. ”proteiinirahka”, merkki tai viivakoodin viimeiset numerot.',
+      ],
+      so: [
+        'Mar kale hel alaabta la iskaanay: ”Alaabta la iskaanay” ee raadinta waxaa ku jira wax kasta oo aad weligaa iskaanay, kuwii ugu dambeeyay marka hore.',
+        'Ka raadi waxa ku qoran baakadda – tusaale ”proteinkvarg”, sumadda ama lambarrada ugu dambeeya ee baarkoodka.',
+      ],
+    },
+  },
+  {
+    version: '1.5.0',
+    date: '2026-10-14',
+    notes: {
+      sv: [
+        'Mål och takt finns nu i Inställningar → Profil, bredvid energimålet: Gå ner, Behålla eller Gå upp, 0,25–0,75 kg i veckan.',
+        'Det automatiska energimålet följer målet direkt (t.ex. −550 kcal/dag för 0,5 kg i veckan), aldrig under en säker miniminivå.',
+        'Valbart: låt energimålet följa din uppmätta förbrukning en gång i veckan, högst ±150 kcal åt gången. Du ser ändringen i dagboken.',
+      ],
+      en: [
+        'Goal and pace are now in Settings → Profile, next to the energy target: Lose, Maintain or Gain, 0.25–0.75 kg a week.',
+        'The automatic energy target follows the goal right away (e.g. −550 kcal/day for 0.5 kg a week), never below a safe minimum.',
+        'Optional: let the energy target follow your measured expenditure once a week, at most ±150 kcal at a time. You’ll see the change in the diary.',
+      ],
+      da: [
+        'Mål og tempo findes nu under Indstillinger → Profil ved siden af energimålet: Tabe, Holde eller Tage på, 0,25–0,75 kg om ugen.',
+        'Det automatiske energimål følger målet med det samme (f.eks. −550 kcal/dag for 0,5 kg om ugen), aldrig under et sikkert minimum.',
+        'Valgfrit: lad energimålet følge dit målte forbrug én gang om ugen, højst ±150 kcal ad gangen. Du ser ændringen i dagbogen.',
+      ],
+      de: [
+        'Ziel und Tempo stehen jetzt unter Einstellungen → Profil neben dem Energieziel: Abnehmen, Halten oder Zunehmen, 0,25–0,75 kg pro Woche.',
+        'Das automatische Energieziel folgt dem Ziel sofort (z. B. −550 kcal/Tag für 0,5 kg pro Woche), nie unter einem sicheren Minimum.',
+        'Optional: Das Energieziel folgt einmal pro Woche deinem gemessenen Verbrauch, höchstens ±150 kcal auf einmal. Die Änderung siehst du im Tagebuch.',
+      ],
+      fi: [
+        'Tavoite ja tahti ovat nyt kohdassa Asetukset → Profiili energiatavoitteen vieressä: Laihdu, Pidä tai Lihoa, 0,25–0,75 kg viikossa.',
+        'Automaattinen energiatavoite seuraa tavoitetta heti (esim. −550 kcal/päivä 0,5 kg:lle viikossa), ei koskaan turvallisen minimin alle.',
+        'Valinnainen: anna energiatavoitteen seurata mitattua kulutustasi kerran viikossa, enintään ±150 kcal kerrallaan. Näet muutoksen päiväkirjassa.',
+      ],
+      so: [
+        'Hadafka iyo xawaaraha hadda waxay ku jiraan Dejinta → Profile, oo ku xiga hadafka tamarta: Dhimis, Ilaali ama Kordhin, 0.25–0.75 kg toddobaadkii.',
+        'Hadafka tamarta ee tooska ahi wuxuu isla markiiba raacaa hadafka (tusaale −550 kcal/maalintii 0.5 kg toddobaadkii), weligiisna kama hooseeyo heer ugu yar oo ammaan ah.',
+        'Ikhtiyaari: u oggolow hadafka tamarta inuu raaco isticmaalkaaga la cabbiray toddobaadkii hal mar, ugu badnaan ±150 kcal mar kasta. Isbeddelka waxaad ku arki doontaa buugga maalinlaha.',
+      ],
+    },
+  },
+  {
+    version: '1.4.0',
+    date: '2026-10-13',
+    notes: {
+      sv: [
+        'Matkostnad (valbart): ungefärliga priser för över 2 300 livsmedel – i dagboken per livsmedel, måltid och dag, och i inköpslistan. Slå på i Inställningar → Matkostnad.',
+        'Tryck på en kostnad i dagboken för att skriva in ditt eget pris; det används också i inköpslistan.',
+        'Priserna uppdateras två gånger per år med SCB:s prisindex. Allt finns i appen – inget hämtas från butiker.',
+        'Använder du appen på flera enheter: uppdatera alla, annars kan en äldre version slå av Matkostnad igen.',
+      ],
+      en: [
+        'Food cost (optional): approximate prices for over 2,300 foods – in the diary per food, meal and day, and on the shopping list. Turn on in Settings → Food cost.',
+        'Tap a cost in the diary to type your own price; it is used on the shopping list too.',
+        'Prices are updated twice a year with Statistics Sweden’s price index. Everything is in the app – nothing is fetched from shops.',
+        'Using the app on several devices: update them all, or an older version may turn Food cost off again.',
+      ],
+      da: [
+        'Madudgifter (valgfrit): omtrentlige priser for over 2.300 fødevarer – i dagbogen pr. fødevare, måltid og dag og på indkøbslisten. Slå til under Indstillinger → Madudgifter.',
+        'Tryk på en udgift i dagbogen for at skrive din egen pris; den bruges også på indkøbslisten.',
+        'Priserne opdateres to gange om året med SCB’s prisindeks. Alt ligger i appen – intet hentes fra butikker.',
+        'Bruger du appen på flere enheder: opdater dem alle, ellers kan en ældre version slå Madudgifter fra igen.',
+      ],
+      de: [
+        'Lebensmittelkosten (optional): ungefähre Preise für über 2.300 Lebensmittel – im Tagebuch pro Lebensmittel, Mahlzeit und Tag und auf der Einkaufsliste. Einschalten unter Einstellungen → Lebensmittelkosten.',
+        'Tippe im Tagebuch auf einen Betrag, um deinen eigenen Preis einzugeben; er gilt auch auf der Einkaufsliste.',
+        'Die Preise werden zweimal im Jahr mit dem Preisindex von SCB aktualisiert. Alles steckt in der App – nichts wird von Läden abgerufen.',
+        'Nutzt du die App auf mehreren Geräten: aktualisiere alle, sonst kann eine ältere Version Lebensmittelkosten wieder ausschalten.',
+      ],
+      fi: [
+        'Ruokakulut (valinnainen): likimääräiset hinnat yli 2 300 elintarvikkeelle – päiväkirjassa elintarvikkeittain, aterioittain ja päivittäin sekä ostoslistalla. Ota käyttöön kohdassa Asetukset → Ruokakulut.',
+        'Napauta päiväkirjassa hintaa kirjoittaaksesi oman hintasi; sitä käytetään myös ostoslistalla.',
+        'Hinnat päivitetään kahdesti vuodessa SCB:n hintaindeksillä. Kaikki on sovelluksessa – kaupoista ei haeta mitään.',
+        'Jos käytät sovellusta useilla laitteilla: päivitä kaikki, muuten vanhempi versio voi kytkeä Ruokakulut taas pois.',
+      ],
+      so: [
+        'Kharashka cuntada (ikhtiyaari): qiimayaal qiyaas ah oo loogu talagalay in ka badan 2,300 cunto – buugga maalinlaha cunto kasta, cunto-qayb kasta iyo maalin kasta, iyo liiska iibsiga. Ka shid Dejinta → Kharashka cuntada.',
+        'Riix kharash ku jira buugga maalinlaha si aad u qorto qiimahaaga; sidoo kale waxaa lagu isticmaalaa liiska iibsiga.',
+        'Qiimayaasha waxaa la cusboonaysiiyaa laba jeer sannadkii iyadoo la adeegsanayo tusaha qiimaha SCB. Wax walba waxay ku jiraan barnaamijka – dukaamada waxba lagama soo dejiyo.',
+        'Haddii aad barnaamijka ku isticmaasho qalab badan: cusboonaysii dhammaan, haddii kale nooc hore ayaa mar kale demin kara Kharashka cuntada.',
+      ],
+    },
+  },
+  {
+    version: '1.3.0',
+    date: '2026-10-13',
+    notes: {
+      sv: [
+        'Inköpslistan fylls på med det du ätit de senaste 7 dagarna.',
+        'Skriv jämförpriset från hyllkanten så räknar listan ut ungefär vad det kostar – och visar de största posterna först.',
+        'Tryck på en butik för att kolla erbjudanden på de dyraste varorna (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
+        'Den här rutan: nyheter visas en gång när appen har uppdaterats.',
+      ],
+      en: [
+        'The shopping list restocks from what you ate in the last 7 days.',
+        'Type the unit price from the shelf and the list estimates the cost – with the biggest items first.',
+        'Tap a store to check offers on the most expensive items (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
+        'This box: what’s new is shown once after the app has been updated.',
+      ],
+      da: [
+        'Indkøbslisten fyldes op med det, du har spist de seneste 7 dage.',
+        'Skriv sammenligningsprisen fra hyldekanten, så regner listen omtrent ud, hvad det koster – med de største poster først.',
+        'Tryk på en butik for at se tilbud på de dyreste varer (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
+        'Denne boks: nyheder vises én gang, når appen er blevet opdateret.',
+      ],
+      de: [
+        'Die Einkaufsliste füllt sich mit dem, was du in den letzten 7 Tagen gegessen hast.',
+        'Gib den Grundpreis vom Regal ein, und die Liste schätzt die Kosten – mit den größten Posten zuerst.',
+        'Tippe auf einen Laden, um Angebote für die teuersten Artikel zu sehen (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
+        'Dieses Fenster: Neuigkeiten erscheinen einmal nach einem Update der App.',
+      ],
+      fi: [
+        'Ostoslista täydentyy sillä, mitä söit viimeisten 7 päivän aikana.',
+        'Kirjoita hyllyn vertailuhinta, niin lista arvioi kustannukset – suurimmat erät ensin.',
+        'Napauta kauppaa nähdäksesi tarjoukset kalleimmista tuotteista (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
+        'Tämä ikkuna: uutuudet näytetään kerran sovelluksen päivityksen jälkeen.',
+      ],
+      so: [
+        'Liiska iibsiga waxaa lagu buuxiyaa waxaad cuntay 7-dii maalmood ee la soo dhaafay.',
+        'Qor qiimaha isbarbardhigga ee khaanadda, liiskuna wuxuu qiyaasayaa kharashka – kuwa ugu waaweyn marka hore.',
+        'Riix dukaan si aad u aragto dalacsiinta alaabta ugu qaalisan (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
+        'Sanduuqan: waxa cusub waxaa la muujiyaa hal mar marka barnaamijka la cusboonaysiiyo.',
+      ],
+    },
+  },
+  {
+    version: '1.2.0',
+    date: '2026-10-11',
+    notes: {
+      sv: [
+        'Nytt utseende: Natt (Hologram) och Dag – välj i Inställningar → Utseende.',
+        'Inköpslista från sparade måltider, recept och egna varor.',
+        'Valbart: veckans avstämning, förslag på livsmedel och byten, och anpassad energiförbrukning.',
+        'Sparade måltider, ”Som vanligt” och ”Samma som igår” gör det snabbare att logga.',
+      ],
+      en: [
+        'A new look: Night (Hologram) and Day – choose in Settings → Appearance.',
+        'A shopping list from saved meals, recipes and your own items.',
+        'Optional: a weekly check-in, food suggestions and swaps, and adaptive energy expenditure.',
+        'Saved meals, “The usual” and “Same as yesterday” make logging faster.',
+      ],
+      da: [
+        'Nyt udseende: Nat (Hologram) og Dag – vælg i Indstillinger → Udseende.',
+        'Indkøbsliste fra gemte måltider, opskrifter og egne varer.',
+        'Valgfrit: ugens status, forslag til fødevarer og bytte, og tilpasset energiforbrug.',
+        'Gemte måltider, ”Som sædvanligt” og ”Samme som i går” gør det hurtigere at logge.',
+      ],
+      de: [
+        'Neues Aussehen: Nacht (Hologram) und Tag – wähle unter Einstellungen → Erscheinungsbild.',
+        'Eine Einkaufsliste aus gespeicherten Mahlzeiten, Rezepten und eigenen Artikeln.',
+        'Optional: ein Wochenrückblick, Vorschläge für Lebensmittel und Tausch, und ein adaptiver Energieverbrauch.',
+        'Gespeicherte Mahlzeiten, „Wie üblich“ und „Wie gestern“ machen das Eintragen schneller.',
+      ],
+      fi: [
+        'Uusi ulkoasu: Yö (Hologram) ja Päivä – valitse kohdasta Asetukset → Ulkoasu.',
+        'Ostoslista tallennetuista aterioista, resepteistä ja omista tuotteista.',
+        'Valinnaisesti: viikon katsaus, elintarvike- ja vaihtoehdotukset sekä mukautuva energiankulutus.',
+        'Tallennetut ateriat, ”Kuten tavallisesti” ja ”Sama kuin eilen” nopeuttavat kirjaamista.',
+      ],
+      so: [
+        'Muuqaal cusub: Habeen (Hologram) iyo Maalin – ka dooro Dejinta → Muuqaal.',
+        'Liiska iibsiga oo laga sameeyo cuntooyin la kaydiyey, cunto-karis iyo alaabtaada.',
+        'Ikhtiyaari: dib-u-eegista toddobaadka, soo jeedin cunto iyo beddel, iyo tamarta la qabsata.',
+        'Cuntooyinka la kaydiyey, ”Sidii caadada” iyo ”Sidii shalay” ayaa qoritaanka dedejiya.',
+      ],
+    },
+  },
+];
+
+/** Releases newer than `since` (newest first, at most `n`); the latest ones when there are none. */
+export function releasesSince(since: string | null, n = 3): Release[] {
+  const newer = since ? RELEASES.filter((r) => compareVersions(r.version, since) > 0) : [];
+  return (newer.length ? newer : RELEASES).slice(0, n); // never an empty sheet
+}

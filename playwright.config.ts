@@ -1,5 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Routes also see the service worker's own fetches (Chromium): e2e/perf.spec.ts delays the app page
+// as a slow connection would. Must be set before the browser starts.
+process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
+
 export default defineConfig({
   testDir: 'e2e',
   timeout: 30_000,

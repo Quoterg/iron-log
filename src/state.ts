@@ -10,7 +10,7 @@ import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
 import type { ActivityType } from './lib/activity-types';
 import type { BodyEntry } from './lib/body';
 import { supplementServings, UNIT_GRAMS, type SupplementInfo } from './lib/supplements';
-import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, normalizeOverrides, withEnergy, type Target } from './lib/targets';
+import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, migrateGoal, normalizeOverrides, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 import { rememberAmount } from './lib/servings';
 import { itemsFromEntries, type MealTemplate, type TemplateUse } from './lib/templates';
@@ -33,6 +33,8 @@ const TEMPLATE_USE_KEY = 'iron-log-meal-use';
 export const templateUse = signal<TemplateUse>(readLocal(TEMPLATE_USE_KEY));
 /** A short message for the diary (e.g. foods of a saved meal that are no longer available). */
 export const notice = signal<string | null>(null);
+/** A new version was fetched in the background (sw.js, M39): offered as a restart. */
+export const updateReady = signal(false);
 /** Today's usual meals, by meal (see lib/usual.ts); empty when switched off. */
 export const usual = signal<Partial<Record<Meal, UsualMeal>>>({});
 const USUAL_KEY = 'iron-log-usual';
@@ -186,11 +188,24 @@ export async function loadSettings(): Promise<void> {
   if (s) {
     // Older versions stored overrides as plain min numbers.
     let next: Settings = { ...s, targetOverrides: normalizeOverrides(s.targetOverrides) };
-    if ((s.version ?? 1) < db.SETTINGS_VERSION) {
-      // One-time move to tdeecalculator.net's activity levels; saved once, and the user is told
-      // if their automatic energy target changed.
-      const { profile, kcalChanged } = migrateEnergyProfile(s.profile);
-      next = { ...next, profile, version: db.SETTINGS_VERSION, ...(kcalChanged ? { energyNotice: true } : {}) };
+    const v = s.version ?? 1;
+    if (v < db.SETTINGS_VERSION) {
+      // One-time moves, saved once; the user is told if their automatic energy target changed.
+      let profile = s.profile;
+      const told: Partial<Settings> = {};
+      if (v < 2) {
+        // tdeecalculator.net's activity levels.
+        const m = migrateEnergyProfile(profile);
+        profile = m.profile;
+        if (m.kcalChanged) told.energyNotice = true;
+      }
+      if (v < 3) {
+        // M35: the goal now sets the automatic target too.
+        const m = migrateGoal(profile, s.goal, s.pace);
+        profile = m.profile;
+        if (m.changed) told.goalNotice = true;
+      }
+      next = { ...next, profile, version: db.SETTINGS_VERSION, ...told };
       await db.saveSettings(next);
     }
     settings.value = next;
@@ -260,7 +275,12 @@ function syncCustomFoods() {
 function toFood(f: Food & { supplement?: SupplementInfo }): Food {
   const { ref, sv, en, per100g } = f;
   const units = f.supplement ? supplementServings(f.supplement) : f.units;
-  return units ? { ref, sv, en, per100g, units } : { ref, sv, en, per100g };
+  const out: Food = units ? { ref, sv, en, per100g, units } : { ref, sv, en, per100g };
+  // Search words (M36); products scanned before have at least their barcode. Older versions drop
+  // `terms` on sync/backup (unknown field): forward-compatible, a new scan brings them back.
+  const terms = f.terms ?? (ref.startsWith('off:') ? ref.slice(4) : undefined);
+  if (terms) out.terms = terms;
+  return out;
 }
 
 /**
@@ -672,7 +692,7 @@ export async function saveBody(e: BodyEntry): Promise<void> {
   const weightKg = latest('weightKg') ?? p.weightKg;
   const bodyFatPct = latest('bodyFatPct') ?? p.bodyFatPct;
   if (weightKg !== p.weightKg || bodyFatPct !== p.bodyFatPct) {
-    await updateSettings({ profile: withEnergy({ ...p, weightKg, bodyFatPct }) });
+    await updateSettings({ profile: withEnergy({ ...p, weightKg, bodyFatPct }, settings.value.goal, settings.value.pace) });
   }
 }
 

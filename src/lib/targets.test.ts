@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
   ageBand,
+  allowedPaces,
   computeTargets,
   energyNeed,
   nnrTargets,
   normalizeMacroPct,
   normalizeOverrides,
   nnrMacroPct,
+  migrateGoal,
   overrideConflicts,
+  paceFor,
   snapPal,
   withEnergy,
   type Profile,
@@ -105,6 +108,33 @@ describe('energy need', () => {
     expect(withEnergy({ ...p, kcalAuto: true }).kcal).toBe(1584);
     const missing = withEnergy({ ...p, kcalAuto: true, weightKg: undefined, kcal: 2110 });
     expect(missing).toMatchObject({ kcalAuto: false, kcal: 2110 });
+  });
+
+  it('follows the goal (M35): the need ± the pace energy, never below the minimum; none while pregnant', () => {
+    const m: Profile = { sex: 'male', kcal: 2500, kcalAuto: true, age: 30, weightKg: 80, heightCm: 180, pal: 1.55 }; // need 2759
+    expect(withEnergy(m).kcal).toBe(2759);
+    expect(withEnergy(m, 'maintain', 0.5).kcal).toBe(2759);
+    expect(withEnergy(m, 'lose', 0.5).kcal).toBe(2210); // 2759 − 550, to 10
+    expect(withEnergy(m, 'gain', 0.25).kcal).toBe(3030); // 2759 + 275
+    // 0.75 kg/week is over 0.75 % of 80 kg: the fastest allowed pace below it (0.5).
+    expect(withEnergy(m, 'lose', 0.75).kcal).toBe(2210);
+    expect(paceFor(m, 0.75)).toBe(0.5);
+    expect(paceFor({ ...m, weightKg: undefined }, 0.75)).toBe(0.75); // weight unknown: all paces
+    // Not below 1200 (women) / 1500 (men) or the basal rate.
+    const w = woman({ age: 30, weightKg: 60, heightCm: 165, kcalAuto: true }); // need 1584
+    expect(withEnergy(w, 'lose', 0.25).kcal).toBe(1320); // basal 1320 > 1584 − 275 = 1310
+    expect(withEnergy({ ...w, status: 'pregnant2' }, 'lose', 0.5).kcal).toBe(energyNeed({ ...w, status: 'pregnant2' }));
+    expect(allowedPaces(60)).toEqual([0.25]);
+  });
+
+  it('settings from before M35 with a goal and automatic energy: the target changes once, and says so', () => {
+    const m: Profile = { sex: 'male', kcal: 2759, kcalAuto: true, age: 30, weightKg: 80, heightCm: 180, pal: 1.55 };
+    expect(migrateGoal(m, 'lose', 0.5)).toEqual({ profile: { ...m, kcal: 2210 }, changed: true });
+    expect(migrateGoal(m, 'maintain', 0.5).changed).toBe(false);
+    expect(migrateGoal(m, undefined).changed).toBe(false);
+    expect(migrateGoal({ ...m, kcalAuto: false, kcal: 2400 }, 'lose', 0.5)).toEqual({ profile: { ...m, kcalAuto: false, kcal: 2400 }, changed: false });
+    // Applied twice (e.g. settings synced from an older device): nothing more changes.
+    expect(migrateGoal(migrateGoal(m, 'lose', 0.5).profile, 'lose', 0.5).changed).toBe(false);
   });
 
   it('snaps activity levels to the tdeecalculator.net levels (migrates the old NNR-style ones)', () => {

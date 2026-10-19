@@ -1,17 +1,19 @@
 import { addDays, isoDate } from './lib/db';
 import { locale, t } from './lib/i18n';
 import { Diary } from './components/Diary';
-import { FoodDetail } from './components/FoodDetail';
-import { FoodSearch } from './components/FoodSearch';
-import { Nutrients } from './components/Nutrients';
 import { lazyView } from './lazy';
 import { stack, top, type Screen } from './nav';
-import { date, loadDay, supplementRefs, view, type View } from './state';
+import { date, loadDay, supplementRefs, updateReady, view, type View } from './state';
 
 const TABS: View[] = ['diary', 'nutrients', 'body', 'settings'];
 
 // Not needed for the first screen: split out and prefetched when idle (main.tsx).
 export const settingsView = lazyView(() => import('./components/Settings'));
+// The food search: opened by every "Lägg till", so prefetched first when the app is idle.
+export const searchView = lazyView(() => import('./components/FoodSearch'));
+// Not needed for the first screen either (M39): prefetched with the search when idle.
+export const foodView = lazyView(() => import('./components/FoodDetail'));
+export const nutrientsView = lazyView(() => import('./components/Nutrients'));
 export const targetEditorView = lazyView(() => import('./components/TargetEditor'));
 export const recipeEditorView = lazyView(() => import('./components/RecipeEditor'));
 export const bodyView = lazyView(() => import('./components/BodyView'));
@@ -33,6 +35,8 @@ export const scanView = lazyView(() => import('./components/ScanSheet'));
 export const foodEditorView = lazyView(() => import('./components/FoodEditor'));
 export const copyView = lazyView(() => import('./components/CopySheet'));
 export const shoppingView = lazyView(() => import('./components/ShoppingSheet'));
+export const whatsNewView = lazyView(() => import('./components/WhatsNew'));
+export const priceView = lazyView(() => import('./components/PriceSheet'));
 
 export function App() {
   const s = top.value;
@@ -43,9 +47,17 @@ export function App() {
         <header class="top">
           {view.value === 'settings' || view.value === 'body' ? <h1>{t(view.value)}</h1> : <DateNav />}
         </header>
+        {updateReady.value && (
+          <p class="update-bar" role="status">
+            <span>{t('updateReady')}</span>
+            <button class="btn small" onClick={() => location.reload()}>
+              {t('restart')}
+            </button>
+          </p>
+        )}
         <main>
           {view.value === 'diary' && <Diary />}
-          {view.value === 'nutrients' && <Nutrients />}
+          {view.value === 'nutrients' && <nutrientsView.Lazy />}
           {view.value === 'body' && <bodyView.Lazy />}
           {view.value === 'settings' && <settingsView.Lazy />}
         </main>
@@ -78,10 +90,10 @@ function ScreenView({ screen: s }: { screen: Screen }) {
   // replaceTop can turn an editor into a detail screen at the same depth: remount by kind.
   switch (s.kind) {
     case 'search':
-      return <FoodSearch meal={s.meal} replaceEntryId={s.replaceEntryId} pickIngredient={s.pickIngredient} />;
+      return <searchView.Lazy meal={s.meal} replaceEntryId={s.replaceEntryId} pickIngredient={s.pickIngredient} />;
     case 'food':
       return (
-        <FoodDetail foodRef={s.ref} meal={s.meal} entryId={s.entryId} ingredient={s.ingredient} ingredientIndex={s.ingredientIndex} />
+        <foodView.Lazy foodRef={s.ref} meal={s.meal} entryId={s.entryId} ingredient={s.ingredient} ingredientIndex={s.ingredientIndex} />
       );
     case 'editFood':
       // Supplements have per-unit values: never edit them as per-100 g foods.
@@ -111,6 +123,10 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <checkinView.Lazy />;
     case 'shopping':
       return <shoppingView.Lazy />;
+    case 'price':
+      return <priceView.Lazy foodRef={s.ref} />;
+    case 'whatsnew':
+      return <whatsNewView.Lazy since={s.since} />;
   }
 }
 

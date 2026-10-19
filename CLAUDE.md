@@ -43,6 +43,9 @@ pnpm data:fetch            # re-download Livsmedelsverket data → data/raw (slo
 pnpm data:build            # data/raw → public/data/foods.json
 pnpm data:fetch-usda       # USDA FoodData Central CSVs → data/raw/usda (needs `unzip`)
 pnpm data:build-usda       # data/raw/usda → public/data/usda-*.json (+ src/lib/sources.json)
+pnpm data:fetch-prices     # SCB price index, Open Prices, Livsmedelsverket raw commodities → data/raw/prices
+pnpm data:build-prices     # → public/data/prices.<hash>.json (+ src/lib/prices.json); --review lists matches
+pnpm data:base-prices      # shelf prices from willys.se → data/prices-base.json (by hand, ~yearly; never in CI)
 ```
 
 ## Rules
@@ -56,6 +59,13 @@ pnpm data:build-usda       # data/raw/usda → public/data/usda-*.json (+ src/li
 - Nutrient vectors follow `src/lib/nutrients.json` order; every food source maps into it.
   Adding a nutrient = add to nutrients.json + rebuild data + targets if any.
 - All UI strings go through `t()` in `src/lib/i18n.ts`, both `sv` and `en`. Numbers via `fmt()`.
+- **Releases (M32):** a new app version = bump `version` in package.json, add its entry at the top of
+  `src/changelog.ts` in every language (short, plain notes for users; a unit test checks both), and
+  set `appVersionName`/`appVersionCode` in android/twa-manifest.json to match. The first start
+  after a version bump shows "Nyheter" once; ordinary deploys without a bump show nothing.
+  **Order:** the version PR (on a `milestone/` branch — the reviewer only picks those up) is merged
+  and deployed *before* the owner builds the APK: the APK is only a shell around the web app, whose
+  version is what Settings and "Nyheter" show.
 - Data licenses: Livsmedelsverket CC BY 4.0, Open Food Facts ODbL, USDA public domain —
   keep attribution visible in Settings.
 - Never `cat`/read `public/data/foods.json` or `data/raw/*` whole — they're large. Use `python3 -c`/`node -e` to query them.

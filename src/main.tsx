@@ -1,11 +1,12 @@
 import { render } from 'preact';
-import { App, bodyView, contributorsView, copyView, foodEditorView, recipeEditorView, scanView, settingsView, targetEditorView, templateView } from './app';
+import { App, foodView, nutrientsView, searchView, bodyView, contributorsView, copyView, foodEditorView, recipeEditorView, scanView, settingsView, targetEditorView, templateView } from './app';
 import { captureInstallPrompt } from './lib/install';
 import { warmUp } from './lib/foods';
 import { lang, lastLang, loadLang } from './lib/i18n';
-import { initNav, open } from './nav';
-import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage } from './state';
-import { isoDate } from './lib/db';
+import { initNav, open, stack } from './nav';
+import { addWater, clock, date, enableUsual, loadDay, loadLibrary, loadServings, loadSettings, loadTemplates, loadUsage, settings, updateReady } from './state';
+import { ensurePriceBook } from './lib/cost';
+import { getSettings, hasEntries, isoDate } from './lib/db';
 import { mealAt } from './lib/usual';
 import { applyTheme, watchSystemTheme } from './lib/theme';
 import './styles.css';
@@ -20,15 +21,22 @@ async function start() {
   // pack isn't a second round trip before first paint. If it can't load (offline before it was
   // ever cached), start anyway with the built-in strings.
   const early = loadLang(lastLang() ?? lang.value).catch(() => {});
+  performance.mark('il:start');
   await loadSettings();
+  performance.mark('il:settings');
   await Promise.all([early, loadLang(lang.value).catch(() => {})]);
   document.documentElement.lang = lang.value;
   // Small local tables, loaded before first render so every screen starts with complete data
   // (custom foods are also needed to resolve diary entries, including deleted ones).
+  performance.mark('il:lang');
   await Promise.all([loadLibrary(), loadUsage(), loadServings()]);
+  performance.mark('il:library');
   render(<App />, document.getElementById('app')!);
+  performance.mark('il:render'); // M39: measured by e2e/perf.spec.ts
   await loadDay(date.value);
+  performance.mark('il:day');
   runShortcut();
+  showWhatsNew().catch(() => {}); // offline and not cached yet: next start
   // Back in the foreground: time-of-day suggestions follow the clock, and a new day shows today.
   let shownToday = isoDate(new Date());
   document.addEventListener('visibilitychange', () => {
@@ -44,24 +52,44 @@ async function start() {
     // Food databases first (loaded and indexed in the worker); the split-out screens are small and
     // go a moment later, so the service worker has them for offline use.
     warmUp(lang.value);
+    // The later screens' Swedish strings first (M39b): every sheet needs them, so they're cached
+    // (offline) and in memory before the first one opens.
+    void import('./lib/strings-later').catch(() => {});
+    void searchView.prefetch(); // opened by every "Lägg till"
     setTimeout(() => {
-      void settingsView.prefetch();
-      void targetEditorView.prefetch();
-      void recipeEditorView.prefetch();
-      void bodyView.prefetch();
-      void contributorsView.prefetch();
-      void templateView.prefetch();
-      void scanView.prefetch();
-      void foodEditorView.prefetch();
-      void copyView.prefetch();
+      // One at a time when idle (M39): not a burst of fetches next to the first taps on a slow phone.
+      prefetchInTurn([
+        foodView, nutrientsView, settingsView, targetEditorView, recipeEditorView, bodyView,
+        contributorsView, templateView, scanView, foodEditorView, copyView,
+      ]);
+      if (settings.value.costs) ensurePriceBook(); // food cost (M34): prices for the diary
+      if (settings.value.adaptive && settings.value.adaptiveFollow) void import('./lib/follow').then((m) => m.runFollow()).catch(() => {});
       enableUsual(); // after the food data started loading: it competes with nothing on screen
     }, 1500);
   });
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);
+    // Pages start from the cache (M39); a newer version fetched meanwhile is offered as a restart.
+    // Asked for once listening: the worker may have found it before this code ran.
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if ((e.data as { type?: string } | null)?.type === 'update-ready') updateReady.value = true;
+    });
+    navigator.serviceWorker.controller?.postMessage({ type: 'update?' });
   }
   // Ask the browser not to evict our local data (matters on iOS/low-storage devices).
   void navigator.storage?.persist?.();
+}
+
+/** Once after a release (a new version in package.json): what's new since the version last seen. */
+async function showWhatsNew() {
+  if (stack.value.length) return; // a shortcut opened a sheet: next start instead
+  const { markSeen, whatsNewSince } = await import('./lib/version'); // not needed for first paint
+  const since = await whatsNewSince(async () => !!(await getSettings()) || (await hasEntries()));
+  // The user may have opened a sheet meanwhile (slow storage): then it's shown next start.
+  if (since && !stack.value.length) {
+    open({ kind: 'whatsnew', since });
+    markSeen();
+  }
 }
 
 /** Home-screen shortcuts (manifest.webmanifest): `?add` opens the add sheet, `?water` adds 2 dl. */
@@ -75,8 +103,16 @@ function runShortcut() {
   else open({ kind: 'search', meal: mealAt(new Date()) });
 }
 
-function requestIdleCallbackShim(fn: () => void) {
-  if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout: 2000 });
+function prefetchInTurn(views: { prefetch: () => Promise<void> }[]) {
+  const next = () => {
+    const v = views.shift();
+    if (v) requestIdleCallbackShim(() => void v.prefetch().finally(next), 300); // a short gap, not a long wait
+  };
+  next();
+}
+
+function requestIdleCallbackShim(fn: () => void, timeout = 2000) {
+  if ('requestIdleCallback' in window) window.requestIdleCallback(fn, { timeout });
   else setTimeout(fn, 300);
 }
 

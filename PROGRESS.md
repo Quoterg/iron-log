@@ -5,8 +5,13 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-Phase 4 and M29 are done (owner's order request 2026-10-11: built as M29, M27, M26, M28). Next:
-Remaining roadmap items are manual/optional (M18d, M19c) or deferred (M22). **Budget:** initial JS is 37.2 KB of 40 after M28 moved the
+**M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (low security housekeeping) is in PR #46. **Released v1.6.6** (2026-10-16, M39a; v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
+**Owner, once:** allow "GitHub Actions to create and approve pull requests" (repo Settings → Actions →
+General) so the price workflow can open its PRs. **Shelf prices** were collected 2026-10-13:
+re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
+~240 kr/kg in October) reflects that month. **Releasing** from now on:
+see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 30.5 KB of 40 (M39b; later screens' Swedish strings in strings-later.ts) (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
@@ -21,6 +26,158 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   actions, weekly, grouped); `SECURITY.md`. Owner: enable "Private vulnerability reporting" in the
   repo settings so the SECURITY.md route works.
 - Tests: unit 207 ✓, build ✓ (initial JS 37.4 KB), Lighthouse ✓, e2e 123 ✓ / 4 ✗: the sync-code (QR) screen never shows its code in this cloud sandbox (WebRTC offer; csp "main flows" and a11y "sync code (QR)" x3) — fails identically on unmodified main here, so environmental; CI is the check.
+
+## 2026-10-16 — M39b Snabbare part 2 (interactive session)
+
+- Measured first: a logged day starts in ~145 ms with all names by ~210 ms; a search right after
+  start ~185 ms; reading the library before render ~5–40 ms. So only (a) was worth doing.
+- 229 Swedish strings used only by later screens → `src/lib/strings-later.ts` (registers into the
+  Swedish dictionary on load; lazy.tsx loads it with every lazy screen; cost-calc imports it).
+  `strings-split.test.ts` checks from the import graph that no first-bundle module uses them and
+  that every user has them loaded. **Initial JS 34.9 → 30.4 KB**; Lighthouse FCP −64 ms, TTI −76 ms,
+  TBT 58 → 37 ms, script start-up 174 → 125 ms.
+- Review: the supplement times (`t(`time_${…}`)` in the diary) had been moved — an empty label right
+  after start; back in i18n.ts. The guard now expands template keys, allows only checked dynamic keys
+  in the first bundle, and checks at runtime that every first-bundle key has text without the later
+  strings (it fails on the original bug). The later strings load first after start (cached for
+  offline). Initial JS 30.5 KB.
+- Tests: unit 245 ✓, build ✓, e2e 156 ✓ (+ a sheet offline after the first visit), Lighthouse ✓.
+
+## 2026-10-15 — M39a Snabbare: measure, start from the phone, smaller first bundle (interactive session)
+
+- `e2e/perf.spec.ts` + marks `il:render`/`il:day`: cold, warm, warm with a 2 s late app page, first
+  search (Moto G4, CPU ×4). Playwright routes now see service-worker fetches (config env).
+- sw.js: app pages **cache-first**, updated in the background; "Det finns en ny version av appen –
+  Starta om" bar when a newer page was fetched (the app asks the worker once listening; the worker
+  reads the cached copy before handing it out — a found bug). Warm start with a slow connection
+  **~2 110 → ~115 ms**; offline start unchanged; new e2e/update.spec.ts.
+- FoodDetail and Nutrients lazy (prefetched with the other screens): **initial JS 38.3 → 34.8 KB**.
+  Lighthouse (simulated slow 4G) unchanged within noise (FCP ~1.25 s, TBT ~55 ms).
+- Review fixes: every build lists its scripts/styles in the page (`iron-log-assets` meta, a Vite
+  plugin); a new version is stored only once its whole set is cached (never a page without its code
+  offline); at install the page + what it starts with; only Iron Log's own HTML is stored (not a
+  Wi-Fi login page); cache lookups ignore `Vary` (found: a module cached by the worker didn't match
+  the page's request → blank offline start); a screen whose code is gone reloads the app once when
+  opened (never from a background prefetch); background screen loads one at a time; the update mark
+  is a cache entry. Budget check counts only scripts the page loads.
+- Perf (isolated, CPU ×4): cold render ~190 ms, diary ~295, warm ~130, warm + slow page ~95,
+  first search ~190, Näringsämnen right after start ~250 (its code loading).
+- Tests: unit 239 ✓, build ✓ (34.9 KB), e2e 154 ✓ (update.spec: background update + restart, new
+  code offline, Wi-Fi login page, gone file → one reload then "Försök igen", offline after first
+  visit), Lighthouse ✓. Under heavy local parallel load a few unrelated tests flaked once
+  (adaptive follow note, privacy link); alone they pass 8–12×. M39b planned.
+
+## 2026-10-15 — M38 Food cost in the summaries (interactive session)
+
+- With Matkostnad on: the Näringsämnen tab (7 and 30 days) shows "Matkostnad i snitt: ~62 kr/dag · ~434
+  kr/vecka" (+ "· ~1 860 kr/månad" for 30 days): averages per logged day, like the nutrient averages,
+  "(minst – …)" when some foods have no price; the weekly check-in says what last week's food cost
+  and the change per day against the week before. Arithmetic in the lazy cost chunk
+  (`CostCalc.period/periodText`); the week before is read only with Matkostnad on.
+- Initial JS 38.1 KB (+0.1). Tests: unit 238 ✓ (period sums, partial, recipes, texts), build ✓,
+  e2e 146 ✓ (new cost-summary: off → nothing; on → 7/30-day lines; check-in "+100 %"), Lighthouse ✓.
+
+## 2026-10-15 — M36 Find scanned products again (interactive session)
+
+- "Skannade varor (n)" list in the food search (all scanned products, most recently used first);
+  scanned products are searchable by generic name, categories, brands and barcode digits
+  (`Food.terms`, from Open Food Facts at scan time; older scans by their barcode). Kept in backups.
+- Review: the food search is now lazy (prefetched first when idle; 1.95 KB gzip out of the first
+  bundle) → **initial JS 38.0 KB** of 40; the scanned list shows 30 rows at a time ("Visa fler").
+- Tests: unit 236 ✓ (offTerms, search by package word/brand/barcode part), build ✓, e2e 145 ✓
+  (new: package words, last digits, an older scan by barcode, the scanned list), Lighthouse ✓.
+
+## 2026-10-13 — M35 Goal in the profile; follow the estimate (interactive session)
+
+- Goal and pace are in the profile (Settings → Profil), next to the energy target; the automatic
+  formula target is the need ± the pace's energy (floor 1200/1500 kcal or basal; no goal while
+  pregnant/breastfeeding). Goal helpers moved to `lib/targets.ts` (adaptive.ts re-exports).
+- Opt-in "Följ uppskattningen automatiskt": `lib/follow.ts`, once per ISO week when idle after start
+  (and right when turned on), steps the target toward the adaptive suggestion by ≤ ±150 kcal
+  (`followStep`), records `followWeek`/`followNote` (synced, in backups); the diary shows that week's
+  change until dismissed. `loadEstimate` moved to `lib/adaptive-load.ts` (no UI module needed).
+- Initial JS 38.8 KB (+0.7: goal logic in targets.ts, the diary note, the settings v3 migration).
+  Review: existing users with a goal + automatic energy get it applied once at start, with a notice
+  (settings v3); never two follow steps a week even if an older device drops `followWeek`.
+- Tests: unit 232 ✓ (goal targets, pace capping, floor, pregnancy, followStep), build ✓, e2e 143 ✓
+  (profile goal → 1780/2330/2350 kcal; follow 2280 → 2430 (+150), diary note, once a week),
+  Lighthouse ✓. Not a release yet (1.4.0 just shipped): bump with the next one.
+
+## 2026-10-13 — M34 Cost per food and meal (interactive session)
+
+- With Matkostnad on (off by default): each diary entry shows "~4 kr" (own price > typical price;
+  recipes from their ingredients), each meal header its total, the day summary "Matkostnad: ~57 kr";
+  "minst ~23 kr" when part has no price; foods with no price show nothing.
+- Tapping a food's cost opens the price sheet — the shopping list's editor, now one component
+  (`PriceForm`); a saved/removed price updates the diary and the list (`lib/cost.ts` setOwnPrice).
+- Only a stub is in the first bundle (`lib/cost.ts`, +0.4 KB): the arithmetic and prices
+  (`lib/cost-calc.ts`, table) load after first paint when on.
+- Release 1.4.0 (version, changelog in 6 languages incl. the older-version sync caveat, twa-manifest).
+- Tests: unit 229 ✓ (entry/recipe/meal cost, own > typical, rounding), build ✓ (38.1 KB), e2e 142 ✓
+  (new cost.spec: off by default, entry/meal/day, "minst", price edit → ~6 kr everywhere, reload,
+  remove, off; axe + 200 % for the diary with costs and the price sheet; what's new now reads the
+  versions from package.json/changelog), Lighthouse ✓.
+
+## 2026-10-13 — M33 Typical prices (interactive session)
+
+- Coverage first, as planned: Open Prices (~5 200 SEK prices) has no meat, fish or eggs → owner
+  chose a hand-made base list: ~200 willys.se comparison prices (`scripts/prices-spec.mjs`,
+  `data/prices-base.json`, `pnpm data:base-prices`, by hand ~yearly). Livsmedelsverket's raw
+  commodities per food spread them: direct matches (cooked foods by raw weight) and dishes summed
+  from ingredients. SCB's CPI per food group (CC0) moves prices to the latest month; Open Prices
+  replaces a shelf price only with enough data and within ×1.5.
+- **2 364 of 2 606 foods** priced (all 59 popular ones); `public/data/prices.<hash>.json` 8.9 KB gzip,
+  lazy. Reviewed the matches by hand (`node scripts/build-prices.mjs --review`) and fixed over-broad
+  name rules (e.g. "margarin" matching fried onions, "Hjort" matching hjortron).
+- Twice-yearly workflow `prices.yml` (1 Mar, 1 Sep): fetch, build, test, open PR, start CI (CI got
+  `workflow_dispatch`). Setting "Matkostnad" (off by default): shopping list "≈" lines, total share,
+  editor hint. Credits in Settings, about and privacy pages.
+- Tests: unit 224 ✓ (table sanity: coverage, cooked < raw, staple ranges, every item priced; typical
+  vs own price), build ✓ (37.7 KB), e2e 135 ✓ (new: food cost off by default, on → ≈, own price
+  wins, no external request), Lighthouse ✓.
+
+## 2026-10-13 — M32 What's new (interactive session)
+
+- The app has a version (package.json, now **1.3.0**) and a changelog (`src/changelog.ts`, 6
+  languages, lazy). After a version bump the first start opens "Nyheter" with what's new since the
+  version last seen (localStorage `iron-log-seen-version`, recorded once the sheet is open); a fresh install shows nothing; users
+  from before M32 who have data see everything since 1.1.0. Back/Okej closes it. Settings shows
+  "Iron Log 1.3.0 · Nyheter". The check is a lazy chunk run after the diary is shown.
+- Release rule in CLAUDE.md; a unit test fails if package.json's version has no changelog entry.
+- **Lighthouse TBT flake found:** it was about.html, not the app. Symbol characters (□↑⋮→) in the
+  install instructions (added 2026-10-09) made Chrome search fallback fonts: ~400 ms extra layout,
+  TBT 0 or ~210 ms per run. Replaced with words: about.html TBT now 0–50 ms.
+- Tests: unit 219 ✓, build ✓ (37.6 KB), e2e 134 ✓ (what’s new ×2, plus axe/200 % for the sheet),
+  Lighthouse ✓.
+
+## 2026-10-13 — M31 Offer links (interactive session)
+
+- In "Största posterna", the 5 most expensive priced lines still to buy get links to the user's
+  stores: Willys, Coop, Lidl, Hemköp, City Gross search for the item's first word ("Mjölk");
+  ICA opens its offers page (its search needs a chosen store). Links open the store's site in a
+  new tab; the app fetches nothing (e2e checks no external request). "Mina butiker" picker —
+  synced setting `chains` (default Willys, ICA, Coop, Lidl), validated. Privacy page says so.
+- URL patterns in lib/stores.ts, checked 2026-10-13 (re-check if a store changes its site).
+- Tests: unit 209 ✓ (search term, URLs/encoding), build ✓ (37.3 KB), e2e 129 ✓ (new offer-links
+  test), Lighthouse ✓ (one local run TBT 207 ms, re-run passed).
+
+## 2026-10-13 — M30 Shopping list: prices and biggest items (interactive session)
+
+- The list looks back: "Det du åt de senaste 7 dagarna" adds this week's foods (owner: restocking
+  is the daily use); "planerat framåt" shows only when future days have entries.
+- "Pris" per line: the shelf's comparison price (kr/kg; kr/l via the food's dl density; kr/st via
+  its "st" weight) → remembered per food as kr/kg in a new synced store `prices` (IndexedDB v13, in
+  backups, validated). Own items take a price in kr. Estimated total with "N utan pris", and a
+  "Största posterna" view with each line's share of the total.
+- Review fixes: kr/l uses the same density as the amounts (dl, else glas/2); the price editor opens
+  with the stored price and can remove it ("Ta bort pris", syncs as a tombstone); one price limit
+  (MAX_PRICE) for editor and backups; costs computed once and summed unrounded; lines re-render only
+  when their own data changed. Known (last-writer-wins): an older app version drops a typed price on
+  an own item, and its next tick of that item syncs back without the price.
+- Also: android/twa-manifest.json synced to the owner's v1.2.0 build (Hologram bar/splash colours).
+- Tests: unit 207 ✓ (kr/kg conversion incl. glas, limit, line cost, unrounded totals, ranking, bad prices), build ✓ (initial JS 37.3 KB;
+  ShoppingSheet 3.7 KB lazy), e2e 128 ✓ (new price/total/biggest-items/look-back test), Lighthouse ✓
+  (one local run showed TBT 201 ms vs 200; the re-run passed — nothing on the first screen changed).
 
 ## 2026-10-11 — M28 Shopping list (interactive session)
 

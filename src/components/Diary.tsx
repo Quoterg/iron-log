@@ -1,14 +1,19 @@
+import { useEffect } from 'preact/hooks';
+import { ensurePriceBook, priceBook, type Cost } from '../lib/cost';
 import { entryVector, isoDate, MEALS, type Entry } from '../lib/db';
 import { activityName, fmt, fmtAmount, lang, nutrientName, t, unitLabel } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, burnedToday, clock, date, dayComplete, toggleDayComplete, dayActivities, dayTotals, dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, removeActivity, repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets, toggleSupplementTaken, usual, usualState,
+  activityTypes, addWater, burnedToday, clock, date, dayActivities, dayComplete, dayTotals,
+  dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, recipes, removeActivity,
+  repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets,
+  toggleDayComplete, toggleSupplementTaken, updateSettings, usual, usualState,
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
 import { pickUsual } from '../lib/usual';
-import { previousWeek } from '../lib/checkin';
+import { isoWeek, previousWeek } from '../lib/checkin';
 import { Bar } from './Bar';
 
 export function Diary() {
@@ -22,6 +27,24 @@ export function Diary() {
     date.value === isoDate(now)
       ? pickUsual(usual.value, (m) => !entries.value.some((e) => e.meal === m && !supplementRefs.value.has(e.foodRef)), usualState.value, date.value, now)
       : null;
+
+  // Food cost (M34, opt-in): the prices load when the app is idle after start (main.tsx), or right
+  // away when the setting is turned on (Settings); this is the fallback, e.g. turned on by sync.
+  const costsOn = !!settings.value.costs;
+  useEffect(() => {
+    if (!costsOn) return;
+    const id = setTimeout(ensurePriceBook, 4000);
+    return () => clearTimeout(id);
+  }, [costsOn]);
+  const book = costsOn ? priceBook.value : null;
+  // Each entry's cost once per render (recipes by ref).
+  const costs = new Map<string, Cost | null>();
+  if (book) {
+    const recipeOf = new Map(recipes.value.filter((r) => !r.deleted).map((r) => [r.ref, r]));
+    for (const e of entries.value) costs.set(e.id, book.entryCost(e, recipeOf.get(e.foodRef)));
+  }
+  const costOf = (e: Entry) => costs.get(e.id) ?? null;
+  const dayCost = book ? book.sum(entries.value.filter((e) => !supplementRefs.value.has(e.foodRef)).map(costOf)) : null;
 
   return (
     <>
@@ -39,6 +62,17 @@ export function Diary() {
           </button>
         </section>
       )}
+      {/* Follow the estimate (M35): this week's change of the energy target, until dismissed. */}
+      {settings.value.followNote && settings.value.followNote.week === isoWeek(isoDate(now)).key && (
+        <section class="card checkin-teaser" role="status">
+          <span>
+            {followText(settings.value.followNote)}
+          </span>
+          <button class="btn small" aria-label={t('notNow')} title={t('notNow')} onClick={() => void updateSettings({ followNote: undefined })}>
+            ×
+          </button>
+        </section>
+      )}
       <section class="card summary">
         <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} hero />
         {settings.value.addBurnedToTarget && burnedToday.value > 0 && (
@@ -53,11 +87,13 @@ export function Diary() {
             </div>
           ))}
         </div>
+        {dayCost && <p class="muted small day-cost">{t('dayCost').replace('{kr}', book!.text(dayCost))}</p>}
       </section>
 
       {MEALS.map((meal) => {
         const list = entries.value.filter((e) => e.meal === meal && !supplementRefs.value.has(e.foodRef));
         const kcal = list.reduce((s, e) => s + entryKcal(e), 0);
+        const mealCost = book && list.length ? book.sum(list.map(costOf)) : null;
         const u = usual.value[meal];
         const showUsual = usualMeal === meal;
         // Else, an empty meal that was logged the day before: offer it again in one tap.
@@ -66,7 +102,10 @@ export function Diary() {
           <section class="card meal" key={meal}>
             <header class="meal-head">
               <h2>{t(meal)}</h2>
-              <span class="num muted">{list.length ? `${fmt(kcal)} kcal` : ''}</span>
+              <span class="num muted">
+                {list.length ? `${fmt(kcal)} kcal` : ''}
+                {mealCost && ` · ${book!.text(mealCost)}`}
+              </span>
               <button class="btn small" onClick={() => open({ kind: 'search', meal })}>
                 + {t('addFood')}
               </button>
@@ -87,17 +126,29 @@ export function Diary() {
             {list.length > 0 && (
               <>
               <ul class="entries">
-                {list.map((e) => (
-                  <li key={e.id}>
-                    <button class="entry" onClick={() => open({ kind: 'food', ref: e.foodRef, entryId: e.id })}>
-                      <span class="entry-name">{name(e.foodRef)}</span>
-                      <span class="num muted">
-                        {e.unit && e.qty ? `${fmtAmount(e.qty)} ${unitLabel(e.unit)}` : `${fmtAmount(e.grams)} g`}
-                      </span>
-                      <span class="num">{fmt(entryKcal(e))} kcal</span>
-                    </button>
-                  </li>
-                ))}
+                {list.map((e) => {
+                  const cost = book?.shown(costOf(e)) ? costOf(e) : null;
+                  return (
+                    <li key={e.id} class={cost ? 'priced' : undefined}>
+                      <button class="entry" onClick={() => open({ kind: 'food', ref: e.foodRef, entryId: e.id })}>
+                        <span class="entry-name">{name(e.foodRef)}</span>
+                        <span class="num muted">
+                          {e.unit && e.qty ? `${fmtAmount(e.qty)} ${unitLabel(e.unit)}` : `${fmtAmount(e.grams)} g`}
+                        </span>
+                        <span class="num">{fmt(entryKcal(e))} kcal</span>
+                      </button>
+                      {/* A food's cost opens its price (the shopping list's editor); a recipe's is its ingredients'. */}
+                      {cost &&
+                        (e.foodRef.startsWith('recipe:') ? (
+                          <span class="num muted cost">{book!.text(cost)}</span>
+                        ) : (
+                          <button class="btn small cost" aria-label={`${t('costEdit').replace('{name}', name(e.foodRef))}, ${book!.text(cost)}`} onClick={() => open({ kind: 'price', ref: e.foodRef })}>
+                            {book!.text(cost)}
+                          </button>
+                        ))}
+                    </li>
+                  );
+                })}
               </ul>
               <div class="links">
                 <button class="link" onClick={() => open({ kind: 'copy', meal })}>
@@ -138,6 +189,12 @@ export function Diary() {
       </button>
     </>
   );
+}
+
+/** "Energimålet följer din förbrukning: nu 2 430 kcal/dag (+150)." */
+function followText(n: { from: number; to: number }): string {
+  const d = n.to - n.from;
+  return t('followDone').replace('{kcal}', fmt(n.to)).replace('{delta}', `${d > 0 ? '+' : '−'}${fmt(Math.abs(d))}`);
 }
 
 function name(ref: string): string {
