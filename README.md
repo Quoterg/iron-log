@@ -30,7 +30,7 @@ Requires Node 20+.
 
 ```sh
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 

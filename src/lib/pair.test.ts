@@ -97,6 +97,8 @@ describe('message framing', () => {
     expect(() => new Reassembler().push(parts[1])).toThrow(PairError); // out of order
     expect(() => new Reassembler().push('garbage')).toThrow(PairError);
     expect(() => new Reassembler().push('0/99999|{}')).toThrow(PairError); // too many parts
+    expect(() => new Reassembler().push('0/2049|{}')).toThrow(PairError); // just over MAX_PARTS
+    expect(new Reassembler().push('0/1|{}')).toEqual({});
     expect(() => new Reassembler().push(`0/1|${'x'.repeat(20_000)}`)).toThrow(PairError); // part too big
     const asm = new Reassembler();
     asm.push(parts[0]);
@@ -139,5 +141,45 @@ describe('sync protocol over a channel', () => {
     const fake: Channel = { send: async () => {}, next: async () => ({ t: 'hello', v: 1 }), flush: async () => {} };
     await expect(runSync(fake, 'first')).rejects.toMatchObject({ kind: 'version' });
     await expect(runSync(fake, 'second')).rejects.toMatchObject({ kind: 'version' });
+  });
+
+  /** A fake peer that says hello, then plays the given messages. */
+  const peer = (msgs: SyncMsg[]): Channel => {
+    const q: SyncMsg[] = [{ t: 'hello', v: 2 }, ...msgs];
+    return { send: async () => {}, next: async () => q.shift() ?? { t: 'done' }, flush: async () => {} };
+  };
+
+  it('a realistic maximum summary (MAX_SUMMARY keys, long keys) fits in MAX_PARTS', async () => {
+    const { frame, Reassembler, MAX_SUMMARY } = (await device()).pair;
+    const s: Record<string, number> = {};
+    for (let i = 0; i < MAX_SUMMARY; i++) s[`entries:00000000-0000-4000-8000-${String(i).padStart(12, '0')}`] = 1_760_000_000_000 + i;
+    const asm = new Reassembler();
+    const got = frame({ t: 'summary', s }).map((p) => asm.push(p));
+    expect(Object.keys((got.at(-1) as { s: object }).s).length).toBe(MAX_SUMMARY);
+  });
+
+  it('rejects a summary with too many keys or non-numeric values', async () => {
+    const { checkSummary, MAX_SUMMARY, PairError } = (await device()).pair;
+    expect(checkSummary({ 'entries:a': 5 })).toEqual({ 'entries:a': 5 });
+    expect(() => checkSummary({ a: 'x' })).toThrow(PairError);
+    expect(() => checkSummary({ a: Infinity })).toThrow(PairError);
+    expect(() => checkSummary({ a: null })).toThrow(PairError);
+    expect(() => checkSummary([1])).toThrow(PairError);
+    expect(() => checkSummary(null)).toThrow(PairError);
+    const big: Record<string, number> = {};
+    for (let i = 0; i <= MAX_SUMMARY; i++) big[`k${i}`] = i;
+    expect(() => checkSummary(big)).toThrow(PairError);
+  });
+
+  it('stops a peer that sends too many batches or changes the total', async () => {
+    const a = await device();
+    const batch = (total: number, last = false): SyncMsg => ({ t: 'changes', c: [], total, last });
+    const run = (msgs: SyncMsg[]) => a.pair.runSync(peer([{ t: 'summary', s: {} }, ...msgs]), 'first').catch((e) => e);
+    // total 0 allows one batch; a second that isn't last is one too many
+    expect(await run([batch(0), batch(0)])).toMatchObject({ kind: 'protocol' });
+    expect(await run([batch(600), batch(900)])).toMatchObject({ kind: 'protocol' }); // total changed
+    expect(await run([batch(0), batch(0), batch(0)])).toMatchObject({ kind: 'protocol' });
+    expect(await run([{ t: 'changes', c: [], total: -1, last: true }])).toMatchObject({ kind: 'protocol' });
+    expect(await run([{ t: 'changes', c: [], total: 'x' as unknown as number, last: true }])).toMatchObject({ kind: 'protocol' });
   });
 });
