@@ -483,5 +483,30 @@ const shop: Record<string, string> = {
   secOther: 'Other',
 };
 
-const pack: LangPack = { strings, sync, off, energy, suggest, checkin, shop };
+const fruit: Record<string, string> = {
+  fruitTitle: 'Fruit in season',
+  fruitToggle: 'Suggest fruit in season for what I get too little of',
+  fruitNote: 'Off by default. Shows which fruits are plentiful in the shops this month and where they come from, and how much of them would cover what you get too little of in a week.',
+  fruitSource: 'Seasons from Statistics Sweden’s import statistics (CC0), Eurostat’s trade statistics (Comext) and the Swedish Board of Agriculture’s harvest statistics, {period}. Updated twice a year.',
+  fruitLoading: 'Looking for fruit in season…',
+  fruitReach: 'From where',
+  reachSweden: 'Swedish',
+  reachEurope: 'Sweden + Europe',
+  reachAny: 'Whole world',
+  fruitGoals: 'Goals for the week',
+  fruitWeek: 'A week in {month}:',
+  fruitAmount: '{count} {unit} · {grams} g',
+  fruitFromSweden: 'Swedish',
+  fruitFrom: 'mostly from {country}',
+  fruitFromFar: 'from further away',
+  fruitCovers: '{name}: {pct} % of what is missing',
+  fruitCapped: 'More fruit than this in a week isn’t reasonable – the rest needs to come from other food.',
+  fruitCost: 'Costs {kr} for the week.',
+  fruitNoNeeds: 'Nothing you get too little of is something fruit helps with (such as vitamin D, B12 and iodine).',
+  fruitNoGoal: 'Choose at least one goal.',
+  fruitNoneInSeason: 'No fruit from here is in season right now. Choose a wider area.',
+  fruitAlso: 'Also in season: {list}',
+};
+
+const pack: LangPack = { strings, sync, off, energy, suggest, checkin, shop, fruit };
 export default pack;

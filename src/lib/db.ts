@@ -72,6 +72,10 @@ export interface Settings {
   followNote?: { week: string; from: number; to: number };
   /** Suggest foods and swaps for nutrients that run short (lib/suggest.ts; opt-in). */
   suggestions?: boolean;
+  /** Fruit in season for the nutrients that run short (M40, opt-in; lib/fruit.ts). */
+  fruit?: boolean;
+  /** How far that fruit may come from (default "europe"). */
+  fruitReach?: 'sweden' | 'europe' | 'any';
   /** Hide the "what if" preview on the food screen (shown by default). */
   whatIfOff?: boolean;
   /** Weekly check-in on the diary (opt-in, M26). */
