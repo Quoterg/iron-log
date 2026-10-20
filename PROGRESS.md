@@ -6,7 +6,7 @@ Keep entries short — this file is read at the start of every session.
 ## Next up
 
 **M40 Frukt i säsong** built (PR open); its seasons update with the prices (prices.yml, 1 March and
-1 September — check the fruit table in that PR). **M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (low security housekeeping) next. **Released v1.6.6** (2026-10-16, M39a; v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
+1 September — check the fruit table in that PR). **M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (security housekeeping) merged (PR #46). **Released v1.6.6** (2026-10-16, M39a; v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
 **Owner, once:** allow "GitHub Actions to create and approve pull requests" (repo Settings → Actions →
 General) so the price workflow can open its PRs. **Shelf prices** were collected 2026-10-13:
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
@@ -38,6 +38,14 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   da/de/fi/so (English, like food names). Jordbruksverket's database states no licence (open data,
   free; credited in Settings).
 - Tests: unit 260 ✓, build ✓ (30.5 KB), e2e 157 ✓ (new: fruit.spec.ts, with axe light/dark), Lighthouse ✓.
+## 2026-10-12 — M21b Security housekeeping (weekly run)
+
+- S4: `MAX_PARTS` 4096 → 2048 (32 MB per message; a 200 000-key summary is tested to fit); summary checked (≤ 200 000 keys, finite numbers
+  only); receive loop stops after `ceil(total/BATCH)+1` batches and rejects a changing/invalid `total`.
+- S5: `--frozen-lockfile` in CLAUDE.md, README and docs/ROUTINE.md; `.github/dependabot.yml` (npm +
+  actions, weekly, grouped); `SECURITY.md`. Owner: enable "Private vulnerability reporting" in the
+  repo settings so the SECURITY.md route works.
+- Tests: unit 207 ✓, build ✓ (initial JS 37.4 KB), Lighthouse ✓, e2e 123 ✓ / 4 ✗: the sync-code (QR) screen never shows its code in this cloud sandbox (WebRTC offer; csp "main flows" and a11y "sync code (QR)" x3) — fails identically on unmodified main here, so environmental; CI is the check.
 
 ## 2026-10-16 — M39b Snabbare part 2 (interactive session)
 

@@ -16,7 +16,7 @@ large data files.
 
 1. Read CLAUDE.md and follow its "Weekly session protocol" exactly.
 2. Read PROGRESS.md and the next unchecked milestone in docs/ROADMAP.md.
-3. Set up: `corepack enable && pnpm install && pnpm exec playwright install --with-deps chromium`.
+3. Set up: `corepack enable && pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium`.
 4. Implement that one milestone (split it per CLAUDE.md if it is too big), with tests.
 5. Verify: `pnpm test`, `pnpm build` (performance budget), `pnpm e2e` — all must pass.
 6. Update PROGRESS.md and docs/ROADMAP.md, commit, push the milestone branch and open a

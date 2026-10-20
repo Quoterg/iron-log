@@ -99,7 +99,7 @@ Status of the current work lives in [PROGRESS.md](../PROGRESS.md).
   own OFF login (memory only, never stored); the product is then logged right away.
 - [x] **M21a Content-Security-Policy** — S2 in docs/SECURITY-REVIEW.md: CSP meta tag in the app
   (production builds) and the static pages; an e2e walk through the main flows fails on any violation.
-- [ ] **M21b Security housekeeping (low)** — S4 bounds on sync input (smaller MAX_PARTS, summary
+- [x] **M21b Security housekeeping (low)** — S4 bounds on sync input (smaller MAX_PARTS, summary
   size/values checked, batch count capped; tests), S5 supply chain (`--frozen-lockfile` in CLAUDE.md
   and docs/ROUTINE.md, dependabot for npm + actions, SECURITY.md).
 - [ ] **M22 Own origin — deferred (owner decision, 2026-10-09)** — S1 in docs/SECURITY-REVIEW.md.

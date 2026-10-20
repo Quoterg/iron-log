@@ -64,7 +64,19 @@ export type SyncMsg =
 
 /** Characters per part. Parts are `i/n|text` — no re-escaping, so a part is at most ~16 KB. */
 export const PART = 16_000;
-const MAX_PARTS = 4096; // 64 MB per message: far beyond a batch, but bounds what a peer can make us hold
+const MAX_PARTS = 2048; // 32 MB per message: room for a 500-record batch or a summary of MAX_SUMMARY keys, bounds what a peer can make us hold
+/** Most records a summary may list (a lifetime of use is ~50 000). */
+export const MAX_SUMMARY = 200_000;
+
+/** A summary is an object of finite numbers within the key limit; anything else is a protocol error. */
+export function checkSummary(s: unknown): Summary {
+  if (!s || typeof s !== 'object' || Array.isArray(s)) throw new PairError('protocol');
+  let n = 0;
+  for (const k in s) {
+    if (++n > MAX_SUMMARY || !Number.isFinite((s as Record<string, unknown>)[k])) throw new PairError('protocol');
+  }
+  return s as Summary;
+}
 
 export function frame(msg: SyncMsg): string[] {
   const json = JSON.stringify(msg);
@@ -141,7 +153,7 @@ export async function runSync(
   onStep({ step: 'summary' });
   const summary = await summarize();
   await ch.send({ t: 'summary', s: summary });
-  const theirs = (await want('summary')).s;
+  const theirs = checkSummary((await want('summary')).s);
 
   onStep({ step: 'changes' });
   const mine = await changesFor(theirs, summary);
@@ -152,10 +164,15 @@ export async function runSync(
 
   let received = 0;
   let got = 0;
+  let expected: number | undefined;
+  let seen = 0;
   const stores = new Set<SyncStore>();
   for (;;) {
     const m = await want('changes');
-    if (!Array.isArray(m.c) || m.c.length > BATCH) throw new PairError('protocol');
+    if (!Array.isArray(m.c) || m.c.length > BATCH || !Number.isSafeInteger(m.total) || m.total < 0) throw new PairError('protocol');
+    // The total is fixed by the first batch; no more batches than it needs (+1 for an empty one).
+    expected ??= m.total;
+    if (m.total !== expected || ++seen > Math.ceil(expected / BATCH) + 1) throw new PairError('protocol');
     const applied = await applyChanges(m.c);
     received += applied.count;
     got += m.c.length;
