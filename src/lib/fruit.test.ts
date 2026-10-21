@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { allYear, defaultGoals, FRUITS, fruitNeeds, inSeason, mainOrigin, MIN_TONNES, SEASON_PERIOD, supply, WEEK_MAX_G, weekPlan, type Fruit } from './fruit';
+import { readdirSync, readFileSync } from 'node:fs';
+import { allYear, defaultGoals, FRUITS, fruitNeeds, fruitSpan, goalGaps, inSeason, isSource, mainOrigin, MIN_TONNES, monthRuns, SEASON_PERIOD, sourceSeason, sourcesOf, supply, WEEK_MAX_G, weekPlan, widerSource, type Fruit } from './fruit';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
 import type { Target } from './targets';
 
@@ -57,18 +58,64 @@ describe('season', () => {
   });
 });
 
-describe('needs', () => {
-  const kiwi = food('slv:kiwi', { vitC: 90, folate: 25, potassium: 300, fibre: 3 });
-  it('keeps only gaps fruit can help with, the most important first', () => {
+describe('what fruit helps with', () => {
+  // Per 100 g, like Livsmedelsverket's data.
+  const kiwi = food('slv:kiwi', { vitC: 90, folate: 25, potassium: 300, fibre: 3, iron: 0.3 });
+  const apricot = food('slv:apricot', { vitA: 153, vitC: 9, vitB6: 0.25 });
+  const apple = food('slv:apple', { vitC: 4, fibre: 2 });
+
+  it('a source by the EU claim rule: ≥ 15 % of the NRV per 100 g, fibre ≥ 3 g', () => {
+    expect(isSource(kiwi, 'vitC')).toBe(true); // 90 mg ≥ 12 mg
+    expect(isSource(kiwi, 'folate')).toBe(false); // 25 µg < 30 µg
+    expect(isSource(kiwi, 'potassium')).toBe(true); // 300 mg ≥ 300 mg
+    expect(isSource(kiwi, 'fibre')).toBe(true);
+    expect(isSource(kiwi, 'iron')).toBe(false);
+    expect(isSource(apricot, 'vitA')).toBe(true); // 153 µg ≥ 120 µg
+    expect(isSource(apple, 'vitD')).toBe(false); // unknown or none: never
+  });
+
+  it('the span: what at least one fruit is a source of (vitamin A by the apricot), never vitamin D or protein', () => {
+    expect(fruitSpan([kiwi, apricot, apple])).toEqual(['fibre', 'vitA', 'vitB6', 'vitC', 'potassium']);
+  });
+
+  it('keeps only gaps in the span, the most important first', () => {
     const needs = fruitNeeds(
-      [{ key: 'vitD', ratio: 0.3 }, { key: 'vitC', ratio: 0.4 }, { key: 'folate', ratio: 0.5 }],
+      [{ key: 'vitD', ratio: 0.3 }, { key: 'vitC', ratio: 0.4 }, { key: 'folate', ratio: 0.5 }, { key: 'protein', ratio: 0.5 }],
       amounts({ vitC: 30, folate: 165, vitD: 3 }),
-      targets,
-      [{ food: kiwi, grams: 75 }],
+      { ...targets, protein: { min: 60, max: null } },
+      ['vitC', 'folate', 'potassium'],
     );
-    // No fruit gives vitamin D. Folate's 50 % shortfall × 1.3 (NNR priority) = 0.65 ranks before vitamin C's 0.6.
+    // Folate's 50 % shortfall × 1.3 (NNR priority) = 0.65 ranks before vitamin C's 0.6.
     expect(needs.map((n) => n.key)).toEqual(['folate', 'vitC']);
     expect(needs.find((n) => n.key === 'vitC')!.weekly).toBe((75 - 30) * 7);
+  });
+
+  it("for a goal nothing in season from here is a source of, names the narrowest wider choice that has one", () => {
+    const byReach = { sweden: [{ food: apple }], europe: [{ food: apple }, { food: kiwi }], any: [{ food: kiwi }, { food: apricot }] };
+    expect(sourcesOf('vitC', byReach.sweden)).toEqual([]);
+    expect(widerSource('sweden', 'vitC', (r) => byReach[r])).toEqual({ reach: 'europe', fruits: [{ food: kiwi }] });
+    expect(widerSource('sweden', 'vitA', (r) => byReach[r])).toEqual({ reach: 'any', fruits: [{ food: apricot }] });
+    expect(widerSource('any', 'vitA', (r) => byReach[r])).toBeNull();
+    expect(widerSource('sweden', 'vitD', (r) => byReach[r])).toBeNull();
+  });
+
+  it('says when a source is in season, if none is now (apricots for vitamin A: summer only)', () => {
+    const summer = fruit('apricot', 40, { t: [0, 0, 0, 0, 300, 450, 450, 160, 0, 0, 0, 0], eu: month(100) });
+    const all = [{ fruit: summer, food: apricot }, { fruit: fruit('apple', 150), food: apple }];
+    expect(sourceSeason('vitA', all, 'europe')).toMatchObject({ months: [4, 5, 6], reach: 'europe' });
+    expect(sourceSeason('vitD', all, 'europe')).toBeNull();
+  });
+
+  it('writes months as runs over the turn of the year', () => {
+    expect(monthRuns([4, 5, 6])).toEqual([[4, 6]]);
+    expect(monthRuns([10, 11, 0, 1, 4])).toEqual([[4, 4], [10, 1]]);
+    expect(monthRuns([...Array(12).keys()])).toEqual([[0, 11]]);
+    expect(monthRuns([])).toEqual([]);
+  });
+
+  it("lists the user's own gaps fruit could be suggested for (vitamins, minerals, fibre — not protein)", () => {
+    const low = [{ key: 'vitA', ratio: 0.3 }, { key: 'vitD', ratio: 0.2 }, { key: 'protein', ratio: 0.5 }];
+    expect(goalGaps(low, { ...targets, vitA: { min: 800, max: null }, protein: { min: 60, max: null } }).map((g) => g.key)).toEqual(['vitA', 'vitD']);
   });
 });
 
@@ -117,12 +164,13 @@ describe('the week\'s fruit', () => {
   it('suggests fruit only for vitamins, minerals and fibre — not energy or macronutrients', () => {
     const avocado = food('slv:avocado', { kcal: 160, fat: 15, potassium: 490 });
     const t = { ...targets, fat: { min: 70, max: null } };
-    const needs = fruitNeeds([{ key: 'fat', ratio: 0.3 }, { key: 'potassium', ratio: 0.6 }], amounts({ fat: 21, potassium: 2100 }), t, [{ food: avocado, grams: 140 }]);
+    const needs = fruitNeeds([{ key: 'fat', ratio: 0.3 }, { key: 'potassium', ratio: 0.6 }], amounts({ fat: 21, potassium: 2100 }), t, fruitSpan([avocado]));
     expect(needs.map((n) => n.key)).toEqual(['potassium']);
   });
 
   it('chooses first the most important gaps a week of fruit closes at least halfway', () => {
-    const fruits = [{ fruit: kiwiF, food: kiwi }, { fruit: bananaF, food: banana }];
+    const kiwi2 = food('slv:kiwi', { vitC: 90, folate: 40, potassium: 300 }); // a source of all three
+    const fruits = [{ fruit: kiwiF, food: kiwi2 }, { fruit: bananaF, food: banana }];
     const needs = [
       { key: 'potassium', weekly: 20000, weight: 1.3 }, // far more than fruit can give
       { key: 'vitC', weekly: 300, weight: 1 },
@@ -150,6 +198,18 @@ describe('the season table (sanity of the twice-yearly update)', () => {
       expect(f.unit[1]).toBeGreaterThan(0);
       expect(['st', 'dl'], f.key).toContain(f.unit[0]); // read right in any number ("3 dl", not "3 skiva")
     }
+  });
+
+  it('with the real food data, fruit is a source of vitamin A, C, E, B6, folate, potassium and fibre — never D, B12, iron, calcium or iodine', () => {
+    const file = readdirSync('public/data').find((f) => /^foods\.[0-9a-f]+\.json$/.test(f))!;
+    const rows = new Map((JSON.parse(readFileSync(`public/data/${file}`, 'utf8')).foods as unknown[][]).map((r) => [r[0] as string, r]));
+    const fruitFoods = FRUITS.map((f) => {
+      const r = rows.get(f.food)!;
+      return { ref: f.food, sv: f.sv, en: f.en, per100g: r.slice(3) as (number | null)[] } as Food;
+    });
+    const span = fruitSpan(fruitFoods);
+    for (const k of ['vitA', 'vitC', 'vitE', 'vitB6', 'folate', 'potassium', 'fibre']) expect(span, k).toContain(k);
+    for (const k of ['vitD', 'vitB12', 'iron', 'calcium', 'iodine']) expect(span, k).not.toContain(k);
   });
 
   it("has the same period in Settings' small period file", async () => {
