@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { fmt, lang, locale, nutrientName, unitLabel } from '../lib/i18n';
 import { ensurePriceBook, priceBook } from '../lib/cost';
-import { allYear, FRUITS, fruitNeeds, fruitSpan, goalGaps, inSeason, LITTLE, mainOrigin, monthRuns, REACHES, SEASON_PERIOD, sourceSeason, sourcesOf, weekPlan, widerSource, type Fruit, type Reach } from '../lib/fruit';
+import { allYear, FRUITS, fruitNeeds, fruitSpan, goalGaps, inSeason, mainOrigin, monthRuns, SEASON_PERIOD, sourceSeason, sourcesOf, weekPlan, widerSource, type Fruit, type Reach } from '../lib/fruit';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from '../lib/nutrients';
 import type { Gap } from '../lib/report';
 import { tf, type FruitKey } from '../lib/strings-fruit';
 import { fmtMonth } from '../lib/typical-prices';
 import { mealAt } from '../lib/usual';
 import { open } from '../nav';
-import { ensureFoods, foods, settings, targets, updateSettings } from '../state';
+import { ensureFoods, foods, settings, targets } from '../state';
 
 const REACH_LABEL: Record<Reach, FruitKey> = { sweden: 'reachSweden', europe: 'reachEurope', any: 'reachAny' };
 
@@ -78,16 +78,28 @@ export default function FruitCard({ low, amounts }: { low: Gap[]; amounts: numbe
   const unsourced = (key: string) => !sourcesOf(key, list).length;
   const planned = chosen.filter((n) => !unsourced(n.key));
   const plan = useMemo(() => (planned.length ? weekPlan(planned, list) : null), [planned.map((n) => n.key).join(), list]);
-  /** A goal no fruit in season from here is a source of: a wider choice that has one now, or when one is. */
-  const noSourceText = (key: string) => {
+  /**
+   * The goals no fruit in season from here is a source of, in one line: grouped by the wider choice that
+   * has one now ("Kalium, Vitamin E – från ”Hela världen”: Banan, Avokado"), else when ("Vitamin A –
+   * Aprikos maj–juli").
+   */
+  const notNow = useMemo(() => {
     const names = (l: WithFood[]) => l.map((x) => fruitName(x.fruit)).join(', ');
-    const w = widerSource(reach, key, (r) => withFood(FRUITS.filter((f) => inSeason(f, month, r))));
-    if (w) return tf('fruitNoSourceWider').replace('{name}', nutrient(key)).replace('{reach}', tf(REACH_LABEL[w.reach])).replace('{fruits}', names(w.fruits));
-    const later = sourceSeason(key, all, reach);
-    return later
-      ? tf('fruitNoSourceLater').replace('{name}', nutrient(key)).replace('{fruits}', names(later.fruits)).replace('{months}', monthsText(later.months))
-      : tf('fruitNoSource').replace('{name}', nutrient(key));
-  };
+    const wider = new Map<string, string[]>();
+    const later: string[] = [];
+    for (const n of needs.filter((x) => unsourced(x.key))) {
+      const w = widerSource(reach, n.key, (r) => withFood(FRUITS.filter((f) => inSeason(f, month, r))));
+      if (w) {
+        const k = tf('fruitNotNowWider').replace('{reach}', tf(REACH_LABEL[w.reach])).replace('{fruits}', names(w.fruits));
+        wider.set(k, [...(wider.get(k) ?? []), nutrient(n.key)]);
+        continue;
+      }
+      const s = sourceSeason(n.key, all, reach);
+      later.push(s ? tf('fruitNotNowLater').replace('{name}', nutrient(n.key)).replace('{fruits}', names(s.fruits)).replace('{months}', monthsText(s.months)) : nutrient(n.key));
+    }
+    return [...[...wider].map(([k, ns]) => k.replace('{names}', ns.join(', '))), ...later];
+  }, [needs, list, all, reach, month]);
+  const sourced = needs.filter((n) => !unsourced(n.key));
   const gaps = goalGaps(low, targets.value);
   const book = costsOn ? priceBook.value : null;
   const cost = book && plan?.items.length ? book.sum(plan.items.map((i) => book.entryCost({ foodRef: i.fruit.food, grams: i.grams }))) : null;
@@ -98,34 +110,12 @@ export default function FruitCard({ low, amounts }: { low: Gap[]; amounts: numbe
   return (
     <section class="card suggest fruit">
       <h2>{tf('fruitTitle')}</h2>
-      <div class="chips" role="group" aria-label={tf('fruitReach')}>
-        {REACHES.map((r) => (
-          <button key={r} class={reach === r ? 'chip on' : 'chip'} aria-pressed={reach === r} onClick={() => void updateSettings({ fruitReach: r })}>
-            {tf(REACH_LABEL[r])}
-          </button>
-        ))}
-      </div>
-      {loaded && span.length > 0 && <p class="muted small">{tf('fruitSpan').replace('{list}', span.map(nutrient).join(', '))}</p>}
       {!loaded ? (
         <p class="muted small" role="status">{tf('fruitLoading')}</p>
       ) : !needs.length ? (
         <p class="muted small">{gaps.length ? tf('fruitNoNeeds').replace('{list}', gaps.map((g) => nutrient(g.key)).join(', ')) : tf('fruitNoGaps')}</p>
-      ) : !season.length ? (
-        <p class="muted small">{tf('fruitNoneInSeason')}</p>
       ) : (
         <>
-          <p class="small suggest-sub">{tf('fruitGoals')}</p>
-          <div class="chips" aria-label={tf('fruitGoals')}>
-            {needs.map((n) => {
-              const on = chosen.some((c) => c.key === n.key);
-              return (
-                <button key={n.key} class={on ? 'chip on' : 'chip'} aria-pressed={on} onClick={() => toggle(n.key)}>
-                  {nutrient(n.key)}
-                </button>
-              );
-            })}
-          </div>
-          {!chosen.length && <p class="muted small">{tf('fruitNoGoal')}</p>}
           {plan && plan.items.length > 0 && (
             <>
               <p class="small">{tf('fruitWeek').replace('{month}', monthName)}</p>
@@ -144,30 +134,42 @@ export default function FruitCard({ low, amounts }: { low: Gap[]; amounts: numbe
                 ))}
               </ul>
               {book && cost && book.shown(cost) && <p class="small">{tf('fruitCost').replace('{kr}', book.text(cost))}</p>}
-              <h3 class="suggest-sub">{tf('fruitCoverage')}</h3>
             </>
           )}
-          {chosen.map((n) =>
-            unsourced(n.key) ? (
-              <p key={n.key} class="muted small">{noSourceText(n.key)}</p>
-            ) : plan ? (
-              <p key={n.key} class="small">
-                {tf(plan.covers[n.key] < LITTLE ? 'fruitCoversLittle' : 'fruitCovers').replace('{name}', nutrient(n.key)).replace('{pct}', fmt(Math.round(plan.covers[n.key] * 100)))}
-              </p>
-            ) : null,
+          {sourced.length > 0 && (
+            <>
+              {/* Goals and what the week covers of each, in one: tap to leave one out (toggles, not a choice of one). */}
+              <p class="small suggest-sub">{tf('fruitCoverage')}</p>
+              <div class="chips goals">
+                {sourced.map((n) => {
+                  const on = !left.includes(n.key);
+                  return (
+                    <button key={n.key} class={on ? 'chip on' : 'chip'} aria-pressed={on} onClick={() => toggle(n.key)}>
+                      {on && plan ? tf('fruitChip').replace('{name}', nutrient(n.key)).replace('{pct}', fmt(Math.round(plan.covers[n.key] * 100))) : nutrient(n.key)}
+                    </button>
+                  );
+                })}
+              </div>
+              {!planned.length && <p class="muted small">{tf('fruitNoGoal')}</p>}
+            </>
           )}
           {plan?.capped && <p class="muted small">{tf('fruitCapped')}</p>}
+          {notNow.length > 0 && <p class="muted small">{tf('fruitNotNow').replace('{list}', notNow.join('; '))}</p>}
         </>
       )}
-      {loaded && others.length > 0 && (
-        <p class="muted small">
-          {tf('fruitAlso').replace(
-            '{list}',
-            others.map((f) => (allYear(f, reach) ? fruitName(f) : `${fruitName(f)} (${originText(f, month)})`)).join(', '),
-          )}
-        </p>
-      )}
-      <p class="muted small">{tf('fruitSource').replace('{period}', `${fmtMonth(from)}–${fmtMonth(to)}`)}</p>
+      <details>
+        <summary class="small">{tf('fruitMore')}</summary>
+        {loaded && span.length > 0 && <p class="muted small">{tf('fruitSpan').replace('{list}', span.map(nutrient).join(', '))}</p>}
+        {loaded && others.length > 0 && (
+          <p class="muted small">
+            {tf('fruitAlso').replace(
+              '{list}',
+              others.map((f) => (allYear(f, reach) ? fruitName(f) : `${fruitName(f)} (${originText(f, month)})`)).join(', '),
+            )}
+          </p>
+        )}
+        <p class="muted small">{tf('fruitSource').replace('{period}', `${fmtMonth(from)}–${fmtMonth(to)}`)}</p>
+      </details>
     </section>
   );
 }
