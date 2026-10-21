@@ -128,7 +128,6 @@ export default function Nutrients() {
         </section>
       )}
       {settings.value.suggestions && g && g.low.length > 0 && report && <suggestions.Lazy low={g.low} amounts={report.amounts} />}
-      {short && report && <fruitView.Lazy low={short} amounts={report.amounts} />}
       {amounts ? (
         <NutrientGroups amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
       ) : (
@@ -138,6 +137,8 @@ export default function Nutrients() {
         {t('adjustTargets')}
       </button>
       <p class="muted small">{t('targetsNote')}</p>
+      {/* Last on the 7- and 30-day pages (owner, M40b): a shopping aid, not part of the report. */}
+      {short && report && <fruitView.Lazy low={short} amounts={report.amounts} />}
     </>
   );
 }

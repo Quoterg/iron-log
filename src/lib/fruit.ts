@@ -197,8 +197,6 @@ export function weekPlan(needs: Need[], fruits: { fruit: Fruit; food: Food }[]):
   return { items, covers, capped };
 }
 
-/** A chosen goal the week's fruit covers less than this much: say that fruit helps only a little. */
-export const LITTLE = 0.25;
 
 /** The user's gaps fruit is suggested for at all (vitamins, minerals, fibre with a target), most short first. */
 export const goalGaps = (low: Gap[], targets: Record<string, Target>): Gap[] => low.filter((g) => GOAL_KEYS.has(g.key) && targets[g.key]?.min);

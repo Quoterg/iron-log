@@ -328,7 +328,8 @@ emulated Moto G4 (CPU ×4) by `e2e/perf.spec.ts` (test-results/perf.json).
   source of by the EU claim rule (≥ 15 % NRV per 100 g, fibre ≥ 3 g) over all fruits' data, shown on
   the card; a goal with no source in season from here says where (wider origin) or when (months).
   The week is a broad shopping list: every such nutrient below target, all on by default, one list
-  covering them together (energy weighs gently).
+  covering them together (energy weighs gently). Layout: last on the page, list first, coverage in
+  the goal chips, the rest under "Mer", origin in Settings.
 
 ## Later — ideas, not scheduled
 
