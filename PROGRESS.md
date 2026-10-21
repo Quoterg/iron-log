@@ -38,6 +38,11 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   (÷ √kcal). Example (October, whole world): avocado 5, grapefruit 2, banana 2, mango 1, raspberries
   1 dl → folate 100 %, B1 100 %, vitamin E 73 %, B6 61 %, potassium 52 % (per-kcal scoring gave
   42/100/28/24/24 %).
+- Owner's layout: the card is the last thing on the 7/30-day pages; the shopping list comes first;
+  goals and coverage are one row of toggle chips ("Folat 34 %"); the goals without fruit in season
+  from here are one line ("Ingen frukt i säsong härifrån för: Kalium, B6 – från ”Hela världen”: …;
+  Vitamin A – Aprikos maj–juli"); the span, "Också i säsong" and sources sit under "Mer"; the origin
+  choice moved to Settings, under the toggle. Card height in the test case ~1 380 → ~720 px.
 - Tests: unit 272 ✓, build ✓ (30.5 KB), e2e 157 ✓, Lighthouse ✓.
 
 ## 2026-10-21 — M40 Frukt i säsong (interactive session)

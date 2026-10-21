@@ -136,6 +136,9 @@ function SavedMealsCard() {
   );
 }
 
+/** Where the fruit in season may come from (M40): Swedish, Sweden + Europe (default), the whole world. */
+const FRUIT_REACHES = [['sweden', 'reachSweden'], ['europe', 'reachEurope'], ['any', 'reachAny']] as const;
+
 /** Suggestions (opt-in) and the "what if" preview (on by default). */
 function SuggestCard() {
   const s = settings.value;
@@ -151,6 +154,18 @@ function SuggestCard() {
         <input type="checkbox" checked={!!s.fruit} onChange={(e) => void updateSettings({ fruit: (e.currentTarget as HTMLInputElement).checked })} />
         {tf('fruitToggle')}
       </label>
+      {s.fruit && (
+        <div class="chips" role="group" aria-label={tf('fruitReach')}>
+          {FRUIT_REACHES.map(([r, label]) => {
+            const on = (s.fruitReach ?? 'europe') === r;
+            return (
+              <button key={r} class={on ? 'chip on' : 'chip'} aria-pressed={on} onClick={() => void updateSettings({ fruitReach: r })}>
+                {tf(label)}
+              </button>
+            );
+          })}
+        </div>
+      )}
       <p class="muted small">{tf('fruitNote')}</p>
       <p class="muted small">{tf('fruitSource').replace('{period}', FRUIT_PERIOD.period.split('–').map(fmtMonth).join('–'))}</p>
       <label class="check">
