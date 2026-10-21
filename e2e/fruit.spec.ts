@@ -52,13 +52,15 @@ test('fruit in season is off by default; when on, a week of fruit for the chosen
   await expect(reach.getByRole('button', { name: 'Hela världen' })).toHaveAttribute('aria-pressed', 'true');
   const vitC = card.getByRole('button', { name: 'Vitamin C', exact: true });
   await expect(vitC).toHaveAttribute('aria-pressed', 'true', { timeout: 15_000 });
-  await expect(card.getByText(/^En vecka i \w+:$/)).toBeVisible();
+  await expect(card.getByText(/^Att handla för en vecka i \w+:$/)).toBeVisible();
   await expect(card.locator('.result').first()).toContainText(/\d+ (st|dl) · \d+ g · /);
   await expect(card.getByText(/^Vitamin C: 100 % av det som saknas$/)).toBeVisible();
 
   // Only vitamin C as the goal: still a plan, and its other lines go.
-  const goals = card.getByRole('button', { pressed: true }).filter({ hasNotText: /Hela världen/ });
-  for (const b of await goals.all()) if ((await b.textContent()) !== 'Vitamin C') await b.click();
+  // All goals are on by default (a broad week); leave out all but vitamin C.
+  const goals = card.locator('.chips[aria-label="Mål för veckan"] button');
+  expect(await goals.count()).toBeGreaterThan(1);
+  for (const name of await goals.allTextContents()) if (name !== 'Vitamin C') await card.getByRole('button', { name, exact: true }).click();
   await expect(card.getByText(/av det som saknas$/)).toHaveCount(1);
   // No goal: asks for one.
   await vitC.click();

@@ -19,6 +19,27 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 
+## 2026-10-21 — M40b Frukt i säsong: what fruit helps with (interactive session)
+
+- Owner's report: with "Svenskt" in October the card said fruit doesn't help (vitamin D, B12 …) though
+  vitamin A was low. Cause: the only Swedish fruit then is apples, and the card said "fruit doesn't
+  help" in general, with fixed examples. Owner: base it on what fruit actually is a source of.
+- **Span by the EU claim rule** (Reg. 1924/2006: ≥ 15 % of the NRV per 100 g, fibre ≥ 3 g; NRVs
+  Reg. 1169/2011) over all 23 fruits' Livsmedelsverket data: vitamin C, A (apricot), E, B1, B6,
+  folate, potassium, fibre, selenium (blueberries). Never D, B12, iron, calcium, iodine (unit test on
+  the real data). Shown on the card; only these gaps can be goals.
+- A goal no fruit in season from here is a source of says where it is now ("Kalium: … Från
+  ”Hela världen”: Banan, Avokado") or when ("Vitamin A: … Aprikos är i säsong maj–juli"). Goals covered
+  < 25 % say fruit gives only a little. "Fruit doesn't help" now names the user's own gaps.
+- Owner: the point is a **weekly shopping list covering broadly** every vitamin and mineral fruit can
+  give. So: goals = every span nutrient below target (not only < 70 %), all on by default (chips only
+  to leave one out); one list ("Att handla för en vecka i …") driven by the goals some fruit in season
+  from here is a source of, every fruit counting for all it gives; ≤ 5 kinds; energy weighs gently
+  (÷ √kcal). Example (October, whole world): avocado 5, grapefruit 2, banana 2, mango 1, raspberries
+  1 dl → folate 100 %, B1 100 %, vitamin E 73 %, B6 61 %, potassium 52 % (per-kcal scoring gave
+  42/100/28/24/24 %).
+- Tests: unit 272 ✓, build ✓ (30.5 KB), e2e 157 ✓, Lighthouse ✓.
+
 ## 2026-10-21 — M40 Frukt i säsong (interactive session)
 
 - Owner: fruit for the vitamins and minerals one is short of, in season, automated from the web

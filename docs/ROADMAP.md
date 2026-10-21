@@ -324,6 +324,11 @@ emulated Moto G4 (CPU ×4) by `e2e/perf.spec.ts` (test-results/perf.json).
     much of each goal it covers, when fruit alone isn't enough, and the week's cost (Matkostnad on).
   - Not done: wild Swedish berries (no statistics), Swedish pears/plums by month (no monthly data —
     pears borrow the apple months), fruit names in da/de/fi/so (English, like food names).
+- [x] **M40b What fruit helps with** — Owner's report (2026-10-21): goals only for what fruit is a
+  source of by the EU claim rule (≥ 15 % NRV per 100 g, fibre ≥ 3 g) over all fruits' data, shown on
+  the card; a goal with no source in season from here says where (wider origin) or when (months).
+  The week is a broad shopping list: every such nutrient below target, all on by default, one list
+  covering them together (energy weighs gently).
 
 ## Later — ideas, not scheduled
 
