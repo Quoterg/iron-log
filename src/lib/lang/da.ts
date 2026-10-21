@@ -599,6 +599,7 @@ const pack: LangPack = {
     fruitFrom: 'mest fra {country}',
     fruitFromFar: 'længere væk fra',
     fruitCapped: 'Mere frugt end dette på en uge er ikke rimeligt – resten skal komme fra anden mad.',
+    fruitUncertain: 'Usikkert for {list}: noget af den mad, du har logget, mangler oplysninger om dem (f.eks. scannede varer), så du kan få mere, end der vises.',
     fruitCost: 'Koster {kr} for ugen.',
     fruitSpan: 'Frugt er en kilde til: {list}.',
     fruitNoNeeds: 'Frugt er ikke en kilde til det, du får for lidt af ({list}).',

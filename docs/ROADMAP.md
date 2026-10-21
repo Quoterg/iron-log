@@ -330,6 +330,9 @@ emulated Moto G4 (CPU ×4) by `e2e/perf.spec.ts` (test-results/perf.json).
   The week is a broad shopping list: every such nutrient below target, all on by default, one list
   covering them together (energy weighs gently). Layout: last on the page, list first, coverage in
   the goal chips, the rest under "Mer", origin in Settings.
+- [x] **M40d Partly missing data** — Owner's report: food without vitamin data (scanned products) hid
+  every gap ("Du får tillräckligt"). The card now counts nutrients any logged food reports and notes
+  the ones whose totals are partly missing data.
 
 ## Later — ideas, not scheduled
 

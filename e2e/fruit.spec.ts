@@ -90,3 +90,38 @@ test('fruit in season is off by default; when on, a week of fruit for the chosen
     expect(res.violations.map((v) => `${v.id}: ${v.help}`), scheme).toEqual([]);
   }
 });
+
+test('food without vitamin data (scanned products): still a shopping list, with a note that the gaps are uncertain', async ({ page }) => {
+  test.slow();
+  page.on('dialog', (d) => d.accept());
+  await page.goto('./');
+  // Most of the energy from a product with only energy and macros (like many scanned ones), a little oats.
+  const per100g: (number | null)[] = Array(54).fill(null);
+  per100g[0] = 400; // kcal, then protein, carbs, fat (nutrients.json order)
+  per100g[1] = 10;
+  per100g[2] = 60;
+  per100g[3] = 15;
+  const customFoods = [{ ref: 'custom:scanned', sv: 'Skannad produkt', en: null, per100g, createdAt: 1, updatedAt: 1 }];
+  const entries = Array.from({ length: 7 }, (_, i) => [
+    { id: `s${i}`, date: iso(-i), meal: 'lunch', foodRef: 'custom:scanned', grams: 300, createdAt: 1000 + i },
+    { id: `o${i}`, date: iso(-i), meal: 'breakfast', foodRef: 'slv:702', grams: 60, createdAt: 2000 + i },
+  ]).flat();
+  await tab(page, 'Inställningar');
+  const reloaded = page.waitForEvent('load', { timeout: 15_000 });
+  await page.getByLabel('Importera säkerhetskopia').setInputFiles({
+    name: 'history.json', mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ format: 'iron-log-backup', version: 1, entries, customFoods })),
+  });
+  await reloaded;
+  await tab(page, 'Inställningar');
+  await page.getByLabel(/Föreslå frukt i säsong/).check();
+  await page.getByRole('group', { name: 'Varifrån' }).getByRole('button', { name: 'Hela världen' }).click();
+  await tab(page, 'Näringsämnen');
+  await page.getByRole('button', { name: '7 dagar', exact: true }).click();
+  const card = page.locator('section.fruit');
+  // Before M40d: "Du får tillräckligt …", because these vitamins were treated as unknown.
+  await expect(card.getByText(/^Att handla för en vecka i \w+:$/)).toBeVisible({ timeout: 15_000 });
+  await expect(card.locator('.chips.goals button').filter({ hasText: /^Vitamin C \d+ %$/ })).toBeVisible();
+  await expect(card.getByText(/^Osäkert för .*Vitamin C/)).toBeVisible();
+  await expect(card.getByText(/Du får tillräckligt/)).toHaveCount(0);
+});

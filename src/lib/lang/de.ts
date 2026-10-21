@@ -599,6 +599,7 @@ const pack: LangPack = {
     fruitFrom: 'meist aus {country}',
     fruitFromFar: 'von weiter her',
     fruitCapped: 'Mehr Obst als das in einer Woche ist nicht sinnvoll – der Rest muss aus anderen Lebensmitteln kommen.',
+    fruitUncertain: 'Unsicher bei {list}: Für einen Teil der erfassten Lebensmittel fehlen Angaben dazu (z. B. gescannte Produkte), du bekommst also vielleicht mehr als angezeigt.',
     fruitCost: 'Kostet {kr} für die Woche.',
     fruitSpan: 'Obst ist eine Quelle für: {list}.',
     fruitNoNeeds: 'Obst ist keine Quelle für das, wovon du zu wenig bekommst ({list}).',

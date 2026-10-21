@@ -48,7 +48,7 @@ function monthsText(months: number[]): string {
  * for a week — in whole portions — to cover as broadly as possible every vitamin and mineral fruit can
  * give that the user is below target in (owner, M40b). Any of them can be left out.
  */
-export default function FruitCard({ low, amounts }: { low: Gap[]; amounts: number[] }) {
+export default function FruitCard({ low, amounts, covered }: { low: Gap[]; amounts: number[]; covered?: boolean[] }) {
   const month = new Date().getMonth();
   const reach = settings.value.fruitReach ?? 'europe';
   const season = useMemo(() => FRUITS.filter((f) => inSeason(f, month, reach)), [month, reach]);
@@ -100,6 +100,8 @@ export default function FruitCard({ low, amounts }: { low: Gap[]; amounts: numbe
     return [...[...wider].map(([k, ns]) => k.replace('{names}', ns.join(', '))), ...later];
   }, [needs, list, all, reach, month]);
   const sourced = needs.filter((n) => !unsourced(n.key));
+  // Goals whose total is partly missing data (< 80 % of the energy from foods reporting them).
+  const uncertain = needs.filter((n) => covered?.[NUTRIENT_INDEX[n.key]] === false);
   const gaps = goalGaps(low, targets.value);
   const book = costsOn ? priceBook.value : null;
   const cost = book && plan?.items.length ? book.sum(plan.items.map((i) => book.entryCost({ foodRef: i.fruit.food, grams: i.grams }))) : null;
@@ -154,6 +156,7 @@ export default function FruitCard({ low, amounts }: { low: Gap[]; amounts: numbe
             </>
           )}
           {plan?.capped && <p class="muted small">{tf('fruitCapped')}</p>}
+          {uncertain.length > 0 && <p class="muted small">{tf('fruitUncertain').replace('{list}', uncertain.map((n) => nutrient(n.key)).join(', '))}</p>}
           {notNow.length > 0 && <p class="muted small">{tf('fruitNotNow').replace('{list}', notNow.join('; '))}</p>}
         </>
       )}

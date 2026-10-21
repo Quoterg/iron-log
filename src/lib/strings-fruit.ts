@@ -24,6 +24,7 @@ export const SV_FRUIT = {
   fruitFrom: 'mest från {country}',
   fruitFromFar: 'längre ifrån',
   fruitCapped: 'Mer frukt än så här på en vecka är inte rimligt – resten behöver komma från annan mat.',
+  fruitUncertain: 'Osäkert för {list}: en del av maten du loggat saknar uppgifter om dem (t.ex. skannade varor), så du kan få mer än det som visas.',
   fruitCost: 'Kostar {kr} för veckan.',
   fruitSpan: 'Frukt är en källa till: {list}.',
   fruitNoNeeds: 'Frukt är ingen källa till det du får för lite av ({list}).',
