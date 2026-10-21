@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { allYear, defaultGoals, FRUITS, fruitNeeds, inSeason, mainOrigin, MIN_TONNES, supply, WEEK_MAX_G, weekPlan, type Fruit } from './fruit';
+import { allYear, defaultGoals, FRUITS, fruitNeeds, inSeason, mainOrigin, MIN_TONNES, SEASON_PERIOD, supply, WEEK_MAX_G, weekPlan, type Fruit } from './fruit';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
 import type { Target } from './targets';
 
@@ -150,6 +150,10 @@ describe('the season table (sanity of the twice-yearly update)', () => {
       expect(f.unit[1]).toBeGreaterThan(0);
       expect(['st', 'dl'], f.key).toContain(f.unit[0]); // read right in any number ("3 dl", not "3 skiva")
     }
+  });
+
+  it("has the same period in Settings' small period file", async () => {
+    expect((await import('./fruit-period.json')).default.period).toBe(SEASON_PERIOD);
   });
 
   it('knows the seasons everybody knows', () => {

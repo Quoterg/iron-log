@@ -1,5 +1,6 @@
 // Builds the season table of "Frukt i säsong" (M40) from data/raw/fruit (fetch-fruit.mjs):
 //   src/lib/fruit-season.json = { period, fruits: [{ key, sv, en, food, unit, t, se, eu, top }] }
+//   src/lib/fruit-period.json = { period }   (Settings' source line, without the table)
 // per fruit and calendar month (index 0 = January):
 //   t    tonnes on the Swedish market in an average such month: imports + Swedish harvest
 //   se   % of it Swedish, eu % from the rest of Europe (the rest from further away)
@@ -38,6 +39,10 @@ function perMonth(series, months) {
 /** Calendar months with a Swedish producer price in at least half of the years. */
 function sellingMonths(product) {
   const prices = sweden.prices[product] ?? {};
+  // "2025M03": another format would silently give no Swedish months at all.
+  if (!Object.keys(prices).length || !Object.keys(prices).every((m) => /^\d{4}M\d{2}$/.test(m))) {
+    bad.push(`Swedish producer prices for product ${product}: missing or not "YYYYMmm" months`);
+  }
   const seen = Array(12).fill(0);
   const priced = Array(12).fill(0);
   for (const [m, v] of Object.entries(prices)) {
@@ -113,6 +118,8 @@ if (bad.length) {
 
 const period = `${imports.months[0]}–${imports.months.at(-1)}`;
 await writeFile('src/lib/fruit-season.json', `${JSON.stringify({ period, fruits })}\n`);
+// The period alone, for Settings' source line (so Settings doesn't load the table).
+await writeFile('src/lib/fruit-period.json', `${JSON.stringify({ period })}\n`);
 
 // A readable summary for the review of the twice-yearly update.
 const M = 'J F M A M J J A S O N D'.split(' ');

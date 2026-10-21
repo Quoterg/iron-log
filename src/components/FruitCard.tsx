@@ -18,12 +18,17 @@ const MAX_GOALS = 8;
 const fruitName = (f: Fruit) => (lang.value === 'sv' || lang.value === 'da' ? f.sv : f.en);
 const nutrient = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
 
+const regionNames = new Map<string, Intl.DisplayNames | null>();
 function countryName(code: string): string {
-  try {
-    return new Intl.DisplayNames([locale()], { type: 'region' }).of(code) ?? code;
-  } catch {
-    return code; // older browsers without Intl.DisplayNames
+  const l = locale();
+  if (!regionNames.has(l)) {
+    try {
+      regionNames.set(l, new Intl.DisplayNames([l], { type: 'region' }));
+    } catch {
+      regionNames.set(l, null); // older browsers without Intl.DisplayNames
+    }
   }
+  return regionNames.get(l)?.of(code) ?? code;
 }
 
 /** "svensk", "mest från Spanien", "längre ifrån" — or "" when there's nothing to say. */

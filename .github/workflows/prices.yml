@@ -46,11 +46,18 @@ jobs:
       - name: Build the table (fails if coverage drops more than 10 %)
         run: pnpm data:build-prices
 
-      - name: Fetch the fruit statistics (SCB imports, Eurostat trade, Jordbruksverket harvests)
-        run: pnpm data:fetch-fruit
+      # The fruit seasons (M40) never block the prices: if their sources fail or change shape, the
+      # current table is kept and the pull request says so.
+      - name: Fetch and build the fruit seasons (SCB imports, Eurostat trade, Jordbruksverket harvests)
+        id: fruit
+        continue-on-error: true
+        run: |
+          pnpm data:fetch-fruit
+          pnpm data:build-fruit
 
-      - name: Build the fruit seasons (fails if a fruit has no data)
-        run: pnpm data:build-fruit
+      - name: Keep the current fruit seasons (their update failed)
+        if: steps.fruit.outcome == 'failure'
+        run: git checkout -- src/lib/fruit-season.json src/lib/fruit-period.json
 
       - name: Check it (unit tests include sanity checks of the tables)
         run: pnpm test
@@ -58,19 +65,28 @@ jobs:
       - name: Open a pull request
         env:
           GH_TOKEN: ${{ github.token }}
+          FRUIT: ${{ steps.fruit.outcome }}
         run: |
-          if git diff --quiet -- public/data src/lib/prices.json src/lib/fruit-season.json; then
-            echo "No change in the table."
+          paths="public/data src/lib/prices.json"
+          if [ "$FRUIT" = success ]; then paths="$paths src/lib/fruit-season.json src/lib/fruit-period.json"; fi
+          if git diff --quiet -- $paths; then
+            echo "No change in the tables."
             exit 0
           fi
           month=$(node -p "require('./src/lib/prices.json').month")
           branch="prices/$month-${{ github.run_id }}"
+          if [ "$FRUIT" = success ]; then
+            title="Prices: typical prices and fruit seasons for $month"
+            cat data/raw/fruit/summary.md >> data/raw/prices/summary.md
+          else
+            title="Prices: typical prices for $month (fruit seasons not updated)"
+            printf '\n## Fruit seasons\n\nNot updated: fetch-fruit/build-fruit failed in run %s — the current table is kept.\n' "${{ github.run_id }}" >> data/raw/prices/summary.md
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
-          git add public/data src/lib/prices.json src/lib/fruit-season.json
-          git commit -m "Prices: typical prices and fruit seasons for $month"
-          cat data/raw/fruit/summary.md >> data/raw/prices/summary.md
+          git add $paths
+          git commit -m "$title"
           git push origin "$branch"
-          gh pr create --base main --head "$branch" --title "Prices: typical prices for $month" --body-file data/raw/prices/summary.md
+          gh pr create --base main --head "$branch" --title "$title" --body-file data/raw/prices/summary.md
           gh workflow run ci.yml --ref "$branch"

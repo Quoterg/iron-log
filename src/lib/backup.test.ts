@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BackupError, makeBackup, parseBackup, toCsv } from './backup';
+import { BackupError, makeBackup, parseBackup, SYNC_VALIDATORS, toCsv } from './backup';
 import { SETTINGS_VERSION, type AllData } from './db';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
 
@@ -145,6 +145,21 @@ describe('profile import', () => {
     expect(settingsOf({ macroPreset: 'keto' })?.macroPreset).toBe('keto');
     expect(settingsOf({ macroPreset: 'custom', macroPct: { protein: [50, 10] } })?.macroPreset).toBe('nnr');
     expect(settingsOf({ macroPreset: 'carnivore' })?.macroPreset).toBeUndefined();
+  });
+
+  it('round-trips fruit in season and its origin choice (M40); an unknown origin is dropped', () => {
+    const settingsOf = (extra: object) =>
+      parseBackup(
+        JSON.stringify({
+          ...makeBackup(data),
+          settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: {}, ...extra },
+        }),
+      ).settings;
+    expect(settingsOf({ fruit: true, fruitReach: 'sweden' })).toMatchObject({ fruit: true, fruitReach: 'sweden' });
+    expect(settingsOf({ fruit: 'yes', fruitReach: 'mars' })).not.toHaveProperty('fruit');
+    expect(settingsOf({ fruitReach: 'mars' })).not.toHaveProperty('fruitReach');
+    // Sync validates settings with the same rules.
+    expect(SYNC_VALIDATORS.kv({ lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: {}, fruit: true, fruitReach: 'any' })).toMatchObject({ fruit: true, fruitReach: 'any' });
   });
 
   it('keeps automatic energy only with the data a formula needs', () => {

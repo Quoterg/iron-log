@@ -23,12 +23,18 @@ async function json(url, body) {
     await new Promise((r) => setTimeout(r, 3000 * attempt)); // SCB: 30 requests per 10 s
   }
 }
+/** Fail loudly when a source changes shape, rather than build an empty or shifted table. */
+function expectShape(ok, what) {
+  if (!ok) throw new Error(`Unexpected format: ${what}`);
+}
+const MONTH = /^\d{4}M\d{2}$/; // "2025M03"
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null); // ".." = not published
 
 // --- SCB: imports by product code and country
 const SCB = 'https://api.scb.se/OV0104/v1/doris/sv/ssd/HA/HA0201/HA0201B/ImpTotalKNMan';
 const meta = await json(SCB);
 const months = meta.variables.find((v) => v.code === 'Tid').values.slice(-36);
+expectShape(months.length === 36 && months.every((m) => MONTH.test(m)), `SCB months ${months.slice(0, 2)}`);
 const codes = [...new Set(FRUITS.flatMap((f) => f.cn))];
 const imports = { months, codes: {} };
 for (const code of codes) {
@@ -63,6 +69,7 @@ for (const code of codes) {
   ].join('&');
   const d = await json(`${COMEXT}?${q}`);
   const idx = (dim, k) => d.dimension[dim].category.index[k];
+  expectShape(d.id?.join() === 'freq,reporter,partner,product,flow,indicators,time', `Eurostat dimensions ${d.id}`);
   const [, np, , nf, , nt] = d.size.slice(1); // reporter, partner, product, flow, indicator, time
   const at = (r, p, f, t) => d.value[((idx('reporter', r) * np + idx('partner', p)) * nf + idx('flow', f)) * nt + idx('time', t)] ?? 0;
   for (const r of EU27) {
@@ -83,6 +90,7 @@ const PRICES = `${JBV}/Priser%20och%20prisindex/Priser/Avrakningspriser20/JO1001
 const pmeta = await json(PRICES);
 const mvar = pmeta.variables.find((v) => v.code === 'Månad');
 const mIds = mvar.values.slice(-36);
+expectShape(mIds.every((id) => MONTH.test(mvar.valueTexts[mvar.values.indexOf(id)])), `Jordbruksverket months ${mvar.valueTexts.slice(-2)}`);
 const products = [...new Set(FRUITS.map((f) => f.se?.price).filter(Boolean))];
 const pd = await json(PRICES, [
   { code: 'Produkter', selection: { filter: 'item', values: products } },

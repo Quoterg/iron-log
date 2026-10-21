@@ -301,6 +301,8 @@ function settings(x: unknown): Settings | undefined {
   if (x.whatIfOff === true) out.whatIfOff = true;
   if (x.checkin === true) out.checkin = true;
   if (x.costs === true) out.costs = true;
+  if (x.fruit === true) out.fruit = true;
+  if (['sweden', 'europe', 'any'].includes(x.fruitReach as string)) out.fruitReach = x.fruitReach as Settings['fruitReach'];
   if (x.adaptiveFollow === true) out.adaptiveFollow = true;
   if (typeof x.followWeek === 'string' && /^\d{4}-W\d{2}$/.test(x.followWeek)) out.followWeek = x.followWeek;
   const fn = x.followNote as { week?: unknown; from?: unknown; to?: unknown } | undefined;
