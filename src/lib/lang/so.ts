@@ -599,6 +599,7 @@ const pack: LangPack = {
     fruitFrom: 'inta badan {country}',
     fruitFromFar: 'meel ka fog',
     fruitCapped: 'Miro ka badan intan toddobaadkii macquul ma aha – inta kale waa inay ka timaadaa cunto kale.',
+    fruitUncertain: 'Lama hubo {list}: qaar ka mid ah cuntada aad diiwaangelisay macluumaadkooda ma laha (tusaale alaab la iskaan gareeyay), markaa waxaa laga yaabaa inaad hesho wax ka badan inta muuqata.',
     fruitCost: 'Waxay ku kacaysaa {kr} toddobaadkii.',
     fruitSpan: 'Mirodu waa il u ah: {list}.',
     fruitNoNeeds: 'Mirodu il uma aha waxa aad wax yar ka hesho ({list}).',

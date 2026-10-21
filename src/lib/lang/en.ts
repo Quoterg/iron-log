@@ -505,6 +505,7 @@ const fruit: Record<string, string> = {
   fruitFrom: 'mostly from {country}',
   fruitFromFar: 'from further away',
   fruitCapped: 'More fruit than this in a week isn’t reasonable – the rest needs to come from other food.',
+  fruitUncertain: 'Uncertain for {list}: some of the food you logged has no data for them (e.g. scanned products), so you may get more than shown.',
   fruitCost: 'Costs {kr} for the week.',
   fruitSpan: 'Fruit is a source of: {list}.',
   fruitNoNeeds: 'Fruit isn’t a source of what you get too little of ({list}).',

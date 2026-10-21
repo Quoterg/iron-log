@@ -599,6 +599,7 @@ const pack: LangPack = {
     fruitFrom: 'enimmäkseen maasta {country}',
     fruitFromFar: 'kauempaa',
     fruitCapped: 'Tätä enempää hedelmiä viikossa ei ole järkevää – loput tarvitaan muusta ruoasta.',
+    fruitUncertain: 'Epävarma ({list}): osasta kirjaamastasi ruoasta puuttuu niiden tiedot (esim. skannatut tuotteet), joten saatat saada enemmän kuin näytetään.',
     fruitCost: 'Maksaa {kr} viikossa.',
     fruitSpan: 'Hedelmät ovat lähde: {list}.',
     fruitNoNeeds: 'Hedelmät eivät ole lähde sille, mitä saat liian vähän ({list}).',

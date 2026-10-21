@@ -19,6 +19,16 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 
+## 2026-10-21 — M40d Frukt i säsong with partly missing data (interactive session)
+
+- Owner's phone: vitamins at 2–40 % of target, yet the card said "Du får tillräckligt …". Cause: the
+  card took only nutrients the report trusts (≥ 80 % of the energy from foods reporting them); food
+  without vitamin data (scanned products: energy and macros only) made them "unknown", so no gaps.
+- Now the card counts every nutrient below target that some logged food reports, and says when a
+  total is partly missing data ("Osäkert för …: en del av maten du loggat saknar uppgifter om dem …").
+  "Att tänka på" keeps its stricter rule. e2e regression (fails on the old rule).
+- Tests: unit 272 ✓, build ✓ (30.5 KB), e2e 158 ✓, Lighthouse ✓.
+
 ## 2026-10-21 — M40b Frukt i säsong: what fruit helps with (interactive session)
 
 - Owner's report: with "Svenskt" in October the card said fruit doesn't help (vitamin D, B12 …) though

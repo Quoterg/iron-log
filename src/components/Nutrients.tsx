@@ -65,9 +65,11 @@ export default function Nutrients() {
     () => (report && period !== 1 && perDay?.size ? gaps(report.amounts, targets.value, report.covered) : null),
     [report, targets.value],
   );
-  // Fruit in season (M40) covers everything fruit can give that is below target, not only clear gaps.
+  // Fruit in season (M40) covers everything fruit can give that is below target, not only clear gaps —
+  // also where part of the logged food lacks data (scanned products often have no vitamins): the card
+  // says so instead of claiming there is no shortfall (owner's report, M40d).
   const short = useMemo(
-    () => (settings.value.fruit && report && period !== 1 && perDay?.size ? gaps(report.amounts, targets.value, report.covered, 1).low : null),
+    () => (settings.value.fruit && report && period !== 1 && perDay?.size ? gaps(report.amounts, targets.value, report.known, 1).low : null),
     [report, targets.value, settings.value.fruit],
   );
   const label = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
@@ -138,7 +140,7 @@ export default function Nutrients() {
       </button>
       <p class="muted small">{t('targetsNote')}</p>
       {/* Last on the 7- and 30-day pages (owner, M40b): a shopping aid, not part of the report. */}
-      {short && report && <fruitView.Lazy low={short} amounts={report.amounts} />}
+      {short && report && <fruitView.Lazy low={short} amounts={report.amounts} covered={report.covered} />}
     </>
   );
 }
