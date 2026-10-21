@@ -137,7 +137,7 @@ export function fruitNeeds(low: Gap[], amounts: number[], targets: Record<string
 export const WEEK_MAX_G = 1750;
 /** At most one portion of the same fruit a day, and a short shopping list. */
 const MAX_PER_FRUIT = 7;
-const MAX_KINDS = 4;
+const MAX_KINDS = 5;
 /** A portion closing less than 1 % of the (weighted) needs isn't worth adding. */
 const MIN_GAIN = 0.01;
 
@@ -157,9 +157,10 @@ export interface Plan {
 
 /**
  * The week's fruit for the chosen needs, in whole portions: each step adds the portion that closes the
- * most of what is still missing (weighted by rank) per kcal — so a week of avocados doesn't win on
- * potassium alone — a little less for a fruit already on the list (variety), until the needs are met,
- * nothing helps any more, or WEEK_MAX_G is reached.
+ * most of what is still missing across all of them (weighted by rank), a little less for a fruit already
+ * on the list (variety), until the needs are met, nothing helps any more, or WEEK_MAX_G is reached.
+ * Energy counts gently (÷ √kcal): between fruits giving the same, the lighter wins, but a fruit that
+ * covers much (avocado: potassium, vitamin E, B6, folate) still earns its place (owner, M40b: broad).
  */
 export function weekPlan(needs: Need[], fruits: { fruit: Fruit; food: Food }[]): Plan {
   const left = new Map(needs.map((n) => [n.key, n.weekly]));
@@ -175,8 +176,8 @@ export function weekPlan(needs: Need[], fruits: { fruit: Fruit; food: Food }[]):
       const helps = needs.reduce((s, need) => s + (need.weight * Math.min(perPortion(c.food, c.fruit.unit[1], need.key), left.get(need.key)!)) / need.weekly, 0);
       const gain = helps / (1 + 0.15 * n);
       if (gain < MIN_GAIN) continue;
-      // Per 100 kcal (at least 40 kcal a portion, so near-empty fruit doesn't win by default).
-      const score = gain / Math.max(40, perPortion(c.food, c.fruit.unit[1], 'kcal')) * 100;
+      // Gently per kcal (at least 40 kcal a portion, so near-empty fruit doesn't win by default).
+      const score = gain / Math.sqrt(Math.max(40, perPortion(c.food, c.fruit.unit[1], 'kcal')));
       if (grams + c.fruit.unit[1] > WEEK_MAX_G) blocked = true; // would help, but the week is full
       else if (!best || score > best.score) best = { ...c, score };
     }
@@ -194,23 +195,6 @@ export function weekPlan(needs: Need[], fruits: { fruit: Fruit; food: Food }[]):
     .sort((a, b) => b.count - a.count);
   const covers = Object.fromEntries(needs.map((n) => [n.key, 1 - left.get(n.key)! / n.weekly]));
   return { items, covers, capped };
-}
-
-/**
- * The goals chosen until the user picks: the most important needs (in `needs` order) that some fruit in
- * season is a source of and a week of it closes at least halfway on its own — fruit barely moves a large
- * potassium gap, so it shouldn't crowd out the vitamin C it closes easily. At most `n`. If none
- * qualifies, the one such need fruit covers best (not the most important: a plan closing 2 % of a gap
- * helps nobody); none if nothing in season is a source of any.
- */
-export function defaultGoals(needs: Need[], fruits: { fruit: Fruit; food: Food }[], n = 3): Need[] {
-  const covered = needs
-    .filter((need) => sourcesOf(need.key, fruits).length)
-    .map((need) => ({ need, c: weekPlan([need], fruits).covers[need.key] }));
-  const closable = covered.filter((x) => x.c >= 0.5).map((x) => x.need);
-  if (closable.length) return closable.slice(0, n);
-  const best = covered.reduce<(typeof covered)[number] | null>((b, x) => (!b || x.c > b.c ? x : b), null);
-  return best ? [best.need] : [];
 }
 
 /** A chosen goal the week's fruit covers less than this much: say that fruit helps only a little. */

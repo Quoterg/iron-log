@@ -65,6 +65,11 @@ export default function Nutrients() {
     () => (report && period !== 1 && perDay?.size ? gaps(report.amounts, targets.value, report.covered) : null),
     [report, targets.value],
   );
+  // Fruit in season (M40) covers everything fruit can give that is below target, not only clear gaps.
+  const short = useMemo(
+    () => (settings.value.fruit && report && period !== 1 && perDay?.size ? gaps(report.amounts, targets.value, report.covered, 1).low : null),
+    [report, targets.value, settings.value.fruit],
+  );
   const label = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
   // Food cost over the period (M38, with Matkostnad on): per day, per week, per 30 days.
   const costsOn = !!settings.value.costs;
@@ -123,7 +128,7 @@ export default function Nutrients() {
         </section>
       )}
       {settings.value.suggestions && g && g.low.length > 0 && report && <suggestions.Lazy low={g.low} amounts={report.amounts} />}
-      {settings.value.fruit && g && report && <fruitView.Lazy low={g.low} amounts={report.amounts} />}
+      {short && report && <fruitView.Lazy low={short} amounts={report.amounts} />}
       {amounts ? (
         <NutrientGroups amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
       ) : (

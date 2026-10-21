@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { fmt, lang, locale, nutrientName, unitLabel } from '../lib/i18n';
 import { ensurePriceBook, priceBook } from '../lib/cost';
-import { allYear, defaultGoals, FRUITS, fruitNeeds, fruitSpan, goalGaps, inSeason, LITTLE, mainOrigin, monthRuns, REACHES, SEASON_PERIOD, sourceSeason, sourcesOf, weekPlan, widerSource, type Fruit, type Reach } from '../lib/fruit';
+import { allYear, FRUITS, fruitNeeds, fruitSpan, goalGaps, inSeason, LITTLE, mainOrigin, monthRuns, REACHES, SEASON_PERIOD, sourceSeason, sourcesOf, weekPlan, widerSource, type Fruit, type Reach } from '../lib/fruit';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from '../lib/nutrients';
 import type { Gap } from '../lib/report';
 import { tf, type FruitKey } from '../lib/strings-fruit';
@@ -11,9 +11,6 @@ import { open } from '../nav';
 import { ensureFoods, foods, settings, targets, updateSettings } from '../state';
 
 const REACH_LABEL: Record<Reach, FruitKey> = { sweden: 'reachSweden', europe: 'reachEurope', any: 'reachAny' };
-/** The goals chosen first: up to three (see defaultGoals); at most eight offered. */
-const DEFAULT_GOALS = 3;
-const MAX_GOALS = 8;
 
 const fruitName = (f: Fruit) => (lang.value === 'sv' || lang.value === 'da' ? f.sv : f.en);
 const nutrient = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
@@ -47,8 +44,9 @@ function monthsText(months: number[]): string {
 }
 
 /**
- * Fruit in season (M40, opt-in): the fruit plentiful this month from the chosen origins, and a week's
- * worth of it, in whole portions, for the gaps the user picks (most important first).
+ * Fruit in season (M40, opt-in): the fruit plentiful this month from the chosen origins, and what to buy
+ * for a week — in whole portions — to cover as broadly as possible every vitamin and mineral fruit can
+ * give that the user is below target in (owner, M40b). Any of them can be left out.
  */
 export default function FruitCard({ low, amounts }: { low: Gap[]; amounts: number[] }) {
   const month = new Date().getMonth();
@@ -70,23 +68,15 @@ export default function FruitCard({ low, amounts }: { low: Gap[]; amounts: numbe
   // What fruit is a source of at all (EU rule, over every fruit): the only nutrients it is suggested for.
   const span = useMemo(() => fruitSpan(all.map((x) => x.food)), [all]);
   const list = useMemo(() => withFood(season), [loaded, season, foods.value]);
-  const needs = useMemo(() => fruitNeeds(low, amounts, targets.value, span).slice(0, MAX_GOALS), [low, amounts, targets.value, span]);
-  // Goals: the user's picks among the current needs; until they pick, the most important ones fruit can
-  // close — or, when nothing in season from here is a source of any, the most important ones (each then
-  // says where and when fruit is).
-  const defaults = useMemo(() => {
-    const d = defaultGoals(needs, list, DEFAULT_GOALS);
-    return (d.length ? d : needs.slice(0, DEFAULT_GOALS)).map((n) => n.key);
-  }, [needs, list]);
-  const [picked, setPicked] = useState<string[] | null>(null);
-  const chosen = needs.filter((n) => (picked ?? defaults).includes(n.key));
-  const toggle = (key: string) => {
-    const now = chosen.map((n) => n.key);
-    setPicked(now.includes(key) ? now.filter((k) => k !== key) : [...now, key]);
-  };
-  // Planned: the chosen goals some fruit in season from here is a source of; the others get a note.
-  const planned = chosen.filter((n) => sourcesOf(n.key, list).length);
-  const unsourced = chosen.filter((n) => !sourcesOf(n.key, list).length);
+  // Every nutrient fruit can give that is below target, most important first; all included unless left out.
+  const needs = useMemo(() => fruitNeeds(low, amounts, targets.value, span), [low, amounts, targets.value, span]);
+  const [left, setLeft] = useState<string[]>([]);
+  const chosen = needs.filter((n) => !left.includes(n.key));
+  const toggle = (key: string) => setLeft(left.includes(key) ? left.filter((k) => k !== key) : [...left, key]);
+  // The shopping list is driven by the goals some fruit in season from here is a source of (no buying
+  // fruit for crumbs); every fruit counts for all it gives among them. The others say where or when.
+  const unsourced = (key: string) => !sourcesOf(key, list).length;
+  const planned = chosen.filter((n) => !unsourced(n.key));
   const plan = useMemo(() => (planned.length ? weekPlan(planned, list) : null), [planned.map((n) => n.key).join(), list]);
   /** A goal no fruit in season from here is a source of: a wider choice that has one now, or when one is. */
   const noSourceText = (key: string) => {
@@ -136,9 +126,6 @@ export default function FruitCard({ low, amounts }: { low: Gap[]; amounts: numbe
             })}
           </div>
           {!chosen.length && <p class="muted small">{tf('fruitNoGoal')}</p>}
-          {unsourced.map((n) => (
-            <p key={n.key} class="muted small">{noSourceText(n.key)}</p>
-          ))}
           {plan && plan.items.length > 0 && (
             <>
               <p class="small">{tf('fruitWeek').replace('{month}', monthName)}</p>
@@ -156,15 +143,20 @@ export default function FruitCard({ low, amounts }: { low: Gap[]; amounts: numbe
                   </li>
                 ))}
               </ul>
-              {planned.map((n) => (
-                <p key={n.key} class="small">
-                  {tf(plan.covers[n.key] < LITTLE ? 'fruitCoversLittle' : 'fruitCovers').replace('{name}', nutrient(n.key)).replace('{pct}', fmt(Math.round(plan.covers[n.key] * 100)))}
-                </p>
-              ))}
-              {plan.capped && <p class="muted small">{tf('fruitCapped')}</p>}
               {book && cost && book.shown(cost) && <p class="small">{tf('fruitCost').replace('{kr}', book.text(cost))}</p>}
+              <h3 class="suggest-sub">{tf('fruitCoverage')}</h3>
             </>
           )}
+          {chosen.map((n) =>
+            unsourced(n.key) ? (
+              <p key={n.key} class="muted small">{noSourceText(n.key)}</p>
+            ) : plan ? (
+              <p key={n.key} class="small">
+                {tf(plan.covers[n.key] < LITTLE ? 'fruitCoversLittle' : 'fruitCovers').replace('{name}', nutrient(n.key)).replace('{pct}', fmt(Math.round(plan.covers[n.key] * 100)))}
+              </p>
+            ) : null,
+          )}
+          {plan?.capped && <p class="muted small">{tf('fruitCapped')}</p>}
         </>
       )}
       {loaded && others.length > 0 && (

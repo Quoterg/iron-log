@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
-import { allYear, defaultGoals, FRUITS, fruitNeeds, fruitSpan, goalGaps, inSeason, isSource, mainOrigin, MIN_TONNES, monthRuns, SEASON_PERIOD, sourceSeason, sourcesOf, supply, WEEK_MAX_G, weekPlan, widerSource, type Fruit } from './fruit';
+import { allYear, FRUITS, fruitNeeds, fruitSpan, goalGaps, inSeason, isSource, mainOrigin, MIN_TONNES, monthRuns, SEASON_PERIOD, sourceSeason, sourcesOf, supply, WEEK_MAX_G, weekPlan, widerSource, type Fruit } from './fruit';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
 import type { Target } from './targets';
 
@@ -153,12 +153,18 @@ describe('the week\'s fruit', () => {
     expect(plan.covers.potassium).toBeLessThan(0.5);
   });
 
-  it('weighs the energy: a week of avocados does not win on potassium alone', () => {
-    const avocadoF = fruit('avocado', 140);
-    const avocado = food('slv:avocado', { kcal: 160, potassium: 490, folate: 80 });
-    const banana2 = food('slv:banana', { kcal: 90, potassium: 360, folate: 20 });
-    const plan = weekPlan([{ key: 'potassium', weekly: 2000, weight: 1 }], [{ fruit: avocadoF, food: avocado }, { fruit: bananaF, food: banana2 }]);
-    expect(plan.items[0].fruit.key).toBe('banana');
+  it('weighs the energy gently: of two fruits giving the same, the lighter wins; a broad one still earns its place', () => {
+    const heavy = food('slv:heavy', { kcal: 200, potassium: 360 });
+    const light = food('slv:light', { kcal: 90, potassium: 360 });
+    const same = weekPlan([{ key: 'potassium', weekly: 2000, weight: 1 }], [{ fruit: fruit('heavy', 120), food: heavy }, { fruit: fruit('light', 120), food: light }]);
+    expect(same.items[0].fruit.key).toBe('light');
+    // Avocado gives potassium, vitamin E and folate at once: worth its energy for a broad week.
+    const avocado = food('slv:avocado', { kcal: 160, potassium: 490, vitE: 3.4, folate: 80 });
+    const banana2 = food('slv:banana', { kcal: 90, potassium: 360, vitE: 0.1, folate: 20 });
+    const needs = [{ key: 'potassium', weekly: 4000, weight: 1.3 }, { key: 'vitE', weekly: 30, weight: 1 }, { key: 'folate', weekly: 600, weight: 1.3 }];
+    const broad = weekPlan(needs, [{ fruit: fruit('avocado', 140), food: avocado }, { fruit: bananaF, food: banana2 }]);
+    expect(broad.items.map((i) => i.fruit.key)).toContain('avocado');
+    expect(broad.items.find((i) => i.fruit.key === 'avocado')!.count).toBeLessThanOrEqual(7);
   });
 
   it('suggests fruit only for vitamins, minerals and fibre — not energy or macronutrients', () => {
@@ -168,16 +174,21 @@ describe('the week\'s fruit', () => {
     expect(needs.map((n) => n.key)).toEqual(['potassium']);
   });
 
-  it('chooses first the most important gaps a week of fruit closes at least halfway', () => {
-    const kiwi2 = food('slv:kiwi', { vitC: 90, folate: 40, potassium: 300 }); // a source of all three
-    const fruits = [{ fruit: kiwiF, food: kiwi2 }, { fruit: bananaF, food: banana }];
-    const needs = [
-      { key: 'potassium', weekly: 20000, weight: 1.3 }, // far more than fruit can give
-      { key: 'vitC', weekly: 300, weight: 1 },
-      { key: 'folate', weekly: 200, weight: 1.3 },
+  it('covers several nutrients at once: a broad week rather than one goal at a time', () => {
+    const persimmon = food('slv:sharon', { kcal: 70, vitC: 66, vitA: 35, folate: 8 });
+    const apricot = food('slv:apricot', { kcal: 45, vitA: 153, vitC: 9 });
+    const fruits = [
+      { fruit: kiwiF, food: kiwi },
+      { fruit: fruit('sharon', 170), food: persimmon },
+      { fruit: fruit('apricot', 40), food: apricot },
     ];
-    expect(defaultGoals(needs, fruits).map((n) => n.key)).toEqual(['vitC', 'folate']);
-    expect(defaultGoals(needs.slice(0, 1), fruits).map((n) => n.key)).toEqual(['potassium']); // none closable: the first
+    const plan = weekPlan(
+      [{ key: 'vitC', weekly: 300, weight: 1 }, { key: 'vitA', weekly: 600, weight: 1 }, { key: 'folate', weekly: 150, weight: 1.3 }],
+      fruits,
+    );
+    expect(plan.items.length).toBeGreaterThanOrEqual(2);
+    for (const k of ['vitC', 'vitA', 'folate']) expect(plan.covers[k], k).toBeGreaterThan(0.3);
+    expect(plan.covers.vitC).toBe(1);
   });
 
   it('suggests nothing when nothing helps', () => {

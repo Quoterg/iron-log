@@ -28,10 +28,16 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   Reg. 1169/2011) over all 23 fruits' Livsmedelsverket data: vitamin C, A (apricot), E, B1, B6,
   folate, potassium, fibre, selenium (blueberries). Never D, B12, iron, calcium, iodine (unit test on
   the real data). Shown on the card; only these gaps can be goals.
-- A chosen goal no fruit in season from here is a source of says where it is now ("Kalium: … Från
-  ”Hela världen”: Banan, Avokado") or when ("Vitamin A: … Aprikos är i säsong maj–juli"); defaults
-  prefer goals with a source in season, then the one fruit covers best; goals covered < 25 % say fruit
-  gives only a little. "Fruit doesn't help" now names the user's own gaps.
+- A goal no fruit in season from here is a source of says where it is now ("Kalium: … Från
+  ”Hela världen”: Banan, Avokado") or when ("Vitamin A: … Aprikos är i säsong maj–juli"). Goals covered
+  < 25 % say fruit gives only a little. "Fruit doesn't help" now names the user's own gaps.
+- Owner: the point is a **weekly shopping list covering broadly** every vitamin and mineral fruit can
+  give. So: goals = every span nutrient below target (not only < 70 %), all on by default (chips only
+  to leave one out); one list ("Att handla för en vecka i …") driven by the goals some fruit in season
+  from here is a source of, every fruit counting for all it gives; ≤ 5 kinds; energy weighs gently
+  (÷ √kcal). Example (October, whole world): avocado 5, grapefruit 2, banana 2, mango 1, raspberries
+  1 dl → folate 100 %, B1 100 %, vitamin E 73 %, B6 61 %, potassium 52 % (per-kcal scoring gave
+  42/100/28/24/24 %).
 - Tests: unit 272 ✓, build ✓ (30.5 KB), e2e 157 ✓, Lighthouse ✓.
 
 ## 2026-10-21 — M40 Frukt i säsong (interactive session)
