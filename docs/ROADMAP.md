@@ -302,6 +302,29 @@ emulated Moto G4 (CPU ×4) by `e2e/perf.spec.ts` (test-results/perf.json).
     would download the data again; (d) diary/report rendering — no stutter measured. Revisit if the
     numbers change.
 
+## Phase 7 — Fruit in season (M40)
+
+- [x] **M40 Frukt i säsong** — Owner's choice (2026-10-21: ideas 2 + 3, automated, not hand-made;
+  with the amount for a week). Opt-in (Settings → Förslag), a card in Näringsämnen (7/30 days):
+  - **Seasons from official statistics**, no hand-made calendar (`pnpm data:fetch-fruit` /
+    `data:build-fruit`, run with the prices on 1 March and 1 September): SCB's monthly imports by
+    product code and sending country (ImpTotalKNMan), averaged per month over 3 years; Swedish fruit
+    from Jordbruksverket (yearly harvests JO0102R21/R11, spread over the months Swedish growers sold
+    it by the monthly producer prices JO1001L2: strawberries Jun–Aug, apples Aug–Jun). Fruit sent on
+    by a European trade hub (mango via the Netherlands) counts as from outside Europe: share
+    min(1, the country's imports from outside the EU ÷ its exports) that month (Eurostat Comext).
+    In season = ≥ 40 % of the fruit's best month, ≥ 100 t, and the allowed origins ≥ 20 % (Swedish)
+    / 30 % (Europe) of what's in the shops. Table `src/lib/fruit-season.json` (~2 KB gzip, lazy).
+  - **From where (idea 3):** Svenskt / Sverige + Europa (default) / Hela världen; each fruit shows
+    "svensk", "mest från Spanien" or "längre ifrån".
+  - **Week's amount:** goals = gaps in vitamins, minerals and fibre that some fruit in season helps
+    with, most important first (shortfall × 1.3 for NNR's Nordic concern nutrients); chosen by default:
+    the most important that a week of fruit closes at least halfway (≤ 3; any can be picked). Whole
+    portions (st/dl), per kcal, ≤ 1 portion of a fruit a day, ≤ 4 kinds, ≤ 1 750 g a week; says how
+    much of each goal it covers, when fruit alone isn't enough, and the week's cost (Matkostnad on).
+  - Not done: wild Swedish berries (no statistics), Swedish pears/plums by month (no monthly data —
+    pears borrow the apple months), fruit names in da/de/fi/so (English, like food names).
+
 ## Later — ideas, not scheduled
 
 Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.

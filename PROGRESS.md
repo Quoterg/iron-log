@@ -5,7 +5,8 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (low security housekeeping) is in PR #46. **Released v1.6.6** (2026-10-16, M39a; v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
+**M40 Frukt i säsong** built (PR open); its seasons update with the prices (prices.yml, 1 March and
+1 September — check the fruit table in that PR). **M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (security housekeeping) merged (PR #46). **Released v1.6.6** (2026-10-16, M39a; v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
 **Owner, once:** allow "GitHub Actions to create and approve pull requests" (repo Settings → Actions →
 General) so the price workflow can open its PRs. **Shelf prices** were collected 2026-10-13:
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
@@ -18,6 +19,25 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 
+## 2026-10-21 — M40 Frukt i säsong (interactive session)
+
+- Owner: fruit for the vitamins and minerals one is short of, in season, automated from the web
+  (not hand-made), with the amount for a week. Opt-in card in Näringsämnen (7/30 days).
+- Seasons: SCB monthly imports by country (`ImpTotalKNMan`) + Jordbruksverket (yearly harvests;
+  monthly producer prices give the Swedish months) + Eurostat Comext (fruit sent on by trade hubs,
+  e.g. mango via the Netherlands, counts as from outside Europe). `scripts/fruit-spec.mjs` names only
+  product codes, foods and portions; `build-fruit.mjs` computes everything else. Checked against
+  what everyone knows: Swedish strawberries Jun–Aug, apples Aug–Jun, Spanish citrus Nov–Apr,
+  watermelon May–Aug, persimmon Oct–Dec, bananas all year (never European).
+- Week: whole portions per kcal (avocados lost on energy), ≤ 1 750 g; default goals are the most
+  important gaps fruit closes at least halfway (potassium alone needs kilos of fruit). Found in the
+  e2e run: fat/protein were offered as goals and "3 skiva" — goals are now vitamins, minerals and
+  fibre only; portions st/dl only.
+- Size: initial JS unchanged (30.5 KB); the table + logic is a lazy chunk (~9 KB, ~3 KB gzip).
+- Not done: wild berries (no statistics), monthly Swedish pears/plums (no data), fruit names in
+  da/de/fi/so (English, like food names). Jordbruksverket's database states no licence (open data,
+  free; credited in Settings).
+- Tests: unit 260 ✓, build ✓ (30.5 KB), e2e 157 ✓ (new: fruit.spec.ts, with axe light/dark), Lighthouse ✓.
 ## 2026-10-12 — M21b Security housekeeping (weekly run)
 
 - S4: `MAX_PARTS` 4096 → 2048 (32 MB per message; a 200 000-key summary is tested to fit); summary checked (≤ 200 000 keys, finite numbers

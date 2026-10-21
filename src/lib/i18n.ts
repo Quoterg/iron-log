@@ -119,6 +119,8 @@ export interface LangPack {
   checkin?: Record<string, string>;
   /** Strings of the shopping list (Swedish ones: strings-shop.ts). */
   shop?: Record<string, string>;
+  /** Strings of "Frukt i säsong" (Swedish ones: strings-fruit.ts). */
+  fruit?: Record<string, string>;
 }
 
 const LOADERS: Record<Exclude<Lang, 'sv'>, () => Promise<{ default: LangPack }>> = {

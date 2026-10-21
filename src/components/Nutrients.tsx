@@ -11,6 +11,8 @@ import { NutrientGroups } from './NutrientGroups';
 
 /** Foods and swaps for the period's shortfalls (opt-in, M27): loaded only when switched on. */
 const suggestions = lazyView(() => import('./Suggestions'));
+/** Fruit in season for the period's shortfalls (opt-in, M40). */
+const fruitView = lazyView(() => import('./FruitCard'));
 
 const PERIODS = [1, 7, 30] as const;
 type Period = (typeof PERIODS)[number];
@@ -121,6 +123,7 @@ export default function Nutrients() {
         </section>
       )}
       {settings.value.suggestions && g && g.low.length > 0 && report && <suggestions.Lazy low={g.low} amounts={report.amounts} />}
+      {settings.value.fruit && g && report && <fruitView.Lazy low={g.low} amounts={report.amounts} />}
       {amounts ? (
         <NutrientGroups amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
       ) : (

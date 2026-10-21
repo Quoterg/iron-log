@@ -46,6 +46,8 @@ pnpm data:build-usda       # data/raw/usda → public/data/usda-*.json (+ src/li
 pnpm data:fetch-prices     # SCB price index, Open Prices, Livsmedelsverket raw commodities → data/raw/prices
 pnpm data:build-prices     # → public/data/prices.<hash>.json (+ src/lib/prices.json); --review lists matches
 pnpm data:base-prices      # shelf prices from willys.se → data/prices-base.json (by hand, ~yearly; never in CI)
+pnpm data:fetch-fruit      # SCB imports, Eurostat trade, Jordbruksverket harvests → data/raw/fruit (M40)
+pnpm data:build-fruit      # → src/lib/fruit-season.json (fruit in season; both run in prices.yml)
 ```
 
 ## Rules

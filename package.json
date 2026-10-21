@@ -21,7 +21,9 @@
     "data:build-top": "node scripts/build-top.mjs",
     "data:fetch-prices": "node scripts/fetch-prices.mjs",
     "data:build-prices": "node scripts/build-prices.mjs",
-    "data:base-prices": "node scripts/compile-base-prices.mjs"
+    "data:base-prices": "node scripts/compile-base-prices.mjs",
+    "data:fetch-fruit": "node scripts/fetch-fruit.mjs",
+    "data:build-fruit": "node scripts/build-fruit.mjs"
   },
   "dependencies": {
     "@preact/signals": "1",

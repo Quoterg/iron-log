@@ -8,6 +8,8 @@ import { YourData } from './YourData';
 import { ts } from '../lib/strings-sync';
 import { setTheme, themeChoice } from '../lib/theme';
 import { tg } from '../lib/strings-suggest';
+import { tf } from '../lib/strings-fruit';
+import FRUIT_PERIOD from '../lib/fruit-period.json';
 import { tc } from '../lib/strings-checkin';
 import { tsh } from '../lib/strings-shop';
 import { fmtMonth, TYPICAL_COLLECTED, TYPICAL_MONTH } from '../lib/typical-prices';
@@ -145,6 +147,12 @@ function SuggestCard() {
         {tg('suggestToggle')}
       </label>
       <p class="muted small">{tg('suggestNote')}</p>
+      <label class="check">
+        <input type="checkbox" checked={!!s.fruit} onChange={(e) => void updateSettings({ fruit: (e.currentTarget as HTMLInputElement).checked })} />
+        {tf('fruitToggle')}
+      </label>
+      <p class="muted small">{tf('fruitNote')}</p>
+      <p class="muted small">{tf('fruitSource').replace('{period}', FRUIT_PERIOD.period.split('–').map(fmtMonth).join('–'))}</p>
       <label class="check">
         <input type="checkbox" checked={!s.whatIfOff} onChange={(e) => void updateSettings({ whatIfOff: !(e.currentTarget as HTMLInputElement).checked })} />
         {tg('whatIfToggle')}
