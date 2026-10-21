@@ -13,6 +13,36 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.7.0',
+    date: '2026-10-21',
+    notes: {
+      sv: [
+        'Nytt: Frukt i säsong (slå på under Inställningar → Förslag). Visar vilka frukter det finns gott om i butikerna den här månaden och varifrån de kommer – från svensk skörd och importstatistik.',
+        'Den föreslår också hur mycket frukt under en vecka som täcker de vitaminer och mineraler du får för lite av. Välj själv målen och om frukten ska vara svensk, från Europa eller från hela världen.',
+      ],
+      en: [
+        'New: Fruit in season (turn it on under Settings → Suggestions). Shows which fruits are plentiful in the shops this month and where they come from – from Swedish harvests and import statistics.',
+        'It also suggests how much fruit in a week would cover the vitamins and minerals you get too little of. Choose the goals yourself, and whether the fruit should be Swedish, from Europe or from anywhere.',
+      ],
+      da: [
+        'Nyt: Frugt i sæson (slå det til under Indstillinger → Forslag). Viser hvilke frugter der er masser af i butikkerne i denne måned, og hvor de kommer fra – fra svenske høster og importstatistik.',
+        'Den foreslår også, hvor meget frugt på en uge der dækker de vitaminer og mineraler, du får for lidt af. Vælg selv målene, og om frugten skal være svensk, fra Europa eller fra hele verden.',
+      ],
+      de: [
+        'Neu: Obst der Saison (einschalten unter Einstellungen → Vorschläge). Zeigt, welches Obst es diesen Monat reichlich in den Geschäften gibt und woher es kommt – aus schwedischen Ernten und der Importstatistik.',
+        'Es schlägt auch vor, wie viel Obst in einer Woche die Vitamine und Mineralstoffe deckt, von denen du zu wenig bekommst. Wähle die Ziele selbst und ob das Obst schwedisch, aus Europa oder aus aller Welt sein soll.',
+      ],
+      fi: [
+        'Uutta: Sesongin hedelmät (kytke päälle kohdassa Asetukset → Ehdotukset). Näyttää, mitä hedelmiä kaupoissa on tässä kuussa runsaasti ja mistä ne tulevat – Ruotsin sadoista ja tuontitilastoista.',
+        'Se ehdottaa myös, kuinka paljon hedelmiä viikossa kattaa vitamiinit ja kivennäisaineet, joita saat liian vähän. Valitse tavoitteet itse ja se, ovatko hedelmät ruotsalaisia, Euroopasta vai mistä tahansa.',
+      ],
+      so: [
+        'Cusub: Miro xilligeeda (ka shid Dejinta → Soo jeedin). Waxay muujinaysaa mirooyinka badan ee dukaamada bishan iyo halka ay ka yimaadaan – laga soo qaatay goosashada Iswiidhan iyo tirakoobka soo dejinta.',
+        'Waxay sidoo kale soo jeedinaysaa inta miro ah ee toddobaadkii daboolaysa fitamiinada iyo macdanta aad wax yar ka hesho. Adigu dooro yoolalka, iyo in mirodu tahay Iswiidhish, Yurub ama adduunka oo dhan.',
+      ],
+    },
+  },
+  {
     version: '1.6.6',
     date: '2026-10-16',
     notes: {

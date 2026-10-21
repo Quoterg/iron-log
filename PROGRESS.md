@@ -5,8 +5,8 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**M40 Frukt i säsong** built (PR open); its seasons update with the prices (prices.yml, 1 March and
-1 September — check the fruit table in that PR). **M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (security housekeeping) merged (PR #46). **Released v1.6.6** (2026-10-16, M39a; v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
+**M40 Frukt i säsong** merged (PR #70); its seasons update with the prices (prices.yml, 1 March and
+1 September — check the fruit table in that PR). **M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (security housekeeping) merged (PR #46). **Released v1.7.0** (2026-10-21, M40 + M39b; v1.6.6 M39a, v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
 **Owner, once:** allow "GitHub Actions to create and approve pull requests" (repo Settings → Actions →
 General) so the price workflow can open its PRs. **Shelf prices** were collected 2026-10-13:
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
