@@ -19,6 +19,16 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 
+## 2026-10-26 — Weekly run: nothing to build
+
+- No open `milestone/*` PRs (only Dependabot bumps #64–#69, not touched). Every unchecked milestone is
+  blocked on the owner: M37 (waits for the owner's go), M18d (manual TalkBack/VoiceOver pass), M19c
+  (store listings, owner's choice), M22 (deferred by owner decision).
+
+### Needs decision
+
+- Give the go for **M37 Veckomenyn**, or name another milestone/fix for the next weekly run.
+
 ## 2026-10-21 — M40d Frukt i säsong with partly missing data (interactive session)
 
 - Owner's phone: vitamins at 2–40 % of target, yet the card said "Du får tillräckligt …". Cause: the
