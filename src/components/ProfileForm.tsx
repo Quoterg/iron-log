@@ -20,6 +20,8 @@ import { lang as langSignal } from '../lib/i18n';
 import { open } from '../nav';
 import { settings, updateSettings } from '../state';
 import { te } from '../lib/strings-energy';
+import { goalShift } from '../lib/adaptive';
+import { isoDate } from '../lib/db';
 import { GOAL_LABEL } from './AdaptiveEnergy';
 
 const lang = () => langSignal.value;
@@ -38,8 +40,25 @@ export function ProfileForm() {
   const s = settings.value;
   const goal = s.goal ?? 'maintain';
   const save = (patch: Partial<Profile>) => void updateSettings({ profile: withEnergy({ ...p, ...patch }, goal, s.pace) });
-  // The goal (M35) sets the automatic target too: the need ± the pace's energy.
-  const setGoal = (g: Goal, pace = s.pace) => void updateSettings({ goal: g, pace, profile: withEnergy(p, g, pace) });
+  // While the target follows the measured expenditure (M35), that alone sets it (M41): the formula box is locked.
+  const following = !!(s.adaptive && s.adaptiveFollow);
+  /**
+   * The goal (M35) sets the automatic target too: the need ± the pace's energy. While the target
+   * follows the estimate, a new goal or pace moves it at once by the difference (M41) — not only
+   * at the next weekly step, ±150 kcal at a time — and the change is noted with why.
+   */
+  const setGoal = (g: Goal, pace = s.pace) => {
+    if (!following || noGoal(p)) return void updateSettings({ goal: g, pace, profile: withEnergy(p, g, pace) });
+    const from = { goal, pace: paceFor(p, s.pace) };
+    const to = { goal: g, pace: paceFor(p, pace) };
+    const kcal = goalShift(p.kcal, from, to, minIntake(p));
+    void updateSettings({
+      goal: g,
+      pace,
+      profile: { ...p, kcal, kcalAuto: false },
+      ...(kcal !== p.kcal ? { energyChange: { date: isoDate(new Date()), from: p.kcal, to: kcal, why: { kind: 'goal' as const, fromGoal: from.goal, fromPace: from.pace, goal: to.goal, pace: to.pace } } } : {}),
+    });
+  };
   const estimate = energyNeed(p);
   const pace = paceFor(p, s.pace);
   const goalKcal = estimate && goal !== 'maintain' && !noGoal(p) ? goalTarget(estimate, goal, pace, minIntake(p)) : null;
@@ -187,12 +206,13 @@ export function ProfileForm() {
       <label class="check">
         <input
           type="checkbox"
-          checked={!!p.kcalAuto}
-          disabled={!estimate && !p.kcalAuto}
+          checked={!!p.kcalAuto && !following}
+          disabled={following || (!estimate && !p.kcalAuto)}
           onChange={(e) => save({ kcalAuto: (e.currentTarget as HTMLInputElement).checked })}
         />
         {t('kcalAuto')}
       </label>
+      {following && <p class="muted small">{te('followActive')}</p>}
       {!estimate && <p class="muted small">{t('kcalAutoHint')}</p>}
       <label>
         {t('dailyEnergy')}
@@ -226,7 +246,6 @@ export function ProfileForm() {
         </p>
       )}
       {goalKcal?.floored && <p class="small warn">{te('adaptiveFloored').replace('{kcal}', fmt(goalKcal.kcal))}</p>}
-      {s.adaptive && s.adaptiveFollow && <p class="muted small">{te('followActive')}</p>}
       {estimate && <p class="muted small">{p.bodyFatPct != null && p.weightKg ? t('formulaKatch') : t('formulaMifflin')}</p>}
       <label class="check">
         <input

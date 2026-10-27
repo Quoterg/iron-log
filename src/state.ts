@@ -183,6 +183,13 @@ export async function removeEntry(id: string): Promise<void> {
   await db.deleteEntry(id);
 }
 
+/** Remove several entries at once (a whole meal, M41). */
+export async function removeEntries(ids: string[]): Promise<void> {
+  const gone = new Set(ids);
+  entries.value = entries.value.filter((x) => !gone.has(x.id));
+  for (const id of ids) await db.deleteEntry(id);
+}
+
 export async function loadSettings(): Promise<void> {
   const s = await db.getSettings();
   if (s) {

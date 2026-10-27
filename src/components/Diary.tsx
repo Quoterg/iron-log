@@ -1,4 +1,5 @@
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
+import { lazyView } from '../lazy';
 import { ensurePriceBook, priceBook, type Cost } from '../lib/cost';
 import { entryVector, isoDate, MEALS, type Entry } from '../lib/db';
 import { activityName, fmt, fmtAmount, lang, nutrientName, t, unitLabel } from '../lib/i18n';
@@ -7,7 +8,7 @@ import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
   activityTypes, addWater, burnedToday, clock, date, dayActivities, dayComplete, dayTotals,
-  dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, recipes, removeActivity,
+  dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, recipes, removeActivity, removeEntries,
   repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets,
   toggleDayComplete, toggleSupplementTaken, updateSettings, usual, usualState,
 } from '../state';
@@ -62,17 +63,8 @@ export function Diary() {
           </button>
         </section>
       )}
-      {/* Follow the estimate (M35): this week's change of the energy target, until dismissed. */}
-      {settings.value.followNote && settings.value.followNote.week === isoWeek(isoDate(now)).key && (
-        <section class="card checkin-teaser" role="status">
-          <span>
-            {followText(settings.value.followNote)}
-          </span>
-          <button class="btn small" aria-label={t('notNow')} title={t('notNow')} onClick={() => void updateSettings({ followNote: undefined })}>
-            ×
-          </button>
-        </section>
-      )}
+      {/* The energy target changed (M35 weekly step, M41 goal change): that week, until dismissed; why on demand. */}
+      <EnergyNote now={now} />
       <section class="card summary">
         <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} hero />
         {settings.value.addBurnedToTarget && burnedToday.value > 0 && (
@@ -157,6 +149,16 @@ export function Diary() {
                 <button class="link" onClick={() => open({ kind: 'template', meal })}>
                   {t('saveAsMeal')}
                 </button>
+                {/* The whole meal at once (M41) instead of one entry at a time. */}
+                <button
+                  class="link"
+                  onClick={() =>
+                    confirm(t('clearMealConfirm').replace('{meal}', t(meal).toLowerCase()).replace('{n}', String(list.length))) &&
+                    void removeEntries(list.map((e) => e.id))
+                  }
+                >
+                  {t('clearMeal')}
+                </button>
               </div>
               </>
             )}
@@ -192,9 +194,28 @@ export function Diary() {
 }
 
 /** "Energimålet följer din förbrukning: nu 2 430 kcal/dag (+150)." */
-function followText(n: { from: number; to: number }): string {
-  const d = n.to - n.from;
-  return t('followDone').replace('{kcal}', fmt(n.to)).replace('{delta}', `${d > 0 ? '+' : '−'}${fmt(Math.abs(d))}`);
+/** Why the target changed, step by step (M41): loaded only when asked for. */
+const energyWhy = lazyView(() => import('./EnergyWhy'));
+
+function EnergyNote({ now }: { now: Date }) {
+  const [why, setWhy] = useState(false);
+  const c = settings.value.energyChange;
+  if (!c || c.seen || isoWeek(c.date).key !== isoWeek(isoDate(now)).key) return null;
+  const d = c.to - c.from;
+  return (
+    <section class="card checkin-teaser energy-note" role="status">
+      <span>
+        {t('followDone').replace('{kcal}', fmt(c.to)).replace('{delta}', `${d > 0 ? '+' : '−'}${fmt(Math.abs(d))}`)}{' '}
+        <button class="link inline" aria-expanded={why} onClick={() => setWhy(!why)}>
+          {t('followWhy')}
+        </button>
+        {why && <energyWhy.Lazy change={c} />}
+      </span>
+      <button class="btn small" aria-label={t('notNow')} title={t('notNow')} onClick={() => void updateSettings({ energyChange: { ...c, seen: true } })}>
+        ×
+      </button>
+    </section>
+  );
 }
 
 function name(ref: string): string {

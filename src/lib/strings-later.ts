@@ -191,6 +191,7 @@ export const SV_LATER = {
   noTarget: 'inget mål',
   createRecipe: 'Skapa recept',
   editRecipe: 'Redigera recept',
+  deleteRecipe: 'Ta bort receptet',
   myRecipes: 'Mina recept',
   noRecipes: 'Du har inga recept ännu.',
   ingredient: 'Ingrediens',

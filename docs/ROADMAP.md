@@ -334,6 +334,22 @@ emulated Moto G4 (CPU ×4) by `e2e/perf.spec.ts` (test-results/perf.json).
   every gap ("Du får tillräckligt"). The card now counts nutrients any logged food reports and notes
   the ones whose totals are partly missing data.
 
+## Phase 8 — Quality of life
+
+- [x] **M41 Energy target, recipes, meals** — Owner's report (2026-10-27):
+  - **One owner of the energy target:** the profile's formula ("Räkna ut energibehovet automatiskt")
+    and the weekly follow fought — the follow unticked the box, ticking it again overwrote the follow,
+    and a goal change did nothing until the next ±150 kcal step. Now the follow, when on, alone sets
+    the target (box locked, note); turning it on takes over at once; a goal or pace change applies at
+    once by the difference in the goals' energy (deliberate, not capped).
+  - **How and why** (owner's request): each change is stored with its reasons (`energyChange`): the
+    measured expenditure and what it rests on, the goal's kcal, the target that gives, capped or
+    floored — or the goal change. Diary: "Ditt energimål ändrades … Varför?" (explanation lazy-loaded);
+    Settings: "Nästa steg (vecka N)" and the latest change.
+  - **Recipes** delete from the list in Settings (×) and from the recipe's food screen ("Ta bort
+    receptet"); the editor's button sat below the fold.
+  - **Clear a whole meal** ("Töm måltiden", with a confirmation) next to "Kopiera måltid".
+
 ## Later — ideas, not scheduled
 
 Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.

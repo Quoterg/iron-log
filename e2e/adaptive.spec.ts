@@ -61,20 +61,34 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
   await expect(page.getByText(/Föreslaget energimål: 2\s830 kcal\/dag/)).toBeVisible();
   await page.getByLabel(/Följ uppskattningen automatiskt/).check();
   await expect(energy).toHaveValue('2430');
-  await expect(page.getByText(/följer din uppmätta förbrukning en gång i veckan/)).toBeVisible();
+  // One owner (M41): the profile's formula box is off and locked while the target follows.
+  await expect(page.getByText(/följer nu din uppmätta förbrukning/)).toBeVisible();
+  await expect(page.getByLabel('Räkna ut energibehovet automatiskt')).toBeDisabled();
+  // How and why (M41): the step, what it rests on, and where the next one goes (week 44).
+  await expect(page.getByText(/Senaste ändringen av energimålet \(2026-10-20\)/)).toBeVisible();
+  await expect(page.getByText(/högst 150 kcal per vecka: 2\s280 → 2\s430 kcal\/dag\. Nästa vecka fortsätter det mot 2\s830/)).toBeVisible();
+  await expect(page.getByText(/Nästa steg \(vecka 44\): 2\s430 → 2\s580 kcal\/dag, mot 2\s830/)).toBeVisible();
   await tab(page, 'Dagbok');
-  const note = page.getByRole('status').filter({ hasText: 'Energimålet följer din förbrukning' });
+  const note = page.getByRole('status').filter({ hasText: 'Ditt energimål ändrades' });
   await expect(note).toContainText('nu 2 430 kcal/dag (+150)');
+  await note.getByRole('button', { name: 'Varför?' }).click();
+  await expect(note).toContainText(/Uppmätt förbrukning: 2\s550 kcal\/dag – från 20 loggade dagar och 4 vägningar/);
+  await expect(note).toContainText(/Ditt mål: Gå upp i vikt, 0,25 kg\/vecka → \+275 kcal\/dag/);
+  await expect(note).toContainText(/Det ger ett energimål på 2\s830 kcal\/dag/);
   // Once a week: a reload the same week changes nothing.
   await page.reload();
   await expect(note).toBeVisible();
   await tab(page, 'Inställningar');
   await expect(energy).toHaveValue('2430');
-  await page.getByLabel(/Följ uppskattningen automatiskt/).uncheck();
+  // A new goal while following applies at once (M41): gain → lose at 0.25 kg/week = −550 kcal.
   await page.getByRole('combobox', { name: 'Mål', exact: true }).selectOption('lose');
+  await expect(energy).toHaveValue('1880');
+  await expect(page.getByText(/Du bytte mål från ”Gå upp i vikt, 0,25 kg\/vecka” till ”Gå ner i vikt, 0,25 kg\/vecka”: −550 kcal\/dag direkt, 2\s430 → 1\s880/)).toBeVisible();
+  await page.getByLabel(/Följ uppskattningen automatiskt/).uncheck();
   await page.getByRole('button', { name: 'Använd som mitt energimål' }).click();
   await expect(energy).toHaveValue('2280');
   await tab(page, 'Dagbok');
+  await expect(note).toContainText('nu 1 880 kcal/dag (−550)');
   await note.getByRole('button', { name: 'Inte nu' }).click();
   await expect(note).toHaveCount(0);
   await page.getByRole('button', { name: 'Föregående dag' }).click();

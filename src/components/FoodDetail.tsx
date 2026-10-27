@@ -14,6 +14,7 @@ import {
   date as currentDate,
   entries,
   foods,
+  deleteRecipe,
   recipeDraft,
   removeEntry,
   toggleFavourite,
@@ -255,9 +256,22 @@ export default function FoodDetail(props: {
           </button>
         )}
         {ref.startsWith('recipe:') && !props.ingredient && (
-          <button type="button" class="btn wide" onClick={() => open({ kind: 'recipe', ref })}>
-            {t('editRecipe')}
-          </button>
+          <div class="actions">
+            <button type="button" class="btn wide" onClick={() => open({ kind: 'recipe', ref })}>
+              {t('editRecipe')}
+            </button>
+            <button
+              type="button"
+              class="btn danger"
+              onClick={async () => {
+                if (!confirm(t('confirmDeleteRecipe'))) return;
+                await deleteRecipe(ref);
+                back();
+              }}
+            >
+              {t('deleteRecipe')}
+            </button>
+          </div>
         )}
       </form>
 
