@@ -349,6 +349,9 @@ emulated Moto G4 (CPU ×4) by `e2e/perf.spec.ts` (test-results/perf.json).
   - **Recipes** delete from the list in Settings (×) and from the recipe's food screen ("Ta bort
     receptet"); the editor's button sat below the fold.
   - **Clear a whole meal** ("Töm måltiden", with a confirmation) next to "Kopiera måltid".
+- [x] **M41b Expenditure as arithmetic** — Owner's question (3 320 vs 2 560): the explanation and the
+  Settings card now show the intake average of the days that count, the logged days left out, the
+  weight trend's energy, and the sum.
 
 ## Later — ideas, not scheduled
 

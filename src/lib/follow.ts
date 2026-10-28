@@ -27,7 +27,7 @@ export async function runFollow(): Promise<void> {
   // What the step rests on, so the app can show why the target moved (M41).
   const why: EnergyWhy = {
     kind: 'week', expenditure: est.kcal, days: est.days, weighIns: est.weighIns, trend: est.kgPerWeek,
-    goal, pace, want: target.kcal, ...(target.floored ? { floored: true } : {}),
+    goal, pace, want: target.kcal, intake: est.intake, skipped: est.skipped, ...(target.floored ? { floored: true } : {}),
   };
   await updateSettings(
     next === p.kcal

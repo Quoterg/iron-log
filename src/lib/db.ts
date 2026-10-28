@@ -97,7 +97,11 @@ export interface Settings {
  * - `goal`: the user changed goal or pace while the target follows the estimate — applied at once.
  */
 export type EnergyWhy =
-  | { kind: 'week'; expenditure: number; days: number; weighIns: number; trend: number; goal: Goal; pace: number; want: number; floored?: boolean }
+  | {
+      kind: 'week'; expenditure: number; days: number; weighIns: number; trend: number; goal: Goal; pace: number; want: number; floored?: boolean;
+      /** Average intake of the counted days and logged days left out (M41b; missing in older records). */
+      intake?: number; skipped?: number;
+    }
   | { kind: 'goal'; fromGoal: Goal; fromPace: number; goal: Goal; pace: number };
 
 export interface EnergyChange {

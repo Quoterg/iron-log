@@ -332,6 +332,8 @@ function energyChange(x: unknown, inRange: (v: unknown, lo: number, hi: number) 
   if (w.kind === 'week' && inRange(w.expenditure, 800, 8000) && inRange(w.days, 0, 400) && inRange(w.weighIns, 0, 400) && inRange(w.trend, -5, 5) && goal(w.goal) && pace(w.pace) && inRange(w.want, 800, 6000)) {
     why = { kind: 'week', expenditure: w.expenditure as number, days: w.days as number, weighIns: w.weighIns as number, trend: w.trend as number, goal: w.goal as Goal, pace: w.pace as number, want: w.want as number };
     if (w.floored === true) why.floored = true;
+    if (inRange(w.intake, 0, 10000)) why.intake = w.intake as number;
+    if (inRange(w.skipped, 0, 400) && Number.isInteger(w.skipped)) why.skipped = w.skipped as number;
   } else if (w.kind === 'goal' && goal(w.fromGoal) && pace(w.fromPace) && goal(w.goal) && pace(w.pace)) {
     why = { kind: 'goal', fromGoal: w.fromGoal as Goal, fromPace: w.fromPace as number, goal: w.goal as Goal, pace: w.pace as number };
   } else return undefined;
