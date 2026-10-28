@@ -1,19 +1,17 @@
 import { useEffect, useState } from 'preact/hooks';
-import { goalTarget, minIntake, type Estimate, type Goal } from '../lib/adaptive';
+import { goalTarget, minIntake, type Estimate } from '../lib/adaptive';
 import { loadEstimate } from '../lib/adaptive-load';
 import { fmt } from '../lib/i18n';
-import { te } from '../lib/strings-energy';
+import { goalText, te } from '../lib/strings-energy';
 import { energyNeed, noGoal as noGoalFor, paceFor } from '../lib/targets';
-import { FOLLOW_STEP } from '../lib/adaptive';
+import { FOLLOW_STEP, followDue, followStep } from '../lib/adaptive';
+import { isoWeek } from '../lib/checkin';
+import { addDays, isoDate } from '../lib/db';
+import EnergyWhy from './EnergyWhy';
 import { runFollow } from '../lib/follow';
 import { settings, updateSettings } from '../state';
 
-export const GOAL_LABEL: Record<Goal, 'goalLose' | 'goalMaintain' | 'goalGain'> = { lose: 'goalLose', maintain: 'goalMaintain', gain: 'goalGain' };
-
-/** "Gå ner i vikt, 0,5 kg/vecka" — the goal as set in the profile. */
-export function goalText(goal: Goal, pace: number): string {
-  return goal === 'maintain' ? te('goalMaintain') : `${te(GOAL_LABEL[goal])}, ${te('paceOption').replace('{kg}', fmt(pace, 2))}`;
-}
+export { GOAL_LABEL } from '../lib/strings-energy';
 
 /**
  * Adaptive energy expenditure (opt-in, off by default): the estimate, and the target for the goal
@@ -38,9 +36,15 @@ export function AdaptiveEnergy() {
   const noGoal = noGoalFor(p); // pregnant or breastfeeding
   const pace = est?.ok ? paceFor({ ...p, weightKg: est.weightKg }, s.pace) : 0;
   const target = est?.ok && !noGoal ? goalTarget(est.kcal, goal, pace, minIntake(p)) : null;
-  // Turned on: the first step happens now (then once a week).
+  // Following: where the next weekly step goes (this week if not yet taken, else next week; M41).
+  const today = isoDate(new Date());
+  const stepWeek = followDue(s, isoWeek(today).key) ? isoWeek(today) : isoWeek(addDays(today, 7));
+  const next = s.adaptiveFollow && target ? followStep(p.kcal, target.kcal, minIntake(p)) : null;
+  const change = s.energyChange;
+  // Turned on: it alone sets the target from now (the profile's formula stops, M41); the first step
+  // happens now if there is enough data (then once a week).
   const follow = async (on: boolean) => {
-    await updateSettings({ adaptiveFollow: on });
+    await updateSettings(on ? { adaptiveFollow: true, profile: { ...settings.value.profile, kcalAuto: false } } : { adaptiveFollow: false });
     if (on) await runFollow();
   };
 
@@ -86,13 +90,28 @@ export function AdaptiveEnergy() {
               <p class="num">{te('adaptiveTarget').replace('{kcal}', fmt(target.kcal))}</p>
               {target.floored && <p class="small warn">{te('adaptiveFloored').replace('{kcal}', fmt(target.kcal))}</p>}
               {!p.kcalAuto && p.kcal === target.kcal ? (
-                <p class="muted small" role="status">{te('adaptiveIsTarget')}</p>
+                <p class="muted small" role="status">{te(s.adaptiveFollow ? 'followOnTarget' : 'adaptiveIsTarget')}</p>
               ) : (
                 <button type="button" class="btn wide" onClick={() => void updateSettings({ profile: { ...p, kcal: target.kcal, kcalAuto: false } })}>
                   {te('adaptiveApply')}
                 </button>
               )}
             </>
+          )}
+          {s.adaptiveFollow && next != null && next !== p.kcal && (
+            <p class="small">
+              {te('followNext')
+                .replace('{week}', String(Number(stepWeek.key.slice(-2))))
+                .replace('{from}', fmt(p.kcal))
+                .replace('{to}', fmt(next))
+                .replace('{want}', fmt(target!.kcal))}
+            </p>
+          )}
+          {change && (
+            <div class="why-last">
+              <p class="small">{te('whyLast').replace('{date}', change.date)}</p>
+              <EnergyWhy change={change} />
+            </div>
           )}
           {!noGoal && (
             <>

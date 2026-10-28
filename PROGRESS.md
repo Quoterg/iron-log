@@ -12,12 +12,30 @@ General) so the price workflow can open its PRs. **Shelf prices** were collected
 re-check by hand around October 2027 (`pnpm data:base-prices`); seasonal produce (fresh berries
 ~240 kr/kg in October) reflects that month. **Releasing** from now on:
 see CLAUDE.md (version + changelog entry + twa-manifest). **Store links** (`lib/stores.ts`, checked
-2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 30.5 KB of 40 (M39b; later screens' Swedish strings in strings-later.ts) (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
+2026-10-13) can't be tested in CI: re-check the URL patterns by hand every few months. **Budget:** initial JS is 30.9 KB of 40 (M41; M39b: later screens' Swedish strings in strings-later.ts) (FoodSearch lazy since M36) (M34's cost arithmetic and prices are lazy) after M28 moved the
 barcode scanner (and the Open Food Facts client), the custom-food editor and the copy sheet out of
 the first bundle (lazy, prefetched when idle so they work offline). CI's gzip measures ~0.2 KB more
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
+**M41** (energy target one owner + how/why, recipe delete, clear meal) built — PR open.
+
+## 2026-10-27 — M41 Energy target, recipes, meals (interactive session)
+
+- Owner's report 1: "adjust automatically" and the goal-based adjuster seemed not to work. Cause: two
+  owners of the target — the weekly follow unticked the profile's formula box, re-ticking it
+  overwrote the follow, and goal/pace changes waited for the next ±150 kcal step. Now: the follow,
+  when on, alone sets it (box locked with a note; on = take over at once); a goal/pace change shifts
+  the target at once by the goals' energy difference (`goalShift`, floor kept).
+- Owner's request: show how and why. `energyChange` (settings, synced/backed up, validated) keeps the
+  last change with its reasons; diary note "Ditt energimål ändrades: nu … (±…). Varför?" opens the
+  steps (EnergyWhy, lazy); Settings → Anpassad energiförbrukning shows "Nästa steg (vecka N)" and the
+  latest change; "Det ändras inte av sig självt" no longer shown while following.
+- Report 2: recipes "can't be deleted" — the editor's button was below the fold (y 647 of 640 even
+  with one ingredient). Now × in Settings → Mina recept and "Ta bort receptet" on its food screen.
+- Report 3: "Töm måltiden" clears a meal after a confirmation (`removeEntries`).
+- Initial JS 30.5 → 30.9 KB (diary note + clear-meal). Tests: unit 275 ✓, build ✓, e2e 160 ✓
+  (new: clear-meal.spec, recipe deletion, follow/why/goal change in adaptive.spec), Lighthouse ✓.
 
 ## 2026-10-26 — Weekly run: nothing to build
 

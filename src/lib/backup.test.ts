@@ -162,6 +162,26 @@ describe('profile import', () => {
     expect(SYNC_VALIDATORS.kv({ lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: {}, fruit: true, fruitReach: 'any' })).toMatchObject({ fruit: true, fruitReach: 'any' });
   });
 
+  it('round-trips the last energy-target change and why (M41); a malformed one is dropped, not the backup', () => {
+    const settingsOf = (extra: object) =>
+      parseBackup(
+        JSON.stringify({
+          ...makeBackup(data),
+          settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: {}, ...extra },
+        }),
+      ).settings;
+    const week = {
+      date: '2026-10-20', from: 2280, to: 2430, seen: true,
+      why: { kind: 'week', expenditure: 2550, days: 20, weighIns: 4, trend: -0.5, goal: 'gain', pace: 0.25, want: 2830 },
+    };
+    expect(settingsOf({ energyChange: week })?.energyChange).toEqual(week);
+    const goal = { date: '2026-10-20', from: 2430, to: 1880, why: { kind: 'goal', fromGoal: 'gain', fromPace: 0.25, goal: 'lose', pace: 0.25 } };
+    expect(settingsOf({ energyChange: goal })?.energyChange).toEqual(goal);
+    expect(settingsOf({ energyChange: { ...goal, why: { kind: 'goal', fromGoal: 'bulk', fromPace: 0.25, goal: 'lose', pace: 0.25 } } })).not.toHaveProperty('energyChange');
+    expect(settingsOf({ energyChange: { ...week, to: 99999 } })).not.toHaveProperty('energyChange');
+    expect(SYNC_VALIDATORS.kv({ lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: {}, energyChange: goal })).toMatchObject({ energyChange: goal });
+  });
+
   it('keeps automatic energy only with the data a formula needs', () => {
     expect(withProfile({ sex: 'male', kcal: 2500, kcalAuto: true, weightKg: 80, bodyFatPct: 20 })?.kcalAuto).toBe(true);
     expect(withProfile({ sex: 'male', kcal: 2500, kcalAuto: true, age: 40 })?.kcalAuto).toBeUndefined();

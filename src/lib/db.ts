@@ -68,8 +68,10 @@ export interface Settings {
   adaptiveFollow?: boolean;
   /** ISO week the follow last ran (synced: once per user, not per device). */
   followWeek?: string;
-  /** Its last change, shown in the diary that week until dismissed. */
+  /** Its last change that week (also marks the week done; see followDue). */
   followNote?: { week: string; from: number; to: number };
+  /** The last automatic change of the energy target and why (M41): shown in the diary that week and in Settings. */
+  energyChange?: EnergyChange;
   /** Suggest foods and swaps for nutrients that run short (lib/suggest.ts; opt-in). */
   suggestions?: boolean;
   /** Fruit in season for the nutrients that run short (M40, opt-in; lib/fruit.ts). */
@@ -86,6 +88,26 @@ export interface Settings {
   costs?: boolean;
   /** Store chains offered as offer links on the shopping list (lib/stores.ts ids; default there). */
   chains?: string[];
+}
+
+/**
+ * Why the energy target changed (M41), so the app can show the reasoning:
+ * - `week`: the weekly follow step — measured expenditure (and what it rests on), the goal, the target
+ *   that gives, and whether the step was capped at FOLLOW_STEP or held at the lowest intake;
+ * - `goal`: the user changed goal or pace while the target follows the estimate — applied at once.
+ */
+export type EnergyWhy =
+  | { kind: 'week'; expenditure: number; days: number; weighIns: number; trend: number; goal: Goal; pace: number; want: number; floored?: boolean }
+  | { kind: 'goal'; fromGoal: Goal; fromPace: number; goal: Goal; pace: number };
+
+export interface EnergyChange {
+  /** ISO date of the change. */
+  date: string;
+  from: number;
+  to: number;
+  why: EnergyWhy;
+  /** Dismissed in the diary (still shown in Settings). */
+  seen?: boolean;
 }
 
 /** A day the user marked complete (everything eaten is logged): the adaptive estimate trusts it. */

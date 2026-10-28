@@ -4,7 +4,7 @@
 import { followDue, followStep } from './adaptive';
 import { loadEstimate } from './adaptive-load';
 import { isoWeek } from './checkin';
-import { isoDate } from './db';
+import { isoDate, type EnergyWhy } from './db';
 import { goalTarget, minIntake, noGoal, paceFor } from './targets';
 import { settings, updateSettings } from '../state';
 
@@ -21,11 +21,22 @@ export async function runFollow(): Promise<void> {
   const p = settings.value.profile; // fresh: the estimate took a moment
   const goal = settings.value.goal ?? 'maintain';
   const floor = minIntake(p);
-  const want = goalTarget(est.kcal, goal, paceFor({ ...p, weightKg: est.weightKg }, settings.value.pace), floor).kcal;
-  const next = followStep(p.kcal, want, floor);
+  const pace = paceFor({ ...p, weightKg: est.weightKg }, settings.value.pace);
+  const target = goalTarget(est.kcal, goal, pace, floor);
+  const next = followStep(p.kcal, target.kcal, floor);
+  // What the step rests on, so the app can show why the target moved (M41).
+  const why: EnergyWhy = {
+    kind: 'week', expenditure: est.kcal, days: est.days, weighIns: est.weighIns, trend: est.kgPerWeek,
+    goal, pace, want: target.kcal, ...(target.floored ? { floored: true } : {}),
+  };
   await updateSettings(
     next === p.kcal
       ? { followWeek: week }
-      : { followWeek: week, followNote: { week, from: p.kcal, to: next }, profile: { ...p, kcal: next, kcalAuto: false } },
+      : {
+          followWeek: week,
+          followNote: { week, from: p.kcal, to: next },
+          energyChange: { date: isoDate(new Date()), from: p.kcal, to: next, why },
+          profile: { ...p, kcal: next, kcalAuto: false },
+        },
   );
 }

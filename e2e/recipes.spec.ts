@@ -98,3 +98,36 @@ test('an unsaved draft can be restored or discarded; ingredients cannot be recip
   await expect(page.getByText('Ange ett namn.')).toBeVisible();
   await expect(page.getByText('Lägg till minst en ingrediens.')).toBeVisible();
 });
+
+test('a recipe can be deleted from the list in Settings and from its food screen (M41); logged days keep it', async ({ page }) => {
+  page.on('dialog', (d) => d.accept());
+  await page.goto('./');
+  const create = async (name: string) => {
+    await settingsTab(page);
+    await page.getByRole('button', { name: '+ Skapa recept' }).click();
+    await page.getByLabel('Namn', { exact: true }).fill(name);
+    await addIngredient(page, 'havregryn', /^Havregryn fullkorn/, 'g', '100');
+    await page.getByRole('button', { name: 'Spara', exact: true }).click();
+    await expect(page.locator('.entry', { hasText: name })).toBeVisible();
+  };
+  await create('Gröt A');
+  await create('Gröt B');
+
+  // From the list: the × next to it, no need to open the editor.
+  await page.getByRole('button', { name: 'Ta bort Gröt A' }).click();
+  await expect(page.locator('.entry', { hasText: 'Gröt A' })).toHaveCount(0);
+  await expect(page.locator('.entry', { hasText: 'Gröt B' })).toBeVisible();
+
+  // Log Gröt B, then delete the recipe from its food screen: gone from search, still in the diary.
+  await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
+  await meal(page, 0).getByRole('button', { name: /Lägg till/ }).click();
+  await page.getByPlaceholder(/Sök livsmedel/).fill('gröt b');
+  await page.locator('.result', { hasText: 'Gröt B' }).first().click();
+  await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
+  await meal(page, 0).locator('.entry', { hasText: 'Gröt B' }).click();
+  await page.getByRole('button', { name: 'Ta bort receptet' }).click();
+  await expect(meal(page, 0).locator('.entry', { hasText: 'Gröt B' })).toBeVisible();
+  await meal(page, 1).getByRole('button', { name: /Lägg till/ }).click();
+  await page.getByPlaceholder(/Sök livsmedel/).fill('gröt b');
+  await expect(page.locator('.result', { hasText: 'Gröt B' })).toHaveCount(0);
+});

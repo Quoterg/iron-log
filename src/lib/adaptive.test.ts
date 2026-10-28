@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addDays } from './db';
-import { allowedPaces, countedDays, estimate, followDue, followStep, goalTarget, minIntake, type DayIntake, type WeighIn } from './adaptive';
+import { allowedPaces, countedDays, estimate, followDue, followStep, goalDelta, goalShift, goalTarget, minIntake, type DayIntake, type WeighIn } from './adaptive';
 import { SV_ENERGY } from './strings-energy';
 
 const START = '2026-09-01';
@@ -105,5 +105,20 @@ describe('follow the estimate (M35)', () => {
     expect(followDue({ followWeek: '2026-W43' }, '2026-W43')).toBe(false);
     expect(followDue({ followNote: { week: '2026-W43' } }, '2026-W43')).toBe(false); // followWeek lost in sync
     expect(followDue({ followNote: { week: '2026-W42' } }, '2026-W43')).toBe(true);
+  });
+});
+
+describe('a goal change while following (M41)', () => {
+  it("a goal's energy: −/+ the pace × 7700 / 7 kcal a day, 0 to maintain", () => {
+    expect(goalDelta('maintain', 0.5)).toBe(0);
+    expect(goalDelta('lose', 0.5)).toBeCloseTo(-550);
+    expect(goalDelta('gain', 0.25)).toBeCloseTo(275);
+  });
+
+  it('moves the target at once by the difference, not capped like a weekly step, never below the floor', () => {
+    expect(goalShift(2430, { goal: 'gain', pace: 0.25 }, { goal: 'lose', pace: 0.25 }, 1500)).toBe(1880);
+    expect(goalShift(2000, { goal: 'maintain', pace: 0.5 }, { goal: 'lose', pace: 0.5 }, 1500)).toBe(1500); // 1450 < floor
+    expect(goalShift(2200, { goal: 'lose', pace: 0.5 }, { goal: 'lose', pace: 0.25 }, 1500)).toBe(2480); // slower pace: +275
+    expect(goalShift(2200, { goal: 'lose', pace: 0.5 }, { goal: 'lose', pace: 0.5 }, 1500)).toBe(2200);
   });
 });

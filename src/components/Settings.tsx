@@ -1,7 +1,7 @@
 import { fmt, type Lang, lang, LANGS, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { open } from '../nav';
-import { activeSources, customFoods, recipes, settings, templates, updateSettings } from '../state';
+import { activeSources, customFoods, deleteRecipe, recipes, settings, templates, updateSettings } from '../state';
 import { ProfileForm } from './ProfileForm';
 import { AdaptiveEnergy } from './AdaptiveEnergy';
 import { YourData } from './YourData';
@@ -90,12 +90,20 @@ function MyRecipes() {
       ) : (
         <ul class="entries">
           {list.map((r) => (
-            <li key={r.ref}>
+            <li key={r.ref} class="ingredient">
               <button class="entry" onClick={() => open({ kind: 'recipe', ref: r.ref })}>
                 <span class="entry-name">{r.name}</span>
                 <span class="num muted">
                   {fmt(((r.per100g[NUTRIENT_INDEX.kcal] ?? 0) * r.portionG) / 100)} kcal / {t('portionShort')}
                 </span>
+              </button>
+              {/* Delete right in the list (M41): in the editor it sits below the ingredients, easy to miss. */}
+              <button
+                class="btn small"
+                aria-label={`${t('remove')} ${r.name}`}
+                onClick={() => confirm(t('confirmDeleteRecipe')) && void deleteRecipe(r.ref)}
+              >
+                ×
               </button>
             </li>
           ))}

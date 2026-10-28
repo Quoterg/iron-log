@@ -1,5 +1,5 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
-import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type DayMark, type Entry, type OffFood, type Settings, type SyncStore, type Usage, type UserServings } from './db';
+import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type DayMark, type EnergyWhy, type Entry, type OffFood, type Settings, type SyncStore, type Usage, type UserServings } from './db';
 import { decimalCommaOf, isLang, type Lang } from './i18n';
 import { dataLangOf, foodName, NUTRIENTS, type Food } from './nutrients';
 import { MAX_ACTIVITY_KCAL, MAX_WATER_ML, type Activity, type Water } from './activity';
@@ -309,6 +309,8 @@ function settings(x: unknown): Settings | undefined {
   if (fn && typeof fn.week === 'string' && /^\d{4}-W\d{2}$/.test(fn.week) && inRange(fn.from, 800, 6000) && inRange(fn.to, 800, 6000)) {
     out.followNote = { week: fn.week, from: fn.from as number, to: fn.to as number };
   }
+  const ec = energyChange(x.energyChange, inRange);
+  if (ec) out.energyChange = ec;
   if (typeof x.checkinSeen === 'string' && /^\d{4}-W\d{2}$/.test(x.checkinSeen)) out.checkinSeen = x.checkinSeen;
   // Known chains only (an empty choice is a choice: no offer links).
   if (Array.isArray(x.chains)) out.chains = CHAIN_IDS.filter((id) => (x.chains as unknown[]).includes(id));
@@ -316,6 +318,25 @@ function settings(x: unknown): Settings | undefined {
     const src = (['slv', 'usda'] as const).filter((s) => (x.sources as unknown[]).includes(s));
     if (src.length) out.sources = src;
   }
+  return out;
+}
+
+/** The last energy-target change and why (M41); dropped (not the backup) when anything is off. */
+function energyChange(x: unknown, inRange: (v: unknown, lo: number, hi: number) => boolean): Settings['energyChange'] | undefined {
+  if (!isObj(x) || !isObj(x.why) || typeof x.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(x.date)) return undefined;
+  if (!inRange(x.from, 800, 6000) || !inRange(x.to, 800, 6000)) return undefined;
+  const w = x.why;
+  const goal = (g: unknown) => GOALS.includes(g as Goal);
+  const pace = (v: unknown) => inRange(v, 0, 1);
+  let why: EnergyWhy;
+  if (w.kind === 'week' && inRange(w.expenditure, 800, 8000) && inRange(w.days, 0, 400) && inRange(w.weighIns, 0, 400) && inRange(w.trend, -5, 5) && goal(w.goal) && pace(w.pace) && inRange(w.want, 800, 6000)) {
+    why = { kind: 'week', expenditure: w.expenditure as number, days: w.days as number, weighIns: w.weighIns as number, trend: w.trend as number, goal: w.goal as Goal, pace: w.pace as number, want: w.want as number };
+    if (w.floored === true) why.floored = true;
+  } else if (w.kind === 'goal' && goal(w.fromGoal) && pace(w.fromPace) && goal(w.goal) && pace(w.pace)) {
+    why = { kind: 'goal', fromGoal: w.fromGoal as Goal, fromPace: w.fromPace as number, goal: w.goal as Goal, pace: w.pace as number };
+  } else return undefined;
+  const out: NonNullable<Settings['energyChange']> = { date: x.date, from: x.from as number, to: x.to as number, why };
+  if (x.seen === true) out.seen = true;
   return out;
 }
 

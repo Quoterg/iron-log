@@ -2,7 +2,7 @@
 // against what they logged over the last 4 weeks — energy balance, ≈ 7700 kcal per kg of body
 // weight. Never changes a target by itself; the user can choose to apply a suggested one.
 // Loaded with the Settings screen only.
-import { KCAL_PER_KG } from './targets';
+import { KCAL_PER_KG, type Goal as GoalT } from './targets';
 
 export { allowedPaces, goalTarget, GOALS, minIntake, PACES, type Goal } from './targets';
 
@@ -144,4 +144,19 @@ export function followStep(current: number, want: number, floor: number): number
  */
 export function followDue(s: { followWeek?: string; followNote?: { week: string } }, week: string): boolean {
   return s.followWeek !== week && s.followNote?.week !== week;
+}
+
+/** A goal's energy per day: −/+ the pace's kcal (7700 per kg), 0 to maintain (unrounded). */
+export function goalDelta(goal: GoalT, pace: number): number {
+  return goal === 'maintain' ? 0 : ((goal === 'lose' ? -1 : 1) * pace * KCAL_PER_KG) / 7;
+}
+
+/**
+ * The target after a goal or pace change while it follows the estimate (M41): shifted at once by the
+ * difference between the two goals' energy — a deliberate choice, not noisy data, so not capped like
+ * the weekly step — rounded to 10 kcal, never below `floor`.
+ */
+export function goalShift(kcal: number, from: { goal: GoalT; pace: number }, to: { goal: GoalT; pace: number }, floor: number): number {
+  const next = Math.round((kcal + goalDelta(to.goal, to.pace) - goalDelta(from.goal, from.pace)) / 10) * 10;
+  return Math.max(floor, next);
 }

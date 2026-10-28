@@ -159,6 +159,10 @@ main {
 .news li { margin: 6px 0; }
 .suggest-gap + .suggest-gap { margin-top: 10px; }
 .checkin-teaser { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--usual); border-color: var(--usual-border); }
+.energy-note span { flex: 1; }
+.why { margin: 6px 0 0; padding-left: 20px; }
+.why li + li { margin-top: 4px; }
+.why-last { margin: 8px 0 16px; }
 .checkin-days { font-size: 1.4rem; font-weight: 200; margin: 0 0 4px; }
 .checkin-target { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .checkin-list { margin: 6px 0 0; padding-left: 1.2em; }
