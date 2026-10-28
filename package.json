@@ -40,7 +40,7 @@
     "@preact/preset-vite": "2",
     "@types/node": "22",
     "fake-indexeddb": "6",
-    "typescript": "5",
+    "typescript": "7",
     "vite": "6",
     "vitest": "5"
   }
