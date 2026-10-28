@@ -34,7 +34,7 @@ jobs:
 
       # Livsmedelsverket's raw commodities rarely change: keep them between runs, so a run fetches
       # only new foods instead of ~5 200 requests.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: data/raw/prices/slv-ravaror.json
           key: slv-ravaror-${{ github.run_id }}
