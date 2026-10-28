@@ -41,7 +41,10 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
   await tab(page, 'Inställningar');
   await page.getByLabel('Beräkna min förbrukning från vikt och intag').check();
   await expect(page.getByText(/Uppskattad förbrukning: 2\s550 kcal\/dag/)).toBeVisible();
-  await expect(page.getByText(/Från 20 dagar och 4 vägningar/)).toBeVisible();
+  // The arithmetic (M41b): intake of the days that count + the weight trend's energy = expenditure.
+  await expect(page.getByText(/Du åt i snitt 2\s000 kcal\/dag de 20 dagar som räknas/).first()).toBeVisible();
+  await expect(page.getByText(/Vikten ändrades −0,5 kg\/vecka enligt 4 vägningar – det motsvarar \+550 kcal\/dag/).first()).toBeVisible();
+  await expect(page.getByText(/Förbrukning: 2\s000 \+ 550 = 2\s550 kcal\/dag/).first()).toBeVisible();
   const energy = page.getByLabel('Energibehov per dag (kcal)');
   const before = await energy.inputValue();
 
@@ -72,7 +75,7 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
   const note = page.getByRole('status').filter({ hasText: 'Ditt energimål ändrades' });
   await expect(note).toContainText('nu 2 430 kcal/dag (+150)');
   await note.getByRole('button', { name: 'Varför?' }).click();
-  await expect(note).toContainText(/Uppmätt förbrukning: 2\s550 kcal\/dag – från 20 loggade dagar och 4 vägningar/);
+  await expect(note).toContainText(/Förbrukning: 2\s000 \+ 550 = 2\s550 kcal\/dag/);
   await expect(note).toContainText(/Ditt mål: Gå upp i vikt, 0,25 kg\/vecka → \+275 kcal\/dag/);
   await expect(note).toContainText(/Det ger ett energimål på 2\s830 kcal\/dag/);
   // Once a week: a reload the same week changes nothing.

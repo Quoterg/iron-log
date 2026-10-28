@@ -48,6 +48,10 @@ export type Estimate =
       weighIns: number;
       /** Weight trend, kg per week (negative = losing). */
       kgPerWeek: number;
+      /** Average intake of the counted days (kcal, rounded to 10): expenditure = intake + `kcal − intake`. */
+      intake: number;
+      /** Logged days left out (far below a typical day and not marked complete, or of unknown energy). */
+      skipped: number;
       /** Trend weight at the last weigh-in. */
       weightKg: number;
     }
@@ -125,6 +129,8 @@ export function estimate(days: DayIntake[], weighIns: WeighIn[]): Estimate {
     plusMinus: Math.max(10, round10(err)),
     ...base,
     kgPerWeek: Math.round(line.slope * 7 * 100) / 100,
+    intake: round10(mean),
+    skipped: days.filter((d) => d.kcal > 0 || d.unknown).length - counted.length,
     weightKg: Math.round((line.intercept + line.slope * x[x.length - 1]) * 10) / 10,
   };
 }

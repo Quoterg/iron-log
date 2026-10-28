@@ -7,7 +7,7 @@ import { energyNeed, noGoal as noGoalFor, paceFor } from '../lib/targets';
 import { FOLLOW_STEP, followDue, followStep } from '../lib/adaptive';
 import { isoWeek } from '../lib/checkin';
 import { addDays, isoDate } from '../lib/db';
-import EnergyWhy from './EnergyWhy';
+import EnergyWhy, { expenditureLines } from './EnergyWhy';
 import { runFollow } from '../lib/follow';
 import { settings, updateSettings } from '../state';
 
@@ -67,12 +67,12 @@ export function AdaptiveEnergy() {
                   {te('adaptiveResult').replace('{kcal}', fmt(est.kcal)).replace('{pm}', fmt(est.plusMinus))}
                 </strong>
               </p>
-              <p class="muted small">
-                {te('adaptiveBasis')
-                  .replace('{days}', String(est.days))
-                  .replace('{weighIns}', String(est.weighIns))
-                  .replace('{trend}', `${est.kgPerWeek > 0 ? '+' : ''}${fmt(est.kgPerWeek, 2)}`)}
-              </p>
+              {/* The arithmetic behind it (M41b): intake of the days that count + the weight trend's energy. */}
+              <ol class="why small muted">
+                {expenditureLines({ kcal: est.kcal, intake: est.intake, days: est.days, skipped: est.skipped, weighIns: est.weighIns, trend: est.kgPerWeek }).map((l) => (
+                  <li key={l}>{l}</li>
+                ))}
+              </ol>
               {formula && <p class="muted small">{te('adaptiveFormula').replace('{kcal}', fmt(formula))}</p>}
             </div>
           ) : (

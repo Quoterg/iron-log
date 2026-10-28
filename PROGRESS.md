@@ -20,6 +20,19 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **M41** (energy target one owner + how/why, recipe delete, clear meal) built — PR open.
 
+## 2026-10-28 — M41b Expenditure as arithmetic (interactive session)
+
+- Owner: "Varför?" said 3 320 kcal/day while Näringsämnen 30 dagar says 2 560. Not a bug: one is
+  expenditure (intake + the weight trend's energy, 7 700 kcal/kg), the other intake — but the
+  explanation never showed the intake it used, so it couldn't be checked. Also the estimate skips
+  logged days far below a usual day (< 60 %, not marked complete) and days of unknown energy, so its
+  intake average can be higher than the 30-day one.
+- Now the estimate returns `intake` and `skipped`; the explanation and the Settings card show
+  "Du åt i snitt X kcal/dag de N dagar som räknas", "M loggade dagar räknades inte: …", "Vikten
+  ändrades −0,7 kg/vecka enligt K vägningar – det motsvarar +760 kcal/dag", "Förbrukning: X + 760 =
+  3 320 kcal/dag". Older stored changes keep their one-line text.
+- Tests: unit 276 ✓, build ✓ (30.9 KB), e2e 160 ✓, Lighthouse ✓.
+
 ## 2026-10-27 — M41 Energy target, recipes, meals (interactive session)
 
 - Owner's report 1: "adjust automatically" and the goal-based adjuster seemed not to work. Cause: two

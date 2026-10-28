@@ -23,6 +23,14 @@ describe('adaptive energy expenditure', () => {
     expect(e.ok && e.kgPerWeek).toBe(-0.5);
   });
 
+  it('shows its arithmetic (M41b): the intake of the days that count + the weight trend = expenditure', () => {
+    // 2000 kcal most days, three logged days far below that (not marked complete): those are left out.
+    const e = estimate(days((i) => (i < 3 ? 600 : 2000)), weights(80, -0.5));
+    expect(e).toMatchObject({ ok: true, intake: 2000, skipped: 3, days: 25, kcal: 2550 });
+    // The 30-day average a user sees elsewhere includes the low days — lower than the intake used here.
+    expect(e.ok && e.kcal - e.intake).toBe(550);
+  });
+
   it('reports its uncertainty: noisier intake and weight give a wider ±', () => {
     const calm = estimate(days(() => 2400), weights(80, 0, 3));
     const noisy = estimate(days((i) => (i % 2 ? 1700 : 3100)), weights(80, 0, 3).map((w, k) => ({ ...w, kg: w.kg + (k % 2 ? 0.8 : -0.8) })));
