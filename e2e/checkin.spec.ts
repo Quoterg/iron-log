@@ -22,6 +22,7 @@ test('off by default; once a week on the diary; the sheet sums up the week; seen
   }));
   const body = [['2026-09-30', 80.4], ['2026-10-02', 80.2], ['2026-10-06', 79.9], ['2026-10-10', 79.7]].map(([date, kg]) => ({ date, weightKg: kg, updatedAt: 1 }));
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const reloaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'h.json', mimeType: 'application/json',
@@ -32,6 +33,7 @@ test('off by default; once a week on the diary; the sheet sums up the week; seen
   await expect(page.getByText('Veckans avstämning är klar')).toHaveCount(0); // off by default
 
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
   await page.getByLabel('Visa en kort avstämning av förra veckan i dagboken').check();
   await tab(page, 'Dagbok');
   await expect(page.getByText('Veckans avstämning är klar')).toBeVisible();

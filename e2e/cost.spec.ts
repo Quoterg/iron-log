@@ -17,6 +17,7 @@ async function logFood(page: Page, mealIndex: number, query: string, grams: stri
 }
 const setCosts = async (page: Page, on: boolean) => {
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
   await page.getByLabel('Visa uppskattade priser (typpriser)').setChecked(on);
   await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
 };

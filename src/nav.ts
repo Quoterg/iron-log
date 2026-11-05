@@ -37,7 +37,12 @@ export type Screen =
   /** A food's price (M34): the shopping list's editor, from a cost in the diary. */
   | { kind: 'price'; ref: string }
   /** What's new (M32): releases newer than `since`, else the latest ones. */
-  | { kind: 'whatsnew'; since?: string | null };
+  | { kind: 'whatsnew'; since?: string | null }
+  /** One page of Settings (M44). */
+  | { kind: 'settings'; page: SettingsPageKind };
+
+/** Settings' pages (M44): profile & goal, energy target, features, own foods/recipes/meals, data & about. */
+export type SettingsPageKind = 'profile' | 'energy' | 'features' | 'library' | 'data';
 
 export const stack = signal<Screen[]>([]);
 export const top = computed(() => stack.value[stack.value.length - 1]);

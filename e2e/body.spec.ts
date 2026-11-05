@@ -45,6 +45,7 @@ test('log weight over days, see the trend chart, table and keyboard readout; pro
 
   // The newest weight updated the profile.
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
   await expect(page.getByLabel('Vikt (kg)', { exact: true })).toHaveValue('79,6');
 });
 

@@ -22,6 +22,7 @@ test('food cost per day, week and 30 days in the summaries; the check-in compare
     id: `m${i}`, date: day(-15 + i), meal: 'breakfast', foodRef: 'slv:150', grams: i < 7 ? 500 : 1000, createdAt: 1000 + i,
   }));
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const reloaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'history.json',
@@ -38,6 +39,7 @@ test('food cost per day, week and 30 days in the summaries; the check-in compare
 
   // On: per day and week (7 days), and per 30 days as well (30 days).
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
   await page.getByLabel('Visa uppskattade priser (typpriser)').check();
   await page.getByLabel('Visa en kort avstämning av förra veckan i dagboken').check();
   await tab(page, 'Näringsämnen');

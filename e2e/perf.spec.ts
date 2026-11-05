@@ -78,6 +78,7 @@ test('warm start with a logged day (names need the food data)', async ({ page })
     id: `e${i}`, date: today, meal: i < 3 ? 'breakfast' : 'dinner', foodRef, grams: 100, createdAt: 1000 + i,
   }));
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const loaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'b.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ format: 'iron-log-backup', version: 1, entries })),

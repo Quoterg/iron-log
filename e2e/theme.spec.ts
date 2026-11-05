@@ -11,6 +11,7 @@ test('Auto follows the phone; a chosen theme sticks across reloads, before first
   await expect.poll(() => theme(page)).toBe('day'); // Auto follows a change while open
 
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const group = page.getByRole('group', { name: 'Utseende' });
   await group.getByRole('button', { name: 'Natt' }).click();
   await expect(group.getByRole('button', { name: 'Natt' })).toHaveAttribute('aria-pressed', 'true');
@@ -30,6 +31,7 @@ test('Auto follows the phone; a chosen theme sticks across reloads, before first
 
   // Back to Auto: the phone's setting again.
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   await page.getByRole('group', { name: 'Utseende' }).getByRole('button', { name: 'Auto' }).click();
   expect(await theme(page)).toBe('day');
 });

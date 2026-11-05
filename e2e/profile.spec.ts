@@ -26,9 +26,9 @@ test('profiles saved before the formula change are migrated once, with a notice'
   });
   await page.reload();
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  // The notice is on the Settings overview (M44); the target is 2046 kcal.
   await expect(page.getByText(/Ditt automatiska energimål har ändrats/)).toBeVisible();
-  await expect(page.getByLabel('Energibehov per dag (kcal)')).toHaveValue('2046');
-  await expect(page.getByLabel('Aktivitetsnivå')).toHaveValue('1.55');
+  await expect(page.locator('.settings-menu .entry', { hasText: 'Energimål' })).toContainText('2 046 kcal');
   await page.getByRole('button', { name: 'OK', exact: true }).click();
   // The dismissal is written to IndexedDB asynchronously; reload only once it is stored.
   await page.waitForFunction(async () => {
@@ -41,6 +41,7 @@ test('profiles saved before the formula change are migrated once, with a notice'
   });
   await page.reload();
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
   await expect(page.getByLabel('Aktivitetsnivå')).toHaveValue('1.55');
   await expect(page.getByText(/Ditt automatiska energimål har ändrats/)).toHaveCount(0);
 });
@@ -48,33 +49,43 @@ test('profiles saved before the formula change are migrated once, with a notice'
 test('profile drives energy and NNR targets (age band, pregnancy)', async ({ page }) => {
   await page.goto('./');
   await settingsTab(page);
+  await page.locator('.settings-menu .entry', { hasText: 'Energimål' }).click();
   const kcal = page.getByLabel('Energibehov per dag (kcal)');
-  const auto = page.getByLabel('Räkna ut energibehovet automatiskt');
+  const auto = page.getByLabel(/Räkna från profilen/);
+  const link = page.getByRole('button', { name: /^Energimål:/ }); // on the profile page
 
   // Automatic energy needs age, weight and height; weight takes a decimal comma.
   await expect(auto).toBeDisabled();
+  await page.getByRole('button', { name: /^‹ / }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
   await setField(page, 'Ålder', '30');
   await setField(page, 'Vikt (kg)', '60,4');
   await setField(page, 'Längd (cm)', '165');
   await expect(page.getByLabel('Vikt (kg)', { exact: true })).toHaveValue('60,4');
+  await link.click();
   await auto.check();
   // Sedentary by default (like tdeecalculator.net): Mifflin BMR 1324.25 × 1.2 = 1589.
   await expect(kcal).toHaveValue('1589');
   await expect(page.getByText(/Mifflin–St Jeor/)).toBeVisible();
 
   // Body fat % switches to Katch–McArdle: (370 + 21.6 × 60.4 × 0.75) × 1.2 = 1618.
+  await page.getByRole('button', { name: /^‹ / }).click();
+  // Back from the energy page opened by its link: the profile page again.
   await setField(page, 'Fettprocent (valfritt)', '25');
-  await expect(kcal).toHaveValue('1618');
-  await expect(page.getByText(/Katch–McArdle \(fettfri massa\)/)).toBeVisible();
+  await expect(link).toContainText('1 618 kcal');
   await page.getByLabel('Aktivitetsnivå').selectOption('1.55');
-  await expect(kcal).toHaveValue('2090');
+  await expect(link).toContainText('2 090 kcal');
+  await link.click();
+  await expect(page.getByText(/Katch–McArdle \(fettfri massa\)/)).toBeVisible();
+  await page.getByRole('button', { name: /^‹ / }).click();
+  // Back from the energy page opened by its link: the profile page again.
   await setField(page, 'Fettprocent (valfritt)', '');
   await page.getByLabel('Aktivitetsnivå').selectOption('1.2');
-  await expect(kcal).toHaveValue('1589');
+  await expect(link).toContainText('1 589 kcal');
 
   // Third trimester: +2.3 MJ, weight is asked as before pregnancy, iron 26 mg.
   await page.getByLabel('Livssituation').selectOption('pregnant3');
-  await expect(kcal).toHaveValue('2139'); // + 2.3 MJ ≈ 550 kcal
+  await expect(link).toContainText('2 139 kcal'); // + 2.3 MJ ≈ 550 kcal
   await expect(page.getByLabel('Vikt före graviditeten (kg)')).toBeVisible();
   await nutrientsTab(page);
   await expect(target(page, 'Järn')).toContainText('/ 26 mg');
@@ -82,6 +93,7 @@ test('profile drives energy and NNR targets (age band, pregnancy)', async ({ pag
 
   // Age 75, not pregnant: vitamin D 20 µg, iron 7 mg; persists across reload.
   await settingsTab(page);
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
   await page.getByLabel('Livssituation').selectOption('none');
   await setField(page, 'Ålder', '75');
   await nutrientsTab(page);
@@ -93,11 +105,14 @@ test('profile drives energy and NNR targets (age band, pregnancy)', async ({ pag
 
   // Invalid input is rejected: too young, non-integer age, clearing data turns auto energy off.
   await settingsTab(page);
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
   await setField(page, 'Ålder', '5');
   await expect(page.getByLabel('Ålder', { exact: true })).toHaveValue('75');
   await setField(page, 'Ålder', '40,5');
   await expect(page.getByLabel('Ålder', { exact: true })).toHaveValue('75');
   await setField(page, 'Längd (cm)', '');
+  await expect(link).toContainText('Skriv själv');
+  await link.click();
   await expect(auto).not.toBeChecked();
   await expect(page.getByText(/Fyll i ålder, vikt och längd/)).toBeVisible();
 });
@@ -105,29 +120,35 @@ test('profile drives energy and NNR targets (age band, pregnancy)', async ({ pag
 test('goal in the profile (M35): the automatic target is the need ± the pace, at once', async ({ page }) => {
   await page.goto('./');
   await settingsTab(page);
-  const kcal = page.getByLabel('Energibehov per dag (kcal)');
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
+  const kcal = page.getByRole('button', { name: /^Energimål:/ });
   await setField(page, 'Ålder', '30');
   await setField(page, 'Vikt (kg)', '60,4');
   await setField(page, 'Längd (cm)', '165');
   await page.getByLabel('Aktivitetsnivå').selectOption('1.55');
-  await page.getByLabel('Räkna ut energibehovet automatiskt').check();
-  await expect(kcal).toHaveValue('2053'); // maintain: the need (BMR 1324 × 1.55)
+  await kcal.click();
+  await page.getByLabel(/Räkna från profilen/).check();
+  await expect(page.getByLabel('Energibehov per dag (kcal)')).toHaveValue('2053'); // maintain: the need (BMR 1324 × 1.55)
+  await page.getByRole('button', { name: /^‹ / }).click();
+  // Back from the energy page opened by its link: the profile page again.
 
   const goal = page.getByRole('combobox', { name: 'Mål', exact: true });
   await goal.selectOption('lose');
   // 0.75 % of 60.4 kg is 0.45 kg/week: only 0.25 is offered.
   await expect(page.getByRole('combobox', { name: 'Takt' }).locator('option')).toHaveCount(1);
-  await expect(kcal).toHaveValue('1780'); // 2053 − 275, to 10
-  await expect(page.getByText('Förbrukning ca 2 053 kcal, −275 kcal/dag för 0,25 kg/vecka.')).toBeVisible();
+  await expect(kcal).toContainText('1 780 kcal'); // 2053 − 275, to 10
   await goal.selectOption('gain');
-  await expect(kcal).toHaveValue('2330');
+  await expect(kcal).toContainText('2 330 kcal');
   // A body change recomputes with the goal; kept after a reload.
   await setField(page, 'Vikt (kg)', '62');
-  await expect(kcal).toHaveValue('2350'); // need 2077 + 275, to 10
+  await expect(kcal).toContainText('2 350 kcal'); // need 2077 + 275, to 10
   await page.reload();
   await settingsTab(page);
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
   await expect(goal).toHaveValue('gain');
-  await expect(kcal).toHaveValue('2350');
+  await kcal.click();
+  await expect(page.getByLabel('Energibehov per dag (kcal)')).toHaveValue('2350');
+  await expect(page.getByText('Förbrukning ca 2 077 kcal, +275 kcal/dag för 0,25 kg/vecka.')).toBeVisible();
 });
 
 test('settings from before M35 with a goal: the automatic target follows it once, with a notice', async ({ page }) => {
@@ -149,7 +170,7 @@ test('settings from before M35 with a goal: the automatic target follows it once
   await page.reload();
   await settingsTab(page);
   await expect(page.getByText(/Ditt viktmål gäller nu också det automatiska energimålet, som därför är 1\s780 kcal\/dag/)).toBeVisible();
-  await expect(page.getByLabel('Energibehov per dag (kcal)')).toHaveValue('1780');
+  await expect(page.locator('.settings-menu .entry', { hasText: 'Energimål' })).toContainText('1 780 kcal');
   await page.getByRole('button', { name: 'OK', exact: true }).click();
   await expect(page.getByText(/Ditt viktmål gäller nu också/)).toHaveCount(0);
   await expect(page.getByText(/Ditt automatiska energimål har ändrats/)).toHaveCount(0); // not the activity-level notice

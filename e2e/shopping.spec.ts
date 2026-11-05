@@ -187,7 +187,9 @@ test('food cost (M33): off by default; on, typical prices (≈) fill lines witho
 
   // Settings → Matkostnad.
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
   await page.getByLabel('Visa uppskattade priser (typpriser)').check();
+  await page.locator('.feature', { hasText: /Visa uppskattade priser/ }).getByText('Läs mer').click();
   await expect(page.getByText(/Typpriser: jämförpriser från willys\.se/)).toBeVisible();
   await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
   await page.getByRole('button', { name: 'Inköpslista' }).click();

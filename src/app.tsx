@@ -2,7 +2,7 @@ import { addDays, isoDate } from './lib/db';
 import { locale, t } from './lib/i18n';
 import { Diary } from './components/Diary';
 import { lazyView } from './lazy';
-import { stack, top, type Screen } from './nav';
+import { closeAll, stack, top, type Screen } from './nav';
 import { date, loadDay, supplementRefs, updateReady, view, type View } from './state';
 
 const TABS: View[] = ['diary', 'nutrients', 'body', 'settings'];
@@ -36,14 +36,16 @@ export const foodEditorView = lazyView(() => import('./components/FoodEditor'));
 export const copyView = lazyView(() => import('./components/CopySheet'));
 export const shoppingView = lazyView(() => import('./components/ShoppingSheet'));
 export const whatsNewView = lazyView(() => import('./components/WhatsNew'));
+const settingsPageView = lazyView(() => import('./components/SettingsPage'));
 export const priceView = lazyView(() => import('./components/PriceSheet'));
 
 export function App() {
-  const s = top.value;
+  // A Settings page (M44) is shown in the tab itself, not as a sheet over it.
+  const sheet = top.value && top.value.kind !== 'settings';
   return (
     <>
       {/* Stays rendered under the full-screen sheet so its scroll position survives. */}
-      <div aria-hidden={!!s}>
+      <div aria-hidden={sheet}>
         <header class="top">
           {view.value === 'settings' || view.value === 'body' ? <h1>{t(view.value)}</h1> : <DateNav />}
         </header>
@@ -59,7 +61,8 @@ export function App() {
           {view.value === 'diary' && <Diary />}
           {view.value === 'nutrients' && <nutrientsView.Lazy />}
           {view.value === 'body' && <bodyView.Lazy />}
-          {view.value === 'settings' && <settingsView.Lazy />}
+          {/* Settings' pages (M44) show in the tab, with the tab bar, and still step back through history. */}
+          {view.value === 'settings' && (settingsShown() ? <settingsPageView.Lazy page={settingsShown()!} /> : <settingsView.Lazy />)}
         </main>
         <nav class="tabs">
           {TABS.map((v) => (
@@ -68,7 +71,11 @@ export function App() {
               class={view.value === v ? 'active' : ''}
               // Start loading Settings on touch, before the click lands.
               onPointerDown={PREFETCH[v]}
-              onClick={() => (view.value = v)}
+              // Leaving a Settings page by its tab: its history steps go with it (M44).
+              onClick={() => {
+                if (stack.value.some((s) => s.kind === 'settings')) closeAll();
+                view.value = v;
+              }}
             >
               {t(v)}
             </button>
@@ -127,6 +134,9 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <priceView.Lazy foodRef={s.ref} />;
     case 'whatsnew':
       return <whatsNewView.Lazy since={s.since} />;
+    case 'settings':
+      return null; // shown in the Settings tab (M44), not as a layer
+
   }
 }
 
@@ -158,4 +168,10 @@ function dayLabel(d: string): string {
     day: 'numeric',
     month: 'short',
   });
+}
+
+/** The Settings page on the stack, the latest one (M44): another sheet may be open on top of it. */
+function settingsShown() {
+  const s = [...stack.value].reverse().find((x) => x.kind === 'settings');
+  return s?.kind === 'settings' ? s.page : undefined;
 }

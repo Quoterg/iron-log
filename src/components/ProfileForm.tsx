@@ -17,12 +17,12 @@ import {
   type Status,
 } from '../lib/targets';
 import { lang as langSignal } from '../lib/i18n';
-import { open } from '../nav';
 import { settings, updateSettings } from '../state';
 import { te } from '../lib/strings-energy';
 import { goalShift } from '../lib/adaptive';
 import { isoDate } from '../lib/db';
 import { GOAL_LABEL } from './AdaptiveEnergy';
+import { open } from '../nav';
 
 const lang = () => langSignal.value;
 
@@ -59,9 +59,7 @@ export function ProfileForm() {
       ...(kcal !== p.kcal ? { energyChange: { date: isoDate(new Date()), from: p.kcal, to: kcal, why: { kind: 'goal' as const, fromGoal: from.goal, fromPace: from.pace, goal: to.goal, pace: to.pace } } } : {}),
     });
   };
-  const estimate = energyNeed(p);
   const pace = paceFor(p, s.pace);
-  const goalKcal = estimate && goal !== 'maintain' && !noGoal(p) ? goalTarget(estimate, goal, pace, minIntake(p)) : null;
 
   const pregnant = p.sex === 'female' && (p.status ?? 'none').startsWith('pregnant');
   const shown = (key: 'age' | 'weightKg' | 'heightCm' | 'bodyFatPct', decimals: boolean) =>
@@ -105,22 +103,6 @@ export function ProfileForm() {
   return (
     <section class="card form">
       <h2>{t('profile')}</h2>
-      {settings.value.energyNotice && (
-        <div class="notice" role="status">
-          <p class="small">{t('energyNotice')}</p>
-          <button type="button" class="btn small" onClick={() => void updateSettings({ energyNotice: false })}>
-            {t('ok')}
-          </button>
-        </div>
-      )}
-      {settings.value.goalNotice && (
-        <div class="notice" role="status">
-          <p class="small">{te('goalNotice').replace('{kcal}', fmt(p.kcal))}</p>
-          <button type="button" class="btn small" onClick={() => void updateSettings({ goalNotice: false })}>
-            {t('ok')}
-          </button>
-        </div>
-      )}
       <label>
         {t('sex')}
         <select
@@ -203,17 +185,61 @@ export function ProfileForm() {
           )}
         </div>
       )}
-      <label class="check">
-        <input
-          type="checkbox"
-          checked={!!p.kcalAuto && !following}
-          disabled={following || (!estimate && !p.kcalAuto)}
-          onChange={(e) => save({ kcalAuto: (e.currentTarget as HTMLInputElement).checked })}
-        />
-        {t('kcalAuto')}
-      </label>
-      {following && <p class="muted small">{te('followActive')}</p>}
-      {!estimate && <p class="muted small">{t('kcalAutoHint')}</p>}
+      <button class="entry" onClick={() => open({ kind: 'settings', page: 'energy' })}>
+        <span class="entry-name">
+          {t('settingsEnergy')}: {fmt(p.kcal)} kcal/{t('perDayShort')}
+          <span class="muted small summary">{te(s.adaptive && s.adaptiveFollow ? 'modeFollow' : p.kcalAuto ? 'modeProfile' : 'modeManual')}</span>
+        </span>
+        <span aria-hidden="true">›</span>
+      </button>
+    </section>
+  );
+}
+
+type Mode = 'manual' | 'profile' | 'follow';
+
+/**
+ * The energy target as one choice (M44): typed by the user, calculated from the profile (formula +
+ * goal), or following the measured expenditure once a week (M35). Replaces the profile's "Räkna ut
+ * automatiskt" box and the separate follow switch, which could fight over the target (M41).
+ */
+export function EnergyTarget() {
+  const s = settings.value;
+  const p = s.profile;
+  const goal = s.goal ?? 'maintain';
+  const save = (patch: Partial<Profile>) => void updateSettings({ profile: withEnergy({ ...p, ...patch }, goal, s.pace) });
+  const estimate = energyNeed(p);
+  const pace = paceFor(p, s.pace);
+  const goalKcal = estimate && goal !== 'maintain' && !noGoal(p) ? goalTarget(estimate, goal, pace, minIntake(p)) : null;
+  const mode: Mode = s.adaptive && s.adaptiveFollow ? 'follow' : p.kcalAuto ? 'profile' : 'manual';
+  const choose = async (m: Mode) => {
+    if (m === 'manual') await updateSettings({ adaptiveFollow: false, profile: { ...p, kcalAuto: false } });
+    if (m === 'profile') await updateSettings({ adaptiveFollow: false, profile: withEnergy({ ...p, kcalAuto: true }, goal, s.pace) });
+    if (m === 'follow') {
+      // It alone sets the target from now; the first step happens now if there is enough data.
+      await updateSettings({ adaptive: true, adaptiveFollow: true, profile: { ...p, kcalAuto: false } });
+      await (await import('../lib/follow')).runFollow();
+    }
+  };
+  const option = (m: Mode, label: 'modeManual' | 'modeProfile' | 'modeFollow', note: 'modeManualNote' | 'modeProfileNote' | 'modeFollowNote', disabled = false) => (
+    <label class="check mode" key={m}>
+      <input type="radio" name="energy-mode" checked={mode === m} disabled={disabled} onChange={() => void choose(m)} />
+      <span>
+        {te(label)}
+        <span class="muted small summary">{te(note).replace('{kcal}', '150')}</span>
+      </span>
+    </label>
+  );
+  return (
+    <section class="card form">
+      <h2>{t('settingsEnergy')}</h2>
+      <fieldset class="modes">
+        <legend class="visually-hidden">{t('settingsEnergy')}</legend>
+        {option('manual', 'modeManual', 'modeManualNote')}
+        {option('profile', 'modeProfile', 'modeProfileNote', !estimate && mode !== 'profile')}
+        {option('follow', 'modeFollow', 'modeFollowNote', noGoal(p) && mode !== 'follow')}
+      </fieldset>
+      {!estimate && mode !== 'profile' && <p class="muted small">{t('kcalAutoHint')}</p>}
       <label>
         {t('dailyEnergy')}
         <input
@@ -223,7 +249,7 @@ export function ProfileForm() {
           max="6000"
           step="1"
           value={p.kcal}
-          readOnly={!!p.kcalAuto}
+          readOnly={mode !== 'manual'}
           onChange={(e) => {
             const el = e.currentTarget as HTMLInputElement;
             const kcal = parseInt(el.value, 10);
@@ -232,12 +258,12 @@ export function ProfileForm() {
           }}
         />
       </label>
-      {estimate && !p.kcalAuto && (
+      {mode === 'manual' && estimate && (
         <p class="muted small">
           {t('kcalEstimate')}: {fmt(goalKcal?.kcal ?? estimate)} kcal
         </p>
       )}
-      {goalKcal && (
+      {mode === 'profile' && goalKcal && (
         <p class="muted small">
           {te('goalFormula')
             .replace('{need}', fmt(estimate!))
@@ -245,8 +271,8 @@ export function ProfileForm() {
             .replace('{kg}', fmt(pace, 2))}
         </p>
       )}
-      {goalKcal?.floored && <p class="small warn">{te('adaptiveFloored').replace('{kcal}', fmt(goalKcal.kcal))}</p>}
-      {estimate && <p class="muted small">{p.bodyFatPct != null && p.weightKg ? t('formulaKatch') : t('formulaMifflin')}</p>}
+      {mode === 'profile' && goalKcal?.floored && <p class="small warn">{te('adaptiveFloored').replace('{kcal}', fmt(goalKcal.kcal))}</p>}
+      {mode === 'profile' && estimate && <p class="muted small">{p.bodyFatPct != null && p.weightKg ? t('formulaKatch') : t('formulaMifflin')}</p>}
       <label class="check">
         <input
           type="checkbox"
@@ -255,10 +281,6 @@ export function ProfileForm() {
         />
         {t('addBurnedToTarget')}
       </label>
-      <button type="button" class="btn wide" onClick={() => open({ kind: 'targets' })}>
-        {t('adjustTargets')}
-      </button>
-      <p class="muted small">{t('targetsNote')}</p>
     </section>
   );
 }

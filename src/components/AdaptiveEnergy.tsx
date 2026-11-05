@@ -4,11 +4,10 @@ import { loadEstimate } from '../lib/adaptive-load';
 import { fmt } from '../lib/i18n';
 import { goalText, te } from '../lib/strings-energy';
 import { energyNeed, noGoal as noGoalFor, paceFor } from '../lib/targets';
-import { FOLLOW_STEP, followDue, followStep } from '../lib/adaptive';
+import { followDue, followStep } from '../lib/adaptive';
 import { isoWeek } from '../lib/checkin';
 import { addDays, isoDate } from '../lib/db';
 import EnergyWhy, { expenditureLines } from './EnergyWhy';
-import { runFollow } from '../lib/follow';
 import { settings, updateSettings } from '../state';
 
 export { GOAL_LABEL } from '../lib/strings-energy';
@@ -41,18 +40,20 @@ export function AdaptiveEnergy() {
   const stepWeek = followDue(s, isoWeek(today).key) ? isoWeek(today) : isoWeek(addDays(today, 7));
   const next = s.adaptiveFollow && target ? followStep(p.kcal, target.kcal, minIntake(p)) : null;
   const change = s.energyChange;
-  // Turned on: it alone sets the target from now (the profile's formula stops, M41); the first step
-  // happens now if there is enough data (then once a week).
-  const follow = async (on: boolean) => {
-    await updateSettings(on ? { adaptiveFollow: true, profile: { ...settings.value.profile, kcalAuto: false } } : { adaptiveFollow: false });
-    if (on) await runFollow();
-  };
 
   return (
     <section class="card form">
       <h2>{te('adaptiveTitle')}</h2>
       <label class="check">
-        <input type="checkbox" checked={!!s.adaptive} onChange={(e) => void updateSettings({ adaptive: (e.currentTarget as HTMLInputElement).checked })} />
+        {/* Off also stops following the estimate (the energy target's third choice, M44). */}
+        <input
+          type="checkbox"
+          checked={!!s.adaptive}
+          onChange={(e) => {
+            const on = (e.currentTarget as HTMLInputElement).checked;
+            void updateSettings(on ? { adaptive: true } : { adaptive: false, adaptiveFollow: false });
+          }}
+        />
         {te('adaptiveToggle')}
       </label>
       <p class="muted small">{te('adaptiveNote')}</p>
@@ -112,15 +113,6 @@ export function AdaptiveEnergy() {
               <p class="small">{te('whyLast').replace('{date}', change.date)}</p>
               <EnergyWhy change={change} />
             </div>
-          )}
-          {!noGoal && (
-            <>
-              <label class="check">
-                <input type="checkbox" checked={!!s.adaptiveFollow} onChange={(e) => void follow((e.currentTarget as HTMLInputElement).checked)} />
-                {te('followToggle').replace('{kcal}', String(FOLLOW_STEP))}
-              </label>
-              <p class="muted small">{te('followExplain').replace('{kcal}', String(FOLLOW_STEP))}</p>
-            </>
           )}
         </>
       )}

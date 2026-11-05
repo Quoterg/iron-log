@@ -17,6 +17,7 @@ test('a supplement scheduled for other weekdays stays off today’s checklist; t
 
   // Back on for today: shown, with its time.
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
   await page.getByRole('button', { name: /Järntablett/ }).click();
   await page.getByRole('button', { name: today, exact: true }).click();
   await page.getByRole('button', { name: 'Spara' }).click();

@@ -62,14 +62,16 @@ test('split-out screens are cached for offline use', async ({ page, context }) =
     const keys = await caches.keys();
     for (const k of keys) {
       const reqs = await (await caches.open(k)).keys();
-      if (reqs.some((r) => /Settings-.*\.js$/.test(r.url)) && reqs.some((r) => /TargetEditor-.*\.js$/.test(r.url))) return true;
+      if (reqs.some((r) => /Settings-.*\.js$/.test(r.url)) && reqs.some((r) => /SettingsPage-.*\.js$/.test(r.url)) && reqs.some((r) => /TargetEditor-.*\.js$/.test(r.url))) return true;
     }
     return false;
   });
   await context.setOffline(true);
   await page.reload();
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Profil' })).toBeVisible();
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
+  await expect(page.getByRole('heading', { name: 'Profil', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Näringsämnen', exact: true }).click();
   await page.getByRole('button', { name: 'Anpassa mål' }).click();
   await expect(page.getByLabel('Förval')).toBeVisible();
 });

@@ -4,6 +4,7 @@ test('privacy policy and about page are reachable from Settings and work on a 36
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto('./');
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
 
   await page.getByRole('link', { name: 'Integritet' }).click();
   await expect(page.getByRole('heading', { name: 'Iron Log – integritet' })).toBeVisible();
@@ -23,6 +24,7 @@ test('privacy policy and about page are reachable from Settings and work on a 36
 test('English UI links to the English sections', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   await page.getByLabel('Språk').selectOption('en');
   await expect(page.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'privacy.html#en');
   await expect(page.getByRole('link', { name: 'About Iron Log' })).toHaveAttribute('href', 'about.html#en');

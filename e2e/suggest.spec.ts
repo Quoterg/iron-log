@@ -26,6 +26,7 @@ test('suggestions are off by default; when on, foods for shortfalls and a swap; 
     { foodRef: 'slv:702', count: 7, lastUsed: 3000, lastGrams: 60 },
   ];
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const reloaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'history.json', mimeType: 'application/json',
@@ -41,6 +42,7 @@ test('suggestions are off by default; when on, foods for shortfalls and a swap; 
 
   // On: foods for the shortfalls and a swap for the white bread.
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
   await page.getByLabel(/Föreslå livsmedel och byten/).check();
   await tab(page, 'Näringsämnen');
   await page.getByRole('button', { name: '7 dagar', exact: true }).click();
@@ -59,6 +61,7 @@ test('suggestions are off by default; when on, foods for shortfalls and a swap; 
   await expect(whatIf).toContainText('→');
   await page.getByRole('button', { name: /Tillbaka/ }).click();
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
   await page.getByLabel(/Visa ”Vad händer om”/).uncheck();
   await tab(page, 'Dagbok');
   await page.locator('.meal').first().getByRole('button', { name: /Lägg till/ }).click();
@@ -76,6 +79,7 @@ test('one advice card (M43): food suggestions and fruit as two tabs; a suggestio
     { id: `o${i}`, date: iso(-i), meal: 'lunch', foodRef: 'slv:702', grams: 60, createdAt: 2000 + i },
   ]).flat();
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const reloaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'history.json', mimeType: 'application/json',
@@ -83,6 +87,7 @@ test('one advice card (M43): food suggestions and fruit as two tabs; a suggestio
   });
   await reloaded;
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
   await page.getByLabel(/Föreslå livsmedel och byten/).check();
   await page.getByLabel(/Föreslå frukt i säsong/).check();
   await tab(page, 'Näringsämnen');

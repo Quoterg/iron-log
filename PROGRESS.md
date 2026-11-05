@@ -20,6 +20,20 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** is next, in order (owner, 2026-11-05: continue until stopped). Only Swedish and English since M41c.
 
+## 2026-11-05 — M44 Short, grouped Settings (interactive session)
+
+- Settings overview 640 px (one screen on a Moto G4): Profil & mål, Energimål, Funktioner, Mina
+  livsmedel/recept/måltider, Utseende/data & om — each a page in the Settings tab (`nav` screen
+  `settings`, SettingsPage.tsx lazy), each entry with a one-line summary; notices stay on the overview.
+- Energimål = one choice (Skriv själv / Räkna från profilen / Följ uppmätt förbrukning); the two
+  overlapping switches and their strings are gone. Profile page ends in "Energimål: … ›".
+- Funktioner: every switch on one line, details behind "Läs mer"; the fruit reach chips under fruit.
+- strings-split test ignores `type X = …;` (the page union in nav.ts is no string use).
+- The shell is aria-hidden only under a real sheet, not a Settings page; back names where it goes
+  ("‹ Profil & mål" after the profile's Energimål link); the page head wraps at 200 % text.
+- Tests: unit 269 ✓, build ✓ (31.1 KB), e2e 161 ✓ (every Settings page checked at 360 px in
+  layout.spec; specs go to the right page), Lighthouse ✓.
+
 ## 2026-11-05 — M43 Näringsämnen as an answer (interactive session)
 
 - Lived-in 7-day page 4 403 → 1 884 px (−57 %).

@@ -6,6 +6,7 @@ test('log exercise and water; optionally add burned energy to the target', async
   await page.goto('./');
   // Weight in the profile for the estimate.
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
   const w = page.getByLabel('Vikt (kg)', { exact: true });
   await w.fill('70');
   await w.blur();
@@ -30,6 +31,7 @@ test('log exercise and water; optionally add burned energy to the target', async
 
   // Add burned energy to the target.
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Energimål' }).click();
   await page.getByLabel(/Lägg till förbränd energi/).check();
   await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
   await expect(page.locator('.summary')).toContainText('/ 2 308 kcal');

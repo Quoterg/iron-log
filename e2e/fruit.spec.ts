@@ -23,6 +23,7 @@ test('fruit in season is off by default; when on, a week of fruit for the chosen
     { id: `o${i}`, date: iso(-i), meal: 'lunch', foodRef: 'slv:702', grams: 60, createdAt: 2000 + i },
   ]).flat();
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const reloaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'history.json', mimeType: 'application/json',
@@ -38,7 +39,10 @@ test('fruit in season is off by default; when on, a week of fruit for the chosen
 
   // On, with its sources named and the origin chosen in Settings (Sverige + Europa by default).
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
   await page.getByLabel(/Föreslå frukt i säsong/).check();
+  // The sources are under "Läs mer" (M44).
+  await page.locator('.feature', { hasText: /Föreslå frukt i säsong/ }).getByText('Läs mer').click();
   await expect(page.getByText(/Säsonger från SCB:s importstatistik/)).toBeVisible();
   const reach = page.getByRole('group', { name: 'Varifrån' });
   await expect(reach.getByRole('button', { name: 'Sverige + Europa' })).toHaveAttribute('aria-pressed', 'true');
@@ -108,6 +112,7 @@ test('food without vitamin data (scanned products): still a shopping list, with 
     { id: `o${i}`, date: iso(-i), meal: 'breakfast', foodRef: 'slv:702', grams: 60, createdAt: 2000 + i },
   ]).flat();
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const reloaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'history.json', mimeType: 'application/json',
@@ -115,6 +120,7 @@ test('food without vitamin data (scanned products): still a shopping list, with 
   });
   await reloaded;
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
   await page.getByLabel(/Föreslå frukt i säsong/).check();
   await page.getByRole('group', { name: 'Varifrån' }).getByRole('button', { name: 'Hela världen' }).click();
   await tab(page, 'Näringsämnen');

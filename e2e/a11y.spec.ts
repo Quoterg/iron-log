@@ -55,6 +55,7 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
   },
   'diary with food cost': async (page) => {
     await tab(page, 'Inställningar');
+    await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
     await page.getByLabel('Visa uppskattade priser (typpriser)').check();
     await tab(page, 'Dagbok');
     await SCREENS['food amount'](page);
@@ -125,10 +126,12 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
   },
   'settings (profile, sources, your data)': async (page) => {
     await tab(page, 'Inställningar');
+    await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
     await expect(page.getByLabel('Språk')).toBeVisible();
   },
   'adaptive energy (on)': async (page) => {
     await tab(page, 'Inställningar');
+    await page.locator('.settings-menu .entry', { hasText: 'Energimål' }).click();
     await page.getByLabel('Beräkna min förbrukning från vikt och intag').check();
     await expect(page.getByText(/Behöver mer underlag/)).toBeVisible();
   },
@@ -149,6 +152,7 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
   },
   'weekly check-in': async (page) => {
     await tab(page, 'Inställningar');
+    await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
     await page.getByLabel('Visa en kort avstämning av förra veckan i dagboken').check();
     await tab(page, 'Dagbok');
     await page.getByRole('button', { name: 'Visa', exact: true }).click();
@@ -156,6 +160,7 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
   },
   'sync sheet': async (page) => {
     await tab(page, 'Inställningar');
+    await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
     await page.getByRole('button', { name: 'Synka', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Skanna kod' })).toBeVisible();
   },
@@ -174,6 +179,7 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
   },
   'recipe editor': async (page) => {
     await tab(page, 'Inställningar');
+    await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
     await page.getByRole('button', { name: /Skapa recept/ }).click();
     await expect(dialog(page)).toBeVisible();
   },
@@ -232,6 +238,7 @@ test.describe('200 % text size, 360 px wide: no horizontal scrolling', () => {
       await page.setViewportSize({ width: 360, height: 740 });
       await page.goto('./');
       await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+      await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
       await page.getByLabel('Språk').selectOption(code);
       await expect(page.getByRole('button', { name: tabs[2], exact: true })).toBeVisible();
       await big(page);
