@@ -43,7 +43,7 @@ test('export a backup, delete everything, import it back; export CSV', async ({ 
   // Delete all → empty diary and no custom foods.
   await page.getByRole('button', { name: 'Radera all data' }).click();
   await page.waitForLoadState('load');
-  await expect(page.getByText(/Inget registrerat ännu/)).toBeVisible();
+  await expect(page.getByText(/Inget loggat ännu/)).toBeVisible();
 
   // Import → everything is back.
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();

@@ -57,7 +57,7 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
   await expect(page.getByText(/Du åt i snitt 2\s000 kcal\/dag de 20 dagar som räknas/).first()).toBeVisible();
   await expect(page.getByText(/Vikten ändrades −0,5 kg\/vecka enligt 4 vägningar – det motsvarar \+550 kcal\/dag/).first()).toBeVisible();
   await expect(page.getByText(/Förbrukning: 2\s000 \+ 550 = 2\s550 kcal\/dag/).first()).toBeVisible();
-  const energy = page.getByLabel('Energibehov per dag (kcal)');
+  const energy = page.getByLabel('Energimål per dag (kcal)');
   const before = await energy.inputValue();
 
   // A goal suggests a target; nothing changes until the user applies it.

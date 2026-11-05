@@ -19,7 +19,7 @@ import {
 import { lang as langSignal } from '../lib/i18n';
 import { settings, updateSettings } from '../state';
 import { te } from '../lib/strings-energy';
-import { goalShift } from '../lib/adaptive';
+import { FOLLOW_STEP, goalShift } from '../lib/adaptive';
 import { isoDate } from '../lib/db';
 import { GOAL_LABEL } from './AdaptiveEnergy';
 import { open } from '../nav';
@@ -35,7 +35,8 @@ const PAL_LABEL: Record<number, 'palSedentary' | 'palLight' | 'palModerate' | 'p
 };
 
 /** Body data → NNR 2023 targets for age band, pregnancy/lactation, and an energy estimate. */
-export function ProfileForm() {
+/** `brief` (first start, M45): only what the targets need — no body fat, no link onwards. */
+export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
   const p = settings.value.profile;
   const s = settings.value;
   const goal = s.goal ?? 'maintain';
@@ -120,7 +121,7 @@ export function ProfileForm() {
         {num('age', t('age'), 18, 110, false)}
         {num('weightKg', pregnant ? t('weightBeforePregnancy') : t('weightKg'), 30, 300, true)}
         {num('heightCm', t('heightCm'), 120, 230, false)}
-        {num('bodyFatPct', t('bodyFatPct'), 3, 70, true)}
+        {!brief && num('bodyFatPct', t('bodyFatPct'), 3, 70, true)}
       </div>
       <label>
         {t('activity')}
@@ -145,7 +146,7 @@ export function ProfileForm() {
             </select>
           </label>
           {p.status === 'lactating' && <p class="muted small">{t('lactationNote')}</p>}
-          {(p.status ?? 'none') === 'none' && (
+          {!brief && (p.status ?? 'none') === 'none' && (
             <label class="check">
               <input
                 type="checkbox"
@@ -185,6 +186,7 @@ export function ProfileForm() {
           )}
         </div>
       )}
+      {!brief && (
       <button class="entry" onClick={() => open({ kind: 'settings', page: 'energy' })}>
         <span class="entry-name">
           {t('settingsEnergy')}: {fmt(p.kcal)} kcal/{t('perDayShort')}
@@ -192,6 +194,7 @@ export function ProfileForm() {
         </span>
         <span aria-hidden="true">›</span>
       </button>
+      )}
     </section>
   );
 }
@@ -226,13 +229,13 @@ export function EnergyTarget() {
       <input type="radio" name="energy-mode" checked={mode === m} disabled={disabled} onChange={() => void choose(m)} />
       <span>
         {te(label)}
-        <span class="muted small summary">{te(note).replace('{kcal}', '150')}</span>
+        <span class="muted small summary">{te(note).replace('{kcal}', String(FOLLOW_STEP))}</span>
       </span>
     </label>
   );
   return (
     <section class="card form">
-      <h2>{t('settingsEnergy')}</h2>
+      {/* The page is called Energimål already (M44): no second heading, the choice is named for screen readers. */}
       <fieldset class="modes">
         <legend class="visually-hidden">{t('settingsEnergy')}</legend>
         {option('manual', 'modeManual', 'modeManualNote')}

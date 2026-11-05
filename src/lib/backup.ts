@@ -299,6 +299,7 @@ function settings(x: unknown): Settings | undefined {
   if (GOALS.includes(x.goal as Goal)) out.goal = x.goal as Goal;
   if (PACES.includes(x.pace as number)) out.pace = x.pace as number;
   if (x.suggestions === true) out.suggestions = true;
+  if (x.welcomed === true) out.welcomed = true;
   if (Array.isArray(x.suggestHidden)) {
     const refs = [...new Set((x.suggestHidden as unknown[]).filter((r): r is string => isStr(r, 200)))].slice(-500);
     if (refs.length) out.suggestHidden = refs;

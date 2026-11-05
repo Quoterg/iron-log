@@ -23,8 +23,9 @@ const GROUPS: { group: NutrientGroup[]; title: Title }[] = [
  * saying how many are under target or over a limit, and nutrients no logged food reports are left
  * out — named once at the end instead of a column of "–".
  */
-export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; onSelect?: (key: string) => void; compact?: boolean }) {
-  const { amounts, known, onSelect, compact } = props;
+/** `empty`: nothing logged — the targets only, no "under målet" (M45). */
+export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; onSelect?: (key: string) => void; compact?: boolean; empty?: boolean }) {
+  const { amounts, known, onSelect, compact, empty } = props;
   const tg = targets.value;
   const row = (i: number) => {
     const n = NUTRIENTS[i];
@@ -72,7 +73,7 @@ export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; on
       const max = tg[NUTRIENTS[i].key]?.max;
       return max != null && amounts[i] > max;
     }).length;
-    const status = [under && t('groupUnder').replace('{n}', String(under)), over && t('groupOver').replace('{n}', String(over))].filter(Boolean).join(' · ');
+    const status = empty ? '' : [under && t('groupUnder').replace('{n}', String(under)), over && t('groupOver').replace('{n}', String(over))].filter(Boolean).join(' · ');
     return (
       <section class="card group" key={title}>
         <details>

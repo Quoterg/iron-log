@@ -129,6 +129,33 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
     await expect(page.getByLabel('Språk')).toBeVisible();
   },
+  'settings overview': async (page) => {
+    await tab(page, 'Inställningar');
+    await expect(page.locator('.settings-menu .entry')).toHaveCount(5);
+  },
+  'settings: profile & goal': async (page) => {
+    await tab(page, 'Inställningar');
+    await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
+    await page.getByRole('combobox', { name: 'Mål', exact: true }).selectOption('lose');
+    await expect(page.getByRole('button', { name: /^Energimål:/ })).toBeVisible();
+  },
+  'settings: features, details open': async (page) => {
+    await tab(page, 'Inställningar');
+    await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
+    await page.getByLabel(/Föreslå frukt i säsong/).check();
+    for (const more of await page.locator('.feature-more summary').all()) await more.click();
+    await expect(page.getByRole('group', { name: 'Varifrån' })).toBeVisible();
+  },
+  'settings: library': async (page) => {
+    await tab(page, 'Inställningar');
+    await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
+    await expect(page.getByRole('button', { name: '+ Skapa recept' })).toBeVisible();
+  },
+  'nutrients, 7 days (empty)': async (page) => {
+    await tab(page, 'Näringsämnen');
+    await page.getByRole('button', { name: '7 dagar', exact: true }).click();
+    await expect(page.getByText(/Inget loggat under perioden/)).toBeVisible();
+  },
   'adaptive energy (on)': async (page) => {
     await tab(page, 'Inställningar');
     await page.locator('.settings-menu .entry', { hasText: 'Energimål' }).click();
@@ -176,6 +203,15 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
   'supplement editor': async (page) => {
     await page.getByRole('button', { name: '+ Kosttillskott' }).click();
     await expect(page.getByLabel('Enhet', { exact: true })).toBeVisible();
+  },
+  'first start (welcome sheet)': async (page) => {
+    await page.locator('.welcome').getByRole('button', { name: 'Kom igång' }).click();
+    await expect(dialog(page).getByLabel('Ålder', { exact: true })).toBeVisible();
+  },
+  'first start, step 2': async (page) => {
+    await SCREENS['first start (welcome sheet)'](page);
+    await dialog(page).getByRole('button', { name: 'Nästa' }).click();
+    await expect(dialog(page).getByRole('button', { name: 'Klar' })).toBeVisible();
   },
   'recipe editor': async (page) => {
     await tab(page, 'Inställningar');
