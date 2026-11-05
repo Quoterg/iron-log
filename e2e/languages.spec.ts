@@ -1,36 +1,29 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-test('switching language loads it on demand, translates the app and survives a reload', async ({ page }) => {
+test('switching to English loads it on demand, translates the app and survives a reload', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
   const picker = page.getByLabel('Språk');
-  await expect(picker.locator('option')).toHaveText(['Svenska', 'English', 'Dansk', 'Deutsch', 'Suomi', 'Soomaali']);
+  // Swedish and English only (owner, M41c).
+  await expect(picker.locator('option')).toHaveText(['Svenska', 'English']);
 
-  await picker.selectOption('de');
-  await expect(page.getByRole('button', { name: 'Tagebuch', exact: true })).toBeVisible();
-  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+  await picker.selectOption('en');
+  await expect(page.getByRole('button', { name: 'Diary', exact: true })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 
-  // Nutrient names and decimal comma in German; English food names (foods have sv/en names only).
-  await page.getByRole('button', { name: 'Nährstoffe', exact: true }).click();
-  await expect(page.getByText('Eisen', { exact: true })).toBeVisible();
+  // Nutrient names in English; English food names.
+  await page.getByRole('button', { name: 'Nutrients', exact: true }).click();
+  await expect(page.getByText('Iron', { exact: true })).toBeVisible();
 
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Tagebuch', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Tagebuch', exact: true }).click();
-  await page.locator('.meal').first().getByRole('button', { name: 'Hinzufügen' }).click();
-  await page.getByPlaceholder(/Lebensmittel suchen/).fill('oats');
+  await expect(page.getByRole('button', { name: 'Diary', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Diary', exact: true }).click();
+  await page.locator('.meal').first().getByRole('button', { name: 'Add' }).click();
+  await page.getByPlaceholder(/Search foods/).fill('oats');
   await expect(page.locator('.result').first()).toContainText(/oats/i);
 });
 
-test('Somali, the newest language, shows its own strings', async ({ page }) => {
-  await page.goto('./');
-  await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
-  await page.getByLabel('Språk').selectOption('so');
-  await expect(page.getByRole('button', { name: 'Dejinta', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Buugga maalinlaha', exact: true })).toBeVisible();
-});
-
-test('restoring a backup made in another language opens the app in that language', async ({ page }) => {
+async function restore(page: Page, lang: string) {
   page.on('dialog', (d) => d.accept()); // the import's confirm()
   await page.goto('./');
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
@@ -43,10 +36,25 @@ test('restoring a backup made in another language opens the app in that language
         format: 'iron-log-backup',
         version: 1,
         entries: [],
-        settings: { lang: 'de', profile: { sex: 'female', kcal: 2000 }, targetOverrides: {}, version: 2 },
+        settings: { lang, profile: { sex: 'female', kcal: 2000 }, targetOverrides: {}, version: 2 },
       }),
     ),
   });
   await reloaded;
-  await expect(page.getByRole('button', { name: 'Tagebuch', exact: true })).toBeVisible();
+}
+
+test('restoring a backup made in English opens the app in English', async ({ page }) => {
+  await restore(page, 'en');
+  await expect(page.getByRole('button', { name: 'Diary', exact: true })).toBeVisible();
+});
+
+test('a backup made in a removed language opens in the nearest one (M41c): German → English, Danish → Swedish', async ({ page }) => {
+  await restore(page, 'de');
+  await expect(page.getByRole('button', { name: 'Diary', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Settings', exact: true })).toBeVisible();
+});
+
+test('a Danish backup opens in Swedish', async ({ page }) => {
+  await restore(page, 'da');
+  await expect(page.getByRole('button', { name: 'Dagbok', exact: true })).toBeVisible();
 });

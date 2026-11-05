@@ -14,7 +14,7 @@
 
 Open-source nutrition tracker for energy, macros **and micronutrients** — a free alternative
 to Cronometer and MyFitnessPal. Swedish first (Livsmedelsverket's food database and the Nordic
-Nutrition Recommendations 2023), in Swedish, English, Danish, German, Finnish and Somali.
+Nutrition Recommendations 2023), in Swedish and English.
 
 - **Fast on old phones.** ~35 KB of JavaScript (gzip) to start, search runs in a background worker.
 - **Works offline.** Installable web app; everything works without a connection.

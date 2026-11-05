@@ -3,7 +3,7 @@ import { computed, signal } from '@preact/signals';
 import * as db from './lib/db';
 import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db';
 import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
-import { lang, loadLang, rememberLang, t } from './lib/i18n';
+import { detectLang, lang, loadLang, rememberLang, t, toLang } from './lib/i18n';
 import { type Food, type NutrientVector, type Serving, dataLangOf, NUTRIENT_INDEX } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
@@ -183,11 +183,11 @@ export async function removeEntry(id: string): Promise<void> {
   await db.deleteEntry(id);
 }
 
-/** Remove several entries at once (a whole meal, M41). */
+/** Remove several entries at once (a whole meal, M41), in one transaction: never half a meal. */
 export async function removeEntries(ids: string[]): Promise<void> {
   const gone = new Set(ids);
   entries.value = entries.value.filter((x) => !gone.has(x.id));
-  for (const id of ids) await db.deleteEntry(id);
+  await db.deleteEntries(ids);
 }
 
 export async function loadSettings(): Promise<void> {
@@ -215,8 +215,14 @@ export async function loadSettings(): Promise<void> {
       next = { ...next, profile, version: db.SETTINGS_VERSION, ...told };
       await db.saveSettings(next);
     }
+    // A removed language (M41c) becomes Swedish or English, saved once.
+    const l = toLang(next.lang) ?? detectLang();
+    if (l !== next.lang) {
+      next = { ...next, lang: l };
+      await db.saveSettings(next);
+    }
     settings.value = next;
-    lang.value = s.lang;
+    lang.value = l;
   }
   // Also for new users (no saved settings): the default databases follow the language.
   setSources(activeSources(settings.value));

@@ -40,6 +40,15 @@ test('a whole meal can be cleared at once (M41), after a confirmation; other mea
   await meal(page, 0).getByRole('button', { name: 'Töm måltiden' }).click();
   await expect(meal(page, 0).locator('.entry')).toHaveCount(0);
   await expect(meal(page, 1).locator('.entry')).toHaveCount(1);
+  // Stored (one transaction): only the lunch is left in IndexedDB before the reload.
+  await page.waitForFunction(async () => {
+    const req = indexedDB.open('iron-log');
+    const db: IDBDatabase = await new Promise((ok) => (req.onsuccess = () => ok(req.result)));
+    const count = db.transaction('entries').objectStore('entries').count();
+    const n = await new Promise<number>((ok) => (count.onsuccess = () => ok(count.result)));
+    db.close();
+    return n === 1;
+  });
   await page.reload();
   await expect(meal(page, 1).locator('.entry')).toHaveCount(1);
   await expect(meal(page, 0).locator('.entry')).toHaveCount(0);

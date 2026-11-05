@@ -24,22 +24,6 @@ export const RELEASES: Release[] = [
         'New: Fruit in season (turn it on under Settings → Suggestions). Shows which fruits are plentiful in the shops this month and where they come from – from Swedish harvests and import statistics.',
         'It also suggests how much fruit in a week would cover the vitamins and minerals you get too little of. Choose the goals yourself, and whether the fruit should be Swedish, from Europe or from anywhere.',
       ],
-      da: [
-        'Nyt: Frugt i sæson (slå det til under Indstillinger → Forslag). Viser hvilke frugter der er masser af i butikkerne i denne måned, og hvor de kommer fra – fra svenske høster og importstatistik.',
-        'Den foreslår også, hvor meget frugt på en uge der dækker de vitaminer og mineraler, du får for lidt af. Vælg selv målene, og om frugten skal være svensk, fra Europa eller fra hele verden.',
-      ],
-      de: [
-        'Neu: Obst der Saison (einschalten unter Einstellungen → Vorschläge). Zeigt, welches Obst es diesen Monat reichlich in den Geschäften gibt und woher es kommt – aus schwedischen Ernten und der Importstatistik.',
-        'Es schlägt auch vor, wie viel Obst in einer Woche die Vitamine und Mineralstoffe deckt, von denen du zu wenig bekommst. Wähle die Ziele selbst und ob das Obst schwedisch, aus Europa oder aus aller Welt sein soll.',
-      ],
-      fi: [
-        'Uutta: Sesongin hedelmät (kytke päälle kohdassa Asetukset → Ehdotukset). Näyttää, mitä hedelmiä kaupoissa on tässä kuussa runsaasti ja mistä ne tulevat – Ruotsin sadoista ja tuontitilastoista.',
-        'Se ehdottaa myös, kuinka paljon hedelmiä viikossa kattaa vitamiinit ja kivennäisaineet, joita saat liian vähän. Valitse tavoitteet itse ja se, ovatko hedelmät ruotsalaisia, Euroopasta vai mistä tahansa.',
-      ],
-      so: [
-        'Cusub: Miro xilligeeda (ka shid Dejinta → Soo jeedin). Waxay muujinaysaa mirooyinka badan ee dukaamada bishan iyo halka ay ka yimaadaan – laga soo qaatay goosashada Iswiidhan iyo tirakoobka soo dejinta.',
-        'Waxay sidoo kale soo jeedinaysaa inta miro ah ee toddobaadkii daboolaysa fitamiinada iyo macdanta aad wax yar ka hesho. Adigu dooro yoolalka, iyo in mirodu tahay Iswiidhish, Yurub ama adduunka oo dhan.',
-      ],
     },
   },
   {
@@ -53,22 +37,6 @@ export const RELEASES: Release[] = [
       en: [
         'Faster start: the app starts from your phone and doesn’t wait for the network – even with poor signal.',
         'When a new version has been downloaded in the background, “Restart” is offered – otherwise it’s used the next time you open the app.',
-      ],
-      da: [
-        'Hurtigere start: appen starter fra telefonen og venter ikke på nettet – heller ikke med dårlig dækning.',
-        'Når en ny version er hentet i baggrunden, vises ”Genstart” – ellers bruges den næste gang, du åbner appen.',
-      ],
-      de: [
-        'Schnellerer Start: Die App startet vom Handy und wartet nicht auf das Netz – auch bei schlechtem Empfang.',
-        'Wurde eine neue Version im Hintergrund geladen, erscheint „Neu starten“ – sonst wird sie beim nächsten Öffnen verwendet.',
-      ],
-      fi: [
-        'Nopeampi käynnistys: sovellus käynnistyy puhelimesta eikä odota verkkoa – huonollakaan kuuluvuudella.',
-        'Kun uusi versio on ladattu taustalla, tarjotaan ”Käynnistä uudelleen” – muuten sitä käytetään, kun avaat sovelluksen seuraavan kerran.',
-      ],
-      so: [
-        'Bilow degdeg ah: barnaamijku wuxuu ka bilaabmaa taleefanka mana sugo shabakadda – xitaa marka xiriirku liito.',
-        'Marka nooc cusub gadaal laga soo dejiyo, waxaa la soo bandhigayaa ”Dib u bilow” – haddii kale waxaa la isticmaalayaa marka xigta ee aad furto barnaamijka.',
       ],
     },
   },
@@ -84,22 +52,6 @@ export const RELEASES: Release[] = [
         'With Food cost on: Nutrients shows the average food cost per day, week and month (7 and 30 days).',
         'The weekly check-in says what your food cost last week and how that changed from the week before.',
       ],
-      da: [
-        'Med Madudgifter slået til: Næringsstoffer viser den gennemsnitlige madudgift pr. dag, uge og måned (7 og 30 dage).',
-        'Ugens status fortæller, hvad maden kostede sidste uge, og hvordan det har ændret sig fra ugen før.',
-      ],
-      de: [
-        'Mit Lebensmittelkosten: Nährstoffe zeigt die durchschnittlichen Kosten pro Tag, Woche und Monat (7 und 30 Tage).',
-        'Der Wochenrückblick sagt, was das Essen letzte Woche gekostet hat und wie sich das zur Woche davor verändert hat.',
-      ],
-      fi: [
-        'Kun Ruokakulut on päällä: Ravintoaineet näyttää ruoan keskimääräisen hinnan päivässä, viikossa ja kuukaudessa (7 ja 30 päivää).',
-        'Viikon katsaus kertoo, mitä ruoka maksoi viime viikolla ja miten se muuttui edellisestä viikosta.',
-      ],
-      so: [
-        'Marka Kharashka cuntada shidan yahay: Nafaqooyinka waxay muujinayaan celceliska kharashka cuntada maalintii, toddobaadkii iyo bishii (7 iyo 30 maalmood).',
-        'Dib-u-eegista toddobaadku waxay sheegaysaa inta cuntadu ku kacday toddobaadkii hore iyo sida ay isu beddeshay marka loo eego toddobaadkii ka horreeyay.',
-      ],
     },
   },
   {
@@ -113,22 +65,6 @@ export const RELEASES: Release[] = [
       en: [
         'Find scanned products again: “Scanned products” in the search lists everything you have ever scanned, most recently used first.',
         'Search for what is on the package – e.g. “protein quark”, the brand or the last digits of the barcode.',
-      ],
-      da: [
-        'Find scannede varer igen: under ”Scannede varer” i søgningen ligger alt, du nogensinde har scannet, senest brugte først.',
-        'Søg på det, der står på pakken – f.eks. ”proteinkvark”, mærket eller de sidste cifre i stregkoden.',
-      ],
-      de: [
-        'Gescannte Produkte wiederfinden: Unter „Gescannte Produkte“ in der Suche steht alles, was du je gescannt hast, zuletzt verwendete zuerst.',
-        'Suche nach dem, was auf der Packung steht – z. B. „Proteinquark“, der Marke oder den letzten Ziffern des Barcodes.',
-      ],
-      fi: [
-        'Löydä skannatut tuotteet uudelleen: haun kohdassa ”Skannatut tuotteet” on kaikki, mitä olet koskaan skannannut, viimeksi käytetyt ensin.',
-        'Hae sillä, mitä pakkauksessa lukee – esim. ”proteiinirahka”, merkki tai viivakoodin viimeiset numerot.',
-      ],
-      so: [
-        'Mar kale hel alaabta la iskaanay: ”Alaabta la iskaanay” ee raadinta waxaa ku jira wax kasta oo aad weligaa iskaanay, kuwii ugu dambeeyay marka hore.',
-        'Ka raadi waxa ku qoran baakadda – tusaale ”proteinkvarg”, sumadda ama lambarrada ugu dambeeya ee baarkoodka.',
       ],
     },
   },
@@ -145,26 +81,6 @@ export const RELEASES: Release[] = [
         'Goal and pace are now in Settings → Profile, next to the energy target: Lose, Maintain or Gain, 0.25–0.75 kg a week.',
         'The automatic energy target follows the goal right away (e.g. −550 kcal/day for 0.5 kg a week), never below a safe minimum.',
         'Optional: let the energy target follow your measured expenditure once a week, at most ±150 kcal at a time. You’ll see the change in the diary.',
-      ],
-      da: [
-        'Mål og tempo findes nu under Indstillinger → Profil ved siden af energimålet: Tabe, Holde eller Tage på, 0,25–0,75 kg om ugen.',
-        'Det automatiske energimål følger målet med det samme (f.eks. −550 kcal/dag for 0,5 kg om ugen), aldrig under et sikkert minimum.',
-        'Valgfrit: lad energimålet følge dit målte forbrug én gang om ugen, højst ±150 kcal ad gangen. Du ser ændringen i dagbogen.',
-      ],
-      de: [
-        'Ziel und Tempo stehen jetzt unter Einstellungen → Profil neben dem Energieziel: Abnehmen, Halten oder Zunehmen, 0,25–0,75 kg pro Woche.',
-        'Das automatische Energieziel folgt dem Ziel sofort (z. B. −550 kcal/Tag für 0,5 kg pro Woche), nie unter einem sicheren Minimum.',
-        'Optional: Das Energieziel folgt einmal pro Woche deinem gemessenen Verbrauch, höchstens ±150 kcal auf einmal. Die Änderung siehst du im Tagebuch.',
-      ],
-      fi: [
-        'Tavoite ja tahti ovat nyt kohdassa Asetukset → Profiili energiatavoitteen vieressä: Laihdu, Pidä tai Lihoa, 0,25–0,75 kg viikossa.',
-        'Automaattinen energiatavoite seuraa tavoitetta heti (esim. −550 kcal/päivä 0,5 kg:lle viikossa), ei koskaan turvallisen minimin alle.',
-        'Valinnainen: anna energiatavoitteen seurata mitattua kulutustasi kerran viikossa, enintään ±150 kcal kerrallaan. Näet muutoksen päiväkirjassa.',
-      ],
-      so: [
-        'Hadafka iyo xawaaraha hadda waxay ku jiraan Dejinta → Profile, oo ku xiga hadafka tamarta: Dhimis, Ilaali ama Kordhin, 0.25–0.75 kg toddobaadkii.',
-        'Hadafka tamarta ee tooska ahi wuxuu isla markiiba raacaa hadafka (tusaale −550 kcal/maalintii 0.5 kg toddobaadkii), weligiisna kama hooseeyo heer ugu yar oo ammaan ah.',
-        'Ikhtiyaari: u oggolow hadafka tamarta inuu raaco isticmaalkaaga la cabbiray toddobaadkii hal mar, ugu badnaan ±150 kcal mar kasta. Isbeddelka waxaad ku arki doontaa buugga maalinlaha.',
       ],
     },
   },
@@ -184,30 +100,6 @@ export const RELEASES: Release[] = [
         'Prices are updated twice a year with Statistics Sweden’s price index. Everything is in the app – nothing is fetched from shops.',
         'Using the app on several devices: update them all, or an older version may turn Food cost off again.',
       ],
-      da: [
-        'Madudgifter (valgfrit): omtrentlige priser for over 2.300 fødevarer – i dagbogen pr. fødevare, måltid og dag og på indkøbslisten. Slå til under Indstillinger → Madudgifter.',
-        'Tryk på en udgift i dagbogen for at skrive din egen pris; den bruges også på indkøbslisten.',
-        'Priserne opdateres to gange om året med SCB’s prisindeks. Alt ligger i appen – intet hentes fra butikker.',
-        'Bruger du appen på flere enheder: opdater dem alle, ellers kan en ældre version slå Madudgifter fra igen.',
-      ],
-      de: [
-        'Lebensmittelkosten (optional): ungefähre Preise für über 2.300 Lebensmittel – im Tagebuch pro Lebensmittel, Mahlzeit und Tag und auf der Einkaufsliste. Einschalten unter Einstellungen → Lebensmittelkosten.',
-        'Tippe im Tagebuch auf einen Betrag, um deinen eigenen Preis einzugeben; er gilt auch auf der Einkaufsliste.',
-        'Die Preise werden zweimal im Jahr mit dem Preisindex von SCB aktualisiert. Alles steckt in der App – nichts wird von Läden abgerufen.',
-        'Nutzt du die App auf mehreren Geräten: aktualisiere alle, sonst kann eine ältere Version Lebensmittelkosten wieder ausschalten.',
-      ],
-      fi: [
-        'Ruokakulut (valinnainen): likimääräiset hinnat yli 2 300 elintarvikkeelle – päiväkirjassa elintarvikkeittain, aterioittain ja päivittäin sekä ostoslistalla. Ota käyttöön kohdassa Asetukset → Ruokakulut.',
-        'Napauta päiväkirjassa hintaa kirjoittaaksesi oman hintasi; sitä käytetään myös ostoslistalla.',
-        'Hinnat päivitetään kahdesti vuodessa SCB:n hintaindeksillä. Kaikki on sovelluksessa – kaupoista ei haeta mitään.',
-        'Jos käytät sovellusta useilla laitteilla: päivitä kaikki, muuten vanhempi versio voi kytkeä Ruokakulut taas pois.',
-      ],
-      so: [
-        'Kharashka cuntada (ikhtiyaari): qiimayaal qiyaas ah oo loogu talagalay in ka badan 2,300 cunto – buugga maalinlaha cunto kasta, cunto-qayb kasta iyo maalin kasta, iyo liiska iibsiga. Ka shid Dejinta → Kharashka cuntada.',
-        'Riix kharash ku jira buugga maalinlaha si aad u qorto qiimahaaga; sidoo kale waxaa lagu isticmaalaa liiska iibsiga.',
-        'Qiimayaasha waxaa la cusboonaysiiyaa laba jeer sannadkii iyadoo la adeegsanayo tusaha qiimaha SCB. Wax walba waxay ku jiraan barnaamijka – dukaamada waxba lagama soo dejiyo.',
-        'Haddii aad barnaamijka ku isticmaasho qalab badan: cusboonaysii dhammaan, haddii kale nooc hore ayaa mar kale demin kara Kharashka cuntada.',
-      ],
     },
   },
   {
@@ -226,30 +118,6 @@ export const RELEASES: Release[] = [
         'Tap a store to check offers on the most expensive items (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
         'This box: what’s new is shown once after the app has been updated.',
       ],
-      da: [
-        'Indkøbslisten fyldes op med det, du har spist de seneste 7 dage.',
-        'Skriv sammenligningsprisen fra hyldekanten, så regner listen omtrent ud, hvad det koster – med de største poster først.',
-        'Tryk på en butik for at se tilbud på de dyreste varer (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
-        'Denne boks: nyheder vises én gang, når appen er blevet opdateret.',
-      ],
-      de: [
-        'Die Einkaufsliste füllt sich mit dem, was du in den letzten 7 Tagen gegessen hast.',
-        'Gib den Grundpreis vom Regal ein, und die Liste schätzt die Kosten – mit den größten Posten zuerst.',
-        'Tippe auf einen Laden, um Angebote für die teuersten Artikel zu sehen (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
-        'Dieses Fenster: Neuigkeiten erscheinen einmal nach einem Update der App.',
-      ],
-      fi: [
-        'Ostoslista täydentyy sillä, mitä söit viimeisten 7 päivän aikana.',
-        'Kirjoita hyllyn vertailuhinta, niin lista arvioi kustannukset – suurimmat erät ensin.',
-        'Napauta kauppaa nähdäksesi tarjoukset kalleimmista tuotteista (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
-        'Tämä ikkuna: uutuudet näytetään kerran sovelluksen päivityksen jälkeen.',
-      ],
-      so: [
-        'Liiska iibsiga waxaa lagu buuxiyaa waxaad cuntay 7-dii maalmood ee la soo dhaafay.',
-        'Qor qiimaha isbarbardhigga ee khaanadda, liiskuna wuxuu qiyaasayaa kharashka – kuwa ugu waaweyn marka hore.',
-        'Riix dukaan si aad u aragto dalacsiinta alaabta ugu qaalisan (Willys, ICA, Coop, Lidl, Hemköp, City Gross).',
-        'Sanduuqan: waxa cusub waxaa la muujiyaa hal mar marka barnaamijka la cusboonaysiiyo.',
-      ],
     },
   },
   {
@@ -267,30 +135,6 @@ export const RELEASES: Release[] = [
         'A shopping list from saved meals, recipes and your own items.',
         'Optional: a weekly check-in, food suggestions and swaps, and adaptive energy expenditure.',
         'Saved meals, “The usual” and “Same as yesterday” make logging faster.',
-      ],
-      da: [
-        'Nyt udseende: Nat (Hologram) og Dag – vælg i Indstillinger → Udseende.',
-        'Indkøbsliste fra gemte måltider, opskrifter og egne varer.',
-        'Valgfrit: ugens status, forslag til fødevarer og bytte, og tilpasset energiforbrug.',
-        'Gemte måltider, ”Som sædvanligt” og ”Samme som i går” gør det hurtigere at logge.',
-      ],
-      de: [
-        'Neues Aussehen: Nacht (Hologram) und Tag – wähle unter Einstellungen → Erscheinungsbild.',
-        'Eine Einkaufsliste aus gespeicherten Mahlzeiten, Rezepten und eigenen Artikeln.',
-        'Optional: ein Wochenrückblick, Vorschläge für Lebensmittel und Tausch, und ein adaptiver Energieverbrauch.',
-        'Gespeicherte Mahlzeiten, „Wie üblich“ und „Wie gestern“ machen das Eintragen schneller.',
-      ],
-      fi: [
-        'Uusi ulkoasu: Yö (Hologram) ja Päivä – valitse kohdasta Asetukset → Ulkoasu.',
-        'Ostoslista tallennetuista aterioista, resepteistä ja omista tuotteista.',
-        'Valinnaisesti: viikon katsaus, elintarvike- ja vaihtoehdotukset sekä mukautuva energiankulutus.',
-        'Tallennetut ateriat, ”Kuten tavallisesti” ja ”Sama kuin eilen” nopeuttavat kirjaamista.',
-      ],
-      so: [
-        'Muuqaal cusub: Habeen (Hologram) iyo Maalin – ka dooro Dejinta → Muuqaal.',
-        'Liiska iibsiga oo laga sameeyo cuntooyin la kaydiyey, cunto-karis iyo alaabtaada.',
-        'Ikhtiyaari: dib-u-eegista toddobaadka, soo jeedin cunto iyo beddel, iyo tamarta la qabsata.',
-        'Cuntooyinka la kaydiyey, ”Sidii caadada” iyo ”Sidii shalay” ayaa qoritaanka dedejiya.',
       ],
     },
   },
