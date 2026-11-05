@@ -609,6 +609,18 @@ export async function deleteEntry(id: string): Promise<void> {
   await del('entries', id);
 }
 
+/** Several entries in one transaction (a whole meal): all of them or none, also if the app closes. */
+export async function deleteEntries(ids: string[]): Promise<void> {
+  if (!ids.length) return;
+  localChanges++;
+  const tx = (await db()).transaction(['entries', 'meta'], 'readwrite');
+  const mt = Date.now();
+  await Promise.all([
+    ...ids.flatMap((id) => [tx.objectStore('entries').delete(id), tx.objectStore('meta').put({ mt, del: true }, metaKey('entries', id))]),
+    tx.done,
+  ]);
+}
+
 export async function getSettings(): Promise<Settings | undefined> {
   return (await (await db()).get('kv', 'settings')) as Settings | undefined;
 }
