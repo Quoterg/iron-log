@@ -16,7 +16,7 @@ const card = (page: Page, title: string) => page.locator('section.card', { has: 
 test('create a daily supplement, tick it off, and see it in the nutrient totals', async ({ page }) => {
   await page.goto('./');
   const supps = card(page, 'Kosttillskott');
-  await supps.getByRole('button', { name: '+ Lägg till', exact: true }).click();
+  await page.getByRole('button', { name: '+ Kosttillskott' }).click(); // a card once one exists (M42)
 
   // Amounts per unit, as on the label.
   await page.getByLabel('Namn', { exact: true }).fill('D-vitamin');

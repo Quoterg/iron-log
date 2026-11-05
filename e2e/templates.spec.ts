@@ -26,6 +26,7 @@ test('saved meals, same as yesterday and portion memory', async ({ page }) => {
   await expect(meal(page, 0).locator('.entry')).toHaveCount(2);
 
   // Save breakfast as a meal: the name is suggested from its foods.
+  await meal(page, 0).getByRole('button', { name: /^Fler val för/ }).click();
   await meal(page, 0).getByRole('button', { name: 'Spara som måltid' }).click();
   const name = page.getByLabel('Namn', { exact: true });
   await expect(name).toHaveValue(/Havregryn/);

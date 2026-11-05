@@ -12,7 +12,7 @@ test('log exercise and water; optionally add burned energy to the target', async
   await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
 
   // Running 10 km/h for 30 min at 70 kg: (9.8 − 1) × 70 × 0.5 = 308 kcal.
-  await card(page, 'Aktivitet').getByRole('button', { name: '+ Lägg till', exact: true }).click();
+  await page.getByRole('button', { name: '+ Aktivitet' }).click(); // a card once used (M42)
   await page.getByLabel('Aktivitet', { exact: true }).selectOption('run10');
   await page.getByRole('button', { name: '30 min', exact: true }).click();
   await expect(page.locator('.preview')).toContainText('308 kcal');
@@ -20,10 +20,11 @@ test('log exercise and water; optionally add burned energy to the target', async
   await expect(card(page, 'Aktivitet')).toContainText(/Löpning, 10 km\/h.*30 min.*308 kcal/);
   await expect(page.locator('.summary')).toContainText('/ 2 000 kcal');
 
-  // Water: +5 dl +2 dl −2 dl = 0,5 l.
+  // Water: the first 2 dl from "Mer att logga" (the card appears once used, M42), then +5 dl −2 dl = 0,5 l.
+  await expect(card(page, 'Vatten')).toHaveCount(0);
+  await page.getByRole('button', { name: '+2 dl vatten' }).click();
   const water = card(page, 'Vatten');
   await water.getByRole('button', { name: '+5 dl' }).click();
-  await water.getByRole('button', { name: '+2 dl' }).click();
   await water.getByRole('button', { name: '−2 dl' }).click();
   await expect(water).toContainText('0,5 l');
 

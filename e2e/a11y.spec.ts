@@ -61,10 +61,11 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
     await expect(page.locator('.day-cost')).toBeVisible();
   },
-  'price editor (from the diary)': async (page) => {
+  'price editor (from the food screen)': async (page) => {
     await SCREENS['diary with food cost'](page);
-    await page.locator('.meal button.cost').first().click();
-    await expect(dialog(page).getByLabel('Jämförpris')).toBeVisible();
+    await page.locator('.meal .entry').first().click();
+    await page.getByRole('button', { name: /^(Ändra|Lägg till pris)$/ }).click();
+    await expect(page.getByLabel('Jämförpris')).toBeVisible();
   },
   'custom food editor': async (page) => {
     await page.locator('.meal').first().getByRole('button', { name: /Lägg till/ }).click();
@@ -94,6 +95,7 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
   'save a meal': async (page) => {
     await SCREENS['edit entry'](page);
     await dialog(page).getByRole('button', { name: /‹/ }).click();
+    await page.locator('.meal').first().getByRole('button', { name: /^Fler val för/ }).click();
     await page.locator('.meal').first().getByRole('button', { name: 'Spara som måltid' }).click();
     await expect(dialog(page).getByLabel('Namn', { exact: true })).not.toHaveValue('');
   },
@@ -162,11 +164,11 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await expect(page.getByRole('img', { name: /QR-kod/ })).toBeVisible();
   },
   'activity sheet': async (page) => {
-    await card(page, 'Aktivitet').getByRole('button', { name: /Lägg till/ }).click();
+    await page.getByRole('button', { name: '+ Aktivitet' }).click();
     await expect(page.getByLabel('Minuter')).toBeVisible();
   },
   'supplement editor': async (page) => {
-    await card(page, 'Kosttillskott').getByRole('button', { name: /Lägg till/ }).click();
+    await page.getByRole('button', { name: '+ Kosttillskott' }).click();
     await expect(page.getByLabel('Enhet', { exact: true })).toBeVisible();
   },
   'recipe editor': async (page) => {

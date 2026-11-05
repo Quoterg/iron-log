@@ -367,12 +367,16 @@ two places. Principle: one job per screen, details on request, hide what has no 
 idea, shorter text; nothing a user relies on disappears — it moves. Each milestone reports page
 heights and taps for common tasks, before → after.
 
-- [ ] **M42 Calmer diary** — one "⋯" menu per meal (Kopiera / Spara som måltid / Töm) instead of three
+- [x] **M42 Calmer diary** — one "⋯" menu per meal (Kopiera / Spara som måltid / Töm) instead of three
   links each; costs as one meal total in the header, not a line per food; one compact row
   "+ Tillskott · + Aktivitet · + Vatten" for what isn't logged today (full cards once something is);
   day actions (Kopiera dag, Inköpslista) in a "⋯" by the date; "Dagen är komplett" only with adaptive
   expenditure on; messages (check-in, energy change) in one slot, one at a time. Target: lived-in
   diary ~3 → ~2 screens; logging a food the same taps.
+  Done: 2 012 → 1 424 px (−29 %); the meal's kcal/cost sit under its name so its buttons keep one
+  row; a food's price moved to its food screen ("Pris: ~21 kr/kg (typpris) · Ändra"); day actions
+  are a link row at the bottom (not by the date: that header is shared with other tabs). Copying or
+  saving a meal is one tap more (⋯ first); logging a food is unchanged.
 - [ ] **M43 Näringsämnen as an answer** — energy and macros, then one ranked "Det här saknas"; one
   advice card for it with two tabs, *Livsmedel* (suggestions) and *Frukt i säsong*; suggestions prefer
   everyday foods and the user's own, with "Visa inte" (no liver pâté first unless eaten); the full

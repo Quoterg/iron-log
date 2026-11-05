@@ -1,4 +1,5 @@
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { ensurePriceBook, priceBook } from '../lib/cost';
 import { databaseOf, offProductUrl, reportUrl } from '../lib/contribute';
 import { MEALS, type Meal } from '../lib/db';
 import { lazyView } from '../lazy';
@@ -250,6 +251,8 @@ export default function FoodDetail(props: {
             </button>
           </div>
         )}
+        {/* A food's price lives here (M42): the diary shows only meal totals. */}
+        {settings.value.costs && !ref.startsWith('recipe:') && !props.ingredient && <FoodPrice foodRef={ref} />}
         {isCustom && (
           <button type="button" class="btn wide" onClick={() => open({ kind: 'editFood', ref })}>
             {t('editFood')}
@@ -330,5 +333,22 @@ function ServingForm({ onSave }: { onSave: (s: { name: string; g: number }) => v
         {t('save')}
       </button>
     </div>
+  );
+}
+
+/** "Pris: ~21 kr/kg (typpris) · Ändra" — the food's price per kg, own or typical; opens the price form. */
+function FoodPrice({ foodRef }: { foodRef: string }) {
+  useEffect(() => void ensurePriceBook(), []);
+  const book = priceBook.value;
+  if (!book) return null;
+  const own = book.own.get(foodRef);
+  const kr = own ?? book.typical.get(foodRef);
+  return (
+    <p class="small food-price">
+      {kr != null ? t('foodPrice').replace('{kr}', fmt(kr, 1)).replace('{source}', t(own != null ? 'priceOwn' : 'priceTypical')) : t('foodPriceNone')}{' '}
+      <button type="button" class="link inline" onClick={() => open({ kind: 'price', ref: foodRef })}>
+        {t(kr != null ? 'foodPriceEdit' : 'foodPriceAdd')}
+      </button>
+    </p>
   );
 }

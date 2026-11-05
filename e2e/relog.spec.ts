@@ -43,6 +43,7 @@ test('recent foods, last amount, favourites and copying a meal', async ({ page }
   await page.goBack();
 
   // Copy breakfast to tomorrow's lunch; the app then shows tomorrow.
+  await meal(page, 0).getByRole('button', { name: /^Fler val för/ }).click();
   await meal(page, 0).getByRole('button', { name: 'Kopiera måltid' }).click();
   await page.getByLabel('Till måltid').selectOption('lunch');
   await page.getByRole('button', { name: 'Kopiera', exact: true }).click();

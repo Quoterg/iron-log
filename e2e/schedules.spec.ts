@@ -7,7 +7,7 @@ test('a supplement scheduled for other weekdays stays off today’s checklist; t
   // Today's short weekday name as the editor shows it (Swedish UI).
   const today = await page.evaluate(() => new Date().toLocaleDateString('sv-SE', { weekday: 'short' }));
 
-  await card(page).getByRole('button', { name: '+ Lägg till', exact: true }).click();
+  await page.getByRole('button', { name: '+ Kosttillskott' }).click(); // a card once one exists (M42)
   await page.getByLabel('Namn', { exact: true }).fill('Järntablett');
   await page.getByRole('button', { name: today, exact: true }).click(); // today off
   await expect(page.getByRole('button', { name: today, exact: true })).toHaveAttribute('aria-pressed', 'false');

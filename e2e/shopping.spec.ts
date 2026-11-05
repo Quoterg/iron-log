@@ -27,10 +27,12 @@ test('shopping list: saved meals, planned days and own items; sections, ticking,
   await page.goto('./');
   await logFood(page, 0, 'havregryn', '60');
   await logFood(page, 0, 'mjölk', '200');
+  await meal(page, 0).getByRole('button', { name: /^Fler val för/ }).click();
   await meal(page, 0).getByRole('button', { name: 'Spara som måltid' }).click();
   await page.getByLabel('Namn', { exact: true }).fill('Gröt');
   await page.getByRole('button', { name: 'Spara', exact: true }).click();
   // Plan tomorrow: copy breakfast ahead (the app then shows tomorrow).
+  await meal(page, 0).getByRole('button', { name: /^Fler val för/ }).click();
   await meal(page, 0).getByRole('button', { name: 'Kopiera måltid' }).click();
   await page.getByRole('button', { name: 'Kopiera', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Imorgon' })).toBeVisible();
