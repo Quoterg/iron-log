@@ -20,6 +20,21 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** is next, in order (owner, 2026-11-05: continue until stopped). Only Swedish and English since M41c.
 
+## 2026-11-05 — M42 Calmer diary (interactive session)
+
+- Lived-in diary (audit data: 2 weeks, costs + check-in on) 2 012 → 1 424 px (−29 %).
+- One "⋯" per meal with food (Kopiera / Spara som måltid / Töm; closes once one is chosen) instead
+  of three links each; the meal's kcal and cost under its name so "⋯" and "+ Lägg till" keep a row.
+- No cost line per food: the meal total in its header, the day's in the summary; a food's price is
+  on its food screen ("Pris: ~… kr/kg (typpris|ditt pris) · Ändra/Lägg till pris") — the diary's cost
+  button was the only way to edit a price outside the shopping list.
+- Kosttillskott, Aktivitet and Vatten as cards only once used (a supplement set up, an activity or
+  water today); else one "Mer att logga:" row of chips. One message at a time (energy change before
+  check-in). "Kopiera hela dagen" and "Inköpslista" as a link row instead of two wide buttons.
+- Taps: logging a food unchanged; copying/saving a meal +1 (⋯).
+- Tests: unit 267 ✓, build ✓ (31.0 KB), e2e 160 ✓ (updated for ⋯, the chips, the food screen's
+  price), Lighthouse ✓.
+
 ## 2026-11-05 — M41c Swedish and English only (interactive session)
 
 - Owner: more languages than Swedish and English aren't needed, removal up to me. Removed Danish,

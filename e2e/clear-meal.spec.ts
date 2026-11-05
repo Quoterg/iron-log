@@ -32,11 +32,13 @@ test('a whole meal can be cleared at once (M41), after a confirmation; other mea
     expect(d.message()).toBe('Ta bort allt i frukost (3 st)?');
     void d.dismiss();
   });
+  await meal(page, 0).getByRole('button', { name: /^Fler val för/ }).click();
   await meal(page, 0).getByRole('button', { name: 'Töm måltiden' }).click();
   await expect(meal(page, 0).locator('.entry')).toHaveCount(3);
 
   // Confirmed: the breakfast is empty, the lunch untouched — also after a reload.
   page.once('dialog', (d) => void d.accept());
+  await meal(page, 0).getByRole('button', { name: /^Fler val för/ }).click();
   await meal(page, 0).getByRole('button', { name: 'Töm måltiden' }).click();
   await expect(meal(page, 0).locator('.entry')).toHaveCount(0);
   await expect(meal(page, 1).locator('.entry')).toHaveCount(1);

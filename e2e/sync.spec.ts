@@ -51,8 +51,8 @@ test('two devices pair with codes and end up with each other’s data, in batche
   await b.goto('./');
 
   // Different data on each device; B has a long history (several batches and parts on the wire).
-  await card(a, 'Vatten').getByRole('button', { name: '+5 dl' }).click();
-  await expect(card(a, 'Vatten')).toContainText('0,5 l');
+  await a.getByRole('button', { name: '+2 dl vatten' }).click(); // the water card appears once used (M42)
+  await expect(card(a, 'Vatten')).toContainText('0,2 l');
   await importHistory(b, 1500);
   await b.getByRole('button', { name: 'Dagbok', exact: true }).click();
   await b.locator('.meal').first().getByRole('button', { name: /Lägg till/ }).click();
@@ -82,7 +82,7 @@ test('two devices pair with codes and end up with each other’s data, in batche
   await expect(a.locator('.meal .entry')).toHaveCount(1);
   await expect(a.locator('.meal .entry')).toContainText(/havregryn/i);
   await b.reload();
-  await expect(card(b, 'Vatten')).toContainText('0,5 l');
+  await expect(card(b, 'Vatten')).toContainText('0,2 l');
 });
 
 test('garbled or wrong-step codes are refused with a clear message', async ({ page }) => {

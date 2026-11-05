@@ -18,6 +18,8 @@ import { isoWeek, previousWeek } from '../lib/checkin';
 import { Bar } from './Bar';
 
 export function Diary() {
+  // The meal whose "⋯" actions are open (M42: one menu instead of three links per meal).
+  const [menu, setMenu] = useState<string | null>(null);
   const tot = dayTotals.value;
   const g = (k: string) => tot[NUTRIENT_INDEX[k]];
   const tg = targets.value;
@@ -54,17 +56,19 @@ export function Diary() {
           {notice.value}
         </p>
       )}
-      {/* Weekly check-in (opt-in): once per new week, on today's diary, until it has been seen. */}
-      {settings.value.checkin && date.value === isoDate(now) && settings.value.checkinSeen !== previousWeek(date.value).key && (
-        <section class="card checkin-teaser">
-          <span>{t('checkinReady')}</span>
-          <button class="btn small" onClick={() => open({ kind: 'checkin' })}>
-            {t('checkinShow')}
-          </button>
-        </section>
+      {/* One message at a time (M42): the energy target's change (M35/M41) before the weekly check-in. */}
+      {energyNoteDue(now) ? (
+        <EnergyNote now={now} />
+      ) : (
+        settings.value.checkin && date.value === isoDate(now) && settings.value.checkinSeen !== previousWeek(date.value).key && (
+          <section class="card checkin-teaser">
+            <span>{t('checkinReady')}</span>
+            <button class="btn small" onClick={() => open({ kind: 'checkin' })}>
+              {t('checkinShow')}
+            </button>
+          </section>
+        )
       )}
-      {/* The energy target changed (M35 weekly step, M41 goal change): that week, until dismissed; why on demand. */}
-      <EnergyNote now={now} />
       <section class="card summary">
         <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} hero />
         {settings.value.addBurnedToTarget && burnedToday.value > 0 && (
@@ -93,15 +97,52 @@ export function Diary() {
         return (
           <section class="card meal" key={meal}>
             <header class="meal-head">
-              <h2>{t(meal)}</h2>
-              <span class="num muted">
-                {list.length ? `${fmt(kcal)} kcal` : ''}
-                {mealCost && ` · ${book!.text(mealCost)}`}
-              </span>
+              {/* The name with its kcal (and cost) below it, so the buttons keep one row (M42). */}
+              <div class="meal-title">
+                <h2>{t(meal)}</h2>
+                {list.length > 0 && (
+                  <span class="num muted small">
+                    {fmt(kcal)} kcal
+                    {mealCost && ` · ${book!.text(mealCost)}`}
+                  </span>
+                )}
+              </div>
+              {list.length > 0 && (
+                <button
+                  class="btn small more"
+                  aria-label={t('mealActions').replace('{meal}', t(meal))}
+                  aria-expanded={menu === meal}
+                  onClick={() => setMenu(menu === meal ? null : meal)}
+                >
+                  ⋯
+                </button>
+              )}
               <button class="btn small" onClick={() => open({ kind: 'search', meal })}>
                 + {t('addFood')}
               </button>
             </header>
+            {menu === meal && list.length > 0 && (
+              <div class="links meal-menu">
+                <button class="link" onClick={() => (setMenu(null), open({ kind: 'copy', meal }))}>
+                  {t('copyMeal')}
+                </button>
+                <button class="link" onClick={() => (setMenu(null), open({ kind: 'template', meal }))}>
+                  {t('saveAsMeal')}
+                </button>
+                {/* The whole meal at once (M41) instead of one entry at a time. */}
+                <button
+                  class="link"
+                  onClick={() => {
+                    setMenu(null);
+                    if (confirm(t('clearMealConfirm').replace('{meal}', t(meal).toLowerCase()).replace('{n}', String(list.length)))) {
+                      void removeEntries(list.map((e) => e.id));
+                    }
+                  }}
+                >
+                  {t('clearMeal')}
+                </button>
+              </div>
+            )}
             {showUsual && (
               <div class="usual">
                 <button class="usual-log" onClick={() => void logUsual(meal)}>
@@ -115,52 +156,21 @@ export function Diary() {
                 </button>
               </div>
             )}
+            {/* Costs: the meal's total in its header (M42); a food's own price is on its food screen. */}
             {list.length > 0 && (
-              <>
               <ul class="entries">
-                {list.map((e) => {
-                  const cost = book?.shown(costOf(e)) ? costOf(e) : null;
-                  return (
-                    <li key={e.id} class={cost ? 'priced' : undefined}>
-                      <button class="entry" onClick={() => open({ kind: 'food', ref: e.foodRef, entryId: e.id })}>
-                        <span class="entry-name">{name(e.foodRef)}</span>
-                        <span class="num muted">
-                          {e.unit && e.qty ? `${fmtAmount(e.qty)} ${unitLabel(e.unit)}` : `${fmtAmount(e.grams)} g`}
-                        </span>
-                        <span class="num">{fmt(entryKcal(e))} kcal</span>
-                      </button>
-                      {/* A food's cost opens its price (the shopping list's editor); a recipe's is its ingredients'. */}
-                      {cost &&
-                        (e.foodRef.startsWith('recipe:') ? (
-                          <span class="num muted cost">{book!.text(cost)}</span>
-                        ) : (
-                          <button class="btn small cost" aria-label={`${t('costEdit').replace('{name}', name(e.foodRef))}, ${book!.text(cost)}`} onClick={() => open({ kind: 'price', ref: e.foodRef })}>
-                            {book!.text(cost)}
-                          </button>
-                        ))}
-                    </li>
-                  );
-                })}
+                {list.map((e) => (
+                  <li key={e.id}>
+                    <button class="entry" onClick={() => open({ kind: 'food', ref: e.foodRef, entryId: e.id })}>
+                      <span class="entry-name">{name(e.foodRef)}</span>
+                      <span class="num muted">
+                        {e.unit && e.qty ? `${fmtAmount(e.qty)} ${unitLabel(e.unit)}` : `${fmtAmount(e.grams)} g`}
+                      </span>
+                      <span class="num">{fmt(entryKcal(e))} kcal</span>
+                    </button>
+                  </li>
+                ))}
               </ul>
-              <div class="links">
-                <button class="link" onClick={() => open({ kind: 'copy', meal })}>
-                  {t('copyMeal')}
-                </button>
-                <button class="link" onClick={() => open({ kind: 'template', meal })}>
-                  {t('saveAsMeal')}
-                </button>
-                {/* The whole meal at once (M41) instead of one entry at a time. */}
-                <button
-                  class="link"
-                  onClick={() =>
-                    confirm(t('clearMealConfirm').replace('{meal}', t(meal).toLowerCase()).replace('{n}', String(list.length))) &&
-                    void removeEntries(list.map((e) => e.id))
-                  }
-                >
-                  {t('clearMeal')}
-                </button>
-              </div>
-              </>
             )}
             {prev.length > 0 && (
               <button class="link" onClick={() => void repeatYesterday(meal)}>
@@ -170,37 +180,74 @@ export function Diary() {
           </section>
         );
       })}
-      <SupplementCard />
-      <ActivityCard />
-      <WaterCard />
+      {/* Supplements, activity and water as full cards only once used (M42); else one row to start them. */}
+      {supplements.value.length > 0 && <SupplementCard />}
+      {dayActivities.value.length > 0 && <ActivityCard />}
+      {dayWater.value > 0 && <WaterCard />}
+      <MoreToLog />
       {settings.value.adaptive && entries.value.length > 0 && (
         <button class={dayComplete.value ? 'btn wide day-done on' : 'btn wide day-done'} aria-pressed={dayComplete.value} onClick={() => void toggleDayComplete()}>
           {dayComplete.value ? '✓ ' : ''}
           {t('dayComplete')}
         </button>
       )}
-      {entries.value.length === 0 ? (
-        <p class="muted center">{t('emptyDay')}</p>
-      ) : (
-        <button class="btn wide" onClick={() => open({ kind: 'copy' })}>
-          {t('copyDay')}
+      {entries.value.length === 0 && <p class="muted center">{t('emptyDay')}</p>}
+      <div class="links day-links">
+        {entries.value.length > 0 && (
+          <button class="link" onClick={() => open({ kind: 'copy' })}>
+            {t('copyDay')}
+          </button>
+        )}
+        <button class="link" onClick={() => open({ kind: 'shopping' })}>
+          {t('shoppingList')}
         </button>
-      )}
-      <button class="btn wide" onClick={() => open({ kind: 'shopping' })}>
-        {t('shoppingList')}
-      </button>
+      </div>
     </>
   );
 }
 
-/** "Energimålet följer din förbrukning: nu 2 430 kcal/dag (+150)." */
+/** Supplements, activity and water not used today: one compact row to start them (M42). */
+function MoreToLog() {
+  const items = [
+    !supplements.value.length && (
+      <button key="s" class="chip" onClick={() => open({ kind: 'supplement' })}>
+        + {t('supplements')}
+      </button>
+    ),
+    !dayActivities.value.length && (
+      <button key="a" class="chip" onClick={() => open({ kind: 'activity' })}>
+        + {t('activityLog')}
+      </button>
+    ),
+    !dayWater.value && (
+      <button key="w" class="chip" onClick={() => void addWater(200)}>
+        +{fmt(2)} dl {t('water').toLowerCase()}
+      </button>
+    ),
+  ].filter(Boolean);
+  if (!items.length) return null;
+  return (
+    <section class="card more-log" aria-label={t('moreToLog')}>
+      <span class="muted small">{t('moreToLog')}</span>
+      <div class="chips">{items}</div>
+    </section>
+  );
+}
+
 /** Why the target changed, step by step (M41): loaded only when asked for. */
 const energyWhy = lazyView(() => import('./EnergyWhy'));
 
+/** This week's energy-target change, not yet dismissed. */
+function energyNoteDue(now: Date): boolean {
+  const c = settings.value.energyChange;
+  return !!c && !c.seen && isoWeek(c.date).key === isoWeek(isoDate(now)).key;
+}
+
+/** "Ditt energimål ändrades: nu 2 430 kcal/dag (+150). Varför?" */
 function EnergyNote({ now }: { now: Date }) {
   const [why, setWhy] = useState(false);
   const c = settings.value.energyChange;
-  if (!c || c.seen || isoWeek(c.date).key !== isoWeek(isoDate(now)).key) return null;
+  if (!c || !energyNoteDue(now)) return null;
   const d = c.to - c.from;
   return (
     <section class="card checkin-teaser energy-note" role="status">
