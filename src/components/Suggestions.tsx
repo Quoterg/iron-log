@@ -82,8 +82,10 @@ const name = (ref: string) => {
 };
 const nutrient = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
 
-/** Foods and swaps that help with the period's shortfalls (opt-in; see lib/suggest.ts). */
-/** `embedded`: inside Näringsämnen's advice card (M43), without a card and heading of its own. */
+/**
+ * Foods and swaps that help with the period's shortfalls (opt-in; see lib/suggest.ts).
+ * `embedded`: inside Näringsämnen's advice card (M43), without a card and heading of its own.
+ */
 export default function Suggestions({ low, amounts, embedded }: { low: Gap[]; amounts: number[]; embedded?: boolean }) {
   const [data, setData] = useState<{ gaps: GapHelp[]; swaps: Swap[] } | null>(null);
   // Refresh when the gaps, the food sources, pregnancy status or the user's foods change.
@@ -131,7 +133,7 @@ export default function Suggestions({ low, amounts, embedded }: { low: Gap[]; am
                       class="btn small"
                       aria-label={tg('suggestHide').replace('{name}', name(f.ref))}
                       title={tg('suggestHide').replace('{name}', name(f.ref))}
-                      onClick={() => void updateSettings({ suggestHidden: [...(settings.value.suggestHidden ?? []), f.ref].slice(-500) })}
+                      onClick={() => void updateSettings({ suggestHidden: [...new Set([...(settings.value.suggestHidden ?? []), f.ref])].slice(-500) })}
                     >
                       ×
                     </button>

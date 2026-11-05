@@ -158,6 +158,11 @@ function SuggestCard() {
         {tg('suggestToggle')}
       </label>
       <p class="muted small">{tg('suggestNote')}</p>
+      {!!s.suggestHidden?.length && (
+        <button class="btn small" onClick={() => void updateSettings({ suggestHidden: [] })}>
+          {tg('suggestUnhide').replace('{n}', String(s.suggestHidden.length))}
+        </button>
+      )}
       <label class="check">
         <input type="checkbox" checked={!!s.fruit} onChange={(e) => void updateSettings({ fruit: (e.currentTarget as HTMLInputElement).checked })} />
         {tf('fruitToggle')}

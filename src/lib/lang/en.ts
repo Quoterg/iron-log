@@ -431,6 +431,7 @@ const suggest: Record<string, string> = {
   gapPortion: '{grams} g gives {pct} % of what is missing',
   gapYouEat: 'you already eat this',
   suggestHide: 'Don’t suggest {name} again',
+  suggestUnhide: 'Show hidden suggestions again ({n})',
   swapsTitle: 'Swaps to try',
   swapLine: '{to} instead of {from}',
   whatIfTitle: 'If you add this',

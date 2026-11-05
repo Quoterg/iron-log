@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { addDays, entriesBetween, isoDate, recentLoggedDates, type Entry } from '../lib/db';
 import { fmt, nutrientName, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
@@ -155,11 +155,21 @@ type Tab = 'foods' | 'fruit';
  * What to eat for the gaps (M43): the food suggestions (M27) and the fruit in season (M40) in one card,
  * as two tabs when both are on.
  */
+/** The tab last chosen: kept when the period changes (which remounts the card). */
+let lastTab: Tab = 'foods';
+
 function Advice(p: { foods: Gap[] | null; fruit: Gap[] | null; amounts: number[]; covered?: boolean[] }) {
   const tabs = [p.foods && ('foods' as const), p.fruit && ('fruit' as const)].filter(Boolean) as Tab[];
-  const [tab, setTab] = useState<Tab>('foods');
+  const [tab, setTabState] = useState<Tab>(lastTab);
+  // A tab once opened stays mounted (hidden), so switching back doesn't recompute it.
+  const opened = useRef(new Set<Tab>());
   if (!tabs.length) return null;
   const shown = tabs.includes(tab) ? tab : tabs[0];
+  opened.current.add(shown);
+  const setTab = (x: Tab) => {
+    lastTab = x;
+    setTabState(x);
+  };
   return (
     <section class="card advice">
       <h2>{t('adviceTitle')}</h2>
@@ -172,10 +182,15 @@ function Advice(p: { foods: Gap[] | null; fruit: Gap[] | null; amounts: number[]
           ))}
         </div>
       )}
-      {shown === 'foods' ? (
-        <suggestions.Lazy embedded low={p.foods!} amounts={p.amounts} />
-      ) : (
-        <fruitView.Lazy embedded low={p.fruit!} amounts={p.amounts} covered={p.covered} />
+      {p.foods && opened.current.has('foods') && (
+        <div hidden={shown !== 'foods'}>
+          <suggestions.Lazy embedded low={p.foods} amounts={p.amounts} />
+        </div>
+      )}
+      {p.fruit && opened.current.has('fruit') && (
+        <div hidden={shown !== 'fruit'}>
+          <fruitView.Lazy embedded low={p.fruit} amounts={p.amounts} covered={p.covered} />
+        </div>
       )}
     </section>
   );
