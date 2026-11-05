@@ -5,7 +5,7 @@ import { lang, packOf } from './i18n';
 export const SV_FRUIT = {
   fruitTitle: 'Frukt i säsong',
   fruitToggle: 'Föreslå frukt i säsong för det jag får för lite av',
-  fruitNote: 'Av som standard. Visar vilka frukter det finns gott om i butikerna den här månaden och varifrån de kommer, och hur mycket av dem som skulle täcka det du får för lite av under en vecka.',
+  fruitNote: 'Visar vilka frukter det finns gott om i butikerna den här månaden och varifrån de kommer, och hur mycket av dem som skulle täcka det du får för lite av under en vecka.',
   fruitSource: 'Säsonger från SCB:s importstatistik (CC0), Eurostats handelsstatistik (Comext) och Jordbruksverkets statistik om svenska skördar, {period}. Uppdateras två gånger om året.',
   fruitLoading: 'Letar frukt i säsong…',
   fruitReach: 'Varifrån',

@@ -15,6 +15,7 @@ const walk = (d: string) => {
 };
 walk('src');
 // Type aliases are erased at runtime: a union like `'profile' | 'energy'` (nav.ts) uses no string.
+// Only for aliases without `;` inside (unions, not object types: those would end the match early).
 const withoutTypes = (src: string) => src.replace(/^(export )?type \w+ =[^;]*;/gm, '');
 const code = new Map(files.map((f) => [f, withoutTypes(readFileSync(f, 'utf8'))]));
 const resolve = (from: string, spec: string) => {

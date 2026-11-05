@@ -276,6 +276,7 @@ input[type='number'], input[type='text'], input[type='search'], select {
 .actions .btn { flex: 1; }
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
 .grid2 input, .grid2 select { width: 100%; min-width: 0; }
+.grid2 > :only-child { grid-column: 1 / -1; }
 .field span { font-size: 0.85rem; }
 .field input { width: 100%; }
 .field.error input, input[aria-invalid='true'] { border-color: var(--over); }
@@ -306,7 +307,7 @@ input[type='date'] { border: 1px solid var(--line); border-radius: 12px; backgro
 }
 
 .form label.check { flex-direction: row; align-items: center; gap: 10px; color: var(--text); }
-.form label.check input { width: 22px; height: 22px; min-height: 0; }
+.form label.check input { width: 22px; height: 22px; min-height: 0; flex: none; }
 .form input[readonly] { color: var(--muted); }
 
 table.targets { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 12px; }
@@ -392,6 +393,7 @@ table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom
 .feature-more summary { color: var(--accent); cursor: pointer; min-height: 32px; }
 .modes { border: 0; padding: 0; margin: 0 0 8px; }
 .check.mode { align-items: flex-start; }
+.check.mode input { margin-top: 2px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .page-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 4px 0 12px; }
 .page-head h2 { margin: 0; min-width: 0; overflow-wrap: anywhere; }

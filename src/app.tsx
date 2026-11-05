@@ -43,6 +43,7 @@ export const priceView = lazyView(() => import('./components/PriceSheet'));
 export function App() {
   // A Settings page (M44) is shown in the tab itself, not as a sheet over it.
   const sheet = top.value && top.value.kind !== 'settings';
+  const page = settingsShown();
   return (
     <>
       {/* Stays rendered under the full-screen sheet so its scroll position survives. */}
@@ -63,7 +64,7 @@ export function App() {
           {view.value === 'nutrients' && <nutrientsView.Lazy />}
           {view.value === 'body' && <bodyView.Lazy />}
           {/* Settings' pages (M44) show in the tab, with the tab bar, and still step back through history. */}
-          {view.value === 'settings' && (settingsShown() ? <settingsPageView.Lazy page={settingsShown()!} /> : <settingsView.Lazy />)}
+          {view.value === 'settings' && (page ? <settingsPageView.Lazy page={page} /> : <settingsView.Lazy />)}
         </main>
         <nav class="tabs">
           {TABS.map((v) => (
@@ -72,7 +73,8 @@ export function App() {
               class={view.value === v ? 'active' : ''}
               // Start loading Settings on touch, before the click lands.
               onPointerDown={PREFETCH[v]}
-              // Leaving a Settings page by its tab: its history steps go with it (M44).
+              // Leaving a Settings page by its tab: its history steps go with it (M44). Tapping the
+              // Settings tab itself on a page does the same: back to the list, as tab bars do.
               onClick={() => {
                 if (stack.value.some((s) => s.kind === 'settings')) closeAll();
                 view.value = v;
@@ -139,7 +141,6 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <welcomeView.Lazy />;
     case 'settings':
       return null; // shown in the Settings tab (M44), not as a layer
-
   }
 }
 

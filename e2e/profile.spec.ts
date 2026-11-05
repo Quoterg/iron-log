@@ -50,7 +50,7 @@ test('profile drives energy and NNR targets (age band, pregnancy)', async ({ pag
   await page.goto('./');
   await settingsTab(page);
   await page.locator('.settings-menu .entry', { hasText: 'Energimål' }).click();
-  const kcal = page.getByLabel('Energibehov per dag (kcal)');
+  const kcal = page.getByLabel('Energimål per dag (kcal)');
   const auto = page.getByLabel(/Räkna från profilen/);
   const link = page.getByRole('button', { name: /^Energimål:/ }); // on the profile page
 
@@ -128,7 +128,7 @@ test('goal in the profile (M35): the automatic target is the need ± the pace, a
   await page.getByLabel('Aktivitetsnivå').selectOption('1.55');
   await kcal.click();
   await page.getByLabel(/Räkna från profilen/).check();
-  await expect(page.getByLabel('Energibehov per dag (kcal)')).toHaveValue('2053'); // maintain: the need (BMR 1324 × 1.55)
+  await expect(page.getByLabel('Energimål per dag (kcal)')).toHaveValue('2053'); // maintain: the need (BMR 1324 × 1.55)
   await page.getByRole('button', { name: /^‹ / }).click();
   // Back from the energy page opened by its link: the profile page again.
 
@@ -147,7 +147,7 @@ test('goal in the profile (M35): the automatic target is the need ± the pace, a
   await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
   await expect(goal).toHaveValue('gain');
   await kcal.click();
-  await expect(page.getByLabel('Energibehov per dag (kcal)')).toHaveValue('2350');
+  await expect(page.getByLabel('Energimål per dag (kcal)')).toHaveValue('2350');
   await expect(page.getByText('Förbrukning ca 2 077 kcal, +275 kcal/dag för 0,25 kg/vecka.')).toBeVisible();
 });
 

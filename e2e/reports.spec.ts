@@ -26,7 +26,7 @@ test('7-day averages, gaps, top sources and streak', async ({ page }) => {
 
   // 7 days: average over the 2 logged days (not 7).
   await page.getByRole('button', { name: '7 dagar' }).click();
-  await expect(page.getByText(/2 av 7 dagar har registreringar/)).toBeVisible();
+  await expect(page.getByText(/2 av 7 dagar har något loggat/)).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Att tänka på' })).toBeVisible();
   await expect(page.locator('.card', { hasText: 'Att tänka på' })).toContainText(/Under 70 % av målet.*Vitamin C/);
 

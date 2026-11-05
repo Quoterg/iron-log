@@ -18,7 +18,18 @@ the first bundle (lazy, prefetched when idle so they work offline). CI's gzip me
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
-**Phase 9 Simpler to use (M42–M46)** is next, in order (owner, 2026-11-05: continue until stopped). Only Swedish and English since M41c.
+**Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
+
+## 2026-11-05 — M46 Polish pass (interactive session)
+
+- Words: "logga" for food (no "registrera"), "Energimål per dag (kcal)" for the typed target; shorter
+  energy notice (says where to act); fruit note without "Av som standard".
+- Layout, found on screenshots at 360 px light/dark: check rows keep their box size (`flex: none`), a
+  lone `.grid2` child spans both columns, no duplicate "Energimål" heading.
+- More screens under axe + 200 % (Settings overview and pages, empty 7 days). M44 nits (FOLLOW_STEP in
+  the note, `settingsShown()` once, comments).
+- Tests: unit 271 ✓, build ✓ (31.4 KB), e2e 184 ✓, Lighthouse ✓.
+- **Phase 9 (M42–M46) is complete.** Next: the owner decides (M37 Veckomenyn waits for a go).
 
 ## 2026-11-05 — M45 First start and empty states (interactive session)
 

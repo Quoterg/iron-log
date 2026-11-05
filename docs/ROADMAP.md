@@ -408,8 +408,15 @@ heights and taps for common tasks, before → after.
   räknat från din profil" and the Funktioner list. Skip or "Inte nu" at any point. An empty
   Näringsämnen (day or period) says so in one line with "Till dagboken" and shows the targets without
   "13 under målet"; the diary, Kropp and the library already had one-line empty texts.
-- [ ] **M46 Polish pass** — shorter notes, one word per concept, one button style per kind of action,
+- [x] **M46 Polish pass** — shorter notes, one word per concept, one button style per kind of action,
   the search and food screens, dark mode, 200 % text and screen-reader labels re-checked.
+  Done: "logga" for food everywhere ("registrera" gone); the typed target is "Energimål per dag"
+  ("behov" stays for the estimate); the notice on the Settings overview says where to act; "Av som
+  standard" dropped (the switch shows it). Buttons were already one style per kind (primary = save/add
+  /done, plain = secondary, small = dismiss). Fixed by looking: radios and checkboxes no longer shrink
+  beside long text; a lone field in a two-column row spans it (the goal select was cut off); no second
+  "Energimål" heading on its page. axe (light + dark) and 200 % now also cover the Settings overview,
+  Profil & mål, Funktioner with details open, the library and the empty 7-day page. M44 review nits done.
 
 ## Later — ideas, not scheduled
 

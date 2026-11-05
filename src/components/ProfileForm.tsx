@@ -19,7 +19,7 @@ import {
 import { lang as langSignal } from '../lib/i18n';
 import { settings, updateSettings } from '../state';
 import { te } from '../lib/strings-energy';
-import { goalShift } from '../lib/adaptive';
+import { FOLLOW_STEP, goalShift } from '../lib/adaptive';
 import { isoDate } from '../lib/db';
 import { GOAL_LABEL } from './AdaptiveEnergy';
 import { open } from '../nav';
@@ -229,13 +229,13 @@ export function EnergyTarget() {
       <input type="radio" name="energy-mode" checked={mode === m} disabled={disabled} onChange={() => void choose(m)} />
       <span>
         {te(label)}
-        <span class="muted small summary">{te(note).replace('{kcal}', '150')}</span>
+        <span class="muted small summary">{te(note).replace('{kcal}', String(FOLLOW_STEP))}</span>
       </span>
     </label>
   );
   return (
     <section class="card form">
-      <h2>{t('settingsEnergy')}</h2>
+      {/* The page is called Energimål already (M44): no second heading, the choice is named for screen readers. */}
       <fieldset class="modes">
         <legend class="visually-hidden">{t('settingsEnergy')}</legend>
         {option('manual', 'modeManual', 'modeManualNote')}

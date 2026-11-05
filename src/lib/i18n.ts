@@ -46,7 +46,7 @@ const sv = {
   other: 'Övrigt',
   female: 'Kvinna',
   male: 'Man',
-  emptyDay: 'Inget registrerat ännu. Tryck på ”Lägg till” vid en måltid.',
+  emptyDay: 'Inget loggat ännu. Tryck på ”Lägg till” vid en måltid.',
   copy: 'Kopiera',
   dayCost: 'Matkostnad: {kr}',
   followDone: 'Ditt energimål ändrades: nu {kcal} kcal/dag ({delta}).',
