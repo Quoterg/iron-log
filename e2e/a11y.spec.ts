@@ -177,6 +177,15 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: '+ Kosttillskott' }).click();
     await expect(page.getByLabel('Enhet', { exact: true })).toBeVisible();
   },
+  'first start (welcome sheet)': async (page) => {
+    await page.locator('.welcome').getByRole('button', { name: 'Kom igång' }).click();
+    await expect(dialog(page).getByLabel('Ålder', { exact: true })).toBeVisible();
+  },
+  'first start, step 2': async (page) => {
+    await SCREENS['first start (welcome sheet)'](page);
+    await dialog(page).getByRole('button', { name: 'Nästa' }).click();
+    await expect(dialog(page).getByRole('button', { name: 'Klar' })).toBeVisible();
+  },
   'recipe editor': async (page) => {
     await tab(page, 'Inställningar');
     await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();

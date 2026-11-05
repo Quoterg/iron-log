@@ -20,6 +20,16 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** is next, in order (owner, 2026-11-05: continue until stopped). Only Swedish and English since M41c.
 
+## 2026-11-05 — M45 First start and empty states (interactive session)
+
+- First start: a card on the diary (`welcomeDue`: never logged, no age, not `settings.welcomed`; last in
+  the diary's one message slot) → "Kom igång" sheet (Welcome.tsx, lazy): ProfileForm `brief` (no body
+  fat, no menstruation box, no link onwards) → energy target from the profile → FeatureList → Klar.
+- Empty Näringsämnen: one line + "Till dagboken"; the targets stay visible without group statuses
+  (NutrientGroups `empty`); no "0 av 7 dagar" line.
+- Tests: unit 271 ✓, build ✓ (31.4 KB), e2e 169 ✓ (new welcome.spec: both paths, persisted;
+  first-start screens in a11y: axe, 200 %), Lighthouse ✓.
+
 ## 2026-11-05 — M44 Short, grouped Settings (interactive session)
 
 - Settings overview 640 px (one screen on a Moto G4): Profil & mål, Energimål, Funktioner, Mina

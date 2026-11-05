@@ -4,7 +4,7 @@ import { fmt, nutrientName, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
 import { averagePerDay, coverage, dailyTotals, gaps, knownNutrients, MIN_COVERAGE, streak, type Gap } from '../lib/report';
 import { open } from '../nav';
-import { date, dayTotals, ensureFoods, entries as dayEntries, foods, periodCache, recipes, settings, supplementRefs, targets } from '../state';
+import { date, dayTotals, view, ensureFoods, entries as dayEntries, foods, periodCache, recipes, settings, supplementRefs, targets } from '../state';
 import { ensurePriceBook, priceBook } from '../lib/cost';
 import { lazyView } from '../lazy';
 import { NutrientGroups } from './NutrientGroups';
@@ -60,6 +60,8 @@ export default function Nutrients() {
     return { amounts: averagePerDay(perDay), known: known(periodEntries), covered, perDay };
   }, [period, periodEntries, dayTotals.value, dayEntries.value, foods.value]);
   const amounts = report?.amounts ?? null;
+  // Nothing logged in the period (M45): one line on what to do, the targets without statuses.
+  const empty = period === 1 ? dayEntries.value.length === 0 : report?.perDay?.size === 0;
   const perDay = report?.perDay ?? null;
   const g = useMemo(
     () => (report && period !== 1 && perDay?.size ? gaps(report.amounts, targets.value, report.covered) : null),
@@ -92,7 +94,15 @@ export default function Nutrients() {
         ))}
       </div>
       {/* One line instead of two (M43): what the averages rest on, and the streak. */}
-      {((period !== 1 && perDay) || (days != null && days > 1)) && (
+      {empty && (
+        <section class="card">
+          <p>{t(period === 1 ? 'nutrientsEmptyDay' : 'nutrientsEmptyPeriod')}</p>
+          <button class="btn" onClick={() => (view.value = 'diary')}>
+            {t('toDiary')}
+          </button>
+        </section>
+      )}
+      {!empty && ((period !== 1 && perDay) || (days != null && days > 1)) && (
         <p class="muted small">
           {[
             period !== 1 && perDay ? t('averageNote').replace('{n}', String(perDay.size)).replace('{d}', String(period)) : '',
@@ -135,7 +145,7 @@ export default function Nutrients() {
         </section>
       )}
       {amounts ? (
-        <NutrientGroups compact amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
+        <NutrientGroups compact empty={empty} amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
       ) : (
         <p class="muted center">{t('loading')}</p>
       )}

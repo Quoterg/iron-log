@@ -74,6 +74,8 @@ export interface Settings {
   energyChange?: EnergyChange;
   /** Suggest foods and swaps for nutrients that run short (lib/suggest.ts; opt-in). */
   suggestions?: boolean;
+  /** The first-start card (M45) was used or dismissed. */
+  welcomed?: boolean;
   /** Foods the user asked not to be suggested again (refs, "Visa inte", M43). */
   suggestHidden?: string[];
   /** Fruit in season for the nutrients that run short (M40, opt-in; lib/fruit.ts). */

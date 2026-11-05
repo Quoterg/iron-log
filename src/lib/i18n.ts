@@ -73,6 +73,8 @@ const sv = {
   dayComplete: 'Dagen är komplett',
   usualMeal: 'Som vanligt',
   notNow: 'Inte nu',
+  welcomeText: 'Välkommen! Berätta lite om dig, så räknar appen ut ditt energimål och vad du behöver av varje näringsämne.',
+  welcomeStart: 'Kom igång',
   updateReady: 'Det finns en ny version av appen.',
   restart: 'Starta om',
   foodsUnavailable: '{n} av livsmedlen finns inte längre och lades inte till.',

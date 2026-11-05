@@ -10,7 +10,7 @@ import {
   activityTypes, addWater, burnedToday, clock, date, dayActivities, dayComplete, dayTotals,
   dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, recipes, removeActivity, removeEntries,
   repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets,
-  toggleDayComplete, toggleSupplementTaken, updateSettings, usual, usualState,
+  toggleDayComplete, toggleSupplementTaken, updateSettings, usage, usual, usualState,
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
 import { pickUsual } from '../lib/usual';
@@ -56,16 +56,28 @@ export function Diary() {
           {notice.value}
         </p>
       )}
-      {/* One message at a time (M42): the energy target's change (M35/M41) before the weekly check-in. */}
+      {/* One message at a time (M42): the energy target's change (M35/M41), the weekly check-in, the first start (M45). */}
       {energyNoteDue(now) ? (
         <EnergyNote now={now} />
+      ) : settings.value.checkin && date.value === isoDate(now) && settings.value.checkinSeen !== previousWeek(date.value).key ? (
+        <section class="card checkin-teaser">
+          <span>{t('checkinReady')}</span>
+          <button class="btn small" onClick={() => open({ kind: 'checkin' })}>
+            {t('checkinShow')}
+          </button>
+        </section>
       ) : (
-        settings.value.checkin && date.value === isoDate(now) && settings.value.checkinSeen !== previousWeek(date.value).key && (
-          <section class="card checkin-teaser">
-            <span>{t('checkinReady')}</span>
-            <button class="btn small" onClick={() => open({ kind: 'checkin' })}>
-              {t('checkinShow')}
-            </button>
+        welcomeDue() && (
+          <section class="card welcome">
+            <p>{t('welcomeText')}</p>
+            <div class="row">
+              <button class="btn primary" onClick={() => open({ kind: 'welcome' })}>
+                {t('welcomeStart')}
+              </button>
+              <button class="btn" onClick={() => void updateSettings({ welcomed: true })}>
+                {t('notNow')}
+              </button>
+            </div>
           </section>
         )
       )}
@@ -236,6 +248,9 @@ function MoreToLog() {
 
 /** Why the target changed, step by step (M41): loaded only when asked for. */
 const energyWhy = lazyView(() => import('./EnergyWhy'));
+
+/** The first start (M45): nothing logged ever, no profile yet, not dismissed. */
+const welcomeDue = () => !settings.value.welcomed && settings.value.profile.age == null && usage.value.size === 0 && entries.value.length === 0;
 
 /** This week's energy-target change, not yet dismissed. */
 function energyNoteDue(now: Date): boolean {
