@@ -377,11 +377,17 @@ heights and taps for common tasks, before → after.
   row; a food's price moved to its food screen ("Pris: ~21 kr/kg (typpris) · Ändra"); day actions
   are a link row at the bottom (not by the date: that header is shared with other tabs). Copying or
   saving a meal is one tap more (⋯ first); logging a food is unchanged.
-- [ ] **M43 Näringsämnen as an answer** — energy and macros, then one ranked "Det här saknas"; one
+- [x] **M43 Näringsämnen as an answer** — energy and macros, then one ranked "Det här saknas"; one
   advice card for it with two tabs, *Livsmedel* (suggestions) and *Frukt i säsong*; suggestions prefer
   everyday foods and the user's own, with "Visa inte" (no liver pâté first unless eaten); the full
   table under groups that open on tap, nutrients without data hidden with one line saying so; no
   repeat of the diary in the day view. Target: 7 days ~7 → ~2–3 screens.
+  Done: 4 403 → 1 884 px (−57 %). The advice card ("Vad du kan äta", tabs Livsmedel / Frukt i
+  säsong) sits at the bottom, where the owner wanted the fruit (M40c); "Att tänka på" stays on top as
+  the ranked gaps. Groups other than the macros fold behind "8 under målet"; nutrients without data
+  are named once ("Inga uppgifter om vitamin K, …, essentiella aminosyror i det du loggat"). Offal and
+  blood foods are suggested last unless eaten; "Föreslå inte … igen" per suggestion (synced). The
+  day view keeps its macros (not removed: it's the only place with them for a past day's detail).
 - [ ] **M44 Short, grouped Settings** — a first page of five entries, each its own page: Profil & mål,
   Energimål, Funktioner (every switch, one line each, details on tap), Mina livsmedel/recept/måltider,
   Data, synk & om; Energimål as one three-way choice (Skriv själv / Räkna från profilen / Följ uppmätt

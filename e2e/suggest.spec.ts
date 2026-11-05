@@ -37,15 +37,17 @@ test('suggestions are off by default; when on, foods for shortfalls and a swap; 
   await tab(page, 'Näringsämnen');
   await page.getByRole('button', { name: '7 dagar', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Att tänka på' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Förslag' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Vad du kan äta' })).toHaveCount(0);
 
   // On: foods for the shortfalls and a swap for the white bread.
   await tab(page, 'Inställningar');
   await page.getByLabel(/Föreslå livsmedel och byten/).check();
   await tab(page, 'Näringsämnen');
   await page.getByRole('button', { name: '7 dagar', exact: true }).click();
+  // One advice card at the bottom (M43); with only suggestions on, no tabs.
+  await expect(page.locator('.advice').getByRole('heading', { name: 'Vad du kan äta' })).toBeVisible();
+  await expect(page.locator('.advice .chip')).toHaveCount(0);
   const card = page.locator('.suggest');
-  await expect(card.getByRole('heading', { name: 'Förslag' })).toBeVisible();
   await expect(card.getByText(/ger \d+ % av det som saknas/).first()).toBeVisible({ timeout: 15_000 });
   await expect(card.getByRole('heading', { name: 'Byten att prova' })).toBeVisible();
   await expect(card.getByRole('button', { name: /Bröd fullkorn råg.*i stället för.*Bröd vitt/ })).toContainText(/\+\d+(,\d+)? g fibrer/);
@@ -63,4 +65,45 @@ test('suggestions are off by default; when on, foods for shortfalls and a swap; 
   await page.locator('.result', { hasText: /Havregryn/ }).first().click();
   await expect(page.getByRole('button', { name: 'Lägg till', exact: true })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Om du lägger till' })).toHaveCount(0);
+});
+
+test('one advice card (M43): food suggestions and fruit as two tabs; a suggestion can be hidden for good', async ({ page }) => {
+  test.slow();
+  page.on('dialog', (d) => d.accept());
+  await page.goto('./');
+  const entries = Array.from({ length: 7 }, (_, i) => [
+    { id: `b${i}`, date: iso(-i), meal: 'breakfast', foodRef: 'slv:202', grams: 80, createdAt: 1000 + i },
+    { id: `o${i}`, date: iso(-i), meal: 'lunch', foodRef: 'slv:702', grams: 60, createdAt: 2000 + i },
+  ]).flat();
+  await tab(page, 'Inställningar');
+  const reloaded = page.waitForEvent('load', { timeout: 15_000 });
+  await page.getByLabel('Importera säkerhetskopia').setInputFiles({
+    name: 'history.json', mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ format: 'iron-log-backup', version: 1, entries })),
+  });
+  await reloaded;
+  await tab(page, 'Inställningar');
+  await page.getByLabel(/Föreslå livsmedel och byten/).check();
+  await page.getByLabel(/Föreslå frukt i säsong/).check();
+  await tab(page, 'Näringsämnen');
+  await page.getByRole('button', { name: '7 dagar', exact: true }).click();
+
+  const advice = page.locator('.advice');
+  const tabs = advice.getByRole('group', { name: 'Vad du kan äta' });
+  await expect(tabs.getByRole('button', { name: 'Livsmedel' })).toHaveAttribute('aria-pressed', 'true');
+  const first = advice.locator('.suggest-gap li').first();
+  await expect(first).toBeVisible({ timeout: 15_000 });
+  const name = (await first.locator('.entry-name').innerText()).split('\n')[0];
+  await first.getByRole('button', { name: /^Föreslå inte .* igen$/ }).click();
+  await expect(advice.locator('.suggest-gap .entry-name', { hasText: name })).toHaveCount(0);
+  // Kept across a reload.
+  await page.reload();
+  await tab(page, 'Näringsämnen');
+  await page.getByRole('button', { name: '7 dagar', exact: true }).click();
+  await expect(advice.locator('.suggest-gap li').first()).toBeVisible({ timeout: 15_000 });
+  await expect(advice.locator('.suggest-gap .entry-name', { hasText: name })).toHaveCount(0);
+
+  await tabs.getByRole('button', { name: 'Frukt i säsong' }).click();
+  await expect(advice.locator('.fruit')).toBeVisible();
+  await expect(advice.locator('.suggest-gap')).toHaveCount(0);
 });

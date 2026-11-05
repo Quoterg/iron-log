@@ -29,6 +29,7 @@ test('the policy is in the built page and the main flows run without violations'
   await page.locator('.result').first().click();
   await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
   await tab(page, 'Näringsämnen');
+  await page.locator('.group summary', { hasText: 'Mineraler' }).click(); // groups fold away (M43)
   await page.locator('.bar-btn', { hasText: 'Järn' }).click();
   await expect(page.getByRole('heading', { name: 'Rikast i livsmedelsdatabasen' })).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: /‹/ }).click();

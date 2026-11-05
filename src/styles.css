@@ -378,3 +378,9 @@ table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom
 .food-price { margin: 10px 0; }
 .meal-title { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .meal-title h2 { flex: none; }
+/* M43: nutrient groups fold away behind a status line. */
+.group summary { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 8px; cursor: pointer; list-style: none; }
+.group summary::-webkit-details-marker { display: none; }
+.group summary h2::before { content: "▸ "; color: var(--accent); }
+.group details[open] summary h2::before { content: "▾ "; }
+.group details[open] summary { margin-bottom: 8px; }

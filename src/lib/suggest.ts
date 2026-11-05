@@ -44,9 +44,15 @@ export function gapFoods(key: string, gap: number, candidates: Candidate[], limi
   // food they eat that barely helps doesn't push a much better one out.
   const best = Math.max(0, ...scored.map((x) => x.d));
   const first = (x: (typeof scored)[number]) => x.c.own && x.d >= best * 0.5;
-  scored.sort((a, b) => Number(first(b)) - Number(first(a)) || b.d - a.d);
+  // Few eat liver pâté or blood pudding for their vitamins: such foods come after the rest (M43),
+  // unless the user already eats them.
+  const odd = (x: (typeof scored)[number]) => !x.c.own && unusual(x.c.food);
+  scored.sort((a, b) => Number(first(b)) - Number(first(a)) || Number(odd(a)) - Number(odd(b)) || b.d - a.d);
   return scored.slice(0, limit).map(({ c, amount }) => ({ ref: c.food.ref, portionG: c.portionG, covers: Math.min(1, amount / gap), own: c.own }));
 }
+
+/** Offal and blood foods (Swedish and English names): rich, but rarely what people want suggested. */
+export const unusual = (food: Food): boolean => /lever|liver|blod|blood|njure|kidney|hjärta|heart/i.test(`${food.sv} ${food.en ?? ''}`);
 
 /**
  * Never suggested: drinks with alcohol, and during pregnancy liver products (Livsmedelsverket's

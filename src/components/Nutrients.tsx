@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { addDays, entriesBetween, isoDate, recentLoggedDates, type Entry } from '../lib/db';
 import { fmt, nutrientName, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
-import { averagePerDay, coverage, dailyTotals, gaps, knownNutrients, MIN_COVERAGE, streak } from '../lib/report';
+import { averagePerDay, coverage, dailyTotals, gaps, knownNutrients, MIN_COVERAGE, streak, type Gap } from '../lib/report';
 import { open } from '../nav';
 import { date, dayTotals, ensureFoods, entries as dayEntries, foods, periodCache, recipes, settings, supplementRefs, targets } from '../state';
 import { ensurePriceBook, priceBook } from '../lib/cost';
@@ -91,10 +91,15 @@ export default function Nutrients() {
           </button>
         ))}
       </div>
-      {days != null && days > 1 && <p class="muted small">{t('streak').replace('{n}', String(days))}</p>}
-      {period !== 1 && perDay && (
+      {/* One line instead of two (M43): what the averages rest on, and the streak. */}
+      {((period !== 1 && perDay) || (days != null && days > 1)) && (
         <p class="muted small">
-          {t('averageNote').replace('{n}', String(perDay.size)).replace('{d}', String(period))}
+          {[
+            period !== 1 && perDay ? t('averageNote').replace('{n}', String(perDay.size)).replace('{d}', String(period)) : '',
+            days != null && days > 1 ? t('streak').replace('{n}', String(days)) : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
         </p>
       )}
       {book && cost && <p class="small period-cost">{book.periodText(cost, period)}</p>}
@@ -129,9 +134,8 @@ export default function Nutrients() {
           )}
         </section>
       )}
-      {settings.value.suggestions && g && g.low.length > 0 && report && <suggestions.Lazy low={g.low} amounts={report.amounts} />}
       {amounts ? (
-        <NutrientGroups amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
+        <NutrientGroups compact amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
       ) : (
         <p class="muted center">{t('loading')}</p>
       )}
@@ -139,8 +143,40 @@ export default function Nutrients() {
         {t('adjustTargets')}
       </button>
       <p class="muted small">{t('targetsNote')}</p>
-      {/* Last on the 7- and 30-day pages (owner, M40b): a shopping aid, not part of the report. */}
-      {short && report && <fruitView.Lazy low={short} amounts={report.amounts} covered={report.covered} />}
+      {/* Last on the 7- and 30-day pages (owner, M40b), one card for "what could I eat" (M43). */}
+      {report && <Advice foods={settings.value.suggestions && g && g.low.length > 0 ? g.low : null} fruit={short} amounts={report.amounts} covered={report.covered} />}
     </>
+  );
+}
+
+type Tab = 'foods' | 'fruit';
+
+/**
+ * What to eat for the gaps (M43): the food suggestions (M27) and the fruit in season (M40) in one card,
+ * as two tabs when both are on.
+ */
+function Advice(p: { foods: Gap[] | null; fruit: Gap[] | null; amounts: number[]; covered?: boolean[] }) {
+  const tabs = [p.foods && ('foods' as const), p.fruit && ('fruit' as const)].filter(Boolean) as Tab[];
+  const [tab, setTab] = useState<Tab>('foods');
+  if (!tabs.length) return null;
+  const shown = tabs.includes(tab) ? tab : tabs[0];
+  return (
+    <section class="card advice">
+      <h2>{t('adviceTitle')}</h2>
+      {tabs.length > 1 && (
+        <div class="chips" role="group" aria-label={t('adviceTitle')}>
+          {tabs.map((x) => (
+            <button key={x} class={shown === x ? 'chip on' : 'chip'} aria-pressed={shown === x} onClick={() => setTab(x)}>
+              {t(x === 'foods' ? 'adviceFoods' : 'adviceFruit')}
+            </button>
+          ))}
+        </div>
+      )}
+      {shown === 'foods' ? (
+        <suggestions.Lazy embedded low={p.foods!} amounts={p.amounts} />
+      ) : (
+        <fruitView.Lazy embedded low={p.fruit!} amounts={p.amounts} covered={p.covered} />
+      )}
+    </section>
   );
 }

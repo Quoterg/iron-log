@@ -31,6 +31,7 @@ test('7-day averages, gaps, top sources and streak', async ({ page }) => {
   await expect(page.locator('.card', { hasText: 'Att tänka på' })).toContainText(/Under 70 % av målet.*Vitamin C/);
 
   // Tap a nutrient: its top sources over the period.
+  await page.locator('.group summary', { hasText: 'Kolhydrater' }).click(); // groups fold away (M43)
   await page.locator('.bar-btn', { hasText: 'Fibrer' }).click();
   await expect(page.getByRole('heading', { name: 'Fibrer', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Största källor' })).toBeVisible();

@@ -13,6 +13,7 @@ test('switching to English loads it on demand, translates the app and survives a
 
   // Nutrient names in English; English food names.
   await page.getByRole('button', { name: 'Nutrients', exact: true }).click();
+  await page.locator('.group summary', { hasText: 'Minerals' }).click(); // groups fold away (M43)
   await expect(page.getByText('Iron', { exact: true })).toBeVisible();
 
   await page.reload();

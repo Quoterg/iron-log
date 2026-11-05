@@ -34,7 +34,7 @@ test('fruit in season is off by default; when on, a week of fruit for the chosen
   await tab(page, 'Näringsämnen');
   await page.getByRole('button', { name: '7 dagar', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Att tänka på' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Frukt i säsong' })).toHaveCount(0);
+  await expect(page.locator('.fruit')).toHaveCount(0);
 
   // On, with its sources named and the origin chosen in Settings (Sverige + Europa by default).
   await tab(page, 'Inställningar');
@@ -47,8 +47,9 @@ test('fruit in season is off by default; when on, a week of fruit for the chosen
   await expect(reach.getByRole('button', { name: 'Hela världen' })).toHaveAttribute('aria-pressed', 'true');
   await tab(page, 'Näringsämnen');
   await page.getByRole('button', { name: '7 dagar', exact: true }).click();
-  const card = page.locator('section.fruit');
-  await expect(card.getByRole('heading', { name: 'Frukt i säsong' })).toBeVisible();
+  // Inside "Vad du kan äta" at the bottom (M43); only fruit on, so no tabs.
+  await expect(page.locator('.advice').getByRole('heading', { name: 'Vad du kan äta' })).toBeVisible();
+  const card = page.locator('.fruit');
 
   // Last on the page, below the nutrients and "Anpassa mål".
   const below = async () => (await card.boundingBox())!.y > (await page.getByRole('button', { name: 'Anpassa mål' }).boundingBox())!.y;
@@ -79,14 +80,14 @@ test('fruit in season is off by default; when on, a week of fruit for the chosen
   await expect(card.getByText(/Säsonger från SCB:s importstatistik/)).toBeVisible();
 
   // A food in the plan opens its food screen.
-  await page.locator('section.fruit .result').first().click();
+  await page.locator('.fruit .result').first().click();
   await expect(page.getByRole('button', { name: 'Lägg till', exact: true })).toBeVisible();
   await page.getByRole('button', { name: /Tillbaka/ }).click();
 
   // Accessible in light and dark mode.
   for (const scheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: scheme });
-    const res = await new AxeBuilder({ page }).include('section.fruit').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    const res = await new AxeBuilder({ page }).include('.advice').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
     expect(res.violations.map((v) => `${v.id}: ${v.help}`), scheme).toEqual([]);
   }
 });
@@ -118,7 +119,7 @@ test('food without vitamin data (scanned products): still a shopping list, with 
   await page.getByRole('group', { name: 'Varifrån' }).getByRole('button', { name: 'Hela världen' }).click();
   await tab(page, 'Näringsämnen');
   await page.getByRole('button', { name: '7 dagar', exact: true }).click();
-  const card = page.locator('section.fruit');
+  const card = page.locator('.fruit');
   // Before M40d: "Du får tillräckligt …", because these vitamins were treated as unknown.
   await expect(card.getByText(/^Att handla för en vecka i \w+:$/)).toBeVisible({ timeout: 15_000 });
   await expect(card.locator('.chips.goals button').filter({ hasText: /^Vitamin C \d+ %$/ })).toBeVisible();

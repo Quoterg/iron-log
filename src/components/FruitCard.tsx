@@ -48,7 +48,8 @@ function monthsText(months: number[]): string {
  * for a week — in whole portions — to cover as broadly as possible every vitamin and mineral fruit can
  * give that the user is below target in (owner, M40b). Any of them can be left out.
  */
-export default function FruitCard({ low, amounts, covered }: { low: Gap[]; amounts: number[]; covered?: boolean[] }) {
+/** `embedded`: inside Näringsämnen's advice card (M43), without a card and heading of its own. */
+export default function FruitCard({ low, amounts, covered, embedded }: { low: Gap[]; amounts: number[]; covered?: boolean[]; embedded?: boolean }) {
   const month = new Date().getMonth();
   const reach = settings.value.fruitReach ?? 'europe';
   const season = useMemo(() => FRUITS.filter((f) => inSeason(f, month, reach)), [month, reach]);
@@ -109,9 +110,10 @@ export default function FruitCard({ low, amounts, covered }: { low: Gap[]; amoun
   const monthName = new Intl.DateTimeFormat(locale(), { month: 'long' }).format(new Date());
   const [from, to] = SEASON_PERIOD.split('–');
 
+  const Wrap = embedded ? 'div' : 'section';
   return (
-    <section class="card suggest fruit">
-      <h2>{tf('fruitTitle')}</h2>
+    <Wrap class={embedded ? 'suggest fruit' : 'card suggest fruit'}>
+      {!embedded && <h2>{tf('fruitTitle')}</h2>}
       {!loaded ? (
         <p class="muted small" role="status">{tf('fruitLoading')}</p>
       ) : !needs.length ? (
@@ -173,6 +175,6 @@ export default function FruitCard({ low, amounts, covered }: { low: Gap[]; amoun
         )}
         <p class="muted small">{tf('fruitSource').replace('{period}', `${fmtMonth(from)}–${fmtMonth(to)}`)}</p>
       </details>
-    </section>
+    </Wrap>
   );
 }

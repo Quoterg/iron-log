@@ -105,6 +105,7 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
   },
   'nutrient detail': async (page) => {
     await SCREENS.nutrients(page);
+    await page.locator('.group summary', { hasText: 'Mineraler' }).click(); // groups fold away (M43)
     await page.locator('.bar-btn', { hasText: 'Järn' }).click();
     await expect(dialog(page).getByRole('heading', { name: 'Rikast i livsmedelsdatabasen' })).toBeVisible();
   },

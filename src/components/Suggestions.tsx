@@ -8,7 +8,7 @@ import { gapFoods, swapFor, swapTargets, unitOf, type Candidate, type GapFood, t
 import { everydayFoods } from '../lib/top';
 import { open } from '../nav';
 import { mealAt } from '../lib/usual';
-import { activeSources, ensureFoods, foods, settings, supplementRefs, targets, usage } from '../state';
+import { activeSources, ensureFoods, foods, settings, supplementRefs, targets, updateSettings, usage } from '../state';
 
 export interface GapHelp {
   key: string;
@@ -48,7 +48,9 @@ export async function buildSuggestions(low: Gap[], amounts: number[]): Promise<{
   const own = ownFoods();
   await ensureFoods(swapTargets(own.filter((o) => o.count >= 3).map((o) => o.food)));
 
-  const ownCands: Candidate[] = own.map((o) => ({ food: o.food, portionG: o.grams, own: true }));
+  // Foods the user asked not to be suggested again ("Visa inte", M43).
+  const hidden = new Set(settings.value.suggestHidden ?? []);
+  const ownCands: Candidate[] = own.filter((o) => !hidden.has(o.food.ref)).map((o) => ({ food: o.food, portionG: o.grams, own: true }));
   const pregnant = isPregnant();
   const gaps: GapHelp[] = [];
   // The two largest shortfalls that some everyday food can actually help with.
@@ -57,7 +59,7 @@ export async function buildSuggestions(low: Gap[], amounts: number[]): Promise<{
     const target = tgt[key].min!;
     const amount = amounts[NUTRIENT_INDEX[key]];
     const everyday = (rows.get(key) ?? []).flatMap(([ref, , , , , portionG]) => {
-      const food = foods.value.get(ref);
+      const food = hidden.has(ref) ? undefined : foods.value.get(ref);
       return food ? [{ food, portionG, own: false }] : [];
     });
     const list = gapFoods(key, target - amount, [...ownCands, ...everyday], 3, { pregnant });
@@ -81,11 +83,15 @@ const name = (ref: string) => {
 const nutrient = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
 
 /** Foods and swaps that help with the period's shortfalls (opt-in; see lib/suggest.ts). */
-export default function Suggestions({ low, amounts }: { low: Gap[]; amounts: number[] }) {
+/** `embedded`: inside Näringsämnen's advice card (M43), without a card and heading of its own. */
+export default function Suggestions({ low, amounts, embedded }: { low: Gap[]; amounts: number[]; embedded?: boolean }) {
   const [data, setData] = useState<{ gaps: GapHelp[]; swaps: Swap[] } | null>(null);
   // Refresh when the gaps, the food sources, pregnancy status or the user's foods change.
   const sv = settings.value;
-  const key = [low.map((g) => g.key).join(), amounts.join(), activeSources(sv).join(), sv.profile.status ?? '', [...usage.value.values()].reduce((n, u) => n + u.count, 0)].join('|');
+  const key = [
+    low.map((g) => g.key).join(), amounts.join(), activeSources(sv).join(), sv.profile.status ?? '',
+    [...usage.value.values()].reduce((n, u) => n + u.count, 0), (sv.suggestHidden ?? []).join(),
+  ].join('|');
   useEffect(() => {
     let live = true;
     setData(null);
@@ -94,9 +100,10 @@ export default function Suggestions({ low, amounts }: { low: Gap[]; amounts: num
   }, [key]);
 
   const empty = data && !data.swaps.length && !data.gaps.some((g) => g.foods.length);
+  const Wrap = embedded ? 'div' : 'section';
   return (
-    <section class="card suggest">
-      <h2>{tg('suggestTitle')}</h2>
+    <Wrap class={embedded ? 'suggest' : 'card suggest'}>
+      {!embedded && <h2>{tg('suggestTitle')}</h2>}
       {!data ? (
         <p class="muted small" role="status">{tg('suggestLoading')}</p>
       ) : empty ? (
@@ -110,7 +117,7 @@ export default function Suggestions({ low, amounts }: { low: Gap[]; amounts: num
               </p>
               <ul class="entries">
                 {g.foods.map((f) => (
-                  <li key={f.ref}>
+                  <li key={f.ref} class="ingredient">
                     <button class="result" onClick={() => open({ kind: 'food', ref: f.ref, meal: mealAt(new Date()) })}>
                       <span class="entry-name">
                         {name(f.ref)}
@@ -119,6 +126,14 @@ export default function Suggestions({ low, amounts }: { low: Gap[]; amounts: num
                       <span class="muted">
                         {tg('gapPortion').replace('{grams}', fmt(f.portionG)).replace('{pct}', fmt(f.covers * 100))}
                       </span>
+                    </button>
+                    <button
+                      class="btn small"
+                      aria-label={tg('suggestHide').replace('{name}', name(f.ref))}
+                      title={tg('suggestHide').replace('{name}', name(f.ref))}
+                      onClick={() => void updateSettings({ suggestHidden: [...(settings.value.suggestHidden ?? []), f.ref].slice(-500) })}
+                    >
+                      ×
                     </button>
                   </li>
                 ))}
@@ -144,6 +159,6 @@ export default function Suggestions({ low, amounts }: { low: Gap[]; amounts: num
           )}
         </>
       )}
-    </section>
+    </Wrap>
   );
 }

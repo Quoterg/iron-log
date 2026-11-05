@@ -13,6 +13,7 @@ export const SV_SUGGEST = {
   gapLine: '{name}: i snitt {amount} av {target} {unit} per dag',
   gapPortion: '{grams} g ger {pct} % av det som saknas',
   gapYouEat: 'du äter redan',
+  suggestHide: 'Föreslå inte {name} igen',
   swapsTitle: 'Byten att prova',
   swapLine: '{to} i stället för {from}',
   whatIfTitle: 'Om du lägger till',
