@@ -45,9 +45,9 @@ test('the policy is in the built page and the main flows run without violations'
   for (const name of [/Exportera säkerhetskopia/, /Exportera dagbok/]) {
     await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name }).click()]);
   }
-  await page.getByLabel('Språk').selectOption('de');
-  await expect(page.getByRole('button', { name: 'Tagebuch', exact: true })).toBeVisible();
-  await page.getByLabel('Sprache').selectOption('sv');
+  await page.getByLabel('Språk').selectOption('en');
+  await expect(page.getByRole('button', { name: 'Diary', exact: true })).toBeVisible();
+  await page.getByLabel('Language').selectOption('sv');
 
   // Sync: creating a code (WebRTC) and drawing the QR.
   await page.getByRole('button', { name: 'Synka', exact: true }).click();

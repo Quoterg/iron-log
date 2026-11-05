@@ -18,7 +18,16 @@ the first bundle (lazy, prefetched when idle so they work offline). CI's gzip me
 than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy sections
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
-**M41** (energy target one owner + how/why, recipe delete, clear meal) built — PR open.
+**Phase 9 Simpler to use (M42–M46)** is next, in order (owner, 2026-11-05: continue until stopped). Only Swedish and English since M41c.
+
+## 2026-11-05 — M41c Swedish and English only (interactive session)
+
+- Owner: more languages than Swedish and English aren't needed, removal up to me. Removed Danish,
+  German, Finnish and Somali: every new string was written six times and M42–M46 change much text.
+  `toLang()` maps stored/synced/backed-up settings (da → sv, de/fi/so → en; saved once on start);
+  browsers in Danish/Norwegian get Swedish, others English. Changelog trimmed to sv/en.
+- Roadmap: Phase 9 "Simpler to use", M42–M46 (owner: build them in order).
+- Tests: unit 267 ✓, build ✓ (30.8 KB), e2e 160 ✓, Lighthouse ✓.
 
 ## 2026-10-28 — M41b Expenditure as arithmetic (interactive session)
 

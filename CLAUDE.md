@@ -62,7 +62,7 @@ pnpm data:build-fruit      # → src/lib/fruit-season.json (fruit in season; bot
   Adding a nutrient = add to nutrients.json + rebuild data + targets if any.
 - All UI strings go through `t()` in `src/lib/i18n.ts`, both `sv` and `en`. Numbers via `fmt()`.
 - **Releases (M32):** a new app version = bump `version` in package.json, add its entry at the top of
-  `src/changelog.ts` in every language (short, plain notes for users; a unit test checks both), and
+  `src/changelog.ts` in Swedish and English (short, plain notes for users; a unit test checks both), and
   set `appVersionName`/`appVersionCode` in android/twa-manifest.json to match. The first start
   after a version bump shows "Nyheter" once; ordinary deploys without a bump show nothing.
   **Order:** the version PR (on a `milestone/` branch — the reviewer only picks those up) is merged

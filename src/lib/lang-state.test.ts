@@ -14,15 +14,15 @@ describe('language switching in state', () => {
   it('the last language chosen wins, even if an earlier pack finishes loading later', async () => {
     const state = await import('../state');
     const { lang } = await import('./i18n');
-    await Promise.all([state.updateSettings({ lang: 'da' }), state.updateSettings({ lang: 'de' })]);
-    expect(lang.value).toBe('de');
-    expect(state.settings.value.lang).toBe('de');
+    await Promise.all([state.updateSettings({ lang: 'en' }), state.updateSettings({ lang: 'sv' })]);
+    expect(lang.value).toBe('sv');
+    expect(state.settings.value.lang).toBe('sv');
   });
 
-  it('Danish shows Swedish food names, so it searches the Swedish database by default', async () => {
+  it('Swedish searches the Swedish database by default, English both', async () => {
     const state = await import('../state');
     const base = { ...state.settings.value, sources: undefined };
-    expect(state.activeSources({ ...base, lang: 'da' })).toEqual(['slv']);
-    expect(state.activeSources({ ...base, lang: 'de' })).toEqual(['slv', 'usda']);
+    expect(state.activeSources({ ...base, lang: 'sv' })).toEqual(['slv']);
+    expect(state.activeSources({ ...base, lang: 'en' })).toEqual(['slv', 'usda']);
   });
 });

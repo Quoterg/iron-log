@@ -1,6 +1,6 @@
 // Backup (JSON) and spreadsheet (CSV) export, and strict validation of imported backups.
 import { MEALS, SETTINGS_VERSION, type AllData, type CustomFood, type DayMark, type EnergyWhy, type Entry, type OffFood, type Settings, type SyncStore, type Usage, type UserServings } from './db';
-import { decimalCommaOf, isLang, type Lang } from './i18n';
+import { decimalCommaOf, toLang, type Lang } from './i18n';
 import { dataLangOf, foodName, NUTRIENTS, type Food } from './nutrients';
 import { MAX_ACTIVITY_KCAL, MAX_WATER_ML, type Activity, type Water } from './activity';
 import type { BodyEntry } from './body';
@@ -263,7 +263,8 @@ function servings(x: unknown): UserServings {
 function settings(x: unknown): Settings | undefined {
   if (!isObj(x) || !isObj(x.profile)) return undefined;
   const p = x.profile;
-  if (!isLang(x.lang) || (p.sex !== 'female' && p.sex !== 'male') || !isNum(p.kcal)) {
+  const lang = toLang(x.lang); // also a removed language (M41c)
+  if (!lang || (p.sex !== 'female' && p.sex !== 'male') || !isNum(p.kcal)) {
     return undefined; // settings are optional: ignore rather than reject the whole backup
   }
   // Accepts both the old `{ key: min }` and the current `{ key: { min, max } }` shape.
@@ -285,7 +286,7 @@ function settings(x: unknown): Settings | undefined {
   }
   if (typeof p.menstruating === 'boolean') profile.menstruating = p.menstruating;
   // Imported profiles are already in the current format (activity snapped above).
-  const out: Settings = { lang: x.lang, profile, targetOverrides: overrides, version: SETTINGS_VERSION };
+  const out: Settings = { lang, profile, targetOverrides: overrides, version: SETTINGS_VERSION };
   if (['nnr', 'highProtein', 'lowCarb', 'keto', 'custom'].includes(x.macroPreset as string)) {
     out.macroPreset = x.macroPreset as Settings['macroPreset'];
   }

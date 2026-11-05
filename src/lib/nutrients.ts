@@ -42,7 +42,7 @@ export interface Food {
  * Foods only have Swedish (and often English) names: Swedish for Swedish and Danish (close enough
  * to read), English for everyone else.
  */
-export const dataLangOf = (lang: string): 'sv' | 'en' => (lang === 'sv' || lang === 'da' ? 'sv' : 'en');
+export const dataLangOf = (lang: string): 'sv' | 'en' => (lang === 'sv' ? 'sv' : 'en');
 
 export function foodName(food: Food, lang: string): string {
   return dataLangOf(lang) === 'en' ? (food.en ?? food.sv) : food.sv;

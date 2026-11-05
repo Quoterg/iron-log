@@ -353,6 +353,41 @@ emulated Moto G4 (CPU ×4) by `e2e/perf.spec.ts` (test-results/perf.json).
   Settings card now show the intake average of the days that count, the logged days left out, the
   weight trend's energy, and the sum.
 
+- [x] **M41c Swedish and English only** — Owner (2026-11-05): no need for more languages. Danish,
+  German, Finnish and Somali removed (packs, changelog entries, tests); stored settings, backups and
+  synced settings in them map to Swedish (Danish) or English (the others), so nothing is lost.
+
+## Phase 9 — Simpler to use (M42–M46)
+
+Owner (2026-11-05, free hands): the app feels cluttered and not always straightforward. Audit on a
+360 × 640 phone with two weeks of logging and the options on: diary ~3 screens with three links per
+meal and a cost line per food; Näringsämnen (7 days) ~7 screens — three advice cards for one question,
+all 54 nutrients incl. 9 rows of "–"; Settings ~7 screens, 11 cards, 15 switches, the energy target in
+two places. Principle: one job per screen, details on request, hide what has no data, one place per
+idea, shorter text; nothing a user relies on disappears — it moves. Each milestone reports page
+heights and taps for common tasks, before → after.
+
+- [ ] **M42 Calmer diary** — one "⋯" menu per meal (Kopiera / Spara som måltid / Töm) instead of three
+  links each; costs as one meal total in the header, not a line per food; one compact row
+  "+ Tillskott · + Aktivitet · + Vatten" for what isn't logged today (full cards once something is);
+  day actions (Kopiera dag, Inköpslista) in a "⋯" by the date; "Dagen är komplett" only with adaptive
+  expenditure on; messages (check-in, energy change) in one slot, one at a time. Target: lived-in
+  diary ~3 → ~2 screens; logging a food the same taps.
+- [ ] **M43 Näringsämnen as an answer** — energy and macros, then one ranked "Det här saknas"; one
+  advice card for it with two tabs, *Livsmedel* (suggestions) and *Frukt i säsong*; suggestions prefer
+  everyday foods and the user's own, with "Visa inte" (no liver pâté first unless eaten); the full
+  table under groups that open on tap, nutrients without data hidden with one line saying so; no
+  repeat of the diary in the day view. Target: 7 days ~7 → ~2–3 screens.
+- [ ] **M44 Short, grouped Settings** — a first page of five entries, each its own page: Profil & mål,
+  Energimål, Funktioner (every switch, one line each, details on tap), Mina livsmedel/recept/måltider,
+  Data, synk & om; Energimål as one three-way choice (Skriv själv / Räkna från profilen / Följ uppmätt
+  förbrukning) with the "Varför?" breakdown there — replacing the two overlapping switches; "Anpassa
+  mål" in one place. Target: the first page fits one screen.
+- [ ] **M45 First start and empty states** — the first start asks only sex, age/weight/height and goal,
+  then offers the optional features as short choices; empty screens say in one line what to do.
+- [ ] **M46 Polish pass** — shorter notes, one word per concept, one button style per kind of action,
+  the search and food screens, dark mode, 200 % text and screen-reader labels re-checked.
+
 ## Later — ideas, not scheduled
 
 Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.

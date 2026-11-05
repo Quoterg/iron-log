@@ -12,7 +12,7 @@ import { ensureFoods, foods, settings, targets } from '../state';
 
 const REACH_LABEL: Record<Reach, FruitKey> = { sweden: 'reachSweden', europe: 'reachEurope', any: 'reachAny' };
 
-const fruitName = (f: Fruit) => (lang.value === 'sv' || lang.value === 'da' ? f.sv : f.en);
+const fruitName = (f: Fruit) => (lang.value === 'sv' ? f.sv : f.en);
 const nutrient = (key: string) => nutrientName(NUTRIENTS[NUTRIENT_INDEX[key]]);
 
 const regionNames = new Map<string, Intl.DisplayNames | null>();

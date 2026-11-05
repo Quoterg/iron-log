@@ -2,19 +2,27 @@ import { signal } from '@preact/signals';
 
 import { dataLangOf } from './nutrients';
 
-export type Lang = 'sv' | 'en' | 'da' | 'fi' | 'de' | 'so';
+/** Swedish and English (owner, M41c: Danish, German, Finnish and Somali were removed). */
+export type Lang = 'sv' | 'en';
 
 /** The language picker, in this order. */
 export const LANGS: { code: Lang; name: string }[] = [
   { code: 'sv', name: 'Svenska' },
   { code: 'en', name: 'English' },
-  { code: 'da', name: 'Dansk' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'fi', name: 'Suomi' },
-  { code: 'so', name: 'Soomaali' },
 ];
 
 export const isLang = (x: unknown): x is Lang => LANGS.some((l) => l.code === x);
+
+/**
+ * A stored or synced language, also one of the removed ones (M41c): Danish users get Swedish (they
+ * already saw Swedish food names), German, Finnish and Somali users English. Undefined if unknown.
+ */
+export function toLang(x: unknown): Lang | undefined {
+  if (isLang(x)) return x;
+  if (x === 'da') return 'sv';
+  if (x === 'de' || x === 'fi' || x === 'so') return 'en';
+  return undefined;
+}
 
 const sv = {
   today: 'Idag',
@@ -128,10 +136,6 @@ export interface LangPack {
 
 const LOADERS: Record<Exclude<Lang, 'sv'>, () => Promise<{ default: LangPack }>> = {
   en: () => import('./lang/en'),
-  da: () => import('./lang/da'),
-  fi: () => import('./lang/fi'),
-  de: () => import('./lang/de'),
-  so: () => import('./lang/so'),
 };
 
 const packs = new Map<Lang, LangPack>([['sv', { strings: sv }]]);
@@ -142,8 +146,7 @@ export const packOf = (l: Lang): LangPack | undefined => packs.get(l);
 /** The language used last on this device (a startup hint only; settings stay the truth). */
 export function lastLang(): Lang | undefined {
   try {
-    const l = localStorage.getItem('iron-log-lang');
-    return isLang(l) ? l : undefined;
+    return toLang(localStorage.getItem('iron-log-lang'));
   } catch {
     return undefined;
   }
@@ -166,9 +169,8 @@ export async function loadLang(l: Lang): Promise<void> {
 /** The browser's language if we have it; Norwegian reads Swedish; anything else gets English. */
 export function detectLang(): Lang {
   const l = (typeof navigator === 'undefined' ? '' : (navigator.language ?? '')).toLowerCase().slice(0, 2);
-  if (isLang(l)) return l;
-  if (l === 'nb' || l === 'nn' || l === 'no' || !l) return 'sv';
-  return 'en';
+  // Swedish for Swedish and the neighbours who read it; English for everyone else.
+  return l === 'sv' || l === 'da' || l === 'nb' || l === 'nn' || l === 'no' || !l ? 'sv' : 'en';
 }
 
 export const lang = signal<Lang>(detectLang());
@@ -177,7 +179,7 @@ export function t(key: keyof Dict): string {
   return packs.get(lang.value)?.strings[key] ?? packs.get('en')?.strings[key] ?? (sv as Dict)[key];
 }
 
-const LOCALES: Record<Lang, string> = { sv: 'sv-SE', en: 'en-GB', da: 'da-DK', fi: 'fi-FI', de: 'de-DE', so: 'so-SO' };
+const LOCALES: Record<Lang, string> = { sv: 'sv-SE', en: 'en-GB' };
 
 /** BCP 47 locale for a language; falls back to English where the browser lacks it (Somali on older Android). */
 export function localeOf(l: Lang): string {
