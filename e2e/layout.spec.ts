@@ -18,21 +18,32 @@ test('no screen overflows a 360 px phone', async ({ page }) => {
   await expectNoHorizontalOverflow(page, 'nutrients');
 
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
   await page.getByLabel('Livssituation').selectOption('lactating');
+  await expectNoHorizontalOverflow(page, 'settings: Profil & mål');
+  await page.getByRole('button', { name: /^‹ / }).click();
   await expectNoHorizontalOverflow(page, 'settings');
+  // Every Settings page (M44).
+  for (const name of ['Energimål', 'Funktioner', 'Utseende, data & om', 'Mina livsmedel, recept & måltider']) {
+    await page.locator('.settings-menu .entry', { hasText: name }).click();
+    await expect(page.locator('.page-head')).toContainText(name);
+    await expectNoHorizontalOverflow(page, `settings: ${name}`);
+    if (name !== 'Mina livsmedel, recept & måltider') await page.getByRole('button', { name: /^‹ / }).click();
+  }
 
   await page.getByRole('button', { name: '+ Skapa recept' }).click();
   await expectNoHorizontalOverflow(page, 'recipe editor');
   await page.goBack();
 
-  await page.getByRole('button', { name: 'Anpassa mål' }).click();
-  await page.getByLabel('Förval').selectOption('custom');
-  await expectNoHorizontalOverflow(page, 'target editor');
-  await page.goBack();
-
   await page.getByRole('button', { name: /Skapa eget livsmedel/ }).click();
   await page.getByRole('button', { name: 'Visa alla näringsämnen' }).click();
   await expectNoHorizontalOverflow(page, 'custom food editor');
+  await page.goBack();
+
+  await page.getByRole('button', { name: 'Näringsämnen', exact: true }).click();
+  await page.getByRole('button', { name: 'Anpassa mål' }).click();
+  await page.getByLabel('Förval').selectOption('custom');
+  await expectNoHorizontalOverflow(page, 'target editor');
   await page.goBack();
 
   await page.getByRole('button', { name: 'Dagbok', exact: true }).click();

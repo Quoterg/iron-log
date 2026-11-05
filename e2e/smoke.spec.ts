@@ -27,6 +27,7 @@ test('log a food, see totals, survive reload and offline', async ({ page, contex
   await expect(page.locator('.summary')).not.toContainText('0 / 2');
 
   await page.getByRole('button', { name: 'Näringsämnen', exact: true }).click();
+  await page.locator('.group summary', { hasText: 'Mineraler' }).click(); // groups fold away (M43)
   await expect(page.getByText('Järn')).toBeVisible();
 
   // Persisted in IndexedDB.

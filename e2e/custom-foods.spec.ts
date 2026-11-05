@@ -56,6 +56,7 @@ test('create a custom food, log it, edit the entry and the food, then delete the
 
   // Delete from Settings → gone from search, but the diary entry still shows it.
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
   page.once('dialog', (d) => d.accept());
   await page.getByRole('button', { name: /Mitt proteinpulver/ }).click();
   await page.getByRole('button', { name: 'Ta bort' }).click();

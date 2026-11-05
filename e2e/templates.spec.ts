@@ -58,6 +58,7 @@ test('saved meals, same as yesterday and portion memory', async ({ page }) => {
 
   // Settings lists it; it can be removed (what was logged stays).
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
   await page.getByRole('button', { name: /Min frukost/ }).click();
   await page.getByRole('button', { name: 'Ta bort', exact: true }).click();
   await expect(page.getByText('Inga sparade måltider ännu.', { exact: false })).toBeVisible();

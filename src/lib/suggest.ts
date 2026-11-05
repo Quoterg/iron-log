@@ -44,8 +44,27 @@ export function gapFoods(key: string, gap: number, candidates: Candidate[], limi
   // food they eat that barely helps doesn't push a much better one out.
   const best = Math.max(0, ...scored.map((x) => x.d));
   const first = (x: (typeof scored)[number]) => x.c.own && x.d >= best * 0.5;
-  scored.sort((a, b) => Number(first(b)) - Number(first(a)) || b.d - a.d);
+  // Few eat liver pâté or blood pudding for their vitamins: such foods come after the rest (M43),
+  // unless the user already eats them.
+  const odd = (x: (typeof scored)[number]) => !x.c.own && unusual(x.c.food);
+  scored.sort((a, b) => Number(first(b)) - Number(first(a)) || Number(odd(a)) - Number(odd(b)) || b.d - a.d);
   return scored.slice(0, limit).map(({ c, amount }) => ({ ref: c.food.ref, portionG: c.portionG, covers: Math.min(1, amount / gap), own: c.own }));
+}
+
+/** Swedish names are compounds (Leverpastej, kalvhjärta, Njurpalt, blodbröd) — but not blodapelsin. */
+const SV_ODD = /lever|blod(?!apelsin|grape)|njur|hjärta/i;
+/** English names as words: "Beef, … liver, raw" — but not kidney beans, hearts of palm, artichoke hearts. */
+const EN_ODD = /\b(liver|liverwurst|kidneys?|blood|hearts?)\b/i;
+const EN_NOT = /\bbeans?\b|orange|of palm|artichoke|custard-apple/i;
+/**
+ * Offal and blood foods: rich, but rarely what people want suggested. Livsmedelsverket's foods are
+ * judged on their Swedish name (their English one is a loose translation), others on any name.
+ */
+export function unusual(food: Food): boolean {
+  if (SV_ODD.test(food.sv)) return true;
+  if (food.ref.startsWith('slv:')) return false;
+  const name = `${food.sv} ${food.en ?? ''}`; // USDA foods have their English name in `sv`
+  return EN_ODD.test(name) && !EN_NOT.test(name);
 }
 
 /**

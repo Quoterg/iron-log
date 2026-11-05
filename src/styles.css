@@ -130,6 +130,7 @@ main {
   cursor: pointer;
 }
 .btn.small { padding: 6px 10px; min-height: 36px; font-size: 0.9rem; }
+.suggest-gap .btn.small { min-width: 44px; min-height: 44px; }
 .btn.icon { width: 44px; padding: 0; font-size: 1.5rem; line-height: 1; }
 .btn.primary { background: var(--primary); color: var(--primary-text); border-color: var(--primary); font-weight: 600; }
 .btn.primary:disabled { opacity: 0.5; }
@@ -378,3 +379,19 @@ table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom
 .food-price { margin: 10px 0; }
 .meal-title { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .meal-title h2 { flex: none; }
+/* M43: nutrient groups fold away behind a status line. */
+.group summary { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 8px; cursor: pointer; list-style: none; }
+.group summary::-webkit-details-marker { display: none; }
+.group summary h2::before { content: "▸ "; color: var(--accent); }
+.group details[open] summary h2::before { content: "▾ "; }
+.group details[open] summary { margin-bottom: 8px; }
+/* M44 settings: entries with a summary, features one line each, the energy target as one choice. */
+.settings-menu .entry-name { display: flex; flex-direction: column; }
+.summary { display: block; font-weight: normal; }
+.feature + .feature { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+.feature-more summary { color: var(--accent); cursor: pointer; min-height: 32px; }
+.modes { border: 0; padding: 0; margin: 0 0 8px; }
+.check.mode { align-items: flex-start; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.page-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 4px 0 12px; }
+.page-head h2 { margin: 0; min-width: 0; overflow-wrap: anywhere; }

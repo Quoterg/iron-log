@@ -12,6 +12,7 @@ test('Swedish default searches Livsmedelsverket; USDA can be added and stays res
 
   // Turn USDA on: English-named foods appear with a badge.
   await settingsTab(page);
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   await page.getByLabel(/USDA \(USA/).check();
   await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
   await meal(page, 0).getByRole('button', { name: /Lägg till/ }).click();
@@ -28,6 +29,7 @@ test('Swedish default searches Livsmedelsverket; USDA can be added and stays res
 
   // Turn USDA off again: the logged food still shows after a reload (loaded on demand).
   await settingsTab(page);
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   await page.getByLabel(/USDA \(USA/).uncheck();
   await page.waitForFunction(async () => {
     const req = indexedDB.open('iron-log');
@@ -44,6 +46,7 @@ test('Swedish default searches Livsmedelsverket; USDA can be added and stays res
 test('English users search both databases by default', async ({ page }) => {
   await page.goto('./');
   await settingsTab(page);
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   await page.getByLabel('Språk').selectOption('en');
   await page.getByRole('button', { name: 'Diary', exact: true }).click();
   await meal(page, 0).getByRole('button', { name: /Add/ }).click();
@@ -57,6 +60,7 @@ test.describe('without the service worker (its requests bypass page routing)', (
   await page.route('**/data/usda-*', (route) => route.abort());
   await page.goto('./');
   await settingsTab(page);
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   await page.getByLabel('Språk').selectOption('en');
   await page.getByRole('button', { name: 'Diary', exact: true }).click();
   await meal(page, 0).getByRole('button', { name: /Add/ }).click();

@@ -12,6 +12,16 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 const day = (n: number) => iso(new Date(Date.UTC(2026, 9, 20 + n))); // relative to 2026-10-20
 const tab = (page: Page, name: string) => page.getByRole('button', { name, exact: true }).click();
 
+/** The goal is in "Profil & mål" (M44); its link leads back to the energy page. */
+async function setGoal(page: Page, goal: string, pace?: string, paces?: number) {
+  await page.getByRole('button', { name: 'Inställningar', exact: true }).click(); // the tab: back to the list
+  await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
+  await page.getByRole('combobox', { name: 'Mål', exact: true }).selectOption(goal);
+  if (paces) await expect(page.getByRole('combobox', { name: 'Takt' }).locator('option')).toHaveCount(paces);
+  if (pace) await page.getByRole('combobox', { name: 'Takt' }).selectOption(pace);
+  await page.getByRole('button', { name: /^Energimål:/ }).click();
+}
+
 test('adaptive expenditure: off by default, estimate, goal target applied only on request, day complete', async ({ page }) => {
   test.slow();
   page.on('dialog', (d) => d.accept());
@@ -24,6 +34,7 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
   }));
   const body = [-27, -20, -13, -6].map((n, k) => ({ date: day(n), weightKg: 80 - 0.5 * k, updatedAt: 1 }));
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const reloaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'history.json',
@@ -39,6 +50,7 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
 
   // Turned on: the estimate, ≈ 2000 + 0.5 × 7700 / 7 = 2550 kcal/day.
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Energimål' }).click();
   await page.getByLabel('Beräkna min förbrukning från vikt och intag').check();
   await expect(page.getByText(/Uppskattad förbrukning: 2\s550 kcal\/dag/)).toBeVisible();
   // The arithmetic (M41b): intake of the days that count + the weight trend's energy = expenditure.
@@ -49,10 +61,8 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
   const before = await energy.inputValue();
 
   // A goal suggests a target; nothing changes until the user applies it.
-  await page.getByRole('combobox', { name: 'Mål', exact: true }).selectOption('lose');
   // The goal is set in the profile (M35); its paces follow the profile weight (none entered here: all three).
-  await expect(page.getByRole('combobox', { name: 'Takt' }).locator('option')).toHaveCount(3);
-  await page.getByRole('combobox', { name: 'Takt' }).selectOption('0.25');
+  await setGoal(page, 'lose', '0.25', 3);
   await expect(page.getByText(/Föreslaget energimål: 2\s280 kcal\/dag/)).toBeVisible();
   await expect(energy).toHaveValue(before);
   await page.getByRole('button', { name: 'Använd som mitt energimål' }).click();
@@ -60,13 +70,13 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
   await expect(page.getByText('Det här är ditt energimål nu.', { exact: false })).toBeVisible();
 
   // Follow the estimate (M35): gain 0.25 kg/week wants 2550 + 275 = 2830; one step is at most +150.
-  await page.getByRole('combobox', { name: 'Mål', exact: true }).selectOption('gain');
+  await setGoal(page, 'gain');
   await expect(page.getByText(/Föreslaget energimål: 2\s830 kcal\/dag/)).toBeVisible();
-  await page.getByLabel(/Följ uppskattningen automatiskt/).check();
+  await page.getByLabel(/Följ uppmätt förbrukning/).check();
   await expect(energy).toHaveValue('2430');
-  // One owner (M41): the profile's formula box is off and locked while the target follows.
-  await expect(page.getByText(/följer nu din uppmätta förbrukning/)).toBeVisible();
-  await expect(page.getByLabel('Räkna ut energibehovet automatiskt')).toBeDisabled();
+  // One owner (M41, M44): one choice of three; the typed field is read-only while it follows.
+  await expect(page.getByLabel(/Räkna från profilen/)).not.toBeChecked();
+  await expect(energy).toHaveAttribute('readonly', '');
   // How and why (M41): the step, what it rests on, and where the next one goes (week 44).
   await expect(page.getByText(/Senaste ändringen av energimålet \(2026-10-20\)/)).toBeVisible();
   await expect(page.getByText(/högst 150 kcal per vecka: 2\s280 → 2\s430 kcal\/dag\. Nästa vecka fortsätter det mot 2\s830/)).toBeVisible();
@@ -82,12 +92,13 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
   await page.reload();
   await expect(note).toBeVisible();
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Energimål' }).click();
   await expect(energy).toHaveValue('2430');
   // A new goal while following applies at once (M41): gain → lose at 0.25 kg/week = −550 kcal.
-  await page.getByRole('combobox', { name: 'Mål', exact: true }).selectOption('lose');
+  await setGoal(page, 'lose');
   await expect(energy).toHaveValue('1880');
   await expect(page.getByText(/Du bytte mål från ”Gå upp i vikt, 0,25 kg\/vecka” till ”Gå ner i vikt, 0,25 kg\/vecka”: −550 kcal\/dag direkt, 2\s430 → 1\s880/)).toBeVisible();
-  await page.getByLabel(/Följ uppskattningen automatiskt/).uncheck();
+  await page.getByLabel(/Skriv själv/).check();
   await page.getByRole('button', { name: 'Använd som mitt energimål' }).click();
   await expect(energy).toHaveValue('2280');
   await tab(page, 'Dagbok');
@@ -109,6 +120,7 @@ test('adaptive expenditure: off by default, estimate, goal target applied only o
 
   // Off again: gone from the diary, the target stays what the user chose.
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Energimål' }).click();
   await page.getByLabel('Beräkna min förbrukning från vikt och intag').uncheck();
   await expect(page.getByText(/Uppskattad förbrukning/)).toHaveCount(0);
   await expect(energy).toHaveValue('2280');

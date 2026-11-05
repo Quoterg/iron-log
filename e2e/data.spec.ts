@@ -13,12 +13,15 @@ test('export a backup, delete everything, import it back; export CSV', async ({ 
   await page.locator('.result').first().click();
   await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
   await page.getByRole('button', { name: /Skapa eget livsmedel/ }).click();
   await page.getByLabel('Namn', { exact: true }).fill('Min smoothie');
   await page.getByLabel('Energi (kcal)', { exact: true }).fill('70');
   await page.getByRole('button', { name: 'Spara' }).click();
 
   // Export JSON.
+  await page.getByRole('button', { name: /^‹ / }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const [backup] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: /Exportera säkerhetskopia/ }).click(),
@@ -44,17 +47,22 @@ test('export a backup, delete everything, import it back; export CSV', async ({ 
 
   // Import → everything is back.
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
   await expect(page.getByText(/inga egna livsmedel/)).toBeVisible();
+  await page.getByRole('button', { name: /^‹ / }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   await page.getByLabel('Importera säkerhetskopia').setInputFiles(backupPath);
   await page.waitForLoadState('load');
   await expect(meal(page, 0).locator('.entry')).toContainText(/Havregryn/);
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
   await expect(page.getByRole('button', { name: /Min smoothie/ })).toBeVisible();
 });
 
 test('a broken backup file is rejected without importing anything', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'evil.json',
     mimeType: 'application/json',

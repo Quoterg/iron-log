@@ -1,10 +1,8 @@
+import type { ComponentChildren } from 'preact';
 import { fmt, type Lang, lang, LANGS, t } from '../lib/i18n';
 import { NUTRIENT_INDEX, value } from '../lib/nutrients';
-import { open } from '../nav';
+import { open, type SettingsPageKind } from '../nav';
 import { activeSources, customFoods, deleteRecipe, recipes, settings, templates, updateSettings } from '../state';
-import { ProfileForm } from './ProfileForm';
-import { AdaptiveEnergy } from './AdaptiveEnergy';
-import { YourData } from './YourData';
 import { ts } from '../lib/strings-sync';
 import { setTheme, themeChoice } from '../lib/theme';
 import { tg } from '../lib/strings-suggest';
@@ -12,30 +10,91 @@ import { tf } from '../lib/strings-fruit';
 import FRUIT_PERIOD from '../lib/fruit-period.json';
 import { tc } from '../lib/strings-checkin';
 import { tsh } from '../lib/strings-shop';
+import { te } from '../lib/strings-energy';
+import { goalText } from '../lib/strings-energy';
 import { fmtMonth, TYPICAL_COLLECTED, TYPICAL_MONTH } from '../lib/typical-prices';
 import { ensurePriceBook } from '../lib/cost';
 import { APP_VERSION } from '../lib/version';
+import { paceFor } from '../lib/targets';
 
-/** Loaded lazily (see app.tsx): not needed for the first screen. */
+/**
+ * Settings, short (M44): five entries with a one-line summary each, every one opening its own page
+ * (SettingsPage.tsx, a sheet, so the back button works as elsewhere). Loaded lazily (see app.tsx).
+ */
 export default function Settings() {
+  const s = settings.value;
+  const p = s.profile;
+  const goal = s.goal ?? 'maintain';
+  const mode = s.adaptive && s.adaptiveFollow ? 'follow' : p.kcalAuto ? 'profile' : 'manual';
+  const on = FEATURES.filter((f) => f.on()).length;
+  const foods = customFoods.value.filter((f) => !f.deleted).length;
+  const recs = recipes.value.filter((r) => !r.deleted).length;
+  const entries: [SettingsPageKind, string, string][] = [
+    [
+      'profile',
+      t('settingsProfile'),
+      [t(p.sex === 'female' ? 'female' : 'male'), p.age && t('ageYears').replace('{n}', String(p.age)), p.weightKg && `${fmt(p.weightKg, 1)} kg`, goalText(goal, paceFor(p, s.pace))]
+        .filter(Boolean)
+        .join(' · '),
+    ],
+    ['energy', t('settingsEnergy'), `${fmt(p.kcal)} kcal/${t('perDayShort')} · ${te(MODE_LABEL[mode])}`],
+    ['features', t('settingsFeatures'), t('featuresOn').replace('{n}', String(on)).replace('{m}', String(FEATURES.length))],
+    [
+      'library',
+      t('settingsLibrary'),
+      t('librarySummary').replace('{foods}', String(foods)).replace('{recipes}', String(recs)).replace('{meals}', String(templates.value.length)),
+    ],
+    ['data', t('settingsData'), `${LANGS.find((l) => l.code === s.lang)?.name ?? ''} · ${t('settingsDataSummary')}`],
+  ];
   return (
     <>
-      <ProfileForm />
-      <AdaptiveEnergy />
-      <MyFoods />
-      <MyRecipes />
-      <SavedMealsCard />
-      <SuggestCard />
-      <CheckinCard />
-      <CostsCard />
-      <General />
-      <SyncCard />
-      <YourData />
+      {/* One-time notices (energy formula, goal) stay on the first page, not inside a sub-page. */}
+      {s.energyNotice && (
+        <div class="notice card" role="status">
+          <p class="small">{t('energyNotice')}</p>
+          <button type="button" class="btn small" onClick={() => void updateSettings({ energyNotice: false })}>
+            {t('ok')}
+          </button>
+        </div>
+      )}
+      {s.goalNotice && (
+        <div class="notice card" role="status">
+          <p class="small">{te('goalNotice').replace('{kcal}', fmt(p.kcal))}</p>
+          <button type="button" class="btn small" onClick={() => void updateSettings({ goalNotice: false })}>
+            {t('ok')}
+          </button>
+        </div>
+      )}
+      <section class="card settings-menu">
+        <ul class="entries">
+          {entries.map(([page, title, summary]) => (
+            <li key={page}>
+              <button class="entry" onClick={() => open({ kind: 'settings', page })}>
+                <span class="entry-name">
+                  {title}
+                  <span class="muted small summary">{summary}</span>
+                </span>
+                <span class="muted" aria-hidden="true">
+                  ›
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <p class="muted small center">
+        Iron Log {APP_VERSION} ·{' '}
+        <button type="button" class="link inline" onClick={() => open({ kind: 'whatsnew' })}>
+          {t('whatsNew')}
+        </button>
+      </p>
     </>
   );
 }
 
-function SyncCard() {
+const MODE_LABEL = { manual: 'modeManual', profile: 'modeProfile', follow: 'modeFollow' } as const;
+
+export function SyncCard() {
   return (
     <section class="card">
       <h2>{ts('syncTitle')}</h2>
@@ -47,7 +106,7 @@ function SyncCard() {
   );
 }
 
-function MyFoods() {
+export function MyFoods() {
   const list = customFoods.value.filter((f) => !f.deleted).sort((a, b) => a.sv.localeCompare(b.sv, 'sv'));
   return (
     <section class="card">
@@ -75,7 +134,7 @@ function MyFoods() {
   );
 }
 
-function MyRecipes() {
+export function MyRecipes() {
   const list = recipes.value.filter((r) => !r.deleted).sort((a, b) => a.name.localeCompare(b.name, 'sv'));
   return (
     <section class="card">
@@ -113,8 +172,8 @@ function MyRecipes() {
   );
 }
 
-/** Saved meals (rename, drop foods, remove; created from a logged meal) and the "your usual" switch. */
-function SavedMealsCard() {
+/** Saved meals (rename, drop foods, remove; created from a logged meal). "Your usual" is a feature (M44). */
+export function SavedMealsCard() {
   const list = [...templates.value].sort((a, b) => a.name.localeCompare(b.name, lang.value));
   return (
     <section class="card">
@@ -135,11 +194,6 @@ function SavedMealsCard() {
           ))}
         </ul>
       )}
-      <label class="check">
-        <input type="checkbox" checked={!settings.value.usualOff} onChange={(e) => void updateSettings({ usualOff: !(e.currentTarget as HTMLInputElement).checked })} />
-        {t('usualSetting')}
-      </label>
-      <p class="muted small">{t('usualSettingNote')}</p>
     </section>
   );
 }
@@ -147,81 +201,116 @@ function SavedMealsCard() {
 /** Where the fruit in season may come from (M40): Swedish, Sweden + Europe (default), the whole world. */
 const FRUIT_REACHES = [['sweden', 'reachSweden'], ['europe', 'reachEurope'], ['any', 'reachAny']] as const;
 
-/** Suggestions (opt-in) and the "what if" preview (on by default). */
-function SuggestCard() {
-  const s = settings.value;
+/** An optional feature: its switch on one line, the explanation behind "Läs mer" (M44). */
+interface Feature {
+  id: string;
+  label: () => string;
+  on: () => boolean;
+  set: (on: boolean) => void;
+  /** Shown under the switch while on (e.g. the fruit's origin choice). */
+  extra?: () => ComponentChildren;
+  more: () => ComponentChildren;
+}
+
+const FEATURES: Feature[] = [
+  {
+    id: 'suggestions',
+    label: () => tg('suggestToggle'),
+    on: () => !!settings.value.suggestions,
+    set: (on) => void updateSettings({ suggestions: on }),
+    // Foods hidden with "Föreslå inte … igen" (M43) can come back.
+    extra: () =>
+      !!settings.value.suggestHidden?.length && (
+        <button class="btn small" onClick={() => void updateSettings({ suggestHidden: [] })}>
+          {tg('suggestUnhide').replace('{n}', String(settings.value.suggestHidden.length))}
+        </button>
+      ),
+    more: () => <p class="muted small">{tg('suggestNote')}</p>,
+  },
+  {
+    id: 'fruit',
+    label: () => tf('fruitToggle'),
+    on: () => !!settings.value.fruit,
+    set: (on) => void updateSettings({ fruit: on }),
+    extra: () => (
+      <div class="chips" role="group" aria-label={tf('fruitReach')}>
+        {FRUIT_REACHES.map(([r, label]) => {
+          const on = (settings.value.fruitReach ?? 'europe') === r;
+          return (
+            <button key={r} class={on ? 'chip on' : 'chip'} aria-pressed={on} onClick={() => void updateSettings({ fruitReach: r })}>
+              {tf(label)}
+            </button>
+          );
+        })}
+      </div>
+    ),
+    more: () => (
+      <>
+        <p class="muted small">{tf('fruitNote')}</p>
+        <p class="muted small">{tf('fruitSource').replace('{period}', FRUIT_PERIOD.period.split('–').map(fmtMonth).join('–'))}</p>
+      </>
+    ),
+  },
+  {
+    id: 'costs',
+    label: () => tsh('costsToggle'),
+    on: () => !!settings.value.costs,
+    set: (on) => {
+      void updateSettings({ costs: on });
+      if (on) ensurePriceBook(); // loaded (and cached for offline use) now
+    },
+    more: () => (
+      <>
+        <p class="muted small">{tsh('costsNote')}</p>
+        <p class="muted small">{tsh('costsSource').replace('{date}', TYPICAL_COLLECTED).replace('{month}', fmtMonth(TYPICAL_MONTH))}</p>
+      </>
+    ),
+  },
+  {
+    id: 'checkin',
+    label: () => tc('checkinToggle'),
+    on: () => !!settings.value.checkin,
+    set: (on) => void updateSettings({ checkin: on }),
+    more: () => <p class="muted small">{tc('checkinNote')}</p>,
+  },
+  {
+    id: 'usual',
+    label: () => t('usualSetting'),
+    on: () => !settings.value.usualOff,
+    set: (on) => void updateSettings({ usualOff: !on }),
+    more: () => <p class="muted small">{t('usualSettingNote')}</p>,
+  },
+  {
+    id: 'whatIf',
+    label: () => tg('whatIfToggle'),
+    on: () => !settings.value.whatIfOff,
+    set: (on) => void updateSettings({ whatIfOff: !on }),
+    more: () => <p class="muted small">{t('whatIfNote')}</p>,
+  },
+];
+
+/** Every optional feature on one line (M44). */
+export function FeatureList() {
   return (
-    <section class="card form">
-      <h2>{tg('suggestTitle')}</h2>
-      <label class="check">
-        <input type="checkbox" checked={!!s.suggestions} onChange={(e) => void updateSettings({ suggestions: (e.currentTarget as HTMLInputElement).checked })} />
-        {tg('suggestToggle')}
-      </label>
-      <p class="muted small">{tg('suggestNote')}</p>
-      <label class="check">
-        <input type="checkbox" checked={!!s.fruit} onChange={(e) => void updateSettings({ fruit: (e.currentTarget as HTMLInputElement).checked })} />
-        {tf('fruitToggle')}
-      </label>
-      {s.fruit && (
-        <div class="chips" role="group" aria-label={tf('fruitReach')}>
-          {FRUIT_REACHES.map(([r, label]) => {
-            const on = (s.fruitReach ?? 'europe') === r;
-            return (
-              <button key={r} class={on ? 'chip on' : 'chip'} aria-pressed={on} onClick={() => void updateSettings({ fruitReach: r })}>
-                {tf(label)}
-              </button>
-            );
-          })}
+    <section class="card form features">
+      {FEATURES.map((f) => (
+        <div class="feature" key={f.id}>
+          <label class="check">
+            <input type="checkbox" checked={f.on()} onChange={(e) => f.set((e.currentTarget as HTMLInputElement).checked)} />
+            {f.label()}
+          </label>
+          {f.on() && f.extra?.()}
+          <details class="feature-more">
+            <summary class="small">{t('readMore')}</summary>
+            {f.more()}
+          </details>
         </div>
-      )}
-      <p class="muted small">{tf('fruitNote')}</p>
-      <p class="muted small">{tf('fruitSource').replace('{period}', FRUIT_PERIOD.period.split('–').map(fmtMonth).join('–'))}</p>
-      <label class="check">
-        <input type="checkbox" checked={!s.whatIfOff} onChange={(e) => void updateSettings({ whatIfOff: !(e.currentTarget as HTMLInputElement).checked })} />
-        {tg('whatIfToggle')}
-      </label>
+      ))}
     </section>
   );
 }
 
-/** Weekly check-in (opt-in, M26). */
-function CheckinCard() {
-  return (
-    <section class="card form">
-      <h2>{tc('checkinTitle')}</h2>
-      <label class="check">
-        <input type="checkbox" checked={!!settings.value.checkin} onChange={(e) => void updateSettings({ checkin: (e.currentTarget as HTMLInputElement).checked })} />
-        {tc('checkinToggle')}
-      </label>
-      <p class="muted small">{tc('checkinNote')}</p>
-    </section>
-  );
-}
-
-/** Food costs (opt-in, M33): typical prices where the user typed none. */
-function CostsCard() {
-  return (
-    <section class="card form">
-      <h2>{tsh('costsTitle')}</h2>
-      <label class="check">
-        <input
-          type="checkbox"
-          checked={!!settings.value.costs}
-          onChange={(e) => {
-            const on = (e.currentTarget as HTMLInputElement).checked;
-            void updateSettings({ costs: on });
-            if (on) ensurePriceBook(); // loaded (and cached for offline use) now
-          }}
-        />
-        {tsh('costsToggle')}
-      </label>
-      <p class="muted small">{tsh('costsNote')}</p>
-      <p class="muted small">{tsh('costsSource').replace('{date}', TYPICAL_COLLECTED).replace('{month}', fmtMonth(TYPICAL_MONTH))}</p>
-    </section>
-  );
-}
-
-function General() {
+export function General() {
   const s = settings.value;
   return (
     <section class="card form">
@@ -253,12 +342,6 @@ function General() {
       <p class="muted small">
         {t('privacy')} <a href={lang.value === 'sv' ? 'privacy.html' : 'privacy.html#en'}>{t('privacyPolicy')}</a> ·{' '}
         <a href={lang.value === 'sv' ? 'about.html' : 'about.html#en'}>{t('aboutApp')}</a>
-      </p>
-      <p class="muted small">
-        Iron Log {APP_VERSION} ·{' '}
-        <button type="button" class="link inline" onClick={() => open({ kind: 'whatsnew' })}>
-          {t('whatsNew')}
-        </button>
       </p>
       <p class="muted small">{t('attribution')}</p>
       <fieldset class="sources">

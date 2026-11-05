@@ -25,6 +25,7 @@ async function importBreakfasts(page: Page, days: string[]) {
     })),
   );
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const reloaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'history.json',
@@ -78,6 +79,7 @@ test('your usual: only when it is the usual, at its time; dismiss, log, switch o
 
   // Switched off in Settings: never shown.
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
   await page.getByLabel('Föreslå min vanliga måltid').uncheck();
   await page.clock.setFixedTime(at('2026-10-14', '07:45'));
   await page.reload();

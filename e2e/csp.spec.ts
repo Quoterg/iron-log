@@ -29,6 +29,7 @@ test('the policy is in the built page and the main flows run without violations'
   await page.locator('.result').first().click();
   await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
   await tab(page, 'Näringsämnen');
+  await page.locator('.group summary', { hasText: 'Mineraler' }).click(); // groups fold away (M43)
   await page.locator('.bar-btn', { hasText: 'Järn' }).click();
   await expect(page.getByRole('heading', { name: 'Rikast i livsmedelsdatabasen' })).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: /‹/ }).click();
@@ -40,8 +41,11 @@ test('the policy is in the built page and the main flows run without violations'
 
   // Settings: recipe editor, exports (blob downloads), a lazily loaded language.
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
   await page.getByRole('button', { name: /Skapa recept/ }).click();
   await page.getByRole('dialog').getByRole('button', { name: /‹/ }).click();
+  await page.getByRole('button', { name: /^‹ / }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   for (const name of [/Exportera säkerhetskopia/, /Exportera dagbok/]) {
     await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name }).click()]);
   }

@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 test('switching to English loads it on demand, translates the app and survives a reload', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const picker = page.getByLabel('Språk');
   // Swedish and English only (owner, M41c).
   await expect(picker.locator('option')).toHaveText(['Svenska', 'English']);
@@ -13,6 +14,7 @@ test('switching to English loads it on demand, translates the app and survives a
 
   // Nutrient names in English; English food names.
   await page.getByRole('button', { name: 'Nutrients', exact: true }).click();
+  await page.locator('.group summary', { hasText: 'Minerals' }).click(); // groups fold away (M43)
   await expect(page.getByText('Iron', { exact: true })).toBeVisible();
 
   await page.reload();
@@ -27,6 +29,7 @@ async function restore(page: Page, lang: string) {
   page.on('dialog', (d) => d.accept()); // the import's confirm()
   await page.goto('./');
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const reloaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'backup.json',

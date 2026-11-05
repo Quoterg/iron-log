@@ -17,6 +17,7 @@ test('a whole meal can be cleared at once (M41), after a confirmation; other mea
   ];
   page.on('dialog', (d) => void d.accept());
   await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   const reloaded = page.waitForEvent('load', { timeout: 15_000 });
   await page.getByLabel('Importera säkerhetskopia').setInputFiles({
     name: 'h.json', mimeType: 'application/json',

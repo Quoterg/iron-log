@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
-import { gapFoods, swapFor, swapTargets, SWAPS } from './suggest';
+import { gapFoods, swapFor, swapTargets, SWAPS, unusual } from './suggest';
 import type { Target } from './targets';
 
 function food(ref: string, sv: string, values: Record<string, number>): Food {
@@ -40,8 +40,45 @@ describe('gap fixer', () => {
     const usdaLiver = { ...food('usda:174729', 'Beef, variety meats and by-products, liver, raw', { kcal: 135, iron: 4.9 }), en: null };
     expect(gapFoods('folate', 100, [{ food: beer, portionG: 1000, own: true }])).toEqual([]);
     const iron = [{ food: pate, portionG: 20, own: true }, { food: usdaLiver, portionG: 100, own: false }, { food: lentils, portionG: 150, own: false }];
-    expect(gapFoods('iron', 6, iron).map((f) => f.ref)).toEqual(['slv:7', 'usda:174729', 'slv:1']);
+    // Liver the user doesn't eat comes after the lentils (M43); the pâté they eat stays first.
+    expect(gapFoods('iron', 6, iron).map((f) => f.ref)).toEqual(['slv:7', 'slv:1', 'usda:174729']);
     expect(gapFoods('iron', 6, iron, 3, { pregnant: true }).map((f) => f.ref)).toEqual(['slv:1']);
+  });
+
+  it('suggests offal and blood foods after everyday ones unless the user eats them (M43)', () => {
+    const pate = food('slv:7', 'Leverpastej', { kcal: 230, iron: 9 });
+    const pudding = food('slv:8', 'Blodpudding', { kcal: 190, iron: 20 });
+    const list = [{ food: pudding, portionG: 100, own: false }, { food: pate, portionG: 20, own: false }, { food: lentils, portionG: 150, own: false }];
+    expect(gapFoods('iron', 6, list).map((f) => f.ref)).toEqual(['slv:1', 'slv:8', 'slv:7']);
+    expect(unusual(lentils)).toBe(false);
+    expect(unusual(pudding)).toBe(true);
+  });
+
+  it('flags offal and blood foods by name, not plant foods that share a word (review of M43)', () => {
+    const named = (ref: string, sv: string, en: string | null = null): Food => ({ ...food(ref, sv, {}), en });
+    for (const f of [
+      named('slv:1', 'Leverpastej bredbar fett ca 24%'),
+      named('slv:2', 'Gryta m. kalvhjärta grönsaker'),
+      named('slv:3', 'Njursauté'),
+      named('slv:4', 'Blodpudding blodkorv fett 10%'),
+      named('usda:1', 'Beef, variety meats and by-products, liver, raw', 'Beef, variety meats and by-products, liver, raw'),
+      named('usda:2', 'Lamb, variety meats and by-products, kidneys, raw', 'Lamb, variety meats and by-products, kidneys, raw'),
+      named('usda:3', 'Chicken, heart, all classes, raw', 'Chicken, heart, all classes, raw'),
+      named('usda:4', 'Blood sausage', 'Blood sausage'),
+    ])
+      expect(unusual(f), f.sv).toBe(true);
+    for (const f of [
+      named('slv:5', 'Kidneybönor kokta', 'Kidney beans boiled'),
+      named('slv:6', 'Blodapelsin', 'Blood orange'),
+      named('slv:7', 'Kronärtskocka', 'Artichoke hearts canned'),
+      named('usda:5', 'Beans, kidney, red, mature seeds, raw', 'Beans, kidney, red, mature seeds, raw'),
+      named('usda:6', 'Hearts of palm, raw', 'Hearts of palm, raw'),
+      named('usda:7', 'Artichokes, hearts, canned', 'Artichokes, hearts, canned'),
+      named('usda:8', 'Oranges, raw, blood', 'Oranges, raw, blood oranges'),
+      named('usda:9', "CAMPBELL'S CHUNKY, Hearty Beef Barley Soup", "CAMPBELL'S CHUNKY, Hearty Beef Barley Soup"),
+      named('usda:10', "Custard-apple, (bullock's-heart), raw", "Custard-apple, (bullock's-heart), raw"),
+    ])
+      expect(unusual(f), f.sv).toBe(false);
   });
 
   it('skips foods whose usual portion covers under 10 % of the gap (spices), and caps coverage', () => {

@@ -15,6 +15,7 @@ async function addIngredient(page: Page, query: string, result: RegExp, unit: st
 test('create a recipe, edit an ingredient, set cooked weight, and log a portion', async ({ page }) => {
   await page.goto('./');
   await settingsTab(page);
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
   await page.getByRole('button', { name: '+ Skapa recept' }).click();
   await page.getByLabel('Namn', { exact: true }).fill('Gröt');
   const servings = page.getByLabel('Antal portioner');
@@ -73,6 +74,7 @@ test('create a recipe, edit an ingredient, set cooked weight, and log a portion'
 test('an unsaved draft can be restored or discarded; ingredients cannot be recipes', async ({ page }) => {
   await page.goto('./');
   await settingsTab(page);
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
   await page.getByRole('button', { name: '+ Skapa recept' }).click();
   await page.getByLabel('Namn', { exact: true }).fill('Halvfärdig');
   await page.getByRole('button', { name: /Tillbaka/ }).click();
@@ -104,6 +106,7 @@ test('a recipe can be deleted from the list in Settings and from its food screen
   await page.goto('./');
   const create = async (name: string) => {
     await settingsTab(page);
+    await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
     await page.getByRole('button', { name: '+ Skapa recept' }).click();
     await page.getByLabel('Namn', { exact: true }).fill(name);
     await addIngredient(page, 'havregryn', /^Havregryn fullkorn/, 'g', '100');

@@ -8,6 +8,7 @@ const card = (page: Page, title: string) => page.locator('section.card', { has: 
 
 const openSync = async (page: Page) => {
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   await page.getByRole('button', { name: 'Synka', exact: true }).click();
 };
 
@@ -30,6 +31,7 @@ const importHistory = async (page: Page, n: number) => {
     id: `hist-${i}`, date: '2026-01-15', meal: 'lunch', foodRef: 'slv:1', grams: 100, createdAt: 1000 + i,
   }));
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Utseende, data & om' }).click();
   // The import reloads the app: wait for that reload itself, not just any 'load' state (which the
   // page is already in) — otherwise the next clicks land mid-reload on a slow runner.
   const reloaded = page.waitForEvent('load', { timeout: 15_000 }); // a failed import fails fast

@@ -20,6 +20,38 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** is next, in order (owner, 2026-11-05: continue until stopped). Only Swedish and English since M41c.
 
+## 2026-11-05 — M44 Short, grouped Settings (interactive session)
+
+- Settings overview 640 px (one screen on a Moto G4): Profil & mål, Energimål, Funktioner, Mina
+  livsmedel/recept/måltider, Utseende/data & om — each a page in the Settings tab (`nav` screen
+  `settings`, SettingsPage.tsx lazy), each entry with a one-line summary; notices stay on the overview.
+- Energimål = one choice (Skriv själv / Räkna från profilen / Följ uppmätt förbrukning); the two
+  overlapping switches and their strings are gone. Profile page ends in "Energimål: … ›".
+- Funktioner: every switch on one line, details behind "Läs mer"; the fruit reach chips under fruit.
+- strings-split test ignores `type X = …;` (the page union in nav.ts is no string use).
+- The shell is aria-hidden only under a real sheet, not a Settings page; back names where it goes
+  ("‹ Profil & mål" after the profile's Energimål link); the page head wraps at 200 % text.
+- Tests: unit 269 ✓, build ✓ (31.1 KB), e2e 161 ✓ (every Settings page checked at 360 px in
+  layout.spec; specs go to the right page), Lighthouse ✓.
+
+## 2026-11-05 — M43 Näringsämnen as an answer (interactive session)
+
+- Lived-in 7-day page 4 403 → 1 884 px (−57 %).
+- Nutrient groups (NutrientGroups `compact`, Näringsämnen only; the food screen keeps the full table):
+  macros open, the rest fold behind a status ("8 under målet", "1 över gränsen"); nutrients no logged
+  food reports are left out and named once at the end; the amino acids vanish when none is known.
+- One "Vad du kan äta" card at the bottom (the fruit's place since M40c): tabs Livsmedel / Frukt i
+  säsong when both are on (Suggestions and FruitCard got `embedded`). The two intro lines are one.
+- Suggestions: offal/blood foods (lever, blod, njure, hjärta…) after everyday ones unless the user eats
+  them; "Föreslå inte … igen" per food (`settings.suggestHidden`, synced, validated in backup).
+- Tests: unit 269 ✓, build ✓ (31.0 KB), e2e 161 ✓ (new: tabs + hide in suggest.spec; open a group
+  before a bar in reports/smoke/csp/a11y/languages), Lighthouse ✓.
+- Review fixes (#81): offal match by word/compound (kidney beans, blodapelsin, hearts of palm stay
+  ordinary), hidden suggestions deduped and resettable in Settings ("Visa dolda förslag igen (n)"),
+  advice tabs stay mounted once opened and keep the chosen tab across periods, 44 px ×.
+  **Open performance items:** NutrientGroups `compact` computes known/under/over in several passes
+  per group (one loop in a useMemo would do); folded groups still render their bars (render on open).
+
 ## 2026-11-05 — M42 Calmer diary (interactive session)
 
 - Lived-in diary (audit data: 2 weeks, costs + check-in on) 2 012 → 1 424 px (−29 %).
