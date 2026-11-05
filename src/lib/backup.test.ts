@@ -162,6 +162,19 @@ describe('profile import', () => {
     expect(SYNC_VALIDATORS.kv({ lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: {}, fruit: true, fruitReach: 'any' })).toMatchObject({ fruit: true, fruitReach: 'any' });
   });
 
+  it('keeps hidden suggestions as unique food refs, at most 500 (review of M43)', () => {
+    const hiddenOf = (suggestHidden: unknown) =>
+      parseBackup(
+        JSON.stringify({ ...makeBackup(data), settings: { lang: 'sv', profile: { sex: 'male', kcal: 2500 }, targetOverrides: {}, suggestHidden } }),
+      ).settings?.suggestHidden;
+    expect(hiddenOf(['slv:1', 'slv:2'])).toEqual(['slv:1', 'slv:2']);
+    expect(hiddenOf(['slv:1', 7, null, 'x'.repeat(201), 'slv:1', 'slv:3'])).toEqual(['slv:1', 'slv:3']);
+    const many = Array.from({ length: 600 }, (_, i) => `slv:${i}`);
+    expect(hiddenOf(many)).toEqual(many.slice(-500));
+    expect(hiddenOf('slv:1')).toBeUndefined();
+    expect(hiddenOf([])).toBeUndefined();
+  });
+
   it('round-trips the last energy-target change and why (M41); a malformed one is dropped, not the backup', () => {
     const settingsOf = (extra: object) =>
       parseBackup(

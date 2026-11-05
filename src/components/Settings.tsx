@@ -218,6 +218,13 @@ const FEATURES: Feature[] = [
     label: () => tg('suggestToggle'),
     on: () => !!settings.value.suggestions,
     set: (on) => void updateSettings({ suggestions: on }),
+    // Foods hidden with "Föreslå inte … igen" (M43) can come back.
+    extra: () =>
+      !!settings.value.suggestHidden?.length && (
+        <button class="btn small" onClick={() => void updateSettings({ suggestHidden: [] })}>
+          {tg('suggestUnhide').replace('{n}', String(settings.value.suggestHidden.length))}
+        </button>
+      ),
     more: () => <p class="muted small">{tg('suggestNote')}</p>,
   },
   {

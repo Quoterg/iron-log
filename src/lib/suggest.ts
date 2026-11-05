@@ -51,8 +51,21 @@ export function gapFoods(key: string, gap: number, candidates: Candidate[], limi
   return scored.slice(0, limit).map(({ c, amount }) => ({ ref: c.food.ref, portionG: c.portionG, covers: Math.min(1, amount / gap), own: c.own }));
 }
 
-/** Offal and blood foods (Swedish and English names): rich, but rarely what people want suggested. */
-export const unusual = (food: Food): boolean => /lever|liver|blod|blood|njure|kidney|hjärta|heart/i.test(`${food.sv} ${food.en ?? ''}`);
+/** Swedish names are compounds (Leverpastej, kalvhjärta, Njurpalt, blodbröd) — but not blodapelsin. */
+const SV_ODD = /lever|blod(?!apelsin|grape)|njur|hjärta/i;
+/** English names as words: "Beef, … liver, raw" — but not kidney beans, hearts of palm, artichoke hearts. */
+const EN_ODD = /\b(liver|liverwurst|kidneys?|blood|hearts?)\b/i;
+const EN_NOT = /\bbeans?\b|orange|of palm|artichoke|custard-apple/i;
+/**
+ * Offal and blood foods: rich, but rarely what people want suggested. Livsmedelsverket's foods are
+ * judged on their Swedish name (their English one is a loose translation), others on any name.
+ */
+export function unusual(food: Food): boolean {
+  if (SV_ODD.test(food.sv)) return true;
+  if (food.ref.startsWith('slv:')) return false;
+  const name = `${food.sv} ${food.en ?? ''}`; // USDA foods have their English name in `sv`
+  return EN_ODD.test(name) && !EN_NOT.test(name);
+}
 
 /**
  * Never suggested: drinks with alcohol, and during pregnancy liver products (Livsmedelsverket's

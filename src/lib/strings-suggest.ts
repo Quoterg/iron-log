@@ -14,6 +14,7 @@ export const SV_SUGGEST = {
   gapPortion: '{grams} g ger {pct} % av det som saknas',
   gapYouEat: 'du äter redan',
   suggestHide: 'Föreslå inte {name} igen',
+  suggestUnhide: 'Visa dolda förslag igen ({n})',
   swapsTitle: 'Byten att prova',
   swapLine: '{to} i stället för {from}',
   whatIfTitle: 'Om du lägger till',

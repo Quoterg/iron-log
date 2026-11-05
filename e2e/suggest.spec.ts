@@ -110,5 +110,10 @@ test('one advice card (M43): food suggestions and fruit as two tabs; a suggestio
 
   await tabs.getByRole('button', { name: 'Frukt i säsong' }).click();
   await expect(advice.locator('.fruit')).toBeVisible();
-  await expect(advice.locator('.suggest-gap')).toHaveCount(0);
+  await expect(advice.locator('.suggest-gap').first()).toBeHidden();
+  // Hidden foods can be shown again from Settings.
+  await tab(page, 'Inställningar');
+  await page.locator('.settings-menu .entry', { hasText: 'Funktioner' }).click();
+  await page.getByRole('button', { name: 'Visa dolda förslag igen (1)' }).click();
+  await expect(page.getByRole('button', { name: /Visa dolda förslag igen/ })).toHaveCount(0);
 });

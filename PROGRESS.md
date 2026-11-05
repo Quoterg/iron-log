@@ -46,6 +46,11 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   them; "Föreslå inte … igen" per food (`settings.suggestHidden`, synced, validated in backup).
 - Tests: unit 269 ✓, build ✓ (31.0 KB), e2e 161 ✓ (new: tabs + hide in suggest.spec; open a group
   before a bar in reports/smoke/csp/a11y/languages), Lighthouse ✓.
+- Review fixes (#81): offal match by word/compound (kidney beans, blodapelsin, hearts of palm stay
+  ordinary), hidden suggestions deduped and resettable in Settings ("Visa dolda förslag igen (n)"),
+  advice tabs stay mounted once opened and keep the chosen tab across periods, 44 px ×.
+  **Open performance items:** NutrientGroups `compact` computes known/under/over in several passes
+  per group (one loop in a useMemo would do); folded groups still render their bars (render on open).
 
 ## 2026-11-05 — M42 Calmer diary (interactive session)
 
