@@ -448,9 +448,14 @@ M22, M37) stay held until the owner asks.
   shopping list. E% in the diary is of the total energy when the macros explain > 10 % less (else a
   quick entry with only protein showed "100 E%"). The day mark: two chips "Dagen är komplett" /
   "Ofullständig dag" (`DayMark.skip`); an incomplete day neither counts nor shapes the typical intake.
-- [ ] **M48 Move an entry; add several at once** — "Flytta till…" (date and meal) on the entry's own
+- [x] **M48 Move an entry; add several at once** — "Flytta till…" (date and meal) on the entry's own
   screen, one transaction with tombstones; "Välj flera" in the search: tap rows in Recent/Favourites/
   results at their remembered amounts, then "Lägg till N (… kcal)" logs them in one batch.
+  Done: moving needed nothing new — the entry's screen already has Måltid and Datum, and Spara moves
+  it (now covered by an e2e test). "Välj flera" (a chip under the search field): rows toggle with ✓
+  and an accent edge, each at the amount the food screen would open with (`initialAmount`), the
+  selection survives typing, and a sticky "Lägg till N (… kcal)" logs them with one write
+  (`addEntries`, usage updated once). Saved meals and the create buttons hide while picking.
 - [ ] **M49 Richest foods per kcal and per krona** — on a nutrient's screen ("Rikast"), chips Per
   100 g · Per 100 kcal (everyday foods, from `everyday.<hash>.json`) · Per krona (with Matkostnad on;
   own price before typical price, foods without a price left out). Ends the spice-and-powder list.

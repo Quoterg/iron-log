@@ -148,6 +148,23 @@ export async function addEntry(meal: Meal, food: Food, amount: Amount): Promise<
   await recordUse(food.ref, amount);
 }
 
+/** Log several foods into a meal at once (M48, "Välj flera"): one write, in the order picked. */
+export async function addEntries(meal: Meal, list: { food: Food; amount: Amount }[]): Promise<void> {
+  if (!list.length) return;
+  const now = Date.now();
+  const added: Entry[] = list.map(({ food, amount }, i) => {
+    const e: Entry = { id: db.newId(), date: date.value, meal, foodRef: food.ref, createdAt: now + i, ...measure(amount) };
+    if (food.ref.startsWith('recipe:')) e.snap = food.per100g;
+    return e;
+  });
+  const map = new Map(foods.value);
+  for (const { food } of list) map.set(food.ref, food);
+  foods.value = map;
+  entries.value = [...entries.value, ...added];
+  await db.putEntries(added);
+  await recordUses(list.map(({ food, amount }) => [food.ref, amount]));
+}
+
 /** Normalise an Amount: unit and qty are stored together or not at all. */
 function measure(a: Amount): Amount {
   return a.unit && a.qty ? { grams: a.grams, unit: a.unit, qty: a.qty } : { grams: a.grams };

@@ -20,6 +20,15 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-06 — M48 Pick several in search (interactive session)
+
+- "Välj flera" in FoodSearch: rows toggle (✓, aria-pressed) at the usual amount (`usualAmountOf` →
+  servings.initialAmount); sticky `.multi-bar` "Lägg till N (… kcal)" → `addEntries` (one putEntries,
+  one recordUses) → closeAll. Moving an entry already worked (Måltid/Datum on its screen): tested.
+- Tests: unit 272 ✓, build ✓ (31.8 KB), e2e 193 ✓ (new multi.spec; "pick several" in a11y;
+  languages.spec "removed language" failed once under full load, 8/8 alone — a known timing flake of
+  the backup reload, not touched here), Lighthouse ✓.
+
 ## 2026-11-06 — M47 Quick-add; incomplete days (interactive session)
 
 - Phase 10 plan revised with the owner on #85 (M47–M53; Matlådor, comparison, ratios, workout import
