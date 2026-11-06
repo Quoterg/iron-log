@@ -1,7 +1,7 @@
 // Loads the adaptive estimate's inputs (M25): the last 4 weeks of intake and weigh-ins. Used by the
 // Settings card, the weekly check-in and the weekly follow (M35); loaded with them, never up front.
 import { ADAPTIVE, estimate, type DayIntake, type Estimate } from './adaptive';
-import { addDays, bodyBetween, daysCompleteBetween, entriesBetween, entryVector, isoDate, localChanges } from './db';
+import { addDays, bodyBetween, dayStatesBetween, entriesBetween, entryVector, isoDate, localChanges } from './db';
 import { value } from './nutrients';
 import { ensureFoods, foods } from '../state';
 
@@ -15,7 +15,7 @@ export async function loadEstimate(): Promise<Estimate> {
   if (cached?.key === key) return cached.est;
   const from = addDays(today, -ADAPTIVE.windowDays);
   const to = addDays(today, -1);
-  const [list, marks, body] = await Promise.all([entriesBetween(from, to), daysCompleteBetween(from, to), bodyBetween(from, today)]);
+  const [list, marks, body] = await Promise.all([entriesBetween(from, to), dayStatesBetween(from, to), bodyBetween(from, today)]);
   await ensureFoods([...new Set(list.map((e) => e.foodRef))]);
   const kcal = new Map<string, number>();
   const unknown = new Set<string>();
@@ -25,7 +25,7 @@ export async function loadEstimate(): Promise<Estimate> {
     else unknown.add(e.date);
   }
   const days: DayIntake[] = [];
-  for (let d = from; d <= to; d = addDays(d, 1)) days.push({ date: d, kcal: kcal.get(d) ?? 0, complete: marks.has(d), unknown: unknown.has(d) });
+  for (let d = from; d <= to; d = addDays(d, 1)) days.push({ date: d, kcal: kcal.get(d) ?? 0, complete: marks.get(d) === 'complete', skip: marks.get(d) === 'skip', unknown: unknown.has(d) });
   const weighIns = body.filter((b) => b.weightKg != null).map((b) => ({ date: b.date, kg: b.weightKg! }));
   const est = estimate(days, weighIns);
   cached = { key, est };

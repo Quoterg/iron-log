@@ -10,7 +10,7 @@ import {
   type Costed, type FoodPrice, type PriceUnit, type Section, type ShopItem,
 } from '../lib/shopping';
 import { tsh, type ShopKey } from '../lib/strings-shop';
-import { ensureFoods, foods, recipes, settings, supplementRefs, templates, updateSettings, userServings } from '../state';
+import { ensureFoods, foods, quickRefs, recipes, settings, supplementRefs, templates, updateSettings, userServings } from '../state';
 import { CHAINS, DEFAULT_CHAINS, OFFER_LINES, searchTerm } from '../lib/stores';
 import { Sheet } from './Sheet';
 import { numText, PriceForm } from './PriceForm';
@@ -241,7 +241,8 @@ export default function ShoppingSheet() {
     if (busy.current) return;
     busy.current = true;
     try {
-      const parts = expand(list, new Map(recipes.value.map((r) => [r.ref, r])));
+      // Quick entries (M47) are energy without a food: nothing to buy.
+      const parts = expand(list, new Map(recipes.value.map((r) => [r.ref, r]))).filter((p) => !quickRefs.value.has(p.foodRef));
       await ensureFoods(parts.map((p) => p.foodRef));
       const changed = addTo(items ?? [], parts, Date.now(), newId);
       const fresh = changed.filter((c) => !items?.some((i) => i.id === c.id)).length;

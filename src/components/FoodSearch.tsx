@@ -3,8 +3,9 @@ import type { Meal } from '../lib/db';
 import { searchFoods, unavailableSources } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
-import { back, closeAll, open } from '../nav';
-import { ensureFoods, favourites, foods, logTemplate, offFoods, recent, supplementRefs, templates, templateUse, updateEntry, usage } from '../state';
+import { back, closeAll, open, replaceTop } from '../nav';
+import { addEntries, ensureFoods, favourites, foods, logTemplate, offFoods, recent, supplementRefs, templates, templateUse, updateEntry, usage, userServings, type Amount } from '../state';
+import { GRAMS, initialAmount, servingsFor, toGrams } from '../lib/servings';
 import { sortTemplates, type MealTemplate } from '../lib/templates';
 import type { Usage } from '../lib/db';
 import { Sheet } from './Sheet';
@@ -16,6 +17,10 @@ export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string;
   const [results, setResults] = useState<Food[] | null>(null);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  // "Välj flera" (M48): tapping a row picks it at its usual amount; one button logs them all.
+  const [multi, setMulti] = useState(false);
+  const [picked, setPicked] = useState<Map<string, { food: Food; amount: Amount }>>(new Map());
+  const busy = useRef(false);
 
   useEffect(() => inputRef.current?.focus(), []);
 
@@ -58,7 +63,12 @@ export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string;
 
   const pick = (f: Food) => {
     foods.value = new Map(foods.value).set(f.ref, f);
-    if (pickIngredient) {
+    if (multi) {
+      const next = new Map(picked);
+      if (next.has(f.ref)) next.delete(f.ref);
+      else next.set(f.ref, { food: f, amount: usualAmountOf(f) });
+      setPicked(next);
+    } else if (pickIngredient) {
       open({ kind: 'food', ref: f.ref, ingredient: true });
     } else if (replaceEntryId) {
       void updateEntry(replaceEntryId, { foodRef: f.ref });
@@ -67,6 +77,9 @@ export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string;
       open({ kind: 'food', ref: f.ref, meal });
     }
   };
+
+  const sel: Sel = (ref) => (multi ? picked.has(ref) : undefined);
+  const pickedKcal = [...picked.values()].reduce((s, p) => s + (value(p.food.per100g, 'kcal') * p.amount.grams) / 100, 0);
 
   return (
     <Sheet title={pickIngredient ? t('addIngredient') : replaceEntryId ? t('changeFood') : t(meal)}>
@@ -93,20 +106,51 @@ export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string;
           {t('sourcesUnavailable').replace('{list}', unavailableSources.value.map((s) => (s === 'usda' ? 'USDA' : 'Livsmedelsverket')).join(', '))}
         </p>
       )}
+      {!replaceEntryId && !pickIngredient && (
+        <div class="pad multi-row">
+          <button class={multi ? 'chip on' : 'chip'} aria-pressed={multi} onClick={() => (setMulti(!multi), setPicked(new Map()))}>
+            {t('pickSeveral')}
+          </button>
+          {multi && <span class="muted small">{t('pickSeveralNote')}</span>}
+        </div>
+      )}
       {results && results.length === 0 && <p class="muted center">{t('noResults')}</p>}
       {results ? (
-        <ul class="results">{results.filter(allowed).map((f) => row(f, pick))}</ul>
+        <ul class="results">{results.filter(allowed).map((f) => row(f, pick, sel))}</ul>
       ) : query.trim() ? null : (
         <>
-          <SavedMeals list={saved} meal={meal} />
-          <QuickList title={t('favourites')} list={favourites.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} />
-          <QuickList title={t('recent')} list={recent.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} />
-          <ScannedList pick={pick} />
+          {!multi && <SavedMeals list={saved} meal={meal} />}
+          <QuickList title={t('favourites')} list={favourites.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} sel={sel} />
+          <QuickList title={t('recent')} list={recent.value.filter((u) => !(pickIngredient && u.foodRef.startsWith('recipe:')))} pick={pick} sel={sel} />
+          <ScannedList pick={pick} sel={sel} />
           {quick.length === 0 && saved.length === 0 && <p class="muted center small pad">{t('searchHint')}</p>}
         </>
       )}
-      {!replaceEntryId && !pickIngredient && (
+      {multi && picked.size > 0 && (
+        <div class="multi-bar">
+          <button
+            class="btn primary wide"
+            onClick={async () => {
+              if (busy.current) return;
+              busy.current = true;
+              try {
+                await addEntries(meal, [...picked.values()]);
+                closeAll();
+              } finally {
+                busy.current = false; // a failed write (e.g. storage full) must not leave the button dead
+              }
+            }}
+          >
+            {t('addPicked').replace('{n}', String(picked.size)).replace('{kcal}', fmt(pickedKcal))}
+          </button>
+        </div>
+      )}
+      {!multi && !replaceEntryId && !pickIngredient && (
         <div class="pad">
+          {/* Eating out (M47): energy and macros without a food; replaces the search, so saving returns to the diary. */}
+          <button class="btn wide" onClick={() => replaceTop({ kind: 'quick', meal, name: query.trim() })}>
+            + {t('quickAdd')}
+          </button>
           <button class="btn wide" onClick={() => open({ kind: 'editFood', name: query.trim(), meal })}>
             + {t('createFood')}
           </button>
@@ -167,7 +211,7 @@ function SavedMeals({ list, meal }: { list: MealTemplate[]; meal: Meal }) {
  */
 const SCANNED_PAGE = 30;
 
-function ScannedList({ pick }: { pick: (f: Food) => void }) {
+function ScannedList({ pick, sel }: { pick: (f: Food) => void; sel: Sel }) {
   const [shown, setShown] = useState(0); // rows shown; 0 = collapsed
   const list = offFoods.value;
   const sorted = useMemo(() => {
@@ -181,7 +225,7 @@ function ScannedList({ pick }: { pick: (f: Food) => void }) {
       <button class="link list-title" aria-expanded={shown > 0} onClick={() => setShown(shown ? 0 : SCANNED_PAGE)}>
         {shown ? '▾' : '▸'} {t('scannedFoods').replace('{n}', String(list.length))}
       </button>
-      {shown > 0 && <ul class="results">{sorted.slice(0, shown).map((f) => row(foods.value.get(f.ref) ?? f, pick))}</ul>}
+      {shown > 0 && <ul class="results">{sorted.slice(0, shown).map((f) => row(foods.value.get(f.ref) ?? f, pick, sel))}</ul>}
       {shown > 0 && sorted.length > shown && (
         <button class="link" onClick={() => setShown(shown + SCANNED_PAGE)}>
           {t('showMore')}
@@ -191,22 +235,35 @@ function ScannedList({ pick }: { pick: (f: Food) => void }) {
   );
 }
 
-function QuickList({ title, list, pick }: { title: string; list: Usage[]; pick: (f: Food) => void }) {
+/** In "Välj flera": whether a row is picked (undefined outside it). */
+type Sel = (ref: string) => boolean | undefined;
+
+/** The amount the food screen would open with: the usual one, else 1 of its first measure, else 100 g. */
+function usualAmountOf(f: Food): Amount {
+  const servings = servingsFor(f, userServings.value.get(f.ref));
+  const a = initialAmount(servings, undefined, usage.value.get(f.ref));
+  const grams = toGrams(a.unit, a.qty, servings);
+  return a.unit === GRAMS || !(grams > 0) ? { grams: grams > 0 ? grams : 100 } : { grams, unit: a.unit, qty: a.qty };
+}
+
+function QuickList({ title, list, pick, sel }: { title: string; list: Usage[]; pick: (f: Food) => void; sel: Sel }) {
   const items = list.map((u) => foods.value.get(u.foodRef)).filter((f): f is Food => !!f);
   if (!items.length) return null;
   return (
     <>
       <h3 class="list-title">{title}</h3>
-      <ul class="results">{items.map((f) => row(f, pick))}</ul>
+      <ul class="results">{items.map((f) => row(f, pick, sel))}</ul>
     </>
   );
 }
 
-function row(f: Food, pick: (f: Food) => void) {
+function row(f: Food, pick: (f: Food) => void, sel: Sel) {
+  const on = sel(f.ref);
   return (
     <li key={f.ref}>
-      <button class="result" onClick={() => pick(f)}>
+      <button class={on ? 'result on' : 'result'} aria-pressed={on} onClick={() => pick(f)}>
         <span class="entry-name">
+          {on && '✓ '}
           {foodName(f, lang.value)}
           {f.ref.startsWith('custom:') && (
             <span class="badge">{supplementRefs.value.has(f.ref) ? t('supplementBadge') : t('customBadge')}</span>

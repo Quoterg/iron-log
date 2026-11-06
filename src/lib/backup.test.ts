@@ -5,7 +5,11 @@ import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
 
 const data: AllData = {
   entries: [{ id: 'e1', date: '2026-10-09', meal: 'lunch', foodRef: 'custom:a', grams: 50, createdAt: 1, unit: 'skopa', qty: 2 }],
-  customFoods: [{ ref: 'custom:a', sv: 'Proteinpulver', en: null, per100g: [380, 75], createdAt: 1, updatedAt: 1 }],
+  customFoods: [
+    { ref: 'custom:a', sv: 'Proteinpulver', en: null, per100g: [380, 75], createdAt: 1, updatedAt: 1 },
+    // A quick entry's food (M47): hidden, per portion.
+    { ref: 'custom:q', sv: 'Pizza ute', en: null, per100g: [900, 35], createdAt: 2, updatedAt: 2, deleted: true, quick: true },
+  ],
   usage: [{ foodRef: 'custom:a', count: 1, lastUsed: 1, lastGrams: 50, fav: true, lastUnit: 'skopa', lastQty: 2, amounts: [{ grams: 30 }, { grams: 50, unit: 'skopa', qty: 2 }] }],
   servings: [{ foodRef: 'custom:a', servings: [{ name: 'skopa', g: 25 }] }],
   body: [{ date: '2026-10-08', weightKg: 80.4, waistCm: 90, updatedAt: 3 }],
@@ -24,7 +28,7 @@ const data: AllData = {
     },
   ],
   offFoods: [{ ref: 'off:7310865004703', sv: 'Yoghurt (Arla)', en: null, per100g: [100], fetchedAt: 3, units: [{ name: 'portion', g: 150 }] }],
-  days: [{ date: '2026-10-08', updatedAt: 5 }],
+  days: [{ date: '2026-10-08', updatedAt: 5 }, { date: '2026-10-07', updatedAt: 5, skip: true }], // complete, incomplete (M47)
   shopping: [
     { id: 's1', foodRef: 'slv:1', grams: 300, updatedAt: 6 },
     { id: 's2', text: 'Tandkräm', checked: true, kr: 25, updatedAt: 7 },
@@ -46,6 +50,11 @@ describe('backup', () => {
     const r = parseBackup(JSON.stringify(makeBackup({ ...data, recipes: [short] }))).recipes[0];
     expect(r.per100g).toHaveLength(NUTRIENTS.length);
     expect(r.per100g.slice(0, 2)).toEqual([120, null]);
+  });
+
+  it('a quick entry\'s food is always hidden (M47)', () => {
+    const custom = parseBackup(JSON.stringify({ ...makeBackup(data), customFoods: [{ ...data.customFoods[1], deleted: undefined }] })).customFoods;
+    expect(custom[0]).toMatchObject({ quick: true, deleted: true });
   });
 
   it('rejects files that are not Iron Log backups', () => {

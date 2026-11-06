@@ -20,6 +20,36 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-06 — M49 Richest per 100 kcal and per 10 kr (interactive session)
+
+- Contributors.tsx: chips Per 100 g / Per 100 kcal / Per 10 kr (the last only with costs on; loads
+  the price book on demand); a note per measure. top.ts `perKcal`, `perKrona` (own price before typical).
+- M47 review fixes (#86): unused quick foods removed with their last entry (`refsInUse`, tombstone),
+  `quickRefs`, no usage for quick foods in logItems, `quick` forces `deleted` in backup.
+- Tests: unit 275 ✓, build ✓ (32.0 KB), e2e 195 ✓ (new richest.spec), Lighthouse ✓.
+
+## 2026-11-06 — M48 Pick several in search (interactive session)
+
+- "Välj flera" in FoodSearch: rows toggle (✓, aria-pressed) at the usual amount (`usualAmountOf` →
+  servings.initialAmount); sticky `.multi-bar` "Lägg till N (… kcal)" → `addEntries` (one putEntries,
+  one recordUses) → closeAll. Moving an entry already worked (Måltid/Datum on its screen): tested.
+- Tests: unit 272 ✓, build ✓ (31.8 KB), e2e 193 ✓ (new multi.spec; "pick several" in a11y;
+  languages.spec "removed language" failed once under full load, 8/8 alone — a known timing flake of
+  the backup reload, not touched here), Lighthouse ✓.
+
+## 2026-11-06 — M47 Quick-add; incomplete days (interactive session)
+
+- Phase 10 plan revised with the owner on #85 (M47–M53; Matlådor, comparison, ratios, workout import
+  parked under Later).
+- "+ Snabblogga kcal" in the search → QuickAdd.tsx (lazy): energy required, macros optional, name.
+  Stored as a hidden custom food (`deleted: true, quick: true`, per100g = one portion) + an entry of
+  1 portion (100 g); `addQuickEntry` in state.ts skips usage; the shopping list skips quick foods.
+- Diary E%: `energySplit(…, kcal)` uses the total energy when macros explain > 10 % less.
+- Day mark three-way: `DayMark.skip` (backup-validated), `dayState`/`markDay` in state,
+  `dayStatesBetween` → `DayIntake.skip`; `countedDays` leaves skipped days out of the median too.
+  Older app versions would read a skip mark as complete until they update (web app: next start).
+- Tests: unit 272 ✓, build ✓ (31.7 KB), e2e 189 ✓ (new quick.spec; quick add in a11y), Lighthouse ✓.
+
 ## 2026-11-05 — M46 Polish pass (interactive session)
 
 - Words: "logga" for food (no "registrera"), "Energimål per dag (kcal)" for the typed target; shorter

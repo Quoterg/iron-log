@@ -40,3 +40,36 @@ export async function richestFoods(key: string, sources: string[], n = 10): Prom
     .sort((a, b) => b[3] - a[3])
     .slice(0, n);
 }
+
+/** A ranked row for the nutrient page: [ref, Swedish name, English name, amount in the chosen measure]. */
+export type RankRow = TopRow;
+
+/**
+ * Everyday foods by amount per 100 kcal (M49): what gives the most of the nutrient for its energy,
+ * without spices and powders. Foods without energy (water, salt) are left out.
+ */
+export function perKcal(rows: EverydayRow[], n = 10): RankRow[] {
+  return dedupe(rows.filter((r) => r[4] > 0).map((r) => [r[0], r[1], r[2], (r[3] / r[4]) * 100] as RankRow), n);
+}
+
+/**
+ * Foods by amount per 10 kr (M49), from the everyday and richest lists, with the user's own price
+ * before the typical one (kr/kg). Foods without a price are left out.
+ */
+export function perKrona(rows: (TopRow | EverydayRow)[], krPerKg: (ref: string) => number | undefined, n = 10): RankRow[] {
+  const out: RankRow[] = [];
+  for (const r of rows) {
+    const kr = krPerKg(r[0]);
+    if (kr && kr > 0) out.push([r[0], r[1], r[2], (r[3] * 100) / kr]); // per 100 g ÷ (kr per 100 g) × 10 kr
+  }
+  return dedupe(out, n);
+}
+
+/** Largest first, each food once. */
+function dedupe(rows: RankRow[], n: number): RankRow[] {
+  const seen = new Set<string>();
+  return rows
+    .sort((a, b) => b[3] - a[3])
+    .filter((r) => !seen.has(r[0]) && seen.add(r[0]))
+    .slice(0, n);
+}

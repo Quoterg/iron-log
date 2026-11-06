@@ -418,9 +418,80 @@ heights and taps for common tasks, before → after.
   "Energimål" heading on its page. axe (light + dark) and 200 % now also cover the Settings overview,
   Profil & mål, Funktioner with details open, the library and the empty 7-day page. M44 review nits done.
 
+## Phase 10 — Everyday flow, deeper nutrition & Iron Notes bridge (M47–M53)
+
+Every milestone keeps Phase 9's rules (one job per screen, details on request, opt-in and off by
+default for advice, no extra diary lines unless used) and the performance budget (initial JS ≤ 40 KB
+gzip, CSS ≤ 8 KB, food data ≤ 250 KB per file; new screens and strings in lazy chunks).
+
+Revised 2026-11-06 with the owner from the first proposal (M47–M55): seven milestones in order of
+everyday value. Moved to "Later": meal-prep leftovers, side-by-side comparison, nutrient ratios
+without an NNR target, Iron Notes workouts → activities (see there for why). Held items (M18d, M19c,
+M22, M37) stay held until the owner asks.
+
+- [x] **M47 Quick-add energy & macros; an incomplete day can be marked** — eating out shouldn't need a
+  permanent custom food, and a half-logged day must not drag the adaptive estimate down.
+  - "Snabblogga" in the meal's `⋯` menu and at the bottom of the search: energy (required) and
+    optional protein/carbs/fat and name. The values live in a hidden custom food (`deleted` +
+    `quick`, one portion = 100 g; micronutrients unknown), removed with its last entry; skipped by
+    usage, the usual meal and the shopping list. Editable like any entry.
+  - The day mark becomes three-way where it already lives: auto (as today: days under 60 % of the
+    typical intake are left out) / complete (always counts) / incomplete (never counts), on the same
+    button; `countedDays()` and "Varför?" respect it.
+  - Tests: unit (vector, coverage, countedDays with the three states, backup/sync validation), e2e
+    (quick entry → totals; mark incomplete → left out of the estimate), axe + 200 %.
+  Done: "+ Snabblogga kcal" at the bottom of the search (every meal's "+ Lägg till" leads there; the
+  meal's ⋯ only exists once it has food). The values live in a custom food created `deleted` (+
+  `quick`): hidden from search and the library in every app version, names, backup, sync, CSV and the
+  food screen work unchanged; one portion = 100 g, so "0,5 portion" halves it. Not in usage or the
+  shopping list. E% in the diary is of the total energy when the macros explain > 10 % less (else a
+  quick entry with only protein showed "100 E%"). The day mark: two chips "Dagen är komplett" /
+  "Ofullständig dag" (`DayMark.skip`); an incomplete day neither counts nor shapes the typical intake.
+- [x] **M48 Move an entry; add several at once** — "Flytta till…" (date and meal) on the entry's own
+  screen, one transaction with tombstones; "Välj flera" in the search: tap rows in Recent/Favourites/
+  results at their remembered amounts, then "Lägg till N (… kcal)" logs them in one batch.
+  Done: moving needed nothing new — the entry's screen already has Måltid and Datum, and Spara moves
+  it (now covered by an e2e test). "Välj flera" (a chip under the search field): rows toggle with ✓
+  and an accent edge, each at the amount the food screen would open with (`initialAmount`), the
+  selection survives typing, and a sticky "Lägg till N (… kcal)" logs them with one write
+  (`addEntries`, usage updated once). Saved meals and the create buttons hide while picking.
+- [x] **M49 Richest foods per kcal and per krona** — on a nutrient's screen ("Rikast"), chips Per
+  100 g · Per 100 kcal (everyday foods, from `everyday.<hash>.json`) · Per krona (with Matkostnad on;
+  own price before typical price, foods without a price left out). Ends the spice-and-powder list.
+  Done: Per 100 g · Per 100 kcal · Per 10 kr (round numbers: "11 mg per 10 kr"); per 10 kr pools
+  the everyday and richest rows; `perKcal`/`perKrona` in top.ts, pure and tested. Iron per 100 g is
+  led by blodbröd and dried turmeric; per 100 kcal brings everyday foods such as raspberries forward.
+  No new data files; all in the lazy nutrient screen.
+- [ ] **M50 Split a logged recipe; pick parts of a saved meal** — "Dela upp i ingredienser" on a logged
+  recipe replaces it with its ingredients scaled by `grams / (cookedWeightG ?? totalG)` in one
+  transaction (the recipe itself unchanged); "Välj delar" on a saved meal logs a ticked subset.
+- [ ] **M51 Seasonal supplements** — a supplement can be "Året runt" or "Vinterhalvåret (okt–mar)";
+  outside its season it leaves the diary's checklist without being deleted. No vitamin D nudge: the
+  advice for supplements depends on the person (Livsmedelsverket), the app doesn't push one.
+- [ ] **M52 Food-based goals: wholegrain and fruit & vegetables** — in Näringsämnen, one folded row
+  "Kostmönster": wholegrain g/day against ≥ 90 g (NNR 2023 / Livsmedelsverket; the `wholegrain`
+  nutrient exists) and fruit, vegetables & berries g/day against ≥ 500 g. The second needs a food
+  group per food: added in the data build (Livsmedelsverket's classification; USDA by food group),
+  potatoes and dry legumes out, juice counted up to 1 dl. Optional: an iron + vitamin C pairing line
+  in the suggestions when iron is short. No ratio figures without an NNR target.
+- [ ] **M53 Iron Notes bridge: body measurements and diet phase** — import an Iron Notes backup
+  (`app: 'iron-notes'`, `version: 1`) in Utseende, data & om: its `body` entries are generic measures
+  (`metricId` → `metrics` with a kind and unit, possibly lb/in), mapped to weight/fat %/waist by kind
+  and converted; only dates without that value are filled; a preview before writing; the diet phase
+  (`cut`/`maintain`/`build`) offered as the goal. Mirrors Iron Notes' own Iron Log import (its M30).
+
 ## Later — ideas, not scheduled
 
 Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.
+
+- **Meal-prep leftovers ("Matlådor")** (from the Phase 10 proposal): a portion counter on a recipe,
+  counted down as portions are logged. Parked: a counter changed on two synced devices needs conflict
+  rules for modest gain.
+- **Side-by-side food comparison**: overlaps with "Vad händer om" and the swap suggestions.
+- **Potassium : sodium and omega-6 : omega-3 ratios**: NNR 2023 sets no target for them.
+- **Iron Notes workouts → activities**: Iron Notes' sets carry no time span (only an `order` stamp,
+  and routine sets are created together), so session length and kcal would be guesses, and would
+  double-count activities logged by hand.
 
 - **Athlete option (was M39 "Träningsdagar")** — an opt-in mode for people who train a lot:
   training/rest-day energy targets (the weekly total stays the same, carbohydrates carry most of the

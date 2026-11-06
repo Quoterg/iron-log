@@ -203,6 +203,10 @@ describe('totals', () => {
     const s = energySplit(25, 50, 0, 0);
     expect(s.protein).toBeCloseTo(1 / 3);
     expect(energySplit(0, 0, 0, 0).fat).toBe(0);
+    // Energy the macros don't explain (a quick entry without them, M47): shares of the total.
+    expect(energySplit(35, 0, 0, 0, 900).protein).toBeCloseTo(140 / 900);
+    // Ordinary foods: kcal close to the macros' sum (fibre, rounding) keeps the shares adding to 1.
+    expect(energySplit(25, 50, 0, 0, 310).protein).toBeCloseTo(1 / 3);
   });
   it('steps dates across month ends', () => {
     expect(addDays('2026-01-31', 1)).toBe('2026-02-01');

@@ -277,6 +277,11 @@ input[type='number'], input[type='text'], input[type='search'], select {
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
 .grid2 input, .grid2 select { width: 100%; min-width: 0; }
 .grid2 > :only-child { grid-column: 1 / -1; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 10px; }
+.grid3 input { width: 100%; min-width: 0; }
+.multi-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding-top: 0; }
+.result.on { box-shadow: inset 4px 0 0 var(--accent); }
+.multi-bar { position: sticky; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--bar); border-top: 1px solid var(--line); }
 .field span { font-size: 0.85rem; }
 .field input { width: 100%; }
 .field.error input, input[aria-invalid='true'] { border-color: var(--over); }

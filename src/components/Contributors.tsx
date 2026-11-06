@@ -3,7 +3,8 @@ import { entriesBetween, type Entry } from '../lib/db';
 import { dataLang, fmt, fmtAmount, lang, nutrientName, t } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
 import { contributors } from '../lib/report';
-import { richestFoods, type TopRow } from '../lib/top';
+import { everydayFoods, perKcal, perKrona, richestFoods, type RankRow, type TopRow } from '../lib/top';
+import { ensurePriceBook, priceBook } from '../lib/cost';
 import { activeSources, ensureFoods, entries as dayEntries, foods, periodCache, settings, targets } from '../state';
 import { open } from '../nav';
 import { Sheet } from './Sheet';
@@ -17,15 +18,30 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
   const cached = periodCache.value?.key === `${from}|${to}` ? periodCache.value.entries : from === to ? dayEntries.value : null;
   const [list, setList] = useState<Entry[] | null>(cached);
   const [rich, setRich] = useState<TopRow[] | null>(null);
+  // Per 100 g (the databases' richest), per 100 kcal (everyday foods) or per 10 kr (M49).
+  const costs = !!settings.value.costs;
+  const [measure, setMeasure] = useState<Measure>('g');
+  const shown = measure === 'kr' && !costs ? 'g' : measure;
+  const book = shown === 'kr' ? priceBook.value : null;
+  useEffect(() => void (shown === 'kr' && ensurePriceBook()), [shown]);
   useEffect(() => {
     let live = true;
     setRich(null);
-    void richestFoods(nutrient, activeSources(settings.value)).then(
+    const sources = activeSources(settings.value);
+    const load = async (): Promise<RankRow[]> => {
+      if (shown === 'g') return richestFoods(nutrient, sources);
+      const everyday = await everydayFoods(nutrient, sources);
+      if (shown === 'kcal') return perKcal(everyday);
+      if (!book) return [];
+      const all = [...everyday, ...(await richestFoods(nutrient, sources))];
+      return perKrona(all, (ref) => book.own.get(ref) ?? book.typical.get(ref));
+    };
+    void load().then(
       (r) => live && setRich(r),
       () => live && setRich([]),
     );
     return () => void (live = false);
-  }, [nutrient]);
+  }, [nutrient, shown, book]);
   useEffect(() => {
     if (cached) return;
     let live = true;
@@ -64,7 +80,14 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
           })}
         </ul>
         <h3>{t('richestFoods')}</h3>
-        {!rich && <p class="muted">{t('loading')}</p>}
+        <div class="chips" role="group" aria-label={t('richestFoods')}>
+          {MEASURES.filter(([m]) => m !== 'kr' || costs).map(([m, label]) => (
+            <button key={m} class={shown === m ? 'chip on' : 'chip'} aria-pressed={shown === m} onClick={() => setMeasure(m)}>
+              {t(label)}
+            </button>
+          ))}
+        </div>
+        {(!rich || (shown === 'kr' && !book)) && <p class="muted">{t('loading')}</p>}
         {rich?.length === 0 && <p class="muted">{t('noRichest')}</p>}
         <ul class="entries">
           {rich?.map(([ref, sv, en, value]) => (
@@ -78,11 +101,19 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
             </li>
           ))}
         </ul>
-        <p class="muted small">{t('richestNote')}</p>
+        <p class="muted small">{t(NOTE[shown])}</p>
       </div>
     </Sheet>
   );
 }
+
+type Measure = 'g' | 'kcal' | 'kr';
+const MEASURES = [
+  ['g', 'measureG'],
+  ['kcal', 'measureKcal'],
+  ['kr', 'measureKr'],
+] as const;
+const NOTE = { g: 'richestNote', kcal: 'richestKcalNote', kr: 'richestKrNote' } as const;
 
 function TargetText({ k, unit }: { k: string; unit: string }) {
   const tg = targets.value[k];
