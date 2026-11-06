@@ -20,6 +20,14 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-06 — M51 Seasonal supplements (interactive session)
+
+- supplements.ts `inSeason` (Oct–Mar for `season: 'winter'`), used by `scheduledOn` and the diary's
+  as-needed list; editor radio "Året runt / Vinterhalvåret"; a resting line on an empty card.
+- M49 review nits (on #89's branch): no empty-list flash while prices load, retry when they fail
+  (`priceBookFailed`), clearer per-10-kr note.
+- Tests: unit 280 ✓, build ✓ (32.4 KB), e2e 201 ✓ (winter supplement with a pinned clock), Lighthouse ✓.
+
 ## 2026-11-06 — M50 Split a recipe; part of a saved meal (interactive session)
 
 - recipes.ts `splitRecipe` (pure), db `replaceEntry` (one transaction), state `splitEntry`; FoodDetail

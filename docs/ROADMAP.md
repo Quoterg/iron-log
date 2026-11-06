@@ -470,9 +470,13 @@ M22, M37) stay held until the owner asks.
   the entry (tombstone + new entries, same meal and place). It uses the recipe as it is now (an
   edited recipe splits into its new ingredients) and asks first. "Välj delar" (saved meals with more
   than one food): all ticked, "Lägg till N av M"; counts as using the saved meal.
-- [ ] **M51 Seasonal supplements** — a supplement can be "Året runt" or "Vinterhalvåret (okt–mar)";
+- [x] **M51 Seasonal supplements** — a supplement can be "Året runt" or "Vinterhalvåret (okt–mar)";
   outside its season it leaves the diary's checklist without being deleted. No vitamin D nudge: the
   advice for supplements depends on the person (Livsmedelsverket), the app doesn't push one.
+  Done: "När på året" in the supplement editor (`SupplementInfo.season: 'winter'`, validated in
+  backup/sync; older versions drop it and show the supplement all year). `inSeason` gates the
+  checklist and the as-needed list; a winter supplement taken anyway still shows that day. When
+  nothing else is on the card: "1 vintertillskott tillbaka i oktober." Edited from the library.
 - [ ] **M52 Food-based goals: wholegrain and fruit & vegetables** — in Näringsämnen, one folded row
   "Kostmönster": wholegrain g/day against ≥ 90 g (NNR 2023 / Livsmedelsverket; the `wholegrain`
   nutrient exists) and fruit, vegetables & berries g/day against ≥ 500 g. The second needs a food

@@ -43,3 +43,23 @@ test('a supplement scheduled for other weekdays stays off today’s checklist; t
   await page.getByRole('button', { name: 'Spara' }).click();
   await expect(page.getByText('Välj minst en dag.')).toBeVisible();
 });
+
+test('a winter supplement (M51) rests in summer and is on the checklist October–March', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-06-15T09:00:00'));
+  await page.goto('./');
+  await page.getByRole('button', { name: '+ Kosttillskott' }).click();
+  await page.getByLabel('Namn', { exact: true }).fill('D-vitamin');
+  await page.getByLabel('Vinterhalvåret (okt–mar)').check();
+  await page.getByRole('button', { name: 'Spara' }).click();
+  // June: not on the checklist, and the card says why.
+  await expect(card(page)).not.toContainText('D-vitamin');
+  await expect(card(page)).toContainText('1 vintertillskott tillbaka i oktober.');
+
+  // November: on the checklist again, nothing deleted.
+  await page.clock.setFixedTime(new Date('2026-11-16T09:00:00'));
+  await page.reload();
+  await expect(card(page)).toContainText('D-vitamin');
+  await expect(card(page)).not.toContainText('tillbaka i oktober');
+  await card(page).getByRole('button', { name: /D-vitamin/ }).click();
+  await expect(page.getByLabel('Vinterhalvåret (okt–mar)')).toBeChecked();
+});

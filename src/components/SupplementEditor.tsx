@@ -33,6 +33,7 @@ export default function SupplementEditor(props: { foodRef?: string }) {
   // Kept while "per day" is 0 (hidden), so switching back restores the selection; only saved for daily ones.
   const [days, setDays] = useState<number[]>(existing?.supplement?.days ?? [0, 1, 2, 3, 4, 5, 6]);
   const [time, setTime] = useState<SupplementTime | ''>(existing?.supplement?.time ?? '');
+  const [winter, setWinter] = useState(existing?.supplement?.season === 'winter');
   // Raw text per nutrient, kept outside state: typing doesn't re-render the ~40 fields.
   const vals = useRef<Record<string, string>>(
     Object.fromEntries(NUTRIENTS.map((n, i) => [n.key, perUnit[i] == null ? '' : inputNum(+perUnit[i]!.toPrecision(6))])),
@@ -78,6 +79,7 @@ export default function SupplementEditor(props: { foodRef?: string }) {
         perDay,
         ...(perDay > 0 && normalizeDays(days) ? { days: normalizeDays(days) } : {}),
         ...(time ? { time } : {}),
+        ...(winter ? { season: 'winter' as const } : {}),
       },
     });
     back();
@@ -156,6 +158,18 @@ export default function SupplementEditor(props: { foodRef?: string }) {
             ))}
           </select>
         </label>
+        {/* E.g. vitamin D in the dark half of the year (M51): off the checklist in summer, not deleted. */}
+        <fieldset class="modes">
+          <legend>{t('supplementSeason')}</legend>
+          <label class="check">
+            <input type="radio" name="season" checked={!winter} onChange={() => setWinter(false)} />
+            {t('seasonAll')}
+          </label>
+          <label class="check">
+            <input type="radio" name="season" checked={winter} onChange={() => setWinter(true)} />
+            {t('seasonWinter')}
+          </label>
+        </fieldset>
 
         <h3>{t('supplementPerUnit').replace('{unit}', unit.trim() || t('supplementUnitDefault'))}</h3>
         <div class="grid2">{NUTRIENTS.filter(isMain).map((n) => field(n.key))}</div>
