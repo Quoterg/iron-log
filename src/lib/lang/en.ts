@@ -281,6 +281,7 @@ const strings: Dict = {
   pickParts: 'Pick parts',
   addParts: 'Add {n} of {m}',
   splitConfirm: 'Replace {name} with its ingredients in this meal, so you can change them here? The recipe stays as it is.',
+  splitConfirmChanged: 'The recipe {name} has changed since you logged it. The ingredients will be today’s version, so this meal’s values change. Split anyway?',
   pickSeveral: 'Pick several',
   pickSeveralNote: 'Tap the foods; each is added in your usual amount.',
   addPicked: 'Add {n} ({kcal} kcal)',

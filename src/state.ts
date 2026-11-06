@@ -212,8 +212,14 @@ export async function splitEntry(id: string): Promise<number> {
   if (!parts.length) return 0;
   await ensureFoods(parts.map((p) => p.foodRef));
   const added: Entry[] = parts.map((p, i) => ({ id: db.newId(), date: e.date, meal: e.meal, foodRef: p.foodRef, createdAt: e.createdAt + i, ...measure(p) }));
-  entries.value = entries.value.flatMap((x) => (x.id === id ? added : [x]));
-  await db.replaceEntry(id, added);
+  const before = entries.value;
+  entries.value = before.flatMap((x) => (x.id === id ? added : [x]));
+  try {
+    await db.replaceEntry(id, added);
+  } catch (err) {
+    entries.value = before; // nothing was written: show what is stored
+    throw err;
+  }
   return added.length;
 }
 

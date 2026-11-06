@@ -120,3 +120,16 @@ export function splitRecipe(grams: number, r: Pick<StoredRecipe, 'ingredients' |
     return [qty > 0 ? { foodRef: i.foodRef, grams: g, unit: i.unit, qty } : { foodRef: i.foodRef, grams: g }];
   });
 }
+
+/**
+ * Whether a recipe's values changed since an entry was logged (its `snap`, M50 review): splitting
+ * then uses today's ingredients, so that meal's values change. Compared to 0.1 % (rounding).
+ */
+export function changedSince(snap: (number | null)[] | undefined, now: (number | null)[]): boolean {
+  if (!snap) return false;
+  return now.some((v, i) => {
+    const a = snap[i] ?? null;
+    if (a === null || v === null) return a !== v;
+    return Math.abs(a - v) > 0.001 * Math.max(Math.abs(a), Math.abs(v), 1e-9);
+  });
+}
