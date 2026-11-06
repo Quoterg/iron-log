@@ -118,8 +118,10 @@ export interface EnergyChange {
   seen?: boolean;
 }
 
-/** A day the user marked complete (everything eaten is logged): the adaptive estimate trusts it. */
-/** A day marked by hand for the adaptive estimate: complete (always counts) or, with `skip`, incomplete (never counts; M47). */
+/**
+ * A day marked by hand for the adaptive estimate: complete (everything eaten is logged; always
+ * counts) or, with `skip`, incomplete (never counts; M47).
+ */
 export interface DayMark {
   date: string;
   updatedAt: number;
@@ -637,6 +639,28 @@ export async function deleteEntries(ids: string[]): Promise<void> {
     ...ids.flatMap((id) => [tx.objectStore('entries').delete(id), tx.objectStore('meta').put({ mt, del: true }, metaKey('entries', id))]),
     tx.done,
   ]);
+}
+
+/**
+ * Which of these food refs an entry or a saved meal still uses (M47: a quick entry's food goes with
+ * its last entry). Walks the entries once, stopping when all are found; only called for quick foods.
+ */
+export async function refsInUse(refs: string[]): Promise<Set<string>> {
+  const want = new Set(refs);
+  const used = new Set<string>();
+  const d = await db();
+  for (const t of await d.getAll('templates')) for (const i of t.items) if (want.has(i.foodRef)) used.add(i.foodRef);
+  let cursor = await d.transaction('entries').store.openCursor();
+  while (cursor && used.size < want.size) {
+    if (want.has(cursor.value.foodRef)) used.add(cursor.value.foodRef);
+    cursor = await cursor.continue();
+  }
+  return used;
+}
+
+/** Remove a custom food for good (a quick entry's, once unused), as a deletion that syncs. */
+export async function removeCustomFood(ref: string): Promise<void> {
+  await del('customFoods', ref);
 }
 
 export async function getSettings(): Promise<Settings | undefined> {

@@ -77,3 +77,26 @@ test('a day can be marked complete or incomplete for the adaptive estimate (M47)
   await expect(incomplete).toHaveAttribute('aria-pressed', 'false');
   await expect(complete).toHaveAttribute('aria-pressed', 'false');
 });
+
+test('a quick entry\'s food goes with its last entry (M47 review)', async ({ page }) => {
+  page.on('dialog', (d) => d.accept());
+  await page.goto('./');
+  await meal(page, 0).getByRole('button', { name: /Lägg till/ }).click();
+  await page.getByRole('button', { name: '+ Snabblogga kcal' }).click();
+  await page.getByLabel('Energi (kcal)').fill('300');
+  await page.getByRole('dialog').getByRole('button', { name: 'Snabblogga kcal' }).click();
+  const quickFoods = () =>
+    page.evaluate(async () => {
+      const req = indexedDB.open('iron-log');
+      const db: IDBDatabase = await new Promise((ok) => (req.onsuccess = () => ok(req.result)));
+      const all = db.transaction('customFoods').objectStore('customFoods').getAll();
+      const list = await new Promise<{ quick?: boolean }[]>((ok) => (all.onsuccess = () => ok(all.result)));
+      db.close();
+      return list.filter((f) => f.quick).length;
+    });
+  await expect.poll(quickFoods, { timeout: 15_000 }).toBe(1);
+  await meal(page, 0).locator('.entry').click();
+  await page.getByRole('button', { name: 'Ta bort', exact: true }).click();
+  await expect(meal(page, 0).locator('.entry')).toHaveCount(0);
+  await expect.poll(quickFoods, { timeout: 15_000 }).toBe(0);
+});

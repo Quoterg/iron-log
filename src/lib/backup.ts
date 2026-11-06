@@ -66,7 +66,11 @@ function customFood(x: unknown): CustomFood {
   ) {
     const f: CustomFood = { ref: x.ref, sv: x.sv, en: x.en, per100g: x.per100g, createdAt: x.createdAt, updatedAt: x.updatedAt };
     if (x.deleted === true) f.deleted = true;
-    if (x.quick === true) f.quick = true;
+    // A quick entry's food is always hidden (a hand-edited backup can't show it in the library).
+    if (x.quick === true) {
+      f.quick = true;
+      f.deleted = true;
+    }
     if (x.supplement !== undefined) {
       const s = x.supplement;
       if (!isObj(s) || !isStr(s.unit, 30) || !s.unit.trim() || !isNum(s.perDay) || s.perDay < 0 || s.perDay > 100) {

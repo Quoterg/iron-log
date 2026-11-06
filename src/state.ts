@@ -180,15 +180,29 @@ export async function updateEntry(id: string, patch: EntryPatch): Promise<void> 
 }
 
 export async function removeEntry(id: string): Promise<void> {
-  entries.value = entries.value.filter((x) => x.id !== id);
-  await db.deleteEntry(id);
+  await removeEntries([id]);
 }
 
 /** Remove several entries at once (a whole meal, M41), in one transaction: never half a meal. */
 export async function removeEntries(ids: string[]): Promise<void> {
   const gone = new Set(ids);
+  const quick = [...new Set(entries.value.filter((x) => gone.has(x.id) && quickRefs.value.has(x.foodRef)).map((x) => x.foodRef))];
   entries.value = entries.value.filter((x) => !gone.has(x.id));
   await db.deleteEntries(ids);
+  if (quick.length) await dropUnusedQuick(quick);
+}
+
+/** Quick entries' foods (M47), hidden: skipped by usage and the shopping list. */
+export const quickRefs = computed(() => new Set(customFoods.value.filter((f) => f.quick).map((f) => f.ref)));
+
+/** A quick entry's food goes with its last entry (and saved meal), so they don't pile up (M47 review). */
+async function dropUnusedQuick(refs: string[]): Promise<void> {
+  const used = await db.refsInUse(refs);
+  const drop = new Set(refs.filter((r) => !used.has(r)));
+  if (!drop.size) return;
+  customFoods.value = customFoods.value.filter((f) => !drop.has(f.ref));
+  syncCustomFoods();
+  for (const r of drop) await db.removeCustomFood(r);
 }
 
 export async function loadSettings(): Promise<void> {
@@ -536,7 +550,7 @@ export async function logItems(meal: Meal, items: MealTemplate['items']): Promis
   if (!list.length) return 0;
   entries.value = [...entries.value, ...list];
   await db.putEntries(list);
-  await recordUses(list.map((e) => [e.foodRef, e]));
+  await recordUses(list.filter((e) => !quickRefs.value.has(e.foodRef)).map((e) => [e.foodRef, e]));
   return list.length;
 }
 
