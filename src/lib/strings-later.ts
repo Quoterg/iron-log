@@ -190,7 +190,7 @@ export const SV_LATER = {
   measureKcal: 'Per 100 kcal',
   measureKr: 'Per 10 kr',
   richestKcalNote: 'Vardagsmat: mest av näringsämnet för energin.',
-  richestKrNote: 'Mest för pengarna, med dina egna priser före typpriserna. Livsmedel utan pris visas inte.',
+  richestKrNote: 'Mest för pengarna bland de rikaste livsmedlen och vardagsmaten, med dina egna priser före typpriserna. Livsmedel utan pris visas inte.',
   noRichest: 'Inga livsmedel i de valda databaserna har värden för detta.',
   noTarget: 'inget mål',
   createRecipe: 'Skapa recept',

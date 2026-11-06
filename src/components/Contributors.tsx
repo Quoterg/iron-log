@@ -4,7 +4,7 @@ import { dataLang, fmt, fmtAmount, lang, nutrientName, t } from '../lib/i18n';
 import { foodName, NUTRIENT_INDEX, NUTRIENTS } from '../lib/nutrients';
 import { contributors } from '../lib/report';
 import { everydayFoods, perKcal, perKrona, richestFoods, type RankRow, type TopRow } from '../lib/top';
-import { ensurePriceBook, priceBook } from '../lib/cost';
+import { ensurePriceBook, priceBook, priceBookFailed } from '../lib/cost';
 import { activeSources, ensureFoods, entries as dayEntries, foods, periodCache, settings, targets } from '../state';
 import { open } from '../nav';
 import { Sheet } from './Sheet';
@@ -27,14 +27,14 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
   useEffect(() => {
     let live = true;
     setRich(null);
+    if (shown === 'kr' && !book) return; // shown as loading (or failed) until the prices are in
     const sources = activeSources(settings.value);
     const load = async (): Promise<RankRow[]> => {
       if (shown === 'g') return richestFoods(nutrient, sources);
       const everyday = await everydayFoods(nutrient, sources);
       if (shown === 'kcal') return perKcal(everyday);
-      if (!book) return [];
       const all = [...everyday, ...(await richestFoods(nutrient, sources))];
-      return perKrona(all, (ref) => book.own.get(ref) ?? book.typical.get(ref));
+      return perKrona(all, (ref) => book!.own.get(ref) ?? book!.typical.get(ref));
     };
     void load().then(
       (r) => live && setRich(r),
@@ -87,7 +87,16 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
             </button>
           ))}
         </div>
-        {(!rich || (shown === 'kr' && !book)) && <p class="muted">{t('loading')}</p>}
+        {!rich && (shown === 'kr' && !book && priceBookFailed.value ? (
+          <p class="muted small">
+            {t('loadFailed')}{' '}
+            <button class="link inline" onClick={ensurePriceBook}>
+              {t('retry')}
+            </button>
+          </p>
+        ) : (
+          <p class="muted">{t('loading')}</p>
+        ))}
         {rich?.length === 0 && <p class="muted">{t('noRichest')}</p>}
         <ul class="entries">
           {rich?.map(([ref, sv, en, value]) => (

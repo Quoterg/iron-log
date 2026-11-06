@@ -260,7 +260,7 @@ const strings: Dict = {
   measureKcal: 'Per 100 kcal',
   measureKr: 'Per 10 kr',
   richestKcalNote: 'Everyday foods: the most of the nutrient for the energy.',
-  richestKrNote: 'The most for the money, with your own prices before typical ones. Foods without a price are not shown.',
+  richestKrNote: 'The most for the money among the richest and everyday foods, with your own prices before typical ones. Foods without a price are not shown.',
   noRichest: 'No foods in the selected databases have values for this.',
   noTarget: 'no target',
   createRecipe: 'Create recipe',
