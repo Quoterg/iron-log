@@ -214,6 +214,7 @@ export const SV_LATER = {
   pickParts: 'Välj delar',
   addParts: 'Lägg till {n} av {m}',
   splitConfirm: 'Byta ut {name} mot dess ingredienser i den här måltiden, så att du kan ändra dem här? Receptet ändras inte.',
+  splitConfirmChanged: 'Receptet {name} har ändrats sedan du loggade det. Ingredienserna blir dagens version, så den här måltidens värden ändras. Dela upp ändå?',
   pickSeveral: 'Välj flera',
   pickSeveralNote: 'Tryck på livsmedlen; de läggs till med din vanliga mängd.',
   addPicked: 'Lägg till {n} ({kcal} kcal)',

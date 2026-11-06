@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
-import { recipeNutrition, recipeToFood, splitRecipe, type Recipe } from './recipes';
+import { changedSince, recipeNutrition, recipeToFood, splitRecipe, type Recipe } from './recipes';
 
 function food(ref: string, values: Record<string, number>): Food {
   const v = NUTRIENTS.map(() => null as number | null);
@@ -66,5 +66,15 @@ describe('splitRecipe (M50)', () => {
   it('nothing for no amount or a recipe without weight', () => {
     expect(splitRecipe(0, r)).toEqual([]);
     expect(splitRecipe(100, { ...r, totalG: 0 })).toEqual([]);
+  });
+});
+
+describe('changedSince (M50 review)', () => {
+  it('tells an edited recipe from rounding; no snapshot means nothing to compare', () => {
+    expect(changedSince([155.5, 6.1, null], [155.5, 6.1, null])).toBe(false);
+    expect(changedSince([155.5, 6.1, null], [155.55, 6.1, null])).toBe(false); // 0.03 %
+    expect(changedSince([155.5, 6.1, null], [120, 5, null])).toBe(true);
+    expect(changedSince([155.5, 6.1, null], [155.5, 6.1, 2])).toBe(true); // a nutrient now known
+    expect(changedSince(undefined, [120])).toBe(false);
   });
 });

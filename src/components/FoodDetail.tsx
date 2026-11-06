@@ -7,6 +7,7 @@ import { decimalComma, fmt, fmtAmount, lang, parseNum, t, unitLabel } from '../l
 import { GRAMS, initialAmount, servingsFor, toGrams } from '../lib/servings';
 import { foodName, NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { scale } from '../lib/totals';
+import { changedSince } from '../lib/recipes';
 import { back, backTo, closeAll, open } from '../nav';
 import { entryVector } from '../lib/db';
 import {
@@ -266,8 +267,17 @@ export default function FoodDetail(props: {
             type="button"
             class="btn wide"
             onClick={async () => {
-              if (!confirm(t('splitConfirm').replace('{name}', foodName(food, lang.value)))) return;
-              if (await splitEntry(entry.id)) back();
+              if (busy.current) return;
+              // An entry keeps the recipe's values as logged; if the recipe changed since, say so.
+              const r = recipes.value.find((x) => x.ref === ref);
+              const changed = changedSince(entry.snap, r?.per100g ?? []);
+              if (!confirm(t(changed ? 'splitConfirmChanged' : 'splitConfirm').replace('{name}', foodName(food, lang.value)))) return;
+              busy.current = true;
+              try {
+                if (await splitEntry(entry.id)) back();
+              } finally {
+                busy.current = false;
+              }
             }}
           >
             {t('splitRecipe')}

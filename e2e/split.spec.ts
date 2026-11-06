@@ -78,3 +78,31 @@ test('part of a saved meal can be logged (M50): all ticked, untick what isn\'t e
   await expect(meal(page, 1).locator('.entry')).toHaveCount(1);
   await expect(meal(page, 1).locator('.entry')).toContainText(/Havregryn.*60 g/);
 });
+
+test('splitting a recipe that changed since it was logged says so first (M50 review)', async ({ page }) => {
+  const messages: string[] = [];
+  page.on('dialog', (d) => (messages.push(d.message()), d.accept()));
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
+  await page.getByRole('button', { name: '+ Skapa recept' }).click();
+  await page.getByLabel('Namn', { exact: true }).fill('Gröt');
+  await addIngredient(page, 'havregryn', /^Havregryn fullkorn/, 'g', '100');
+  await page.getByRole('button', { name: 'Spara', exact: true }).click();
+  await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
+  await meal(page, 0).getByRole('button', { name: /Lägg till/ }).click();
+  await page.getByPlaceholder(/Sök livsmedel/).fill('gröt');
+  await page.locator('.result', { hasText: 'Recept' }).first().click();
+  await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
+
+  // Edit the recipe afterwards (from the library): another ingredient changes its values per 100 g.
+  await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
+  await page.locator('.settings-menu .entry', { hasText: 'Mina livsmedel, recept & måltider' }).click();
+  await page.getByRole('button', { name: /^Gröt/ }).click();
+  await addIngredient(page, 'mjölk', /^Mjölk fett 3%/, 'dl', '3');
+  await page.getByRole('button', { name: 'Spara', exact: true }).click();
+  await page.getByRole('button', { name: 'Dagbok', exact: true }).click();
+  await meal(page, 0).locator('.entry').click();
+  await page.getByRole('button', { name: 'Dela upp i ingredienser' }).click();
+  await expect.poll(() => messages.at(-1)).toMatch(/har ändrats sedan du loggade det/);
+});
