@@ -4,6 +4,7 @@ import { topK } from '../../scripts/top.mjs';
 import { rowToFood } from './food-row';
 import { NUTRIENTS } from './nutrients';
 import TOP from './top.json';
+import { perKcal, perKrona, type EverydayRow, type TopRow } from './top';
 
 describe('topK', () => {
   const v = (x: number | null) => x;
@@ -47,5 +48,27 @@ describe('precomputed top file', () => {
         expect(top.sources[source][key].map((r) => r[3])).toEqual(expected.map((r) => r[i]));
       }
     }
+  });
+});
+
+describe('richest per 100 kcal and per 10 kr (M49)', () => {
+  // [ref, sv, en, iron mg/100 g, kcal/100 g, portion g]
+  const lentils: EverydayRow = ['slv:1', 'Linser', 'Lentils', 3.3, 116, 150];
+  const spinach: EverydayRow = ['slv:2', 'Spenat', 'Spinach', 2.7, 23, 50];
+  const water: EverydayRow = ['slv:3', 'Vatten', 'Water', 0.1, 0, 200];
+  const thyme: TopRow = ['slv:4', 'Timjan torkad', 'Thyme', 124];
+
+  it('per 100 kcal: the most for the energy, foods without energy left out', () => {
+    const r = perKcal([lentils, spinach, water]);
+    expect(r.map((x) => x[0])).toEqual(['slv:2', 'slv:1']);
+    expect(r[0][3]).toBeCloseTo((2.7 / 23) * 100);
+  });
+
+  it('per 10 kr: own or typical price, foods without one left out; each food once', () => {
+    const price = new Map([['slv:1', 30], ['slv:2', 90], ['slv:4', 2000]]);
+    const r = perKrona([lentils, spinach, thyme, lentils, water], (ref) => price.get(ref));
+    // Lentils 11 mg per 10 kr, dried thyme 6.2 (rich but dear), spinach 3.
+    expect(r.map((x) => x[0])).toEqual(['slv:1', 'slv:4', 'slv:2']);
+    expect(r[0][3]).toBeCloseTo((3.3 * 100) / 30);
   });
 });

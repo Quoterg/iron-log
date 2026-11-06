@@ -455,9 +455,13 @@ M22, M37) stay held until the owner asks.
   and an accent edge, each at the amount the food screen would open with (`initialAmount`), the
   selection survives typing, and a sticky "Lägg till N (… kcal)" logs them with one write
   (`addEntries`, usage updated once). Saved meals and the create buttons hide while picking.
-- [ ] **M49 Richest foods per kcal and per krona** — on a nutrient's screen ("Rikast"), chips Per
+- [x] **M49 Richest foods per kcal and per krona** — on a nutrient's screen ("Rikast"), chips Per
   100 g · Per 100 kcal (everyday foods, from `everyday.<hash>.json`) · Per krona (with Matkostnad on;
   own price before typical price, foods without a price left out). Ends the spice-and-powder list.
+  Done: Per 100 g · Per 100 kcal · Per 10 kr (round numbers: "11 mg per 10 kr"); per 10 kr pools
+  the everyday and richest rows; `perKcal`/`perKrona` in top.ts, pure and tested. Iron per 100 g is
+  led by blodbröd and dried turmeric; per 100 kcal brings everyday foods such as raspberries forward.
+  No new data files; all in the lazy nutrient screen.
 - [ ] **M50 Split a logged recipe; pick parts of a saved meal** — "Dela upp i ingredienser" on a logged
   recipe replaces it with its ingredients scaled by `grams / (cookedWeightG ?? totalG)` in one
   transaction (the recipe itself unchanged); "Välj delar" on a saved meal logs a ticked subset.
