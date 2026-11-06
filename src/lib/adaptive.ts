@@ -28,6 +28,8 @@ export interface DayIntake {
   date: string;
   kcal: number;
   complete: boolean;
+  /** Marked incomplete by hand (M47): never counts, and not part of the typical intake either. */
+  skip?: boolean;
   /** Some of the day's foods have no data here (e.g. a source turned off): its energy is unknown. */
   unknown?: boolean;
 }
@@ -72,7 +74,7 @@ function median(xs: number[]): number {
  * with foods of unknown energy never count (they would make intake, and so expenditure, too low).
  */
 export function countedDays(days: DayIntake[]): DayIntake[] {
-  const logged = days.filter((d) => d.kcal > 0 && !d.unknown);
+  const logged = days.filter((d) => d.kcal > 0 && !d.unknown && !d.skip);
   if (!logged.length) return [];
   const typical = median(logged.map((d) => d.kcal));
   return logged.filter((d) => d.complete || d.kcal >= ADAPTIVE.lowShare * typical);

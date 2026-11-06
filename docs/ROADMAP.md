@@ -429,7 +429,7 @@ everyday value. Moved to "Later": meal-prep leftovers, side-by-side comparison, 
 without an NNR target, Iron Notes workouts → activities (see there for why). Held items (M18d, M19c,
 M22, M37) stay held until the owner asks.
 
-- [ ] **M47 Quick-add energy & macros; an incomplete day can be marked** — eating out shouldn't need a
+- [x] **M47 Quick-add energy & macros; an incomplete day can be marked** — eating out shouldn't need a
   permanent custom food, and a half-logged day must not drag the adaptive estimate down.
   - "Snabblogga" in the meal's `⋯` menu and at the bottom of the search: energy (required) and
     optional protein/carbs/fat and name (defaults to the meal). An ordinary `Entry` with
@@ -441,6 +441,13 @@ M22, M37) stay held until the owner asks.
     button; `countedDays()` and "Varför?" respect it.
   - Tests: unit (vector, coverage, countedDays with the three states, backup/sync validation), e2e
     (quick entry → totals; mark incomplete → left out of the estimate), axe + 200 %.
+  Done: "+ Snabblogga kcal" at the bottom of the search (every meal's "+ Lägg till" leads there; the
+  meal's ⋯ only exists once it has food). The values live in a custom food created `deleted` (+
+  `quick`): hidden from search and the library in every app version, names, backup, sync, CSV and the
+  food screen work unchanged; one portion = 100 g, so "0,5 portion" halves it. Not in usage or the
+  shopping list. E% in the diary is of the total energy when the macros explain > 10 % less (else a
+  quick entry with only protein showed "100 E%"). The day mark: two chips "Dagen är komplett" /
+  "Ofullständig dag" (`DayMark.skip`); an incomplete day neither counts nor shapes the typical intake.
 - [ ] **M48 Move an entry; add several at once** — "Flytta till…" (date and meal) on the entry's own
   screen, one transaction with tombstones; "Välj flera" in the search: tap rows in Recent/Favourites/
   results at their remembered amounts, then "Lägg till N (… kcal)" logs them in one batch.

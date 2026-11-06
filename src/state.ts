@@ -4,7 +4,7 @@ import * as db from './lib/db';
 import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db';
 import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
 import { detectLang, lang, loadLang, rememberLang, t, toLang } from './lib/i18n';
-import { type Food, type NutrientVector, type Serving, dataLangOf, NUTRIENT_INDEX } from './lib/nutrients';
+import { type Food, type NutrientVector, type Serving, dataLangOf, NUTRIENT_INDEX, NUTRIENTS } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
 import type { ActivityType } from './lib/activity-types';
@@ -41,7 +41,8 @@ const USUAL_KEY = 'iron-log-usual';
 /** Dismissals of "your usual" on this device. */
 export const usualState = signal<UsualState>(readLocal(USUAL_KEY));
 /** The selected day is marked complete (only read when adaptive expenditure is on). */
-export const dayComplete = signal(false);
+/** How the selected day counts in the adaptive estimate (M25; incomplete since M47). */
+export const dayState = signal<db.DayState>('auto');
 /** Now, refreshed when the app comes back to the foreground (time-of-day suggestions). */
 export const clock = signal(Date.now());
 /** Every food referenced on screen, built-in or custom, by ref. */
@@ -100,11 +101,11 @@ export async function loadDay(d: string): Promise<void> {
   date.value = d;
   const seq = ++loadSeq;
   notice.value = null;
-  const [list, acts, water, complete] = await Promise.all([
+  const [list, acts, water, mark] = await Promise.all([
     db.entriesFor(d),
     db.activitiesFor(d),
     db.waterFor(d),
-    settings.value.adaptive ? db.isDayComplete(d) : false, // only read when adaptive expenditure is on
+    settings.value.adaptive ? db.getDayState(d) : ('auto' as const), // only read when adaptive expenditure is on
   ]);
   if (seq !== loadSeq) return;
   // The day before only matters for empty meals ("same as yesterday"): skip it when all are logged.
@@ -113,7 +114,7 @@ export async function loadDay(d: string): Promise<void> {
   if (seq !== loadSeq) return;
   entries.value = list;
   prevEntries.value = prev;
-  dayComplete.value = complete;
+  dayState.value = mark;
   dayActivities.value = acts.sort((a, b) => a.createdAt - b.createdAt);
   if (acts.length) loadActivityTypes();
   dayWater.value = water;
@@ -250,7 +251,7 @@ export async function updateSettings(patch: Partial<Settings>): Promise<void> {
   document.documentElement.lang = lang.value;
   if ('usualOff' in patch) void refreshUsual(db.isoDate(new Date()), true);
   // Turned on: show the selected day's mark (it isn't read while off).
-  if (patch.adaptive) void db.isDayComplete(date.value).then((c) => void (dayComplete.value = c));
+  if (patch.adaptive) void db.getDayState(date.value).then((m) => void (dayState.value = m));
   await db.saveSettings(settings.value);
 }
 
@@ -287,7 +288,7 @@ function syncCustomFoods() {
 
 function toFood(f: Food & { supplement?: SupplementInfo }): Food {
   const { ref, sv, en, per100g } = f;
-  const units = f.supplement ? supplementServings(f.supplement) : f.units;
+  const units = f.supplement ? supplementServings(f.supplement) : (f as CustomFood).quick ? [{ name: 'portion', g: 100 }] : f.units;
   const out: Food = units ? { ref, sv, en, per100g, units } : { ref, sv, en, per100g };
   // Search words (M36); products scanned before have at least their barcode. Older versions drop
   // `terms` on sync/backup (unknown field): forward-compatible, a new scan brings them back.
@@ -337,6 +338,7 @@ export async function saveCustomFood(input: {
     updatedAt: now,
     // Editing a deleted food (opened from an old diary entry) must not bring it back into search.
     ...(prev?.deleted ? { deleted: true } : {}),
+    ...(prev?.quick ? { quick: true as const } : {}),
     // Saved from the plain food editor: stay a supplement (values are per unit).
     ...((input.supplement ?? prev?.supplement) ? { supplement: input.supplement ?? prev!.supplement } : {}),
   };
@@ -346,6 +348,34 @@ export async function saveCustomFood(input: {
   syncCustomFoods();
   await db.putCustomFood(food);
   return food.ref;
+}
+
+/** Energy and macros of a quick entry (M47): per portion; nutrients not given stay unknown. */
+export interface QuickValues {
+  name: string;
+  kcal: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+}
+
+/**
+ * Log energy (and macros) without a food (M47): a hidden custom food holds the values, one portion =
+ * 100 g, so totals, backup, sync and the food screen work as for any entry. Not added to usage
+ * (recent, favourites, the usual meal), and never in search or the library.
+ */
+export async function addQuickEntry(meal: Meal, v: QuickValues): Promise<void> {
+  const per100g: NutrientVector = NUTRIENTS.map(() => null);
+  per100g[NUTRIENT_INDEX.kcal] = v.kcal;
+  for (const k of ['protein', 'carbs', 'fat'] as const) if (v[k] != null) per100g[NUTRIENT_INDEX[k]] = v[k]!;
+  const now = Date.now();
+  const food: CustomFood = { ref: `custom:${db.newId()}`, sv: v.name.trim(), en: null, per100g, createdAt: now, updatedAt: now, deleted: true, quick: true };
+  customFoods.value = [...customFoods.value, food];
+  syncCustomFoods();
+  await db.putCustomFood(food);
+  const e: Entry = { id: db.newId(), date: date.value, meal, foodRef: food.ref, createdAt: now, grams: 100, unit: 'portion', qty: 1 };
+  entries.value = [...entries.value, e];
+  await db.putEntry(e);
 }
 
 /** Hide a custom food from search; diary entries that use it keep working. */
@@ -521,11 +551,12 @@ export async function logTemplate(meal: Meal, m: MealTemplate): Promise<number> 
 }
 
 /** Mark the selected day complete (everything eaten is logged), or not. */
-export async function toggleDayComplete(): Promise<void> {
+/** Mark the selected day complete or incomplete; choosing the current mark again makes it automatic. */
+export async function markDay(state: Exclude<db.DayState, 'auto'>): Promise<void> {
   const d = date.value;
-  const next = !dayComplete.value;
-  dayComplete.value = next;
-  await db.setDayComplete(d, next);
+  const next = dayState.value === state ? 'auto' : state;
+  dayState.value = next;
+  await db.setDayState(d, next);
 }
 
 // --- Your usual ---

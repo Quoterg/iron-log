@@ -37,6 +37,7 @@ export const copyView = lazyView(() => import('./components/CopySheet'));
 export const shoppingView = lazyView(() => import('./components/ShoppingSheet'));
 export const whatsNewView = lazyView(() => import('./components/WhatsNew'));
 const welcomeView = lazyView(() => import('./components/Welcome'));
+const quickView = lazyView(() => import('./components/QuickAdd'));
 const settingsPageView = lazyView(() => import('./components/SettingsPage'));
 export const priceView = lazyView(() => import('./components/PriceSheet'));
 
@@ -139,6 +140,8 @@ function ScreenView({ screen: s }: { screen: Screen }) {
       return <whatsNewView.Lazy since={s.since} />;
     case 'welcome':
       return <welcomeView.Lazy />;
+    case 'quick':
+      return <quickView.Lazy meal={s.meal} name={s.name} />;
     case 'settings':
       return null; // shown in the Settings tab (M44), not as a layer
   }

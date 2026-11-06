@@ -119,10 +119,15 @@ export interface EnergyChange {
 }
 
 /** A day the user marked complete (everything eaten is logged): the adaptive estimate trusts it. */
+/** A day marked by hand for the adaptive estimate: complete (always counts) or, with `skip`, incomplete (never counts; M47). */
 export interface DayMark {
   date: string;
   updatedAt: number;
+  skip?: true;
 }
+
+/** How a day counts in the adaptive estimate: automatic, or marked by hand. */
+export type DayState = 'auto' | 'complete' | 'skip';
 
 /** Current settings format version. */
 export const SETTINGS_VERSION = 3;
@@ -134,6 +139,11 @@ export interface CustomFood extends Food {
   deleted?: boolean;
   /** Set for supplements (values per unit, see lib/supplements.ts). */
   supplement?: SupplementInfo;
+  /**
+   * A quick entry's food (M47): energy and macros for one portion (stored as 100 g), always `deleted`
+   * so it never shows in search or the library, while its diary entries keep their name.
+   */
+  quick?: true;
 }
 
 /** How the user uses a food: drives "recent", favourites and search ranking. */
@@ -479,17 +489,21 @@ export async function deleteTemplate(id: string): Promise<void> {
   await del('templates', id);
 }
 
-export async function isDayComplete(date: string): Promise<boolean> {
-  return !!(await (await db()).get('days', date));
+const stateOf = (m: DayMark | undefined): DayState => (!m ? 'auto' : m.skip ? 'skip' : 'complete');
+
+export async function getDayState(date: string): Promise<DayState> {
+  return stateOf(await (await db()).get('days', date));
 }
 
-export async function setDayComplete(date: string, complete: boolean): Promise<void> {
-  if (complete) await put('days', [{ date, updatedAt: Date.now() }]);
-  else await del('days', date);
+export async function setDayState(date: string, state: DayState): Promise<void> {
+  if (state === 'auto') await del('days', date);
+  else await put('days', [{ date, updatedAt: Date.now(), ...(state === 'skip' ? { skip: true as const } : {}) }]);
 }
 
-export async function daysCompleteBetween(from: string, to: string): Promise<Set<string>> {
-  return new Set(await (await db()).getAllKeys('days', IDBKeyRange.bound(from, to)));
+/** Days marked by hand between two dates (inclusive). */
+export async function dayStatesBetween(from: string, to: string): Promise<Map<string, DayState>> {
+  const marks = await (await db()).getAll('days', IDBKeyRange.bound(from, to));
+  return new Map(marks.map((m) => [m.date, stateOf(m)]));
 }
 
 export async function bodyBetween(from: string, to: string): Promise<BodyEntry[]> {

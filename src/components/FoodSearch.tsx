@@ -3,7 +3,7 @@ import type { Meal } from '../lib/db';
 import { searchFoods, unavailableSources } from '../lib/foods';
 import { fmt, fmtAmount, lang, t } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
-import { back, closeAll, open } from '../nav';
+import { back, closeAll, open, replaceTop } from '../nav';
 import { ensureFoods, favourites, foods, logTemplate, offFoods, recent, supplementRefs, templates, templateUse, updateEntry, usage } from '../state';
 import { sortTemplates, type MealTemplate } from '../lib/templates';
 import type { Usage } from '../lib/db';
@@ -107,6 +107,10 @@ export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string;
       )}
       {!replaceEntryId && !pickIngredient && (
         <div class="pad">
+          {/* Eating out (M47): energy and macros without a food; replaces the search, so saving returns to the diary. */}
+          <button class="btn wide" onClick={() => replaceTop({ kind: 'quick', meal, name: query.trim() })}>
+            + {t('quickAdd')}
+          </button>
           <button class="btn wide" onClick={() => open({ kind: 'editFood', name: query.trim(), meal })}>
             + {t('createFood')}
           </button>

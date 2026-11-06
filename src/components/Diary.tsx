@@ -7,10 +7,10 @@ import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, burnedToday, clock, date, dayActivities, dayComplete, dayTotals,
+  activityTypes, addWater, burnedToday, clock, date, dayActivities, dayState, dayTotals,
   dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, recipes, removeActivity, removeEntries,
   repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets,
-  toggleDayComplete, toggleSupplementTaken, updateSettings, usage, usual, usualState,
+  markDay, toggleSupplementTaken, updateSettings, usage, usual, usualState,
 } from '../state';
 import { scheduledOn, timeRank } from '../lib/supplements';
 import { pickUsual } from '../lib/usual';
@@ -23,7 +23,7 @@ export function Diary() {
   const tot = dayTotals.value;
   const g = (k: string) => tot[NUTRIENT_INDEX[k]];
   const tg = targets.value;
-  const split = energySplit(g('protein'), g('carbs'), g('fat'), g('alcohol'));
+  const split = energySplit(g('protein'), g('carbs'), g('fat'), g('alcohol'), g('kcal'));
   // "Your usual": one card at most, on an empty meal of today (lib/usual.ts).
   const now = new Date(clock.value);
   const usualMeal =
@@ -198,10 +198,15 @@ export function Diary() {
       {dayWater.value > 0 && <WaterCard />}
       <MoreToLog />
       {settings.value.adaptive && entries.value.length > 0 && (
-        <button class={dayComplete.value ? 'btn wide day-done on' : 'btn wide day-done'} aria-pressed={dayComplete.value} onClick={() => void toggleDayComplete()}>
-          {dayComplete.value ? '✓ ' : ''}
-          {t('dayComplete')}
-        </button>
+        // Complete: always counts in the estimate; incomplete (M47): never; neither: automatic.
+        <div class="chips day-done" role="group" aria-label={t('dayMarkLabel')}>
+          {([['complete', t('dayComplete')], ['skip', t('dayIncomplete')]] as const).map(([m, label]) => (
+            <button key={m} class={dayState.value === m ? 'chip on' : 'chip'} aria-pressed={dayState.value === m} onClick={() => void markDay(m)}>
+              {dayState.value === m ? '✓ ' : ''}
+              {label}
+            </button>
+          ))}
+        </div>
       )}
       {entries.value.length === 0 && <p class="muted center">{t('emptyDay')}</p>}
       <div class="links day-links">

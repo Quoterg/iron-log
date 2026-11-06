@@ -25,10 +25,15 @@ export interface MacroSplit {
   alcohol: number;
 }
 
-/** Share of energy (0–1) from each macronutrient, using Atwater factors. */
-export function energySplit(protein: number, carbs: number, fat: number, alcohol: number): MacroSplit {
+/**
+ * Share of energy (0–1) from each macronutrient, using Atwater factors. Given the total energy, shares
+ * are of it when the macros explain clearly less (quick entries without macros, M47); otherwise of the
+ * macros' own sum, so ordinary foods add up to 100 %.
+ */
+export function energySplit(protein: number, carbs: number, fat: number, alcohol: number, kcal = 0): MacroSplit {
   const p = protein * 4, c = carbs * 4, f = fat * 9, a = alcohol * 7;
-  const total = p + c + f + a;
+  const sum = p + c + f + a;
+  const total = kcal > sum * 1.1 ? kcal : sum;
   if (total === 0) return { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
   return { protein: p / total, carbs: c / total, fat: f / total, alcohol: a / total };
 }

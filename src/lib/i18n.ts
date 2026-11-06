@@ -71,6 +71,8 @@ const sv = {
   checkinReady: 'Veckans avstämning är klar',
   checkinShow: 'Visa',
   dayComplete: 'Dagen är komplett',
+  dayIncomplete: 'Ofullständig dag',
+  dayMarkLabel: 'Hur dagen räknas i förbrukningen',
   usualMeal: 'Som vanligt',
   notNow: 'Inte nu',
   welcomeText: 'Välkommen! Berätta lite om dig, så räknar appen ut ditt energimål och vad du behöver av varje näringsämne.',

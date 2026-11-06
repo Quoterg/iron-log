@@ -61,6 +61,17 @@ describe('adaptive energy expenditure', () => {
     expect(countedDays(days(() => 0))).toEqual([]); // nothing logged: nothing counts
   });
 
+  it('days marked incomplete never count, even near the usual intake, nor shape the typical intake (M47)', () => {
+    const list = days(() => 2200).map((d, i) => (i < 4 ? { ...d, kcal: 1500, skip: true } : d));
+    expect(countedDays(list)).toHaveLength(24);
+    expect(countedDays(list.map((d, i) => (i === 0 ? { ...d, kcal: 2200 } : d)))).toHaveLength(24); // a normal amount, still out
+    // Marked incomplete, 20 of 28 days at 900 kcal would otherwise be the "typical" day.
+    const half = days((i) => (i < 20 ? 900 : 2200)).map((d, i) => (i < 20 ? { ...d, skip: true } : d));
+    expect(countedDays(half).map((d) => d.kcal)).toEqual(Array(8).fill(2200));
+    const e = estimate(list, weights(80, 0));
+    expect(e.ok && e.kcal).toBe(2200);
+  });
+
   it('needs ≥ 10 days, ≥ 3 weigh-ins and ≥ 2 weeks between them, and says what is missing', () => {
     const few = days((i) => (i < 9 ? 2000 : 0));
     expect(estimate(few, weights(80, 0))).toEqual({ ok: false, reason: 'data', days: 9, weighIns: 4 });

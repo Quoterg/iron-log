@@ -68,6 +68,12 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await page.getByRole('button', { name: /^(Ändra|Lägg till pris)$/ }).click();
     await expect(page.getByLabel('Jämförpris')).toBeVisible();
   },
+  'quick add': async (page) => {
+    await page.locator('.meal').first().getByRole('button', { name: /Lägg till/ }).click();
+    await page.getByRole('button', { name: '+ Snabblogga kcal' }).click();
+    await dialog(page).getByRole('button', { name: 'Snabblogga kcal' }).click(); // shows the error too
+    await expect(dialog(page).getByText(/Ange energin/)).toBeVisible();
+  },
   'custom food editor': async (page) => {
     await page.locator('.meal').first().getByRole('button', { name: /Lägg till/ }).click();
     await page.getByPlaceholder(/Sök livsmedel/).fill('Min gröt');

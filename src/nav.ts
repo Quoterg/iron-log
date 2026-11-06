@@ -39,6 +39,7 @@ export type Screen =
   /** What's new (M32): releases newer than `since`, else the latest ones. */
   | { kind: 'whatsnew'; since?: string | null }
   | { kind: 'welcome' }
+  | { kind: 'quick'; meal: Meal; name?: string }
   /** One page of Settings (M44). */
   | { kind: 'settings'; page: SettingsPageKind };
 
