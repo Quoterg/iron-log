@@ -462,9 +462,14 @@ M22, M37) stay held until the owner asks.
   the everyday and richest rows; `perKcal`/`perKrona` in top.ts, pure and tested. Iron per 100 g is
   led by blodbröd and dried turmeric; per 100 kcal brings everyday foods such as raspberries forward.
   No new data files; all in the lazy nutrient screen.
-- [ ] **M50 Split a logged recipe; pick parts of a saved meal** — "Dela upp i ingredienser" on a logged
+- [x] **M50 Split a logged recipe; pick parts of a saved meal** — "Dela upp i ingredienser" on a logged
   recipe replaces it with its ingredients scaled by `grams / (cookedWeightG ?? totalG)` in one
   transaction (the recipe itself unchanged); "Välj delar" on a saved meal logs a ticked subset.
+  Done: the stored recipe's `totalG` already is the finished weight, so share = grams / totalG;
+  measures scale too (4 dl → 2 dl), amounts that round to 0 g are left out; one transaction replaces
+  the entry (tombstone + new entries, same meal and place). It uses the recipe as it is now (an
+  edited recipe splits into its new ingredients) and asks first. "Välj delar" (saved meals with more
+  than one food): all ticked, "Lägg till N av M"; counts as using the saved meal.
 - [ ] **M51 Seasonal supplements** — a supplement can be "Året runt" or "Vinterhalvåret (okt–mar)";
   outside its season it leaves the diary's checklist without being deleted. No vitamin D nudge: the
   advice for supplements depends on the person (Livsmedelsverket), the app doesn't push one.

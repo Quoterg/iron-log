@@ -20,6 +20,14 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-06 — M50 Split a recipe; part of a saved meal (interactive session)
+
+- recipes.ts `splitRecipe` (pure), db `replaceEntry` (one transaction), state `splitEntry`; FoodDetail
+  "Dela upp i ingredienser" on a logged recipe (confirm). FoodSearch saved meals: "Välj delar"
+  (inline checklist → `logTemplate` with the ticked items).
+- M48 review nit: try/finally on the multi-add guard.
+- Tests: unit 278 ✓, build ✓ (32.3 KB), e2e 200 ✓ (new split.spec; "pick parts" in a11y), Lighthouse ✓.
+
 ## 2026-11-06 — M49 Richest per 100 kcal and per 10 kr (interactive session)
 
 - Contributors.tsx: chips Per 100 g / Per 100 kcal / Per 10 kr (the last only with costs on; loads

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { NUTRIENT_INDEX, NUTRIENTS, type Food } from './nutrients';
-import { recipeNutrition, recipeToFood, type Recipe } from './recipes';
+import { recipeNutrition, recipeToFood, splitRecipe, type Recipe } from './recipes';
 
 function food(ref: string, values: Record<string, number>): Food {
   const v = NUTRIENTS.map(() => null as number | null);
@@ -46,5 +46,25 @@ describe('recipes', () => {
     const f = recipeToFood(recipe, recipeNutrition(recipe, foods));
     expect(f.units).toEqual([{ name: 'portion', g: 250 }, { name: 'helaReceptet', g: 500 }]);
     expect(f.sv).toBe('Gröt');
+  });
+});
+
+describe('splitRecipe (M50)', () => {
+  const r = { totalG: 400, ingredients: [{ foodRef: 'slv:1', grams: 100 }, { foodRef: 'slv:2', grams: 412, unit: 'dl', qty: 4 }, { foodRef: 'slv:3', grams: 0.08 }] };
+
+  it('scales each ingredient by the share of the finished dish eaten, measures too', () => {
+    expect(splitRecipe(200, r)).toEqual([
+      { foodRef: 'slv:1', grams: 50 },
+      { foodRef: 'slv:2', grams: 206, unit: 'dl', qty: 2 },
+    ]); // the pinch (0.04 g) rounds to nothing and is left out
+  });
+
+  it('the whole finished dish gives back the ingredients in full', () => {
+    expect(splitRecipe(400, r).map((i) => i.grams)).toEqual([100, 412, 0.1]); // to 0.1 g
+  });
+
+  it('nothing for no amount or a recipe without weight', () => {
+    expect(splitRecipe(0, r)).toEqual([]);
+    expect(splitRecipe(100, { ...r, totalG: 0 })).toEqual([]);
   });
 });

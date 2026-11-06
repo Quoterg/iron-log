@@ -17,7 +17,9 @@ import {
   foods,
   deleteRecipe,
   recipeDraft,
+  recipes,
   removeEntry,
+  splitEntry,
   toggleFavourite,
   updateEntry,
   settings,
@@ -256,6 +258,19 @@ export default function FoodDetail(props: {
         {isCustom && (
           <button type="button" class="btn wide" onClick={() => open({ kind: 'editFood', ref })}>
             {t('editFood')}
+          </button>
+        )}
+        {/* One meal's version of a recipe (M50): its ingredients, each then changed like any entry. */}
+        {entry && ref.startsWith('recipe:') && recipes.value.some((r) => r.ref === ref) && (
+          <button
+            type="button"
+            class="btn wide"
+            onClick={async () => {
+              if (!confirm(t('splitConfirm').replace('{name}', foodName(food, lang.value)))) return;
+              if (await splitEntry(entry.id)) back();
+            }}
+          >
+            {t('splitRecipe')}
           </button>
         )}
         {ref.startsWith('recipe:') && !props.ingredient && (

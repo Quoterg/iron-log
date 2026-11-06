@@ -104,3 +104,19 @@ function round(x: number) {
 export function padVector(v: NutrientVector): NutrientVector {
   return v.length >= NUTRIENTS.length ? v : [...v, ...NUTRIENTS.map(() => null)].slice(0, NUTRIENTS.length);
 }
+
+/**
+ * A logged amount of a recipe as its ingredients (M50, "Dela upp i ingredienser"): each scaled by the
+ * share of the finished dish eaten (`grams / totalG`; totalG is the cooked weight when weighed). A
+ * household measure scales with it. Ingredients that would round to nothing are left out.
+ */
+export function splitRecipe(grams: number, r: Pick<StoredRecipe, 'ingredients' | 'totalG'>): Ingredient[] {
+  if (!(r.totalG > 0) || !(grams > 0)) return [];
+  const share = grams / r.totalG;
+  return r.ingredients.flatMap((i) => {
+    const g = Math.round(i.grams * share * 10) / 10;
+    if (!(g > 0)) return [];
+    const qty = i.unit && i.qty ? Math.round(i.qty * share * 100) / 100 : 0;
+    return [qty > 0 ? { foodRef: i.foodRef, grams: g, unit: i.unit, qty } : { foodRef: i.foodRef, grams: g }];
+  });
+}

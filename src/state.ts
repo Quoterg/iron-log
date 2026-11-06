@@ -5,7 +5,7 @@ import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db
 import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
 import { detectLang, lang, loadLang, rememberLang, t, toLang } from './lib/i18n';
 import { type Food, type NutrientVector, type Serving, dataLangOf, NUTRIENT_INDEX, NUTRIENTS } from './lib/nutrients';
-import { recipeNutrition, recipeToFood, type Recipe, type StoredRecipe } from './lib/recipes';
+import { recipeNutrition, recipeToFood, splitRecipe, type Recipe, type StoredRecipe } from './lib/recipes';
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
 import type { ActivityType } from './lib/activity-types';
 import type { BodyEntry } from './lib/body';
@@ -198,6 +198,23 @@ export async function updateEntry(id: string, patch: EntryPatch): Promise<void> 
 
 export async function removeEntry(id: string): Promise<void> {
   await removeEntries([id]);
+}
+
+/**
+ * A logged recipe as its ingredients (M50), in the same meal and place, so one can be changed for
+ * this meal only; the recipe itself is unchanged. Returns how many entries replaced it (0: nothing done).
+ */
+export async function splitEntry(id: string): Promise<number> {
+  const e = entries.value.find((x) => x.id === id);
+  const r = e && recipes.value.find((x) => x.ref === e.foodRef);
+  if (!e || !r) return 0;
+  const parts = splitRecipe(e.grams, r);
+  if (!parts.length) return 0;
+  await ensureFoods(parts.map((p) => p.foodRef));
+  const added: Entry[] = parts.map((p, i) => ({ id: db.newId(), date: e.date, meal: e.meal, foodRef: p.foodRef, createdAt: e.createdAt + i, ...measure(p) }));
+  entries.value = entries.value.flatMap((x) => (x.id === id ? added : [x]));
+  await db.replaceEntry(id, added);
+  return added.length;
 }
 
 /** Remove several entries at once (a whole meal, M41), in one transaction: never half a meal. */
@@ -581,7 +598,6 @@ export async function logTemplate(meal: Meal, m: MealTemplate): Promise<number> 
   return n;
 }
 
-/** Mark the selected day complete (everything eaten is logged), or not. */
 /** Mark the selected day complete or incomplete; choosing the current mark again makes it automatic. */
 export async function markDay(state: Exclude<db.DayState, 'auto'>): Promise<void> {
   const d = date.value;
