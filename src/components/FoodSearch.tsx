@@ -133,8 +133,12 @@ export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string;
             onClick={async () => {
               if (busy.current) return;
               busy.current = true;
-              await addEntries(meal, [...picked.values()]);
-              closeAll();
+              try {
+                await addEntries(meal, [...picked.values()]);
+                closeAll();
+              } finally {
+                busy.current = false; // a failed write (e.g. storage full) must not leave the button dead
+              }
             }}
           >
             {t('addPicked').replace('{n}', String(picked.size)).replace('{kcal}', fmt(pickedKcal))}
