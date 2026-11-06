@@ -432,10 +432,9 @@ M22, M37) stay held until the owner asks.
 - [x] **M47 Quick-add energy & macros; an incomplete day can be marked** — eating out shouldn't need a
   permanent custom food, and a half-logged day must not drag the adaptive estimate down.
   - "Snabblogga" in the meal's `⋯` menu and at the bottom of the search: energy (required) and
-    optional protein/carbs/fat and name (defaults to the meal). An ordinary `Entry` with
-    `foodRef: 'quick:<id>'`, `grams: 100` and a `snap` with only those values (micronutrients `null`,
-    so the 80 % coverage gate is unaffected); the name lives on the entry, not in the ref. Skipped by
-    usage, the usual meal, saved-meal suggestions and the shopping list. Editable like any entry.
+    optional protein/carbs/fat and name. The values live in a hidden custom food (`deleted` +
+    `quick`, one portion = 100 g; micronutrients unknown), removed with its last entry; skipped by
+    usage, the usual meal and the shopping list. Editable like any entry.
   - The day mark becomes three-way where it already lives: auto (as today: days under 60 % of the
     typical intake are left out) / complete (always counts) / incomplete (never counts), on the same
     button; `countedDays()` and "Varför?" respect it.

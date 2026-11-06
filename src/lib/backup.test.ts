@@ -52,6 +52,11 @@ describe('backup', () => {
     expect(r.per100g.slice(0, 2)).toEqual([120, null]);
   });
 
+  it('a quick entry\'s food is always hidden (M47)', () => {
+    const custom = parseBackup(JSON.stringify({ ...makeBackup(data), customFoods: [{ ...data.customFoods[1], deleted: undefined }] })).customFoods;
+    expect(custom[0]).toMatchObject({ quick: true, deleted: true });
+  });
+
   it('rejects files that are not Iron Log backups', () => {
     expect(() => parseBackup('not json')).toThrow(BackupError);
     expect(() => parseBackup('{"entries": []}')).toThrow(BackupError);
