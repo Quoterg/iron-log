@@ -175,6 +175,20 @@ const SCREENS: Record<string, (page: Page) => Promise<void>> = {
     await page.getByLabel('Beräkna min förbrukning från vikt och intag').check();
     await expect(page.getByText(/Behöver mer underlag/)).toBeVisible();
   },
+  'saved meal, pick parts': async (page) => {
+    for (const food of ['havregryn', 'mjölk']) {
+      await page.locator('.meal').first().getByRole('button', { name: /Lägg till/ }).click();
+      await page.getByPlaceholder(/Sök livsmedel/).fill(food);
+      await page.locator('.result').first().click();
+      await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
+    }
+    await page.locator('.meal').first().getByRole('button', { name: /^Fler val för/ }).click();
+    await page.locator('.meal').first().getByRole('button', { name: 'Spara som måltid' }).click();
+    await page.getByRole('button', { name: 'Spara', exact: true }).click();
+    await page.locator('.meal').nth(1).getByRole('button', { name: /Lägg till/ }).click();
+    await page.getByRole('button', { name: 'Välj delar' }).click();
+    await expect(page.getByRole('button', { name: /^Lägg till \d+ av \d+$/ })).toBeVisible();
+  },
   'shopping list': async (page) => {
     await SCREENS['save a meal'](page);
     await page.getByRole('button', { name: 'Spara', exact: true }).click();

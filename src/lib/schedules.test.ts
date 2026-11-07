@@ -1,9 +1,26 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
 import { makeBackup, parseBackup } from './backup';
-import { scheduledOn, timeRank, weekday } from './supplements';
+import { inSeason, scheduledOn, timeRank, weekday } from './supplements';
 
 describe('supplement schedules', () => {
+  it('winter supplements (M51) are in season October–March only; days still apply', () => {
+    const d = { unit: 'tablett', perDay: 1, season: 'winter' as const };
+    for (const date of ['2026-10-01', '2026-12-31', '2027-01-15', '2027-03-31']) expect(inSeason(d, date), date).toBe(true);
+    for (const date of ['2026-04-01', '2026-06-15', '2026-09-30']) expect(inSeason(d, date), date).toBe(false);
+    expect(scheduledOn(d, '2026-11-02')).toBe(true);
+    expect(scheduledOn(d, '2026-06-15')).toBe(false);
+    expect(scheduledOn({ ...d, days: [0] }, '2026-11-03')).toBe(false); // a Tuesday
+    expect(inSeason({ unit: 'st', perDay: 1 }, '2026-06-15')).toBe(true); // all year
+  });
+
+  it('the season round-trips in a backup; an unknown one is refused', () => {
+    const food = (supplement: object) => ({ ref: 'custom:d', sv: 'D-vitamin', en: null, per100g: [], createdAt: 1, updatedAt: 1, supplement });
+    const back = (supplement: object) => parseBackup(JSON.stringify({ format: 'iron-log-backup', version: 1, entries: [], usage: [], customFoods: [food(supplement)] }));
+    expect(back({ unit: 'tablett', perDay: 1, season: 'winter' }).customFoods[0].supplement).toEqual({ unit: 'tablett', perDay: 1, season: 'winter' });
+    expect(() => back({ unit: 'tablett', perDay: 1, season: 'summer' })).toThrow();
+  });
+
   it('weekday() is Monday-based and scheduledOn() respects days and as-needed', () => {
     expect(weekday('2026-10-05')).toBe(0); // a Monday
     expect(weekday('2026-10-11')).toBe(6); // a Sunday

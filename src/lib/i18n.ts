@@ -72,6 +72,7 @@ const sv = {
   checkinShow: 'Visa',
   dayComplete: 'Dagen är komplett',
   dayIncomplete: 'Ofullständig dag',
+  supplementsResting: '{n} vintertillskott tillbaka i oktober.',
   dayMarkLabel: 'Hur dagen räknas i förbrukningen',
   usualMeal: 'Som vanligt',
   notNow: 'Inte nu',

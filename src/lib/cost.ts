@@ -15,13 +15,20 @@ export function setOwnPrice(ref: string, krPerKg: number | null): void {
   if (priceBook.value) priceBook.value = priceBook.value.withOwn(ref, krPerKg);
 }
 
+/** The last load failed (offline before the prices were cached): a screen can offer a retry. */
+export const priceBookFailed = signal(false);
+
 let started = false;
 /** Loads the prices once (own + typical), on demand; again after a failure (e.g. back online). */
 export function ensurePriceBook(): void {
   if (started) return;
   started = true;
+  priceBookFailed.value = false;
   import('./cost-calc')
     .then((m) => m.loadPriceBook())
     .then((b) => (priceBook.value = b))
-    .catch(() => (started = false));
+    .catch(() => {
+      started = false;
+      priceBookFailed.value = true;
+    });
 }

@@ -15,6 +15,8 @@ export interface SupplementInfo {
   days?: number[];
   /** When in the day it's taken: orders the checklist. */
   time?: SupplementTime;
+  /** Only in the winter half-year, October–March (M51); absent = all year. */
+  season?: 'winter';
 }
 
 /** 0 = Monday … 6 = Sunday, for a local YYYY-MM-DD date. */
@@ -23,9 +25,16 @@ export function weekday(date: string): number {
   return (new Date(y, m - 1, d).getDay() + 6) % 7;
 }
 
-/** On the daily checklist for this date (daily supplements on their scheduled weekdays). */
+/** In season on this date: winter supplements from October to March (M51), others always. */
+export const inSeason = (s: SupplementInfo, date: string): boolean => {
+  if (s.season !== 'winter') return true;
+  const month = Number(date.slice(5, 7));
+  return month >= 10 || month <= 3;
+};
+
+/** On the daily checklist for this date (daily supplements on their scheduled weekdays, in season). */
 export const scheduledOn = (s: SupplementInfo, date: string): boolean =>
-  s.perDay > 0 && (!s.days || s.days.includes(weekday(date)));
+  s.perDay > 0 && inSeason(s, date) && (!s.days || s.days.includes(weekday(date)));
 
 /** Stored form of a day selection: sorted, and absent when it's every day. */
 export const normalizeDays = (days: number[]): number[] | undefined => (days.length >= 7 ? undefined : [...days].sort());

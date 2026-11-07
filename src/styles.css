@@ -279,6 +279,8 @@ input[type='number'], input[type='text'], input[type='search'], select {
 .grid2 > :only-child { grid-column: 1 / -1; }
 .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 10px; }
 .grid3 input { width: 100%; min-width: 0; }
+.parts { display: flex; flex-direction: column; gap: 6px; padding: 4px 16px 12px; }
+.parts .btn { align-self: flex-start; }
 .multi-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding-top: 0; }
 .result.on { box-shadow: inset 4px 0 0 var(--accent); }
 .multi-bar { position: sticky; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--bar); border-top: 1px solid var(--line); }

@@ -7,6 +7,7 @@ import { decimalComma, fmt, fmtAmount, lang, parseNum, t, unitLabel } from '../l
 import { GRAMS, initialAmount, servingsFor, toGrams } from '../lib/servings';
 import { foodName, NUTRIENT_INDEX, value } from '../lib/nutrients';
 import { scale } from '../lib/totals';
+import { changedSince } from '../lib/recipes';
 import { back, backTo, closeAll, open } from '../nav';
 import { entryVector } from '../lib/db';
 import {
@@ -17,7 +18,9 @@ import {
   foods,
   deleteRecipe,
   recipeDraft,
+  recipes,
   removeEntry,
+  splitEntry,
   toggleFavourite,
   updateEntry,
   settings,
@@ -256,6 +259,28 @@ export default function FoodDetail(props: {
         {isCustom && (
           <button type="button" class="btn wide" onClick={() => open({ kind: 'editFood', ref })}>
             {t('editFood')}
+          </button>
+        )}
+        {/* One meal's version of a recipe (M50): its ingredients, each then changed like any entry. */}
+        {entry && ref.startsWith('recipe:') && recipes.value.some((r) => r.ref === ref) && (
+          <button
+            type="button"
+            class="btn wide"
+            onClick={async () => {
+              if (busy.current) return;
+              // An entry keeps the recipe's values as logged; if the recipe changed since, say so.
+              const r = recipes.value.find((x) => x.ref === ref);
+              const changed = changedSince(entry.snap, r?.per100g ?? []);
+              if (!confirm(t(changed ? 'splitConfirmChanged' : 'splitConfirm').replace('{name}', foodName(food, lang.value)))) return;
+              busy.current = true;
+              try {
+                if (await splitEntry(entry.id)) back();
+              } finally {
+                busy.current = false;
+              }
+            }}
+          >
+            {t('splitRecipe')}
           </button>
         )}
         {ref.startsWith('recipe:') && !props.ingredient && (

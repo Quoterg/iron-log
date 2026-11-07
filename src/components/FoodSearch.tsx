@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { Meal } from '../lib/db';
 import { searchFoods, unavailableSources } from '../lib/foods';
-import { fmt, fmtAmount, lang, t } from '../lib/i18n';
+import { fmt, fmtAmount, lang, t, unitLabel } from '../lib/i18n';
 import { foodName, value, type Food } from '../lib/nutrients';
 import { back, closeAll, open, replaceTop } from '../nav';
 import { addEntries, ensureFoods, favourites, foods, logTemplate, offFoods, recent, supplementRefs, templates, templateUse, updateEntry, usage, userServings, type Amount } from '../state';
@@ -167,6 +167,7 @@ export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string;
 function SavedMeals({ list, meal }: { list: MealTemplate[]; meal: Meal }) {
   // Synchronous guard: a double tap on a slow phone must not log the meal twice.
   const busy = useRef(false);
+  const [parts, setParts] = useState<{ id: string; off: Set<number> } | null>(null);
   const kcal = useMemo(() => {
     const out = new Map<string, number>();
     for (const m of list) {
@@ -198,6 +199,53 @@ function SavedMeals({ list, meal }: { list: MealTemplate[]; meal: Meal }) {
                 {t('foodsCount').replace('{n}', String(m.items.length))} · {fmt(kcal.get(m.id) ?? 0)} kcal
               </span>
             </button>
+            {m.items.length > 1 && (
+              <button
+                class="link small"
+                aria-expanded={parts?.id === m.id}
+                onClick={() => setParts(parts?.id === m.id ? null : { id: m.id, off: new Set() })}
+              >
+                {t('pickParts')}
+              </button>
+            )}
+            {/* Some of a saved meal (M50): all ticked, untick what isn't eaten this time. */}
+            {parts?.id === m.id && (
+              <div class="parts">
+                {m.items.map((i, n) => {
+                  const f = foods.value.get(i.foodRef);
+                  return (
+                    <label class="check" key={n}>
+                      <input
+                        type="checkbox"
+                        checked={!parts.off.has(n)}
+                        onChange={() => {
+                          const off = new Set(parts.off);
+                          if (!off.delete(n)) off.add(n);
+                          setParts({ id: m.id, off });
+                        }}
+                      />
+                      <span>
+                        {f ? foodName(f, lang.value) : '…'}{' '}
+                        <span class="muted small">{i.unit && i.qty ? `${fmtAmount(i.qty)} ${unitLabel(i.unit)}` : `${fmtAmount(i.grams)} g`}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+                <button
+                  class="btn primary"
+                  disabled={parts.off.size === m.items.length}
+                  onClick={async () => {
+                    if (busy.current) return;
+                    busy.current = true;
+                    const items = m.items.filter((_, n) => !parts.off.has(n));
+                    if (await logTemplate(meal, { ...m, items })) closeAll();
+                    else busy.current = false;
+                  }}
+                >
+                  {t('addParts').replace('{n}', String(m.items.length - parts.off.size)).replace('{m}', String(m.items.length))}
+                </button>
+              </div>
+            )}
           </li>
         ))}
       </ul>

@@ -89,6 +89,10 @@ function customFood(x: unknown): CustomFood {
         if (!SUPPLEMENT_TIMES.includes(s.time as SupplementTime)) throw new BackupError('customFood');
         f.supplement.time = s.time as SupplementTime;
       }
+      if (s.season !== undefined) {
+        if (s.season !== 'winter') throw new BackupError('customFood');
+        f.supplement.season = 'winter';
+      }
     }
     return f;
   }

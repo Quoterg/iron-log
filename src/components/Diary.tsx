@@ -12,7 +12,7 @@ import {
   repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets,
   markDay, toggleSupplementTaken, updateSettings, usage, usual, usualState,
 } from '../state';
-import { scheduledOn, timeRank } from '../lib/supplements';
+import { inSeason, scheduledOn, timeRank } from '../lib/supplements';
 import { pickUsual } from '../lib/usual';
 import { isoWeek, previousWeek } from '../lib/checkin';
 import { Bar } from './Bar';
@@ -355,8 +355,10 @@ function SupplementCard() {
   for (const e of entries.value) if (supplementRefs.value.has(e.foodRef)) byRef.set(e.foodRef, [...(byRef.get(e.foodRef) ?? []), e]);
   // This day's checklist: daily ones scheduled for this weekday, as-needed ones, and anything taken.
   const list = supplements.value
-    .filter((f) => f.supplement!.perDay === 0 || scheduledOn(f.supplement!, date.value) || byRef.has(f.ref))
+    .filter((f) => (f.supplement!.perDay === 0 && inSeason(f.supplement!, date.value)) || scheduledOn(f.supplement!, date.value) || byRef.has(f.ref))
     .sort((a, b) => timeRank(a.supplement!) - timeRank(b.supplement!));
+  // Winter ones resting in summer (M51): said once, so the card isn't a mystery when it's empty.
+  const resting = supplements.value.filter((f) => !inSeason(f.supplement!, date.value)).length;
   return (
     <section class="card">
       <header class="meal-head">
@@ -366,6 +368,7 @@ function SupplementCard() {
           + {t('add')}
         </button>
       </header>
+      {list.length === 0 && resting > 0 && <p class="muted small">{t('supplementsResting').replace('{n}', String(resting))}</p>}
       {list.length > 0 && (
         <ul class="entries">
           {list.map((f) => {

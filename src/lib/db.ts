@@ -629,6 +629,19 @@ export async function deleteEntry(id: string): Promise<void> {
   await del('entries', id);
 }
 
+/** Replace one entry by others in one transaction (M50: a recipe split into its ingredients): never both, never neither. */
+export async function replaceEntry(id: string, added: Entry[]): Promise<void> {
+  localChanges++;
+  const tx = (await db()).transaction(['entries', 'meta'], 'readwrite');
+  const mt = Date.now();
+  await Promise.all([
+    tx.objectStore('entries').delete(id),
+    tx.objectStore('meta').put({ mt, del: true }, metaKey('entries', id)),
+    ...added.flatMap((e) => [tx.objectStore('entries').put(e), tx.objectStore('meta').put({ mt }, metaKey('entries', e.id))]),
+    tx.done,
+  ]);
+}
+
 /** Several entries in one transaction (a whole meal): all of them or none, also if the app closes. */
 export async function deleteEntries(ids: string[]): Promise<void> {
   if (!ids.length) return;
