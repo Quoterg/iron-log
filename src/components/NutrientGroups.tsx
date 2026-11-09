@@ -3,17 +3,22 @@ import { NUTRIENTS, type NutrientGroup } from '../lib/nutrients';
 import { targets } from '../state';
 import { Bar } from './Bar';
 
-type Title = 'macros' | 'carbsDetail' | 'lipids' | 'vitamins' | 'minerals' | 'aminoAcids' | 'other';
+type Title = 'macros' | 'dietPattern' | 'carbsDetail' | 'lipids' | 'vitamins' | 'minerals' | 'aminoAcids' | 'other';
 
 const GROUPS: { group: NutrientGroup[]; title: Title }[] = [
   { group: ['energy', 'macro'], title: 'macros' },
   { group: ['carb'], title: 'carbsDetail' },
+  // Food-based goals (M52): in Näringsämnen only, wholegrain leaves the carbohydrates group.
+  { group: [], title: 'dietPattern' },
   { group: ['lipid'], title: 'lipids' },
   { group: ['vitamin'], title: 'vitamins' },
   { group: ['mineral'], title: 'minerals' },
   { group: ['amino'], title: 'aminoAcids' },
   { group: ['other'], title: 'other' },
 ];
+
+/** Nutrients shown as food-based goals under "Kostmönster" in Näringsämnen (M52a). */
+const PATTERN = ['wholegrain'];
 
 /**
  * Every tracked nutrient, grouped, against the user's daily targets. `amounts` is in
@@ -40,7 +45,9 @@ export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; on
   };
   const missing: string[] = [];
   const cards = GROUPS.map(({ group, title }) => {
-    const all = NUTRIENTS.map((n, i) => (group.includes(n.group) ? i : -1)).filter((i) => i >= 0);
+    const isPattern = title === 'dietPattern';
+    if (isPattern && !compact) return null;
+    const all = NUTRIENTS.map((n, i) => ((isPattern ? PATTERN.includes(n.key) : group.includes(n.group) && !(compact && PATTERN.includes(n.key))) ? i : -1)).filter((i) => i >= 0);
     if (!compact) {
       return (
         <section class="card" key={title}>
@@ -53,7 +60,8 @@ export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; on
     const unknown = all.filter((i) => known?.[i] === false);
     // A whole group without data is named as a group ("aminosyror"), else nutrient by nutrient.
     if (!shown.length) {
-      missing.push(t(title).toLowerCase());
+      if (isPattern) missing.push(...unknown.map((i) => nutrientName(NUTRIENTS[i])));
+      else missing.push(t(title).toLowerCase());
       return null;
     }
     missing.push(...unknown.map((i) => nutrientName(NUTRIENTS[i])));

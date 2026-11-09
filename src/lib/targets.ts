@@ -243,6 +243,8 @@ export function nnrTargets(p: Profile): Record<string, Target> {
     carbs: ePct('carbs', ...pct.carbs),
     fat: ePct('fat', ...pct.fat),
     fibre: { min: p.sex === 'male' ? 35 : 25, max: null },
+    // Wholegrain: at least 90 g/day (NNR 2023, adults; M52a).
+    wholegrain: { min: 90, max: null },
     satFat: { min: null, max: Math.round((p.kcal * 0.1) / 9) },
     addedSugar: { min: null, max: Math.round((p.kcal * 0.1) / 4) },
     // Thiamin and niacin are set per MJ of energy intake.

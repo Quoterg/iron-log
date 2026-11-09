@@ -226,3 +226,10 @@ describe('essential amino acids (WHO/FAO/UNU 2007, per kg body weight)', () => {
     expect(nnrTargets({ sex: 'female', kcal: 2000, age: 30, weightKg: 65, status: 'pregnant2' }).lysine).toBeUndefined();
   });
 });
+
+describe('wholegrain target (M52a)', () => {
+  it('is at least 90 g/day for adults, with no upper limit', () => {
+    expect(nnrTargets(woman())['wholegrain']).toEqual({ min: 90, max: null });
+    expect(nnrTargets(man({ age: 40 }))['wholegrain']).toEqual({ min: 90, max: null });
+  });
+});

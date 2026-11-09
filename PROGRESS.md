@@ -20,6 +20,23 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-09 — M52a Wholegrain goal (weekly run)
+
+- Split M52: **M52a** done, **M52b** (fruit & vegetables) left. Wholegrain needs no new data:
+  `wholegrain` target ≥ 90 g in targets.ts; NutrientGroups (compact) shows it in a folded
+  "Kostmönster" card instead of under Kolhydrater (full-detail views unchanged).
+- Tests: unit 282 ✓ (new target test), build ✓ (32.6 KB), e2e 195 ✓ + new dietpattern.spec ✓; 8 failures
+  that also fail on a clean `main` in this sandbox (sync QR a11y ×3, csp ×2, profile migration, quick add,
+  offline cache — environment, not this change; CI is the judge). Lighthouse not run locally (Chrome as root
+  needs --no-sandbox); CI runs it.
+
+### Needs decision / blocked
+
+- **M52b needs a food group per food** from Livsmedelsverket's API, which the cloud session can't reach
+  (403 from the proxy), so `data/raw` couldn't be rebuilt. Either run `pnpm data:fetch` locally and
+  extend scripts/fetch-slv.mjs + build-foods.mjs with the group, or allow
+  `dataportal.livsmedelsverket.se` for the environment.
+
 ## 2026-11-06 — M51 Seasonal supplements (interactive session)
 
 - supplements.ts `inSeason` (Oct–Mar for `season: 'winter'`), used by `scheduledOn` and the diary's
