@@ -228,8 +228,12 @@ describe('essential amino acids (WHO/FAO/UNU 2007, per kg body weight)', () => {
 });
 
 describe('wholegrain target (M52a)', () => {
-  it('is at least 90 g/day for adults, with no upper limit', () => {
-    expect(nnrTargets(woman())['wholegrain']).toEqual({ min: 90, max: null });
-    expect(nnrTargets(man({ age: 40 }))['wholegrain']).toEqual({ min: 90, max: null });
+  it('is 90 g per 10 MJ for adults (a woman at 2000 kcal gets less than a man at 2500), no upper limit', () => {
+    expect(nnrTargets(woman())['wholegrain']).toEqual({ min: 75, max: null });
+    expect(nnrTargets(man({ age: 40, kcal: 2390 }))['wholegrain']).toEqual({ min: 90, max: null }); // 10 MJ
+  });
+
+  it('has no target under 18', () => {
+    expect(nnrTargets(woman({ age: 15 }))['wholegrain']).toBeUndefined();
   });
 });

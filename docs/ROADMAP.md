@@ -478,7 +478,7 @@ M22, M37) stay held until the owner asks.
   checklist and the as-needed list; a winter supplement taken anyway still shows that day. When
   nothing else is on the card: "1 vintertillskott tillbaka i oktober." Edited from the library.
 - [x] **M52a Food-based goals: wholegrain** — in Näringsämnen a folded "Kostmönster" row with
-  wholegrain g/day against ≥ 90 g (NNR 2023); the `wholegrain` nutrient left the carbohydrates group
+  wholegrain g/day against 90 g per 10 MJ (NNR 2023; ~70–75 g for women); the `wholegrain` nutrient left the carbohydrates group
   there. Target `wholegrain` in `nnrTargets` (editable like the others).
 - [ ] **M52b Food-based goals: fruit, vegetables & berries** — second row in Kostmönster: g/day
   against ≥ 500 g. Needs a food group per food, added in the data build (Livsmedelsverket's

@@ -15,5 +15,7 @@ test('Kostmönster: the wholegrain goal sits in its own folded row (M52a)', asyn
   await page.locator('.group summary', { hasText: 'Kostmönster' }).click();
   const row = page.locator('.group', { hasText: 'Kostmönster' }).locator('.bar-btn', { hasText: 'Fullkorn' });
   await expect(row).toBeVisible();
-  await expect(row).toContainText(/90/);
+  // The logged oats report wholegrain: a real amount, not the unknown marker "–".
+  await expect(row).not.toContainText('–');
+  await expect(row).toContainText(/\d/);
 });

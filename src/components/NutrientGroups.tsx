@@ -19,6 +19,12 @@ const GROUPS: { group: NutrientGroup[]; title: Title }[] = [
 
 /** Nutrients shown as food-based goals under "Kostmönster" in Näringsämnen (M52a). */
 const PATTERN = ['wholegrain'];
+const PATTERN_IDX = new Set(NUTRIENTS.flatMap((n, i) => (PATTERN.includes(n.key) ? [i] : [])));
+
+/** Indices of the nutrients a card shows: the pattern card its own, the others by group without them. */
+function indices(group: NutrientGroup[], isPattern: boolean, compact?: boolean): number[] {
+  return NUTRIENTS.map((_, i) => i).filter((i) => (isPattern ? PATTERN_IDX.has(i) : group.includes(NUTRIENTS[i].group) && !(compact && PATTERN_IDX.has(i))));
+}
 
 /**
  * Every tracked nutrient, grouped, against the user's daily targets. `amounts` is in
@@ -47,7 +53,7 @@ export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; on
   const cards = GROUPS.map(({ group, title }) => {
     const isPattern = title === 'dietPattern';
     if (isPattern && !compact) return null;
-    const all = NUTRIENTS.map((n, i) => ((isPattern ? PATTERN.includes(n.key) : group.includes(n.group) && !(compact && PATTERN.includes(n.key))) ? i : -1)).filter((i) => i >= 0);
+    const all = indices(group, isPattern, compact);
     if (!compact) {
       return (
         <section class="card" key={title}>

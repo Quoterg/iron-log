@@ -23,7 +23,7 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
 ## 2026-11-09 — M52a Wholegrain goal (weekly run)
 
 - Split M52: **M52a** done, **M52b** (fruit & vegetables) left. Wholegrain needs no new data:
-  `wholegrain` target ≥ 90 g in targets.ts; NutrientGroups (compact) shows it in a folded
+  `wholegrain` target 90 g per 10 MJ (NNR 2023, adults only) in targets.ts; NutrientGroups (compact) shows it in a folded
   "Kostmönster" card instead of under Kolhydrater (full-detail views unchanged).
 - Tests: unit 282 ✓ (new target test), build ✓ (32.6 KB), e2e 195 ✓ + new dietpattern.spec ✓; 8 failures
   that also fail on a clean `main` in this sandbox (sync QR a11y ×3, csp ×2, profile migration, quick add,
