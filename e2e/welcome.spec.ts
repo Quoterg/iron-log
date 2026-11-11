@@ -25,6 +25,8 @@ test('first start (M45): a few questions give the energy target, then optional f
 
   await expect(card).toHaveCount(0);
   await expect(page.locator('.summary')).toContainText('/ 2 604 kcal');
+  // The sheet closes with history.back() after the write: reloading before that can abort the reload.
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.reload();
   await expect(page.locator('.summary')).toContainText('/ 2 604 kcal');
   await expect(card).toHaveCount(0);
