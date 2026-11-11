@@ -480,12 +480,16 @@ M22, M37) stay held until the owner asks.
 - [x] **M52a Food-based goals: wholegrain** — in Näringsämnen a folded "Kostmönster" row with
   wholegrain g/day against 90 g per 10 MJ (NNR 2023; ~70–75 g for women); the `wholegrain` nutrient left the carbohydrates group
   there. Target `wholegrain` in `nnrTargets` (editable like the others).
-- [ ] **M52b Food-based goals: fruit, vegetables & berries** — second row in Kostmönster: g/day
-  against ≥ 500 g. Needs a food group per food, added in the data build (Livsmedelsverket's
-  classification; USDA by food group), potatoes and dry legumes out, juice counted up to 1 dl.
-  **Blocked in the cloud session:** dataportal.livsmedelsverket.se is not reachable there (proxy 403),
-  so `pnpm data:fetch` can't run — do it where the API is reachable. Optional: an iron + vitamin C
-  pairing line in the suggestions when iron is short. No ratio figures without an NNR target.
+- [x] **M52b Food-based goals: fruit, vegetables & berries** — second row in Kostmönster: g/day
+  against ≥ 500 g. Done without the API: Livsmedelsverket's raw-commodity breakdown per food is
+  already fetched for prices (data/raw/prices/slv-ravaror.json, M34). Fruit & vegetables is a
+  nutrient (`fruitVeg`, g per 100 g, appended to nutrients.json so stored vectors keep their order),
+  so totals, recipes, periods, "Att tänka på", its own screen, the richest lists and suggestions work
+  without new code. scripts/fruitveg.mjs: Livsmedelsverket foods sum the as-eaten share of counted
+  commodities (a stew counts its 24 % vegetables), USDA by food category. Following
+  Livsmedelsverket's newer wording: no potatoes, legumes, juice or jam (not "juice up to 1 dl").
+  Scanned/own foods stay unknown (the coverage rule keeps gaps honest). Food data 181 → 190 KB
+  gzip. Not done: the optional iron + vitamin C pairing line. No ratio figures without an NNR target.
 - [ ] **M53 Iron Notes bridge: body measurements and diet phase** — import an Iron Notes backup
   (`app: 'iron-notes'`, `version: 1`) in Utseende, data & om: its `body` entries are generic measures
   (`metricId` → `metrics` with a kind and unit, possibly lb/in), mapped to weight/fat %/waist by kind

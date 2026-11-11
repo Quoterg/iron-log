@@ -260,6 +260,7 @@ const strings: Dict = {
   noSources: 'No foods with this nutrient in the period.',
   richestFoods: 'Richest in the food database',
   richestNote: 'Per 100 g – spices and dried foods can top the list.',
+  fruitVegNote: 'Livsmedelsverket’s advice: at least 500 g a day. Counted: fruit, berries, vegetables, root vegetables and mushrooms, also frozen, canned and dried – and their share in dishes. Not counted: potatoes, legumes (their own advice), juice and jam. Scanned and your own foods don’t have this value.',
   measureG: 'Per 100 g',
   measureKcal: 'Per 100 kcal',
   measureKr: 'Per 10 kr',
