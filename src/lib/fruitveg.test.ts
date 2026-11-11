@@ -11,6 +11,12 @@ describe('fruit, vegetables & berries per 100 g (M52)', () => {
     expect(slvFruitVeg({ group: 'Sylt eller marmelad', raw: [['x', 'Äpple', false, 78, 78]] })).toBe(0);
     expect(slvFruitVeg({ group: 'Processad frukt och bär', raw: [['x', 'Vindruvor', false, 99, 307]] })).toBe(99); // raisins, as eaten
     expect(slvFruitVeg(undefined)).toBeNull(); // no breakdown: unknown
+    expect(slvFruitVeg({ group: 'Kötträtt', raw: [['x', 'Nöt/ko', false, 100, 120]] })).toBe(0); // known, none counted
+    // Concentrates and condiments (M52b review): not 100 g of vegetables per 100 g.
+    expect(slvFruitVeg({ sv: 'Tomatpuré konc. konserv.', group: 'Grönsaksprodukter', raw: [['x', 'Tomat', false, 100, 500]] })).toBe(0);
+    expect(slvFruitVeg({ sv: 'Ajvar relish', group: 'Grönsaksprodukter', raw: [['x', 'Paprika', false, 90, 90]] })).toBe(0);
+    expect(slvFruitVeg({ sv: 'Chili- och mangosås', group: 'Kryddor smaksättare dressing röror', raw: [['x', 'Mango', false, 69, 69]] })).toBe(0);
+    expect(slvFruitVeg({ sv: 'Morotssås', group: 'Sås i maträtt', raw: [['x', 'Morot', false, 79, 79]] })).toBe(79); // a sauce of carrots counts
   });
 
   it('USDA: whole fruits and vegetables by category, not juice, potatoes or powders', () => {
@@ -20,5 +26,8 @@ describe('fruit, vegetables & berries per 100 g (M52)', () => {
     expect(usdaFruitVeg('11', 'Potatoes, baked, flesh and skin')).toBe(0);
     expect(usdaFruitVeg('11', 'Onions, dehydrated flakes')).toBe(0);
     expect(usdaFruitVeg('16', 'Beans, kidney, red, mature seeds, raw')).toBe(0);
+    for (const name of ['Catsup', 'Tomato products, canned, paste, without salt added', 'Tomato, puree, canned', 'Tomato sauce, canned, no salt added', 'Pickles, cucumber, dill or kosher dill', 'Applesauce, canned, unsweetened', 'Cranberry-orange relish, canned', 'Onion rings, breaded, par fried, frozen, unprepared'])
+      expect(usdaFruitVeg(name.startsWith('Applesauce') || name.startsWith('Cranberry') ? '9' : '11', name), name).toBe(0);
+    expect(usdaFruitVeg('9', 'Apricots, dried, sulfured, uncooked')).toBe(100); // dried fruit counts as eaten
   });
 });
