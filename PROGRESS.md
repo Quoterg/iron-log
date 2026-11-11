@@ -28,6 +28,10 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   Kostmönster; a note on its own screen says what counts.
 - #91's red CI fixed there: a reload aborted in-flight lazy imports, which then started a second
   reload (lazy.tsx now ignores failures while the page is leaving).
+- Review fixes (#94): condiments/concentrates excluded (USDA catsup, paste, purée, sauce, pickles…;
+  SLV konc., relish, taco sauce, condiment group); backups leave trailing unknowns out (older versions
+  can read them). Past days of database foods show fruit & vegetables at once (no snapshot); only
+  recipe entries and custom foods made before M52b lack it.
 - Tests: unit 283 ✓, build ✓, e2e ✓ (new foodgoals.spec), Lighthouse ✓ — see the PR.
 
 ## 2026-11-09 — M52a Wholegrain goal (weekly run)
