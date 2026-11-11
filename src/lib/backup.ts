@@ -23,8 +23,26 @@ export interface Backup extends AllData {
   exportedAt: string;
 }
 
+/**
+ * Trailing unknowns left out (parsing pads them back): a backup without a newer nutrient's value stays
+ * readable by an app version from before that nutrient was appended (M52b review).
+ */
+const trim = (v: (number | null)[]): (number | null)[] => {
+  let n = v.length;
+  while (n > 0 && v[n - 1] == null) n--;
+  return n === v.length ? v : v.slice(0, n);
+};
+
 export function makeBackup(data: AllData, now = new Date()): Backup {
-  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: now.toISOString(), ...data };
+  return {
+    format: BACKUP_FORMAT,
+    version: BACKUP_VERSION,
+    exportedAt: now.toISOString(),
+    ...data,
+    entries: data.entries.map((e) => (e.snap ? { ...e, snap: trim(e.snap) } : e)),
+    customFoods: data.customFoods.map((f) => ({ ...f, per100g: trim(f.per100g) })),
+    recipes: data.recipes.map((r) => ({ ...r, per100g: trim(r.per100g) })),
+  };
 }
 
 export class BackupError extends Error {}
