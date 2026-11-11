@@ -30,12 +30,20 @@ export const SLV_FRUIT_VEG = new Set([
 ]);
 
 /** Food groups (EuroFIR, facet A) whose fruit doesn't count: juice, jam and sweet drinks. */
-const SLV_NOT = new Set(['Juice och nektar', 'Sylt eller marmelad', 'Dryck utan alkohol', 'Smaksättare, tex ketchup, sojasås, senap', 'Kryddning eller extrakt', 'Krydda']);
+const SLV_NOT = new Set([
+  'Juice och nektar', 'Sylt eller marmelad', 'Dryck utan alkohol', 'Smaksättare, tex ketchup, sojasås, senap',
+  'Kryddning eller extrakt', 'Krydda', 'Kryddor smaksättare dressing röror',
+]);
+/**
+ * Concentrates, condiments, powders and fried snacks (M52b review): a spoonful of tomato paste is not
+ * 100 g of vegetables. Sauces and dishes still count the vegetables in them.
+ */
+const SLV_NOT_NAME = /konc\.|relish|tacosås|pulver|chips/i;
 
 /** g per 100 g, or null when the food has no breakdown. */
 export function slvFruitVeg(info) {
   if (!info?.raw?.length) return null;
-  if (SLV_NOT.has(info.group)) return 0;
+  if (SLV_NOT.has(info.group) || SLV_NOT_NAME.test(info.sv ?? '')) return 0;
   const share = info.raw.reduce((s, r) => s + (SLV_FRUIT_VEG.has(r[1]) ? r[3] : 0), 0);
   return Math.min(100, share);
 }
@@ -43,7 +51,7 @@ export function slvFruitVeg(info) {
 /** USDA FoodData Central categories: 9 Fruits and Fruit Juices, 11 Vegetables and Vegetable Products. */
 const USDA_FRUIT = '9';
 const USDA_VEG = '11';
-const USDA_NOT = /juice|nectar|drink|potato|french fr|dehydrated|powder|flakes|seaweed.*dry|pickle relish/i;
+const USDA_NOT = /juice|nectar|drink|potato|french fr|dehydrated|powder|flakes|seaweed.*dry|catsup|ketchup|paste|pur[eé]e|sauce|pickle|relish|chutney|onion rings|breaded|chips/i;
 
 /** g per 100 g: the whole food when it is a fruit or vegetable (not juice or potatoes), else 0. */
 export function usdaFruitVeg(categoryId, name) {
