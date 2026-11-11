@@ -20,6 +20,15 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-11 — M53 Iron Notes bridge (interactive session)
+
+- Import of an Iron Notes backup through the usual import button: body weight/fat/waist (only what
+  Iron Log lacks) and the diet phase as the goal, each confirmed. lib/ironnotes.ts, state
+  `importBody` + `profileFromBody` (shared with saveBody), ProfileForm `changeGoal` (exported).
+- **Phase 10 (M47–M53) is complete.** Next: the owner decides (M37 Veckomenyn still waits for a go;
+  a version PR 1.8.0 would show Phase 9–10 in "Nyheter").
+- Tests: unit 289 ✓, build ✓ (32.6 KB), e2e 205 ✓ (new ironnotes.spec), Lighthouse ✓.
+
 ## 2026-11-11 — M52b Fruit, vegetables & berries (interactive session)
 
 - Built on #91 (M52a, the weekly run's): new nutrient `fruitVeg` (last in nutrients.json) from

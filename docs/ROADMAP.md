@@ -490,11 +490,18 @@ M22, M37) stay held until the owner asks.
   Livsmedelsverket's newer wording: no potatoes, legumes, juice or jam (not "juice up to 1 dl").
   Scanned/own foods stay unknown (the coverage rule keeps gaps honest). Food data 181 → 190 KB
   gzip. Not done: the optional iron + vitamin C pairing line. No ratio figures without an NNR target.
-- [ ] **M53 Iron Notes bridge: body measurements and diet phase** — import an Iron Notes backup
+- [x] **M53 Iron Notes bridge: body measurements and diet phase** — import an Iron Notes backup
   (`app: 'iron-notes'`, `version: 1`) in Utseende, data & om: its `body` entries are generic measures
   (`metricId` → `metrics` with a kind and unit, possibly lb/in), mapped to weight/fat %/waist by kind
   and converted; only dates without that value are filled; a preview before writing; the diet phase
   (`cut`/`maintain`/`build`) offered as the goal. Mirrors Iron Notes' own Iron Log import (its M30).
+  Done: no new button — "Importera säkerhetskopia" recognises `app: 'iron-notes'` before Iron Log's
+  own format. lib/ironnotes.ts (lazy, pure, tested): measures by kind + name ("Body weight"/"Vikt",
+  "Body fat"/"Fett…", "Waist"/"Midja"; a lone weight measure counts), the latest entry of a day,
+  Iron Log's ranges, no future dates (Iron Notes stores kg, % and cm; lb/in are display only); `planBody` adds only dates/values Iron Log lacks (re-import:
+  nothing). Two confirms: the counts, then the goal (cut → lose, build → gain) via `changeGoal`, the
+  profile page's own path (a following target moves with the goal, M41). The newest weight updates
+  the profile as when typed.
 
 ## Later — ideas, not scheduled
 

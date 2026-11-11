@@ -781,8 +781,24 @@ export async function saveBody(e: BodyEntry): Promise<void> {
   bodyLog.value = empty ? rest : [...rest, e];
   if (empty) await db.deleteBody(e.date);
   else await db.putBody(e);
-  // The newest remaining measurement drives the profile (also after deleting the newest one).
-  // With no measurements left, the profile keeps what was typed there.
+  await profileFromBody();
+}
+
+/** Days of measurements from elsewhere (Iron Notes, M53), already merged: written in one go. */
+export async function importBody(list: BodyEntry[]): Promise<void> {
+  if (!list.length) return;
+  await loadBody();
+  const dates = new Set(list.map((e) => e.date));
+  bodyLog.value = [...(bodyLog.value ?? []).filter((x) => !dates.has(x.date)), ...list];
+  await db.putBodies(list);
+  await profileFromBody();
+}
+
+/**
+ * The newest measurement drives the profile's weight and body fat (also after deleting the newest
+ * one), so automatic energy follows your weight; with none left, the profile keeps what was typed.
+ */
+async function profileFromBody(): Promise<void> {
   const latest = (metric: 'weightKg' | 'bodyFatPct') =>
     (bodyLog.value ?? []).filter((x) => x[metric] != null).sort((a, b) => b.date.localeCompare(a.date))[0]?.[metric];
   const p = settings.value.profile;
