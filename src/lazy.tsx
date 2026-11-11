@@ -5,6 +5,13 @@ import { signal } from '@preact/signals';
 import type { ComponentType } from 'preact';
 import { t } from './lib/i18n';
 
+// A page being left (reload, navigation) aborts in-flight imports: that is not a failure, and must
+// never start a second reload of its own (it would abort the one under way; seen in CI, M52a).
+let leaving = false;
+addEventListener('beforeunload', () => (leaving = true));
+addEventListener('pagehide', () => (leaving = true));
+addEventListener('pageshow', () => (leaving = false)); // back from the back/forward cache
+
 export function lazyView<P extends object>(load: () => Promise<{ default: ComponentType<P> }>) {
   const comp = signal<ComponentType<P> | null>(null);
   const failed = signal(false);
@@ -18,7 +25,7 @@ export function lazyView<P extends object>(load: () => Promise<{ default: Compon
       },
       () => {
         pending = undefined; // allow a retry, e.g. after coming back online
-        failed.value = true;
+        if (!leaving) failed.value = true;
       },
     ));
   function Lazy(props: P) {
@@ -54,7 +61,7 @@ export function lazyView<P extends object>(load: () => Promise<{ default: Compon
  * version (M39). Offline (or after that one reload): the "couldn't load, retry" message instead.
  */
 function reloadOnce() {
-  if (!navigator.onLine) return;
+  if (!navigator.onLine || leaving) return;
   try {
     if (sessionStorage.getItem('il-reloaded')) return;
     sessionStorage.setItem('il-reloaded', '1');
