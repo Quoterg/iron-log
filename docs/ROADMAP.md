@@ -507,7 +507,7 @@ M22, M37) stay held until the owner asks.
 
 From an outside performance audit (2026-11-11), checked against the code and measured; only what
 pays off on the current stack (no binary food format, WebAssembly core or native rewrite: see the
-discussion in PR #96).
+discussion in PR #97).
 
 - [x] **M54 Faster search and start** — the search worker kept one index for all foods and threw
   it away whenever the user's own foods changed (a custom food, scan, recipe, quick entry or sync),
