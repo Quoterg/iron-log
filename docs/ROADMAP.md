@@ -503,6 +503,23 @@ M22, M37) stay held until the owner asks.
   profile page's own path (a following target moves with the goal, M41). The newest weight updates
   the profile as when typed.
 
+## Phase 11 — Snabbare (M54)
+
+From an outside performance audit (2026-11-11), checked against the code and measured; only what
+pays off on the current stack (no binary food format, WebAssembly core or native rewrite: see the
+discussion in PR #96).
+
+- [x] **M54 Faster search and start** — the search worker kept one index for all foods and threw
+  it away whenever the user's own foods changed (a custom food, scan, recipe, quick entry or sync),
+  so the next search re-indexed ~10 600 foods; now the databases' index is kept and only the
+  user's small one is rebuilt. Matching runs against each distinct word once (5 003 words instead
+  of ~86 000 word slots), with the compound split as bits per word: "kycklingbröstfilé" 17.8 →
+  3.4 ms, "havregryn" 9.5 → 1.9 ms (desktop, real data; exactly the same results, tested). Start:
+  the language pack, the library and today's diary load in parallel and the first paint shows the
+  day (diary filled 290 → 225 ms cold, 150 → 95 ms warm on the emulated Moto G4). Picking a food
+  no longer copies the food map when it is already there. Not done: merging tiny chunks (it moved
+  0.4 KB into the first bundle), dropping `idb` / one startup transaction (small gain).
+
 ## Later — ideas, not scheduled
 
 Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.

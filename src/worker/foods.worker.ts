@@ -2,7 +2,7 @@
 // Owns the food databases so parsing and searching never block the UI thread.
 // Each source (Livsmedelsverket, USDA, …) is one or more JSON files, loaded only when the source
 // is enabled for search — or when a diary entry needs one of its foods.
-import { buildEntry, search, type SearchEntry } from '../lib/search';
+import { buildEntry, search, Vocab, type SearchEntry } from '../lib/search';
 import type { Food } from '../lib/nutrients';
 import type { WorkerRequest, WorkerResponse } from '../lib/foods';
 import { rowToFood } from '../lib/food-row';
@@ -25,9 +25,16 @@ let enabled: string[] = [];
 const sourceFoods = new Map<string, Food[]>();
 const loading = new Map<string, Promise<void>>();
 let custom: Food[] = [];
-let builtInCount = 0;
+let builtIn: Food[] = [];
 let all: Food[] = [];
 const byRef = new Map<string, Food>();
+/**
+ * The search index in two parts (M54): the databases' foods, built once per language and kept
+ * when the user's own foods change (a custom food, a scan, a recipe, a quick entry, a sync), and
+ * the user's own, small and rebuilt then. Before, any change re-indexed all ~10 600 foods.
+ */
+let builtInIndex: Partial<Record<string, SearchEntry[]>> = {};
+let customIndex: Partial<Record<string, SearchEntry[]>> = {};
 let index: Partial<Record<string, SearchEntry[]>> = {};
 const popular = new Set<string>();
 /** Per-food boost from the user's own history (count, favourites), set by the main thread. */
@@ -69,9 +76,15 @@ function loadSource(source: string): Promise<void> {
 
 /** Search covers the enabled sources (in order) plus the user's own foods. */
 function rebuild() {
-  const builtIn = enabled.flatMap((s) => sourceFoods.get(s) ?? []);
-  builtInCount = builtIn.length;
+  builtIn = enabled.flatMap((s) => sourceFoods.get(s) ?? []);
+  builtInIndex = {};
+  rebuildCustom();
+}
+
+/** Only the user's own foods changed: the databases' index stays. */
+function rebuildCustom() {
   all = builtIn.concat(custom);
+  customIndex = {};
   index = {};
 }
 
@@ -86,11 +99,17 @@ async function ready(): Promise<string[]> {
 }
 
 function indexFor(lang: string): SearchEntry[] {
-  return (index[lang] ??= all.map((f, i) => {
-    const e = buildEntry(i, [f.sv, f.en, f.terms ?? null], lang === 'en' ? (f.en ?? f.sv) : f.sv);
-    e.boost = boostFor(f.ref, i >= builtInCount);
+  return (index[lang] ??= (builtInIndex[lang] ??= entries(builtIn, 0, lang)).concat((customIndex[lang] ??= entries(custom, builtIn.length, lang))));
+}
+
+/** Index entries for a part of `all` starting at `offset`, with its own vocabulary. */
+function entries(foods: Food[], offset: number, lang: string): SearchEntry[] {
+  const vocab = new Vocab();
+  return foods.map((f, k) => {
+    const e = buildEntry(offset + k, [f.sv, f.en, f.terms ?? null], lang === 'en' ? (f.en ?? f.sv) : f.sv, vocab);
+    e.boost = boostFor(f.ref, offset > 0);
     return e;
-  }));
+  });
 }
 
 function boostFor(ref: string, isCustom: boolean): number {
@@ -127,8 +146,9 @@ self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
   if (req.type === 'boost') {
     userBoost = req.boosts;
     // Update in place: cheaper than rebuilding the normalised index after every logged food.
-    for (const entries of Object.values(index)) {
-      for (const e of entries ?? []) e.boost = boostFor(all[e.i].ref, e.i >= builtInCount);
+    // Both parts: the databases' one is kept while the combined index may not be built yet.
+    for (const part of [...Object.values(builtInIndex), ...Object.values(customIndex)]) {
+      for (const e of part ?? []) e.boost = boostFor(all[e.i].ref, e.i >= builtIn.length);
     }
     return;
   }
@@ -136,7 +156,7 @@ self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
     for (const f of custom) byRef.delete(f.ref);
     custom = req.foods;
     for (const f of custom) byRef.set(f.ref, f);
-    rebuild();
+    rebuildCustom();
     return;
   }
   let res: WorkerResponse;

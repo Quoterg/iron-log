@@ -97,7 +97,12 @@ export const dayTotals = computed(() =>
 );
 
 let loadSeq = 0;
-export async function loadDay(d: string): Promise<void> {
+/**
+ * Show a day: its entries, activities, water and mark, then the names of its foods (which may need
+ * the food data). `shown` is called once the day is in the signals, before the names (M54: the
+ * first paint waits for that, not for an empty diary to fill in afterwards).
+ */
+export async function loadDay(d: string, shown?: () => void): Promise<void> {
   date.value = d;
   const seq = ++loadSeq;
   notice.value = null;
@@ -118,6 +123,7 @@ export async function loadDay(d: string): Promise<void> {
   dayActivities.value = acts.sort((a, b) => a.createdAt - b.createdAt);
   if (acts.length) loadActivityTypes();
   dayWater.value = water;
+  shown?.();
   if (list.length || prev.length) await ensureFoods([...list, ...prev].map((e) => e.foodRef));
   clock.value = Date.now();
   if (usualReady && d === db.isoDate(new Date())) void refreshUsual(d);

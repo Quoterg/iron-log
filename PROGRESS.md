@@ -20,6 +20,18 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-11 — M54 Snabbare (interactive session)
+
+- search.ts: `Vocab` (distinct words) + `TokenMatch` (scores per word, compound splits as bit masks);
+  same results as before (unit test against the old matcher on Livsmedelsverket's data).
+- foods.worker.ts: `builtInIndex` (kept) + `customIndex` (rebuilt on own-food changes); boosts update
+  both. main.tsx: lang, library and `loadDay(…, shown)` in parallel before render. FoodSearch: no map
+  copy for a food already there.
+- Measured: desktop search 17.8 → 3.4 ms (long compounds); Moto G4 emulation diary filled 290 → 225 ms
+  cold. Perf spec: new test (compound + search after an own-food change); CPU throttling doesn't seem
+  to reach the worker, so its search numbers barely move — the unit benchmark is the better measure.
+- Tests: unit 291 ✓, build ✓ (32.7 KB), e2e 206 ✓, Lighthouse ✓.
+
 ## 2026-11-11 — M53 Iron Notes bridge (interactive session)
 
 - Import of an Iron Notes backup through the usual import button: body weight/fat/waist (only what
