@@ -35,6 +35,7 @@ export const SV_LATER = {
   hideTable: 'Dölj tabellen',
   macros: 'Makronäringsämnen',
   carbsDetail: 'Kolhydrater',
+  dietPattern: 'Kostmönster',
   lipids: 'Fetter',
   vitamins: 'Vitaminer',
   minerals: 'Mineraler',

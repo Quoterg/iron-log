@@ -30,6 +30,8 @@ test('quick add (M47): energy and macros without a food; editable, never in sear
   await page.getByLabel('Mängd', { exact: true }).fill('0,5');
   await page.getByRole('button', { name: 'Spara', exact: true }).click();
   await expect(entry).toContainText('450 kcal');
+  // The sheet closes with history.back() after the write: reloading before that can abort the reload.
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 
   // Not a food to search for, nor a recent one; kept across a reload.
   await page.reload();

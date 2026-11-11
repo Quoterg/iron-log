@@ -311,6 +311,7 @@ const strings: Dict = {
   nutrientsEmptyPeriod: 'Nothing logged in this period. These are your targets; once you add food, this page shows what it gives.',
   toDiary: 'To the diary',
   whatIfNote: 'On the food screen: how today’s energy and nutrients change if you add it.',
+  dietPattern: 'Dietary pattern',
   groupUnder: '{n} under target',
   groupOver: '{n} over the limit',
   noDataNutrients: 'No data on {list} in what you logged.',
