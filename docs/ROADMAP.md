@@ -480,17 +480,45 @@ M22, M37) stay held until the owner asks.
 - [x] **M52a Food-based goals: wholegrain** — in Näringsämnen a folded "Kostmönster" row with
   wholegrain g/day against 90 g per 10 MJ (NNR 2023; ~70–75 g for women); the `wholegrain` nutrient left the carbohydrates group
   there. Target `wholegrain` in `nnrTargets` (editable like the others).
-- [ ] **M52b Food-based goals: fruit, vegetables & berries** — second row in Kostmönster: g/day
-  against ≥ 500 g. Needs a food group per food, added in the data build (Livsmedelsverket's
-  classification; USDA by food group), potatoes and dry legumes out, juice counted up to 1 dl.
-  **Blocked in the cloud session:** dataportal.livsmedelsverket.se is not reachable there (proxy 403),
-  so `pnpm data:fetch` can't run — do it where the API is reachable. Optional: an iron + vitamin C
-  pairing line in the suggestions when iron is short. No ratio figures without an NNR target.
-- [ ] **M53 Iron Notes bridge: body measurements and diet phase** — import an Iron Notes backup
+- [x] **M52b Food-based goals: fruit, vegetables & berries** — second row in Kostmönster: g/day
+  against ≥ 500 g. Done without the API: Livsmedelsverket's raw-commodity breakdown per food is
+  already fetched for prices (data/raw/prices/slv-ravaror.json, M34). Fruit & vegetables is a
+  nutrient (`fruitVeg`, g per 100 g, appended to nutrients.json so stored vectors keep their order),
+  so totals, recipes, periods, "Att tänka på", its own screen, the richest lists and suggestions work
+  without new code. scripts/fruitveg.mjs: Livsmedelsverket foods sum the as-eaten share of counted
+  commodities (a stew counts its 24 % vegetables), USDA by food category. Following
+  Livsmedelsverket's newer wording: no potatoes, legumes, juice or jam (not "juice up to 1 dl").
+  Scanned/own foods stay unknown (the coverage rule keeps gaps honest). Food data 181 → 190 KB
+  gzip. Not done: the optional iron + vitamin C pairing line. No ratio figures without an NNR target.
+- [x] **M53 Iron Notes bridge: body measurements and diet phase** — import an Iron Notes backup
   (`app: 'iron-notes'`, `version: 1`) in Utseende, data & om: its `body` entries are generic measures
   (`metricId` → `metrics` with a kind and unit, possibly lb/in), mapped to weight/fat %/waist by kind
   and converted; only dates without that value are filled; a preview before writing; the diet phase
   (`cut`/`maintain`/`build`) offered as the goal. Mirrors Iron Notes' own Iron Log import (its M30).
+  Done: no new button — "Importera säkerhetskopia" recognises `app: 'iron-notes'` before Iron Log's
+  own format. lib/ironnotes.ts (lazy, pure, tested): measures by kind + name ("Body weight"/"Vikt",
+  "Body fat"/"Fett…", "Waist"/"Midja"; a lone weight measure counts), the latest entry of a day,
+  Iron Log's ranges, no future dates (Iron Notes stores kg, % and cm; lb/in are display only); `planBody` adds only dates/values Iron Log lacks (re-import:
+  nothing). Two confirms: the counts, then the goal (cut → lose, build → gain) via `changeGoal`, the
+  profile page's own path (a following target moves with the goal, M41). The newest weight updates
+  the profile as when typed.
+
+## Phase 11 — Snabbare (M54)
+
+From an outside performance audit (2026-11-11), checked against the code and measured; only what
+pays off on the current stack (no binary food format, WebAssembly core or native rewrite: see the
+discussion in PR #97).
+
+- [x] **M54 Faster search and start** — the search worker kept one index for all foods and threw
+  it away whenever the user's own foods changed (a custom food, scan, recipe, quick entry or sync),
+  so the next search re-indexed ~10 600 foods; now the databases' index is kept and only the
+  user's small one is rebuilt. Matching runs against each distinct word once (5 003 words instead
+  of ~86 000 word slots), with the compound split as bits per word: "kycklingbröstfilé" 17.8 →
+  3.4 ms, "havregryn" 9.5 → 1.9 ms (desktop, real data; exactly the same results, tested). Start:
+  the language pack, the library and today's diary load in parallel and the first paint shows the
+  day (diary filled 290 → 225 ms cold, 150 → 95 ms warm on the emulated Moto G4). Picking a food
+  no longer copies the food map when it is already there. Not done: merging tiny chunks (it moved
+  0.4 KB into the first bundle), dropping `idb` / one startup transaction (small gain).
 
 ## Later — ideas, not scheduled
 

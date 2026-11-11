@@ -105,3 +105,29 @@ test('search right after start (before the background warm-up)', async ({ page }
   await expect(page.locator('.result').first()).toBeVisible({ timeout: 20_000 });
   results.searchAtStart = Math.round((await page.evaluate(() => performance.now())) - t0);
 });
+
+test('long compound words, and searching right after your own foods changed (M54)', async ({ page }) => {
+  test.slow();
+  await page.goto('./');
+  await mark(page, 'il:day');
+  const meal = page.locator('.meal').first();
+  const box = page.getByPlaceholder(/Sök livsmedel/);
+  /** ms from typing a query to its first result containing `expected`. */
+  const timed = async (query: string, expected: RegExp) => {
+    const t0 = await page.evaluate(() => performance.now());
+    await box.fill(query);
+    await expect(page.locator('.result').first()).toContainText(expected, { timeout: 20_000 });
+    return Math.round((await page.evaluate(() => performance.now())) - t0);
+  };
+  // Warm: the index is built.
+  await meal.getByRole('button', { name: /Lägg till/ }).click();
+  await timed('mjölk', /Mjölk/);
+  results.compoundWarm = await timed('kycklingbröstfilé', /Kyckling/);
+  // Your own foods change (a quick entry is a hidden custom food), then the next search.
+  await page.getByRole('button', { name: '+ Snabblogga kcal' }).click();
+  await page.getByLabel('Energi (kcal)').fill('300');
+  await page.getByRole('dialog').getByRole('button', { name: 'Snabblogga kcal' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await meal.getByRole('button', { name: /Lägg till/ }).click();
+  results.searchAfterOwnFood = await timed('havregryn', /Havregryn/);
+});

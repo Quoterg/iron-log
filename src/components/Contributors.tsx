@@ -60,6 +60,7 @@ export default function Contributors({ nutrient, from, to }: { nutrient: string;
         <p>
           {t('target')}: <TargetText k={nutrient} unit={n.unit} />
         </p>
+        {nutrient === 'fruitVeg' && <p class="muted small">{t('fruitVegNote')}</p>}
         <h3>{t('topSources')}</h3>
         <p class="muted small">{from === to ? from : `${from} – ${to}`}</p>
         {!list && <p class="muted">{t('loading')}</p>}

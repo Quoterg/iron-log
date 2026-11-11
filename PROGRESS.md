@@ -20,6 +20,41 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-11 — M54 Snabbare (interactive session)
+
+- search.ts: `Vocab` (distinct words) + `TokenMatch` (scores per word, compound splits as bit masks);
+  same results as before (unit test against the old matcher on Livsmedelsverket's data).
+- foods.worker.ts: `builtInIndex` (kept) + `customIndex` (rebuilt on own-food changes); boosts update
+  both. main.tsx: lang, library and `loadDay(…, shown)` in parallel before render. FoodSearch: no map
+  copy for a food already there.
+- Measured: desktop search 17.8 → 3.4 ms (long compounds); Moto G4 emulation diary filled 290 → 225 ms
+  cold. Perf spec: new test (compound + search after an own-food change); CPU throttling doesn't seem
+  to reach the worker, so its search numbers barely move — the unit benchmark is the better measure.
+- Tests: unit 291 ✓, build ✓ (32.7 KB), e2e 206 ✓, Lighthouse ✓.
+
+## 2026-11-11 — M53 Iron Notes bridge (interactive session)
+
+- Import of an Iron Notes backup through the usual import button: body weight/fat/waist (only what
+  Iron Log lacks) and the diet phase as the goal, each confirmed. lib/ironnotes.ts, state
+  `importBody` + `profileFromBody` (shared with saveBody), ProfileForm `changeGoal` (exported).
+- **Phase 10 (M47–M53) is complete.** Next: the owner decides (M37 Veckomenyn still waits for a go;
+  a version PR 1.8.0 would show Phase 9–10 in "Nyheter").
+- Tests: unit 289 ✓, build ✓ (32.6 KB), e2e 205 ✓ (new ironnotes.spec), Lighthouse ✓.
+
+## 2026-11-11 — M52b Fruit, vegetables & berries (interactive session)
+
+- Built on #91 (M52a, the weekly run's): new nutrient `fruitVeg` (last in nutrients.json) from
+  scripts/fruitveg.mjs in build-foods (reads data/raw/prices/slv-ravaror.json — no API call needed)
+  and build-usda (food_category_id 9/11); top/everyday rebuilt; target 500 g; second row in
+  Kostmönster; a note on its own screen says what counts.
+- #91's red CI fixed there: a reload aborted in-flight lazy imports, which then started a second
+  reload (lazy.tsx now ignores failures while the page is leaving).
+- Review fixes (#94): condiments/concentrates excluded (USDA catsup, paste, purée, sauce, pickles…;
+  SLV konc., relish, taco sauce, condiment group); backups leave trailing unknowns out (older versions
+  can read them). Past days of database foods show fruit & vegetables at once (no snapshot); only
+  recipe entries and custom foods made before M52b lack it.
+- Tests: unit 283 ✓, build ✓, e2e ✓ (new foodgoals.spec), Lighthouse ✓ — see the PR.
+
 ## 2026-11-09 — M52a Wholegrain goal (weekly run)
 
 - Split M52: **M52a** done, **M52b** (fruit & vegetables) left. Wholegrain needs no new data:
@@ -30,7 +65,7 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   offline cache — environment, not this change; CI is the judge). Lighthouse not run locally (Chrome as root
   needs --no-sandbox); CI runs it.
 
-### Needs decision / blocked
+### Needs decision / blocked (resolved 2026-11-11: M52b used the breakdown already in data/raw/prices)
 
 - **M52b needs a food group per food** from Livsmedelsverket's API, which the cloud session can't reach
   (403 from the proxy), so `data/raw` couldn't be rebuilt. Either run `pnpm data:fetch` locally and

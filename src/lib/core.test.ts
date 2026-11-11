@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { addDays, usageFromEntries } from './db';
 import { userBoosts } from '../state';
 import { NUTRIENT_INDEX, NUTRIENTS } from './nutrients';
-import { buildEntry, normalize, search } from './search';
+import { buildEntry, normalize, search, Vocab } from './search';
 import { nnrTargets, progress } from './targets';
 import { parseNum } from './i18n';
 import { energySplit, estimateKcal, scale, sum } from './totals';
@@ -117,6 +117,33 @@ describe('real food data', () => {
     });
     for (const [q, expected] of [['ris', /kokt/], ['mjölk', /^Mjölk fett 3%/], ['ägg', /^Ägg/]] as const) {
       expect(data.foods[search(entries, q)[0]][1]).toMatch(expected);
+    }
+  });
+
+  it('matches exactly as the per-food matcher before M54 (vocabulary, compound bits)', () => {
+    /** The matcher before M54, food by food: the reference. */
+    const oldMatch = (words: string[], t: string): number => {
+      let best = 0;
+      for (const w of words) {
+        if (w === t) return 3;
+        if (w.startsWith(t)) best = 2;
+        else if (best === 0 && t.length >= 3 && w.includes(t)) best = 1;
+      }
+      if (best > 0 || t.length < 6) return best;
+      for (let k = 3; k <= t.length - 3; k++) {
+        const head = t.slice(0, k);
+        const tail = t.slice(k);
+        if (words.some((w) => w.startsWith(head)) && words.some((w) => w.includes(tail))) return 1;
+      }
+      return 0;
+    };
+    const vocab = new Vocab();
+    const entries = data.foods.map((f, i) => buildEntry(i, [f[1], f[2]], f[1], vocab));
+    const words = entries.map((e) => e.ids.map((id) => vocab.words[id]));
+    for (const q of ['mjölk', 'kycklingbröstfilé', 'kycklingfilé', 'fullkornsvetemjöl', 'filé', 'ost', 'nötfärs', 'chicken breast', 'blodpudding lingon']) {
+      const tokens = normalize(q).split(' ');
+      const expected = entries.filter((_, i) => tokens.every((t) => oldMatch(words[i], t) > 0)).map((e) => e.i);
+      expect(search(entries, q, 100000).sort((a, b) => a - b), q).toEqual(expected);
     }
   });
 

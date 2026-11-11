@@ -555,6 +555,11 @@ export async function putBody(e: BodyEntry): Promise<void> {
   await put('body', [e]);
 }
 
+/** Several days at once (an Iron Notes import, M53): one transaction. */
+export async function putBodies(list: BodyEntry[]): Promise<void> {
+  if (list.length) await put('body', list);
+}
+
 export async function deleteBody(date: string): Promise<void> {
   await del('body', date);
 }

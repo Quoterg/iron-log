@@ -35,31 +35,35 @@ const PAL_LABEL: Record<number, 'palSedentary' | 'palLight' | 'palModerate' | 'p
 };
 
 /** Body data → NNR 2023 targets for age band, pregnancy/lactation, and an energy estimate. */
+/**
+ * A new goal (M35) sets the automatic target too: the need ± the pace's energy. While the target
+ * follows the measured expenditure, a new goal or pace moves it at once by the difference (M41) —
+ * not only at the next weekly step — and the change is noted with why. Also used by the Iron Notes
+ * import (M53).
+ */
+export async function changeGoal(g: Goal, pace = settings.value.pace): Promise<void> {
+  const s = settings.value;
+  const p = s.profile;
+  const goal = s.goal ?? 'maintain';
+  if (!(s.adaptive && s.adaptiveFollow) || noGoal(p)) return updateSettings({ goal: g, pace, profile: withEnergy(p, g, pace) });
+  const from = { goal, pace: paceFor(p, s.pace) };
+  const to = { goal: g, pace: paceFor(p, pace) };
+  const kcal = goalShift(p.kcal, from, to, minIntake(p));
+  await updateSettings({
+    goal: g,
+    pace,
+    profile: { ...p, kcal, kcalAuto: false },
+    ...(kcal !== p.kcal ? { energyChange: { date: isoDate(new Date()), from: p.kcal, to: kcal, why: { kind: 'goal' as const, fromGoal: from.goal, fromPace: from.pace, goal: to.goal, pace: to.pace } } } : {}),
+  });
+}
+
 /** `brief` (first start, M45): only what the targets need — no body fat, no link onwards. */
 export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
   const p = settings.value.profile;
   const s = settings.value;
   const goal = s.goal ?? 'maintain';
   const save = (patch: Partial<Profile>) => void updateSettings({ profile: withEnergy({ ...p, ...patch }, goal, s.pace) });
-  // While the target follows the measured expenditure (M35), that alone sets it (M41): the formula box is locked.
-  const following = !!(s.adaptive && s.adaptiveFollow);
-  /**
-   * The goal (M35) sets the automatic target too: the need ± the pace's energy. While the target
-   * follows the estimate, a new goal or pace moves it at once by the difference (M41) — not only
-   * at the next weekly step, ±150 kcal at a time — and the change is noted with why.
-   */
-  const setGoal = (g: Goal, pace = s.pace) => {
-    if (!following || noGoal(p)) return void updateSettings({ goal: g, pace, profile: withEnergy(p, g, pace) });
-    const from = { goal, pace: paceFor(p, s.pace) };
-    const to = { goal: g, pace: paceFor(p, pace) };
-    const kcal = goalShift(p.kcal, from, to, minIntake(p));
-    void updateSettings({
-      goal: g,
-      pace,
-      profile: { ...p, kcal, kcalAuto: false },
-      ...(kcal !== p.kcal ? { energyChange: { date: isoDate(new Date()), from: p.kcal, to: kcal, why: { kind: 'goal' as const, fromGoal: from.goal, fromPace: from.pace, goal: to.goal, pace: to.pace } } } : {}),
-    });
-  };
+  const setGoal = (g: Goal, pace = s.pace) => void changeGoal(g, pace);
   const pace = paceFor(p, s.pace);
 
   const pregnant = p.sex === 'female' && (p.status ?? 'none').startsWith('pregnant');

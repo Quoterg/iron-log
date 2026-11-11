@@ -4,9 +4,13 @@
 // Usage: node scripts/build-foods.mjs
 import { mkdir, readFile } from 'node:fs/promises';
 import { writeSourceFiles } from './data-files.mjs';
+import { slvFruitVeg } from './fruitveg.mjs';
 
 const NUTRIENTS = JSON.parse(await readFile('src/lib/nutrients.json', 'utf8'));
 const raw = JSON.parse(await readFile('data/raw/slv.json', 'utf8'));
+// Fruit & vegetables (M52) come from Livsmedelsverket's raw-commodity breakdown (pnpm data:fetch-prices).
+const ravaror = JSON.parse(await readFile('data/raw/prices/slv-ravaror.json', 'utf8'));
+let withFruitVeg = 0;
 
 // 3 significant digits is well within the precision of food composition data.
 const round = (x) => (x == null ? null : x === 0 ? 0 : Number(x.toPrecision(3)));
@@ -18,7 +22,10 @@ const foods = raw.foods.map((f) => {
     if (n.code === 'ENERC' && n.unit !== 'kcal') continue;
     byCode.set(n.code, n.value);
   }
-  const row = [`slv:${f.id}`, f.sv, f.en && f.en !== f.sv ? f.en : null, ...NUTRIENTS.map((n) => round(n.slv ? byCode.get(n.slv) : null))];
+  const fv = slvFruitVeg(ravaror[f.id]);
+  if (fv != null) withFruitVeg++;
+  const computed = { fruitVeg: fv };
+  const row = [`slv:${f.id}`, f.sv, f.en && f.en !== f.sv ? f.en : null, ...NUTRIENTS.map((n) => round(n.slv ? byCode.get(n.slv) : (computed[n.key] ?? null)))];
   // Trailing unknowns (e.g. nutrients SLV doesn't analyse) are left out; the app pads them back.
   while (row.length > 3 && row[row.length - 1] == null) row.pop();
   return row;
@@ -47,7 +54,7 @@ for (const f of raw.foods) {
   }
 }
 for (const r of compiled) if (!r.hits) console.warn(`units.json: rule ${r.re} matches no food`);
-console.log(`Units for ${Object.keys(units).length} foods`);
+console.log(`Units for ${Object.keys(units).length} foods; fruit & vegetables known for ${withFruitVeg}`);
 
 const out = {
   v: 1,

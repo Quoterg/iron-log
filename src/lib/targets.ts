@@ -243,6 +243,8 @@ export function nnrTargets(p: Profile): Record<string, Target> {
     carbs: ePct('carbs', ...pct.carbs),
     fat: ePct('fat', ...pct.fat),
     fibre: { min: p.sex === 'male' ? 35 : 25, max: null },
+    // Fruit, vegetables & berries ≥ 500 g (M52b; Livsmedelsverket: not potatoes, legumes or juice).
+    fruitVeg: { min: 500, max: null },
     satFat: { min: null, max: Math.round((p.kcal * 0.1) / 9) },
     addedSugar: { min: null, max: Math.round((p.kcal * 0.1) / 4) },
     // Thiamin and niacin are set per MJ of energy intake.
