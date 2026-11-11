@@ -190,6 +190,7 @@ export const SV_LATER = {
   noSources: 'Inga livsmedel med det här näringsämnet under perioden.',
   richestFoods: 'Rikast i livsmedelsdatabasen',
   richestNote: 'Per 100 g – kryddor och torkade livsmedel kan toppa listan.',
+  fruitVegNote: 'Livsmedelsverkets råd: minst 500 g om dagen. Räknas: frukt, bär, grönsaker, rotfrukter och svamp, även frysta, konserverade och torkade – och andelen i maträtter. Räknas inte: potatis, baljväxter (eget råd), juice och sylt. Skannade och egna livsmedel saknar uppgiften.',
   measureG: 'Per 100 g',
   measureKcal: 'Per 100 kcal',
   measureKr: 'Per 10 kr',

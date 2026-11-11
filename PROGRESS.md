@@ -20,6 +20,16 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-11 — M52b Fruit, vegetables & berries (interactive session)
+
+- Built on #91 (M52a, the weekly run's): new nutrient `fruitVeg` (last in nutrients.json) from
+  scripts/fruitveg.mjs in build-foods (reads data/raw/prices/slv-ravaror.json — no API call needed)
+  and build-usda (food_category_id 9/11); top/everyday rebuilt; target 500 g; second row in
+  Kostmönster; a note on its own screen says what counts.
+- #91's red CI fixed there: a reload aborted in-flight lazy imports, which then started a second
+  reload (lazy.tsx now ignores failures while the page is leaving).
+- Tests: unit 283 ✓, build ✓, e2e ✓ (new foodgoals.spec), Lighthouse ✓ — see the PR.
+
 ## 2026-11-09 — M52a Wholegrain goal (weekly run)
 
 - Split M52: **M52a** done, **M52b** (fruit & vegetables) left. Wholegrain needs no new data:
@@ -30,7 +40,7 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   offline cache — environment, not this change; CI is the judge). Lighthouse not run locally (Chrome as root
   needs --no-sandbox); CI runs it.
 
-### Needs decision / blocked
+### Needs decision / blocked (resolved 2026-11-11: M52b used the breakdown already in data/raw/prices)
 
 - **M52b needs a food group per food** from Livsmedelsverket's API, which the cloud session can't reach
   (403 from the proxy), so `data/raw` couldn't be rebuilt. Either run `pnpm data:fetch` locally and

@@ -17,8 +17,8 @@ const GROUPS: { group: NutrientGroup[]; title: Title }[] = [
   { group: ['other'], title: 'other' },
 ];
 
-/** Nutrients shown as food-based goals under "Kostmönster" in Näringsämnen (M52a). */
-const PATTERN = ['wholegrain'];
+/** Nutrients shown as food-based goals under "Kostmönster" in Näringsämnen (M52a, fruit & vegetables M52b). */
+const PATTERN = ['wholegrain', 'fruitVeg'];
 const PATTERN_IDX = new Set(NUTRIENTS.flatMap((n, i) => (PATTERN.includes(n.key) ? [i] : [])));
 
 /** Indices of the nutrients a card shows: the pattern card its own, the others by group without them. */

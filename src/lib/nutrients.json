@@ -52,5 +52,6 @@
   { "key": "pheTyr", "slv": "", "unit": "g", "group": "amino", "sv": "Fenylalanin + tyrosin", "en": "Phenylalanine + tyrosine" },
   { "key": "threonine", "slv": "", "unit": "g", "group": "amino", "sv": "Treonin", "en": "Threonine" },
   { "key": "tryptophan", "slv": "", "unit": "g", "group": "amino", "sv": "Tryptofan", "en": "Tryptophan" },
-  { "key": "valine", "slv": "", "unit": "g", "group": "amino", "sv": "Valin", "en": "Valine" }
+  { "key": "valine", "slv": "", "unit": "g", "group": "amino", "sv": "Valin", "en": "Valine" },
+  { "key": "fruitVeg", "slv": "", "unit": "g", "group": "other", "sv": "Frukt, grönsaker & bär", "en": "Fruit, vegetables & berries" }
 ]
