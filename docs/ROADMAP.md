@@ -489,6 +489,148 @@ M22, M37) stay held until the owner asks.
   and converted; only dates without that value are filled; a preview before writing; the diet phase
   (`cut`/`maintain`/`build`) offered as the goal. Mirrors Iron Notes' own Iron Log import (its M30).
 
+## Phase 11 — Library ergonomics, recipe & shopping flow, and ecosystem parity (M54–M61)
+
+Every milestone keeps Phase 9's rules (one job per screen, details on request, opt-in and off by
+default for advice, no extra diary lines unless used) and the performance budget (initial JS ≤ 40 KB
+gzip, CSS ≤ 8 KB, food data ≤ 250 KB per file; new screens and strings in lazy chunks). Earlier
+held items (M18d, M19c, M22, M37) and "Later" items stay untouched until the owner asks.
+
+- [ ] **M54 Full saved-meal editing & selective copy (`TemplateSheet.tsx`, `CopySheet.tsx`)** — saved
+  meals (`MealTemplate`) can currently only be created from a logged diary meal and only allow
+  deleting items (`span.entry-static`), while `CopySheet` copies an entire meal/day with no way to
+  untick one item and defaults `toDate` to the source day even when browsing a past day.
+  - **Saved meals (`TemplateSheet.tsx`, `Settings.tsx`)**: add "+ Skapa måltid" to `SavedMealsCard`
+    in Settings; in `TemplateSheet`, make each item row a button opening `FoodDetail` to edit its
+    amount/measure (`grams`, `unit`, `qty`), and add "+ Lägg till livsmedel" (opening `FoodSearch`,
+    including `Välj flera` multi-pick) so saved meals can be built and adjusted directly.
+  - **Selective `CopySheet` ("Kopiera måltid / dag")**: list the source entries as checkboxes (all
+    ticked by default, submit button `"Kopiera N (… kcal)"` so whole-meal copy stays one tap); when
+    opened from a past day (`date.value !== isoDate(new Date())`, local date), default `toDate` to
+    today with an "Idag" chip next to the date input.
+  - No DB schema or sync changes; all in lazy `TemplateSheet.tsx`, `CopySheet.tsx`, `Settings.tsx`.
+  - Tests: unit (template item update/add, selective `copyEntries`), e2e (create/edit a saved meal in
+    Settings; copy a past meal to today with one item unticked), axe + 200 %.
+- [ ] **M55 Custom foods per portion, copy food to custom & remove custom measures (`FoodEditor.tsx`,
+  `FoodDetail.tsx`)** — package labels often state nutrition per piece/portion rather than only per
+  100 g, scanned products (`off:*`) with missing micronutrients can't be used as a starting point for
+  an editable custom food, and a mistyped custom measure (`userServings`) can't be deleted.
+  - **Per-portion entry in `FoodEditor.tsx`**: add an optional serving row (measure name, e.g. `"st"`
+    or `"port"`, and weight in g, `0 < g < 100 000`) and a two-way chip **Per 100 g** · **Per
+    portion ({g} g)** when the serving weight is set. Stored `per100g` is normalized to per 100 g
+    (`val * 100 / g`, rounded to 6 significant digits like recipes) and the measure is saved to
+    `userServings` (`putServings`), keeping `CustomFood`, the worker, backup and sync unchanged.
+  - **"Skapa eget utifrån detta" (`FoodDetail.tsx`)**: on any non-recipe food (built-in, `off:*` or
+    `custom:*`), a plain secondary action opens `FoodEditor` pre-filled with the food's localized
+    name, `per100g` values and first household measure so missing micronutrients on a scanned product
+    can be filled in locally.
+  - **Delete a custom measure (`FoodDetail.tsx`, `state.ts`)**: when the active `unit` on `FoodDetail`
+    belongs to `userServings.value.get(ref)`, show a small `"Ta bort mått"` action calling
+    `removeServing(ref, unit)` (writes a `servings` tombstone when the last custom measure for `ref`
+    is removed so paired devices drop it too).
+  - Tests: unit (per-portion → per-100 g normalization, `removeServing` + tombstone), e2e (copy a
+    scanned/built-in food to custom with per-portion values; add and remove a custom measure), axe +
+    200 %.
+- [ ] **M56 Recipe from a logged meal, multi-pick ingredients & pasted ingredient lists
+  (`RecipeEditor.tsx`, `Diary.tsx`, `src/lib/recipe-paste.ts`)** — cooking by logging ingredients into
+  a meal first shouldn't require re-entering them in `RecipeEditor`, and adding 8 ingredients to a
+  recipe shouldn't take 8 round trips through `FoodSearch`.
+  - **"Spara som recept" in the diary's `⋯` menu**: when a meal has non-recipe food entries, opens
+    `RecipeEditor` pre-populated with those entries (`foodRef`, `grams`, `unit`, `qty`); an optional
+    checkbox `"Byt ut måltidens rader mot 1 portion av receptet"` replaces those entries with 1
+    portion of the new recipe in a single IndexedDB transaction (`replaceEntries`, with tombstones).
+  - **"Välj flera" for recipe ingredients (`FoodSearch.tsx`)**: enable the M48 multi-pick chip when
+    `pickIngredient` is true so multiple ingredients can be added to `recipeDraft` at their
+    usual/initial amounts in one batch.
+  - **Paste ingredient list ("Klistra in ingredienser", lazy `src/lib/recipe-paste.ts`)**: in
+    `RecipeEditor`, a secondary button opens a textarea accepting lines like `"400 g kycklingfilé"`,
+    `"2 dl kokosmjölk"`, `"1,5 msk rapsolja"`, `"2 st ägg"`. A pure local parser extracts quantity
+    (incl. `1/2`, `½`, decimal comma/point), unit and food query, resolves the top match via the
+    local worker (`searchFoods(q, lang, 'recipe:')`) and `servingsFor(food)`, and shows a preview
+    checklist before appending to `recipeDraft`. Nothing leaves the device.
+  - Tests: unit (`parseIngredientLines` across Swedish/English units, fractions and fallbacks,
+    `replaceEntries` transaction), e2e (save a logged meal as a recipe and replace the meal rows;
+    paste a 3-line ingredient list into a recipe), axe + 200 %.
+- [ ] **M57 Meal-level iron + vitamin C pairing & forward-compatible nutrient vectors (`suggest.ts`,
+  `backup.ts`)** — completes the optional part of M52 and hardens backup/sync when `nutrients.json`
+  grows across versions (M52b review nit #1).
+  - **Iron + vitamin C meal pairing (`src/lib/suggest.ts`, `Suggestions.tsx`)**: non-heme iron
+    absorption depends on Vitamin C in the *same meal* (Livsmedelsverket / NNR 2023). When
+    `settings.suggestions` is on and `iron` is in `g.low` (7/30 days), inspect `periodEntries` by
+    `date + meal` (memoised per period key): if the meals supplying ≥ 50 % of the period's plant/
+    non-heme iron average < 25 mg `vitC` in the same meal, add one concise pairing line under the
+    iron gap in `Vad du kan äta` naming the meal (e.g. lunch) and a Vitamin C food the user eats or a
+    staple (paprika, citrus, broccoli, bär).
+  - **Forward/backward-compatible vectors (`src/lib/backup.ts`, `src/lib/recipes.ts`)**: trim
+    trailing `null`s on `entry.snap`, `customFood.per100g` and `recipe.per100g` / `ing.per100g` when
+    exporting backups and building sync payloads (`trimVector`), and allow incoming vectors up to
+    `MAX_VECTOR_LEN = 128` in `isVector` (sliced to `NUTRIENTS.length` by `padVector`), so a device
+    on an older app version never rejects a backup or WebRTC sync from a newer version that appended
+    a nutrient.
+  - Tests: unit (meal-level iron + vitC detection, `trimVector` and cross-version `isVector` /
+    `padVector` round-trip), e2e (iron gap with low-vitC meals shows the pairing line), axe + 200 %.
+- [ ] **M58 Shopping list in the store: edit quantities & search database foods (`ShoppingSheet.tsx`,
+  `src/lib/shopping.ts`)** — once a food is on the shopping list, its quantity can't be adjusted
+  (e.g. when half is already at home), database foods can't be added directly (only unpriced
+  free-text items), and restocking from the last 7 days adds every staple without a checklist.
+  - **Inline quantity editor on `ShopItem` (`ShoppingSheet.tsx`)**: tapping a food line's amount (or
+    opening its inline editor) lets the user adjust the amount in its shop unit (`kg`, `l`, `st`, `g`)
+    and updates `item.grams` (`updatedAt` stamped for sync).
+  - **Selective restock from last 7 days ("Välj från senaste 7 dagarna")**: tapping the last-7-days
+    restock button opens an inline checklist (all ticked by default, summed per food) so staples
+    already at home (oil, salt, oats) can be unticked before adding, while "+ Lägg till N varor"
+    stays one tap when everything is wanted.
+  - **Add a database food directly**: a "+ Sök livsmedel" button in `ShoppingSheet` opens `FoodSearch`
+    in shopping mode (`Välj flera` on by default) so database foods added to the list get automatic
+    store-section grouping, household units and typical/own prices.
+  - Tests: unit (inline quantity → grams conversion, selective restock aggregation), e2e (edit a
+    line's quantity → total cost updates; untick 1 item when restocking from last 7 days; add a
+    database food from search), axe + 200 %.
+- [ ] **M59 Body log (`Kropp`): tap-to-edit history, delete button & rate-of-change summary
+  (`BodyView.tsx`, `LineChart.tsx`, `src/lib/body.ts`)** — fixing a mistyped past weigh-in currently
+  requires manually typing its date in `BodyForm` and clearing all three fields to delete it, and the
+  chart caption shows a static hint instead of the period's trend change.
+  - **Tap any row in `Visa tabell` to load that date into `BodyForm` (`LineChart.tsx`,
+    `BodyView.tsx`)**, and when `existing` is loaded in `BodyForm`, show a secondary `"Ta bort"`
+    button (calls `saveBody({ date: day, updatedAt: Date.now() })` which writes the deletion
+    tombstone and recomputes the profile's latest weight/body fat).
+  - **Trend summary on `LineChart`**: when no point is hovered (`!active`) and the window has ≥ 2
+    points, show the latest value, the 7-day trend and the trend change over the selected range
+    (plus `/vecka` for weight when the span is ≥ 7 days, e.g. `"7-dagarssnitt 79,6 kg (−1,2 kg · −0,4
+    kg/v)"`) instead of only the generic pointer hint.
+  - Tests: unit (window trend delta and weekly rate across irregular weigh-ins, profile weight
+    fallback after deleting latest entry), e2e (tap a table row → edit or delete the weigh-in → chart
+    and profile update), axe + 200 %.
+- [ ] **M60 Activity log editing & recent-activity chips (`ActivitySheet.tsx`, `Diary.tsx`,
+  `state.ts`)** — logged activities in `ActivityCard` are static (`span.entry-static`) so fixing the
+  duration requires deleting and re-adding, and `ActivitySheet` always resets to walking 30 min.
+  - **Edit a logged activity**: in `Diary.tsx` (`ActivityCard`), make each activity row a button
+    opening `ActivitySheet` with `activityId`; saving updates the existing `Activity` record in place
+    (same `id`, updated `minutes`, `type` and `kcal`, stamped in `meta` for sync) or deletes it.
+  - **Recent activities chips (`ActivitySheet.tsx`)**: show up to 3 chips at the top of
+    `ActivitySheet` for the user's most recently logged activity types (with their last duration, e.g.
+    `"Löpning, medel · 45 min"`), derived from recent `activities` / device-local memory so logging a
+    regular session takes two taps.
+  - Tests: unit (`updateActivity` recalculating `kcal` and stamping `meta`, recent-activity
+    deduplication), e2e (log an activity → tap it in the diary → change minutes → `burnedToday` and
+    energy target update; tap a recent-activity chip), axe + 200 %.
+- [ ] **M61 Update check on resume & library search (`public/sw.js`, `src/main.tsx`,
+  `Settings.tsx`)** — an installed PWA/TWA is resumed rather than reloaded, so `sw.js` currently only
+  discovers a new version on cold start (fixed in sister app Iron Notes, `0271315`), and `Settings →
+  Mina livsmedel, recept & måltider` becomes a long unsearchable scroll once the library grows.
+  - **Update check on foreground resume (`public/sw.js`, `src/main.tsx`)**: when `visibilitychange`
+    fires with `document.visibilityState === 'visible'` and ≥ 30 minutes (`UPDATE_CHECK_MS`) have
+    passed since the last check, post `{ type: 'check' }` to the service worker (`checkForUpdate()`
+    fetches `SCOPE` with `cache: 'no-cache'`, runs `storeAppPage` to cache all assets first, and sets
+    `UPDATE_MARK` so `updateReady` shows the restart bar) and call `registration.update()`.
+  - **Library filter & custom-food delete (`Settings.tsx`)**: in `SettingsPage` (`page ===
+    'library'`), show a compact filter input at the top when total items across `MyFoods`, `MyRecipes`
+    and `SavedMealsCard` exceed 8, and add a `×` delete button (with confirmation) plus a supplement
+    badge on `MyFoods` rows, matching `MyRecipes` (M41).
+  - Tests: unit (library filter matching across foods, recipes and saved meals), e2e (`update.spec.ts`
+    routing a newer app page on `{ type: 'check' }` → restart bar appears; filter and delete a custom
+    food in the library), axe + 200 %.
+
 ## Later — ideas, not scheduled
 
 Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.
