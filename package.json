@@ -26,7 +26,7 @@
     "data:build-fruit": "node scripts/build-fruit.mjs"
   },
   "dependencies": {
-    "@preact/signals": "1",
+    "@preact/signals": "2",
     "barcode-detector": "3.2.2",
     "idb": "8",
     "preact": "10",
