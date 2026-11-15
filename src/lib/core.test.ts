@@ -200,8 +200,9 @@ describe('usage', () => {
       ['c', { foodRef: 'c', count: 0, lastUsed: 0, lastGrams: 1, fav: true }],
     ]);
     const b = userBoosts(map);
-    expect(b.a).toBeCloseTo(0.75);
-    expect(b.b).toBe(3);
+    // Logged at all: LOGGED_BOOST (M62), then up to 3 for often; a favourite +2.
+    expect(b.a).toBeCloseTo(10.75);
+    expect(b.b).toBe(13);
     expect(b.c).toBe(2);
   });
 });
