@@ -31,6 +31,9 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
 - The message region is `aria-live`, not `role="status"`: 7 specs use `getByRole('status')`.
 - Tests: unit 289 ✓, build ✓ (33.2 KB), e2e 204/206 ✓ (camera: port 4173 held by another job, passed
   on a private port; quick "mark day" flaked once under a parallel run, 3/3 alone), Lighthouse 100/100/100.
+- Review (#99) left for later: a `foodRef` index so `refsInUse` (quick-entry delete) isn't a full cursor
+  walk (needs a DB version); restore quick foods + entries in one transaction; pause the 8 s message
+  timer while it has focus (screen readers). One message at a time: a new one replaces the old.
 
 ## 2026-11-15 — M63 Calories remaining (interactive session)
 
