@@ -152,7 +152,16 @@ export default function Nutrients() {
       <button class="btn wide" onClick={() => open({ kind: 'targets' })}>
         {t('adjustTargets')}
       </button>
-      <p class="muted small">{t('targetsNote')}</p>
+      {settings.value.profile.standard ? (
+        <p class="muted small">
+          {t('standardNote')}{' '}
+          <button class="link inline" onClick={() => ((view.value = 'settings'), open({ kind: 'settings', page: 'profile' }))}>
+            {t('standardSet')}
+          </button>
+        </p>
+      ) : (
+        <p class="muted small">{t('targetsNote')}</p>
+      )}
       {/* Last on the 7- and 30-day pages (owner, M40b), one card for "what could I eat" (M43). */}
       {report && <Advice foods={settings.value.suggestions && g && g.low.length > 0 ? g.low : null} fruit={short} amounts={report.amounts} covered={report.covered} />}
     </>
