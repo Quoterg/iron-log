@@ -241,6 +241,7 @@ export const SV_LATER = {
   welcomeSkip: 'Hoppa över',
   welcomeDone: 'Klar',
   welcomeTarget: 'Ditt energimål: {kcal} kcal/dag, räknat från din profil. Du kan ändra det under Inställningar → Energimål.',
+  welcomeTargetStandard: 'Utan kön använder appen standardmål för vuxna och {kcal} kcal/dag. Du kan ange profilen när du vill (Inställningar → Profil & mål).',
   welcomeTargetDefault: 'Ditt energimål är {kcal} kcal/dag tills ålder, vikt och längd är ifyllda (Inställningar → Profil & mål).',
   welcomeFeatures: 'Vill du ha något mer? Allt går att ändra senare under Inställningar → Funktioner.',
   nutrientsEmptyDay: 'Inget loggat i dag än. Här är dina mål; när du lagt till mat visar sidan vad den ger.',

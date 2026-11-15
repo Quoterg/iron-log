@@ -58,6 +58,8 @@ test('profile drives energy and NNR targets (age band, pregnancy)', async ({ pag
   await expect(auto).toBeDisabled();
   await page.getByRole('button', { name: /^‹ / }).click();
   await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
+  // No sex is assumed (M65): the formula needs one.
+  await page.getByLabel('Kön').selectOption('female');
   await setField(page, 'Ålder', '30');
   await setField(page, 'Vikt (kg)', '60,4');
   await setField(page, 'Längd (cm)', '165');
@@ -122,6 +124,7 @@ test('goal in the profile (M35): the automatic target is the need ± the pace, a
   await settingsTab(page);
   await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
   const kcal = page.getByRole('button', { name: /^Energimål:/ });
+  await page.getByLabel('Kön').selectOption('female'); // no sex is assumed (M65)
   await setField(page, 'Ålder', '30');
   await setField(page, 'Vikt (kg)', '60,4');
   await setField(page, 'Längd (cm)', '165');

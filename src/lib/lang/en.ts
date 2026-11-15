@@ -321,6 +321,7 @@ const strings: Dict = {
   welcomeSkip: 'Skip',
   welcomeDone: 'Done',
   welcomeTarget: 'Your energy target: {kcal} kcal/day, worked out from your profile. You can change it under Settings → Energy target.',
+  welcomeTargetStandard: 'Without a sex given, the app uses standard targets for adults and {kcal} kcal/day. You can set your profile any time (Settings → Profile & goal).',
   welcomeTargetDefault: 'Your energy target is {kcal} kcal/day until age, weight and height are filled in (Settings → Profile & goal).',
   welcomeFeatures: 'Anything more? All of it can be changed later under Settings → Features.',
   nutrientsEmptyDay: 'Nothing logged today yet. These are your targets; once you add food, this page shows what it gives.',

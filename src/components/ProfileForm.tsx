@@ -111,8 +111,9 @@ export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
           value={p.standard ? '' : p.sex}
           onChange={(e) => {
             const sex = (e.currentTarget as HTMLSelectElement).value as Sex;
-            // From the standard profile (M65) a typed or standard energy target stays as it is.
-            save({ sex, status: 'none', standard: undefined, kcal: p.kcalAuto || p.standard ? p.kcal : defaultKcal(sex) });
+            // The default target follows the sex; one the user typed (also while on standard targets, M65) stays.
+            const typed = p.standard && p.kcal !== defaultKcal('female');
+            save({ sex, status: 'none', standard: undefined, kcal: p.kcalAuto || typed ? p.kcal : defaultKcal(sex) });
           }}
         >
           {p.standard && (
