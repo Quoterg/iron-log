@@ -656,10 +656,12 @@ changes the same worker/ranking code).
   saved meal says what was added (4 foods landed silently) with Undo; "Töm måltiden" asks in the app's
   own confirm instead of the browser's native `confirm()`. Done: one message at a time above the tab
   bar (`showToast`, 8 s, aria-live); `removeEntries` → `restoreEntries` (same ids, quick foods too).
-- [ ] **M65 Honest default profile** — "Inte nu" on the welcome card left the user silently as "Kvinna ·
+- [x] **M65 Honest default profile** (PR #100) — "Inte nu" on the welcome card left the user silently as "Kvinna ·
   Har menstruation · 2 000 kcal". Skipping gives clearly labelled standard targets (no invented sex or
   menstruation) with a visible, non-nagging way to set the profile; Settings doesn't present
-  defaults as the user's data.
+  defaults as the user's data. Done: `Profile.standard` (the default); targets the higher of women's
+  and men's NNR values (lower limit), no Mifflin estimate without a sex; Settings "Ingen profil –
+  standardmål"; Näringsämnen's footnote with "Ange profil"; settings v4 moves the untouched old default.
 - [ ] **M66 Calm nutrients tab** — early in the day "10 under målet" reads as an alarm: judge the day
   against the day so far (or show the count only when it means something), and explain "E%",
   "Kostmönster" and "NNR 2023" in place (a tap or a short gloss).
