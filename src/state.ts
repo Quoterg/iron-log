@@ -3,7 +3,7 @@ import { computed, signal } from '@preact/signals';
 import * as db from './lib/db';
 import type { CustomFood, Entry, Meal, OffFood, Settings, Usage } from './lib/db';
 import { getFoods, setCustomFoods, setSources, setUserBoosts, type Source } from './lib/foods';
-import { detectLang, lang, loadLang, rememberLang, t, toLang } from './lib/i18n';
+import { detectLang, fmt, lang, loadLang, rememberLang, t, toLang } from './lib/i18n';
 import { type Food, type NutrientVector, type Serving, dataLangOf, NUTRIENT_INDEX, NUTRIENTS } from './lib/nutrients';
 import { recipeNutrition, recipeToFood, splitRecipe, type Recipe, type StoredRecipe } from './lib/recipes';
 import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
@@ -196,8 +196,8 @@ export async function updateEntry(id: string, patch: EntryPatch): Promise<void> 
   await db.putEntry(next);
 }
 
-export async function removeEntry(id: string): Promise<void> {
-  await removeEntries([id]);
+export async function removeEntry(id: string): Promise<Removed> {
+  return removeEntries([id]);
 }
 
 /**
@@ -223,26 +223,68 @@ export async function splitEntry(id: string): Promise<number> {
   return added.length;
 }
 
-/** Remove several entries at once (a whole meal, M41), in one transaction: never half a meal. */
-export async function removeEntries(ids: string[]): Promise<void> {
+/**
+ * Remove several entries at once (a whole meal, M41), in one transaction: never half a meal.
+ * Returns how to take it back (M64's "Ångra"): the entries, and quick foods that went with them.
+ */
+export async function removeEntries(ids: string[]): Promise<Removed> {
   const gone = new Set(ids);
-  const quick = [...new Set(entries.value.filter((x) => gone.has(x.id) && quickRefs.value.has(x.foodRef)).map((x) => x.foodRef))];
+  const removed = entries.value.filter((x) => gone.has(x.id));
+  const quick = [...new Set(removed.filter((x) => quickRefs.value.has(x.foodRef)).map((x) => x.foodRef))];
   entries.value = entries.value.filter((x) => !gone.has(x.id));
   await db.deleteEntries(ids);
-  if (quick.length) await dropUnusedQuick(quick);
+  return { entries: removed, foods: quick.length ? await dropUnusedQuick(quick) : [] };
 }
+
+export interface Removed {
+  entries: Entry[];
+  foods: CustomFood[];
+}
+
+/** Undo a removal (M64): the same entries (same ids) and quick foods come back, newer than their deletion for sync. */
+export async function restoreEntries(r: Removed): Promise<void> {
+  if (r.foods.length) {
+    const back = new Set(r.foods.map((f) => f.ref));
+    customFoods.value = [...customFoods.value.filter((f) => !back.has(f.ref)), ...r.foods];
+    syncCustomFoods();
+    for (const f of r.foods) await db.putCustomFood(f);
+  }
+  const ids = new Set(entries.value.map((e) => e.id));
+  // Only the day on screen shows them; another day gets them back in storage.
+  const shown = r.entries.filter((e) => e.date === date.value && !ids.has(e.id));
+  if (shown.length) entries.value = [...entries.value, ...shown].sort((a, b) => a.createdAt - b.createdAt);
+  await db.putEntries(r.entries);
+}
+
+/**
+ * A short message at the bottom of the screen with an optional "Ångra" (M64): after deleting an
+ * entry or a meal, or logging a saved meal. One at a time; it goes by itself after a few seconds.
+ */
+export const toast = signal<{ text: string; undo?: () => Promise<void>; id: number } | null>(null);
+let toastSeq = 0;
+export function showToast(text: string, undo?: () => Promise<void>): void {
+  const id = ++toastSeq;
+  toast.value = { text, undo, id };
+  setTimeout(() => {
+    if (toast.value?.id === id) toast.value = null;
+  }, TOAST_MS);
+}
+/** Long enough to read and reach the button on a slow phone, short enough not to linger. */
+export const TOAST_MS = 8000;
 
 /** Quick entries' foods (M47), hidden: skipped by usage and the shopping list. */
 export const quickRefs = computed(() => new Set(customFoods.value.filter((f) => f.quick).map((f) => f.ref)));
 
 /** A quick entry's food goes with its last entry (and saved meal), so they don't pile up (M47 review). */
-async function dropUnusedQuick(refs: string[]): Promise<void> {
+async function dropUnusedQuick(refs: string[]): Promise<CustomFood[]> {
   const used = await db.refsInUse(refs);
   const drop = new Set(refs.filter((r) => !used.has(r)));
-  if (!drop.size) return;
+  if (!drop.size) return [];
+  const dropped = customFoods.value.filter((f) => drop.has(f.ref));
   customFoods.value = customFoods.value.filter((f) => !drop.has(f.ref));
   syncCustomFoods();
   for (const r of drop) await db.removeCustomFood(r);
+  return dropped;
 }
 
 export async function loadSettings(): Promise<void> {
@@ -575,6 +617,11 @@ export async function deleteTemplate(id: string): Promise<void> {
  * and the diary says so.
  */
 export async function logItems(meal: Meal, items: MealTemplate['items']): Promise<number> {
+  return (await logItemsList(meal, items)).length;
+}
+
+/** logItems, returning the new entries (for "Ångra", M64). */
+async function logItemsList(meal: Meal, items: MealTemplate['items']): Promise<Entry[]> {
   await ensureFoods(items.map((i) => i.foodRef));
   const now = Date.now();
   const list: Entry[] = [];
@@ -587,21 +634,53 @@ export async function logItems(meal: Meal, items: MealTemplate['items']): Promis
   });
   const skipped = items.length - list.length;
   notice.value = skipped ? t('foodsUnavailable').replace('{n}', String(skipped)) : null;
-  if (!list.length) return 0;
+  if (!list.length) return [];
   entries.value = [...entries.value, ...list];
   await db.putEntries(list);
   await recordUses(list.filter((e) => !quickRefs.value.has(e.foodRef)).map((e) => [e.foodRef, e]));
-  return list.length;
+  return list;
 }
 
 export async function logTemplate(meal: Meal, m: MealTemplate): Promise<number> {
-  const n = await logItems(meal, m.items);
-  if (n) {
+  // What Ångra puts back (M64 review): the foods' use records and the meal's own count, as before.
+  const usedBefore = new Map(m.items.map((i) => [i.foodRef, usage.value.get(i.foodRef)]));
+  const added = await logItemsList(meal, m.items);
+  if (added.length) {
     const cur = templateUse.value[m.id];
     templateUse.value = { ...templateUse.value, [m.id]: { n: (cur?.n ?? 0) + 1, last: Date.now() } };
     writeLocal(TEMPLATE_USE_KEY, templateUse.value);
+    // Several foods land at once: say what was added, with a way back (M64).
+    const kcal = added.reduce((s, e) => s + ((db.entryVector(e, foods.value)?.[NUTRIENT_INDEX.kcal] ?? 0) * e.grams) / 100, 0);
+    const text = (added.length === 1 ? t('toastAddedOne') : t('toastAdded'))
+      .replace('{name}', m.name)
+      .replace('{n}', String(added.length))
+      .replace('{kcal}', fmt(kcal));
+    showToast(text, async () => {
+      await removeEntries(added.map((e) => e.id));
+      const use = { ...templateUse.value };
+      if (cur) use[m.id] = cur;
+      else delete use[m.id];
+      templateUse.value = use;
+      writeLocal(TEMPLATE_USE_KEY, use);
+      await restoreUsage(usedBefore);
+    });
   }
-  return n;
+  return added.length;
+}
+
+/** Put foods' use records back as they were (undefined: the food had none, so it goes). */
+async function restoreUsage(before: Map<string, Usage | undefined>): Promise<void> {
+  const map = new Map(usage.value);
+  const back: Usage[] = [];
+  for (const [ref, u] of before) {
+    if (u) {
+      map.set(ref, u);
+      back.push(u);
+    } else if (map.delete(ref)) await db.deleteUsage(ref);
+  }
+  usage.value = map;
+  setUserBoosts(userBoosts(map));
+  await db.putUsages(back);
 }
 
 /** Mark the selected day complete or incomplete; choosing the current mark again makes it automatic. */

@@ -23,6 +23,18 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-15 — M64 Undo and feedback (interactive session)
+
+- "Ta bort" on an entry and "Töm måltiden" → message with Ångra (same ids back, newer than the
+  deletion for sync; a quick entry's food too). Logging a saved meal says "Min frukost tillagd: 3
+  livsmedel, 320 kcal · Ångra". "Töm måltiden" asks in the meal card, not in `confirm()`.
+- The message region is `aria-live`, not `role="status"`: 7 specs use `getByRole('status')`.
+- Tests: unit 289 ✓, build ✓ (33.2 KB), e2e 204/206 ✓ (camera: port 4173 held by another job, passed
+  on a private port; quick "mark day" flaked once under a parallel run, 3/3 alone), Lighthouse 100/100/100.
+- Review (#99) left for later: a `foodRef` index so `refsInUse` (quick-entry delete) isn't a full cursor
+  walk (needs a DB version); restore quick foods + entries in one transaction; pause the 8 s message
+  timer while it has focus (screen readers). One message at a time: a new one replaces the old.
+
 ## 2026-11-15 — M63 Calories remaining (interactive session)
 
 - Phase 12 (M62–M69) planned from the owner's walkthrough (ROADMAP). M63: the diary's energy card says

@@ -7,7 +7,7 @@ const today = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
-test('a whole meal can be cleared at once (M41), after a confirmation; other meals stay', async ({ page }) => {
+test('a whole meal can be cleared at once (M41), after a confirmation in the app, undoable; other meals stay', async ({ page }) => {
   await page.goto('./');
   const entries = [
     { id: 'b1', date: today(), meal: 'breakfast', foodRef: 'slv:702', grams: 60, createdAt: 1 },
@@ -27,20 +27,33 @@ test('a whole meal can be cleared at once (M41), after a confirmation; other mea
   await tab(page, 'Dagbok');
   await expect(meal(page, 0).locator('.entry')).toHaveCount(3);
 
-  // Cancelled: nothing removed.
+  // Asked in the app (M64), not in a browser dialog; cancelled: nothing removed.
   page.removeAllListeners('dialog');
-  page.once('dialog', (d) => {
-    expect(d.message()).toBe('Ta bort allt i frukost (3 st)?');
-    void d.dismiss();
+  page.on('dialog', () => {
+    throw new Error('no browser dialog expected');
   });
   await meal(page, 0).getByRole('button', { name: /^Fler val för/ }).click();
   await meal(page, 0).getByRole('button', { name: 'Töm måltiden' }).click();
+  const ask = meal(page, 0).getByRole('group', { name: 'Töm måltiden' });
+  await expect(ask).toContainText('Ta bort allt i frukost (3 st)?');
+  await ask.getByRole('button', { name: 'Avbryt' }).click();
+  await expect(ask).toHaveCount(0);
   await expect(meal(page, 0).locator('.entry')).toHaveCount(3);
 
-  // Confirmed: the breakfast is empty, the lunch untouched — also after a reload.
-  page.once('dialog', (d) => void d.accept());
+  // Undone (M64): the same three entries come back.
   await meal(page, 0).getByRole('button', { name: /^Fler val för/ }).click();
   await meal(page, 0).getByRole('button', { name: 'Töm måltiden' }).click();
+  await ask.getByRole('button', { name: 'Töm', exact: true }).click();
+  await expect(meal(page, 0).locator('.entry')).toHaveCount(0);
+  await expect(page.locator('.toast')).toContainText('Frukost tömdes (3 st)');
+  await page.locator('.toast').getByRole('button', { name: 'Ångra' }).click();
+  await expect(meal(page, 0).locator('.entry')).toHaveCount(3);
+  await expect(page.locator('.toast')).toHaveCount(0);
+
+  // Confirmed: the breakfast is empty, the lunch untouched — also after a reload.
+  await meal(page, 0).getByRole('button', { name: /^Fler val för/ }).click();
+  await meal(page, 0).getByRole('button', { name: 'Töm måltiden' }).click();
+  await ask.getByRole('button', { name: 'Töm', exact: true }).click();
   await expect(meal(page, 0).locator('.entry')).toHaveCount(0);
   await expect(meal(page, 1).locator('.entry')).toHaveCount(1);
   // Stored (one transaction): only the lunch is left in IndexedDB before the reload.
