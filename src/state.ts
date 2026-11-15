@@ -269,11 +269,12 @@ export async function restoreEntries(r: Removed): Promise<void> {
     syncCustomFoods();
     for (const f of r.foods) await db.putCustomFood(f);
   }
+  // Stored first, then shown: what Ångra shows back is already safe from a reload.
+  await db.putEntries(r.entries);
   const ids = new Set(entries.value.map((e) => e.id));
   // Only the day on screen shows them; another day gets them back in storage.
   const shown = r.entries.filter((e) => e.date === date.value && !ids.has(e.id));
   if (shown.length) entries.value = [...entries.value, ...shown].sort((a, b) => a.createdAt - b.createdAt);
-  await db.putEntries(r.entries);
 }
 
 /**
