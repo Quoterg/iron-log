@@ -7,6 +7,7 @@ export const LOGGED_BOOST = 10;
 /**
  * The boost from the user's history: logged at all (LOGGED_BOOST), more for often (≤ 3), favourite
  * (+2). Bigger than any difference in how well two foods match, so "foods logged before rank first".
+ * A favourite never logged gets only the +2: starring is not eating, so it stays below logged foods.
  */
 export function usageBoost(count: number, fav?: boolean): number {
   return (count > 0 ? LOGGED_BOOST + Math.min(3, 0.75 * Math.log2(1 + count)) : 0) + (fav ? 2 : 0);
@@ -43,7 +44,9 @@ export function variantKey(name: string): string {
   return name.replace(ECO, ' ').replace(/ +/g, ' ').trim();
 }
 
-export const isEco = (name: string): boolean => variantKey(name) !== name.replace(/ +/g, ' ').trim();
+/** Most names have no marker: a cheap check first, the pattern only when it could match. */
+export const isEco = (name: string): boolean =>
+  (name.includes('eko') || name.includes('krav')) && variantKey(name) !== name.replace(/ +/g, ' ').trim();
 
 /** How far an eko twin drops below the plain food it duplicates. */
 export const TWIN_PENALTY = 5;

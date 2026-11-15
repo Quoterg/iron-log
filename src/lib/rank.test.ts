@@ -17,6 +17,12 @@ describe('ranking rules (M62)', () => {
     expect(nameBonus(n('Våffla m. ägg'), 'agg', true)).toBe(0);
   });
 
+  it('English names follow the same rule: "buttermilk" is a milk', () => {
+    expect(nameBonus(n('Buttermilk, lowfat'), 'milk', true)).toBe(3);
+    expect(nameBonus(n('Milk chocolate'), 'milk', true)).toBe(4); // first word is the query: as before
+    expect(nameBonus(n('Milkshake, chocolate'), 'milk', true)).toBe(1);
+  });
+
   it('three letters are too few for a compound head ("pizzapålägg" is no egg)', () => {
     expect(nameBonus(n('Pizzapålägg m. tomatsås'), 'agg', true)).toBe(0);
     expect(nameBonus(n('Messmör fett 5%'), 'smor', true)).toBe(3);
@@ -82,9 +88,20 @@ describe('the walkthrough’s searches on Livsmedelsverket’s data (M62)', () =
     expect(names('mjö', 3)[0]).toBe('Mjölk fett 3% berikad');
   });
 
-  it('stays as fast as M70 made it', () => {
+  it('stays as fast as M70 made it, also for a first letter that matches thousands of foods', () => {
+    const qs = ['m', 'a', 'mjölk', 'ägg', 'havregryn', 'kycklingbröstfilé', 'yoghurt naturell'];
     const t0 = performance.now();
-    for (const q of ['mjölk', 'ägg', 'havregryn', 'kycklingbröstfilé', 'yoghurt naturell']) names(q);
-    expect((performance.now() - t0) / 5).toBeLessThan(25);
+    for (const q of qs) names(q);
+    // A loose bound (CI runners are shared); typically a few ms per query.
+    expect((performance.now() - t0) / qs.length).toBeLessThan(50);
+  });
+
+  it('own foods and database foods are ranked by the same rule (review #105)', () => {
+    const own = fresh();
+    own.setCustom([{ ref: 'custom:shake', sv: 'Mjölkshake jordgubb', en: null, per100g: [] }]);
+    const list = names('mjölk', 40, own);
+    // Only starts with "mjölk": below the plain milks, like Mjölkchoklad (its own-food boost is 1).
+    expect(list.indexOf('Mjölkshake jordgubb')).toBeGreaterThan(list.indexOf('Mellanmjölk fett 1,5% berikad'));
+    expect(list.indexOf('Mjölkshake jordgubb')).toBeGreaterThan(list.indexOf('Lättmjölk fett 0,5% berikad'));
   });
 });

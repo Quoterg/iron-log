@@ -148,18 +148,32 @@ export function search(entries: SearchEntry[], query: string, limit = 50): numbe
       if (best === 0) continue outer;
       score += best;
     }
-    // Prefer foods whose (localised) name is the query's kind, and short, generic names: "Mjölk" and
-    // "Lättmjölk" before "Mjölkchoklad med hasselnötter" (M62, lib/rank.ts).
-    score += nameBonus(e.name, first, m[0].isWord);
     if (e.name === whole) score += 4;
     score -= e.name.length / 40;
     score += e.boost ?? 0;
     hits.push({ i: e.i, score, name: e.name });
   }
 
-  // Eko twins of a plain food in the same results drop a little (M62): not three of the first six.
-  const penalty = twinPenalties(hits.map((h) => h.name));
-  hits.forEach((h, k) => (h.score -= penalty[k]));
+  // Prefer foods whose (localised) name is the query's kind, and short, generic names: "Mjölk" and
+  // "Lättmjölk" before "Mjölkchoklad med hasselnötter" (M62, lib/rank.ts). Whether the query is a
+  // whole word is asked of all the data at once — the databases' words and the user's own — so both
+  // kinds of food are ranked by the same rule (review #105).
+  let isWord = false;
+  for (const m of matchers.values()) isWord ||= m[0].isWord;
+  for (const h of hits) h.score += nameBonus(h.name, first, isWord);
   hits.sort((a, b) => b.score - a.score);
-  return hits.slice(0, limit).map((h) => h.i);
+
+  // Eko twins of a plain food near the top drop a little (M62): not three of the first six. Only the
+  // top few hundred are looked at (review #105): a one-letter query matches thousands of foods, and
+  // the penalty only matters where the user looks.
+  const top = hits.slice(0, Math.max(TWIN_WINDOW, limit * 3));
+  const penalty = twinPenalties(top.map((h) => h.name));
+  if (penalty.some((p) => p > 0)) {
+    top.forEach((h, k) => (h.score -= penalty[k]));
+    top.sort((a, b) => b.score - a.score);
+  }
+  return top.slice(0, limit).map((h) => h.i);
 }
+
+/** How many of the best hits the eko-twin pass looks at. */
+const TWIN_WINDOW = 150;
