@@ -667,13 +667,17 @@ changes the same worker/ranking code).
   "Kostmönster" and "NNR 2023" in place (a tap or a short gloss). Done: today's groups say "3 av 13
   nådda" (limits passed still said; `lib/group-status.ts`); tapping the diary's macro tiles explains E%;
   Kostmönster opens with a gloss; "NNR 2023" spelled out in the target editor.
-- [ ] **M67 Portion screen** — "Lägg till" stays reachable without scrolling past the nutrient
+- [x] **M67 Portion screen** (PR #102) — "Lägg till" stays reachable without scrolling past the nutrient
   preview. Check that portion memory (M23) pre-selects the amount last used for a food (the
   walkthrough saw 1 dl defaults again): fix with a test if it's a bug, else say so; recents may show
-  the last amount.
-- [ ] **M68 Polish batch** — "1 måltider" singular; "Välj delar" flush against the screen edge;
+  the last amount. Done: the button sits before the preview. Portion memory works (the walkthrough
+  only saw first logs); a corrected amount wasn't remembered — now it is (`correctAmount`). Recents and
+  favourites show the amount they open at.
+- [x] **M68 Polish batch** (PR #103) — "1 måltider" singular; "Välj delar" flush against the screen edge;
   Snabblogga's macro fields wrap and Energi isn't focused; offline or no-match search says only "Inga
   träffar" (say that online lookup needs a connection when offline); result rows labelled "per 100 g".
+  Done, all five. Note: name search is always local (worker); only the barcode lookup needs a
+  connection, so the offline line says that. "Per 100 g" is one list title above the results.
 - [ ] **M69 Quiet backup reminder** — one unobtrusive prompt when about a month of new data has
   piled up since the last export, one tap to export, an off switch; never a streak or a nag.
 

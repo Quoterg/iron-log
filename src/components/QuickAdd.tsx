@@ -1,4 +1,4 @@
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Meal } from '../lib/db';
 import { parseNum, t } from '../lib/i18n';
 import { back } from '../nav';
@@ -20,6 +20,9 @@ export default function QuickAdd({ meal, name: initial = '' }: { meal: Meal; nam
   const [vals, setVals] = useState<Record<string, string>>({});
   const [tried, setTried] = useState(false);
   const busy = useRef(false); // a double tap on a slow phone must not log it twice
+  // Energy is the one field needed (M68): the keyboard opens there.
+  const kcalRef = useRef<HTMLInputElement>(null);
+  useEffect(() => kcalRef.current?.focus(), []);
   const num = (k: string) => (vals[k]?.trim() ? parseNum(vals[k]) : undefined);
   const kcal = num('kcal');
   const kcalOk = kcal != null && kcal > 0 && kcal <= 10000;
@@ -32,6 +35,7 @@ export default function QuickAdd({ meal, name: initial = '' }: { meal: Meal; nam
     <label key={k}>
       {label}
       <input
+        ref={k === 'kcal' ? kcalRef : undefined}
         type="text"
         inputMode="decimal"
         value={vals[k] ?? ''}

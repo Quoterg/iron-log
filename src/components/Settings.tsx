@@ -42,7 +42,11 @@ export default function Settings() {
     [
       'library',
       t('settingsLibrary'),
-      t('librarySummary').replace('{foods}', String(foods)).replace('{recipes}', String(recs)).replace('{meals}', String(templates.value.length)),
+      [
+        (foods === 1 ? t('libFoodsOne') : t('libFoods')).replace('{n}', String(foods)),
+        (recs === 1 ? t('libRecipesOne') : t('libRecipes')).replace('{n}', String(recs)),
+        (templates.value.length === 1 ? t('libMealsOne') : t('libMeals')).replace('{n}', String(templates.value.length)),
+      ].join(' · '),
     ],
     ['data', t('settingsData'), `${LANGS.find((l) => l.code === s.lang)?.name ?? ''} · ${t('settingsDataSummary')}`],
   ];
