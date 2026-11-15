@@ -9,7 +9,7 @@ import { open } from '../nav';
 import {
   activityTypes, addWater, burnedToday, clock, date, dayActivities, dayState, dayTotals,
   dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, recipes, removeActivity, removeEntries,
-  repeatYesterday, settings, supplementRefs, supplements, takeSupplement, targets,
+  repeatYesterday, restoreEntries, settings, showToast, supplementRefs, supplements, takeSupplement, targets,
   markDay, toggleSupplementTaken, updateSettings, usage, usual, usualState,
 } from '../state';
 import { inSeason, scheduledOn, timeRank } from '../lib/supplements';
@@ -20,6 +20,9 @@ import { Bar } from './Bar';
 export function Diary() {
   // The meal whose "⋯" actions are open (M42: one menu instead of three links per meal).
   const [menu, setMenu] = useState<string | null>(null);
+  // The meal being cleared: "Töm måltiden" asks in place, not in the browser's dialog (M64).
+  const [clearing, setClearing] = useState<string | null>(null);
+  const [gloss, setGloss] = useState(false);
   const tot = dayTotals.value;
   const g = (k: string) => tot[NUTRIENT_INDEX[k]];
   const tg = targets.value;
@@ -86,15 +89,20 @@ export function Diary() {
         {settings.value.addBurnedToTarget && burnedToday.value > 0 && (
           <p class="muted small">{t('targetInclActivity').replace('{kcal}', fmt(burnedToday.value))}</p>
         )}
-        <div class="macros">
+        {/* Tapping the tiles explains E% in place (M66). */}
+        <button type="button" class="macros" aria-expanded={gloss} onClick={() => setGloss(!gloss)}>
           {(['protein', 'carbs', 'fat'] as const).map((k) => (
-            <div class={`macro m-${k}`} key={k}>
-              <span class="macro-val num">{fmt(g(k))} g</span>
+            <span class={`macro m-${k}`} key={k}>
+              {/* Protein against its target (M63): the one macro people aim for, without opening Näringsämnen. */}
+              <span class="macro-val num">
+                {k === 'protein' && tg.protein?.min ? t('ofTarget').replace('{n}', fmt(g(k))).replace('{target}', fmt(tg.protein.min)) : `${fmt(g(k))} g`}
+              </span>
               <span class="macro-lbl">{nutrientName(NUTRIENTS[NUTRIENT_INDEX[k]])}</span>
               <span class="macro-pct num">{Math.round(split[k] * 100)} E%</span>
-            </div>
+            </span>
           ))}
-        </div>
+        </button>
+        {gloss && <p class="muted small macro-gloss">{t('ePctGloss')}</p>}
         {dayCost && <p class="muted small day-cost">{t('dayCost').replace('{kr}', book!.text(dayCost))}</p>}
       </section>
 
@@ -141,18 +149,30 @@ export function Diary() {
                 <button class="link" onClick={() => (setMenu(null), open({ kind: 'template', meal }))}>
                   {t('saveAsMeal')}
                 </button>
-                {/* The whole meal at once (M41) instead of one entry at a time. */}
-                <button
-                  class="link"
-                  onClick={() => {
-                    setMenu(null);
-                    if (confirm(t('clearMealConfirm').replace('{meal}', t(meal).toLowerCase()).replace('{n}', String(list.length)))) {
-                      void removeEntries(list.map((e) => e.id));
-                    }
-                  }}
-                >
+                {/* The whole meal at once (M41) instead of one entry at a time; asked in place (M64). */}
+                <button class="link" onClick={() => (setMenu(null), setClearing(meal))}>
                   {t('clearMeal')}
                 </button>
+              </div>
+            )}
+            {clearing === meal && list.length > 0 && (
+              <div class="confirm-row" role="group" aria-label={t('clearMeal')}>
+                <span>{t('clearMealConfirm').replace('{meal}', t(meal).toLowerCase()).replace('{n}', String(list.length))}</span>
+                <div class="row">
+                  <button
+                    class="btn small danger"
+                    onClick={async () => {
+                      setClearing(null);
+                      const removed = await removeEntries(list.map((e) => e.id));
+                      showToast(t('toastCleared').replace('{meal}', t(meal)).replace('{n}', String(removed.entries.length)), () => restoreEntries(removed));
+                    }}
+                  >
+                    {t('clearMealDo')}
+                  </button>
+                  <button class="btn small" onClick={() => setClearing(null)}>
+                    {t('clearMealNo')}
+                  </button>
+                </div>
               </div>
             )}
             {showUsual && (

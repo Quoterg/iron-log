@@ -33,16 +33,20 @@ export default function Settings() {
     [
       'profile',
       t('settingsProfile'),
-      [t(p.sex === 'female' ? 'female' : 'male'), p.age && t('ageYears').replace('{n}', String(p.age)), p.weightKg && `${fmt(p.weightKg, 1)} kg`, goalText(goal, paceFor(p, s.pace))]
+      [p.standard ? t('standardSummary') : t(p.sex === 'female' ? 'female' : 'male'), p.age && t('ageYears').replace('{n}', String(p.age)), p.weightKg && `${fmt(p.weightKg, 1)} kg`, !(p.standard && !s.goal) && goalText(goal, paceFor(p, s.pace))]
         .filter(Boolean)
         .join(' · '),
     ],
-    ['energy', t('settingsEnergy'), `${fmt(p.kcal)} kcal/${t('perDayShort')} · ${te(MODE_LABEL[mode])}`],
+    ['energy', t('settingsEnergy'), `${fmt(p.kcal)} kcal/${t('perDayShort')} · ${p.standard && mode === 'manual' && p.kcal === 2000 ? t('standardKcal') : te(MODE_LABEL[mode])}`],
     ['features', t('settingsFeatures'), t('featuresOn').replace('{n}', String(on)).replace('{m}', String(FEATURES.length))],
     [
       'library',
       t('settingsLibrary'),
-      t('librarySummary').replace('{foods}', String(foods)).replace('{recipes}', String(recs)).replace('{meals}', String(templates.value.length)),
+      [
+        (foods === 1 ? t('libFoodsOne') : t('libFoods')).replace('{n}', String(foods)),
+        (recs === 1 ? t('libRecipesOne') : t('libRecipes')).replace('{n}', String(recs)),
+        (templates.value.length === 1 ? t('libMealsOne') : t('libMeals')).replace('{n}', String(templates.value.length)),
+      ].join(' · '),
     ],
     ['data', t('settingsData'), `${LANGS.find((l) => l.code === s.lang)?.name ?? ''} · ${t('settingsDataSummary')}`],
   ];

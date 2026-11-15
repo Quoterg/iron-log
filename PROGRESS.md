@@ -5,6 +5,9 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
+**Phase 12 Quality of life (M62–M69)**, owner-approved 2026-11-15 (see ROADMAP): build M63–M69 in
+order, one PR each (stacked); **M62 search ranking waits until PR #97 has merged** (same code).
+
 **M40 Frukt i säsong** merged (PR #70); its seasons update with the prices (prices.yml, 1 March and
 1 September — check the fruit table in that PR). **M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (security housekeeping) merged (PR #46). **Released v1.7.0** (2026-10-21, M40 + M39b; v1.6.6 M39a, v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
 **Owner, once:** allow "GitHub Actions to create and approve pull requests" (repo Settings → Actions →
@@ -19,6 +22,57 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
+
+## 2026-11-15 — M68 Polish batch (interactive session)
+
+- Singular counts in the library summary; "Välj delar" inset 16 px (`.link.parts-link`); Snabblogga
+  focuses energy, macro fields aligned (`.grid3` align-items end); no-match hint (offline: the barcode
+  lookup needs a connection — name search is local); "Per 100 g" list title over results.
+- Tests: unit 306 ✓, build ✓ (33.8 KB), e2e 207/210 ✓ + polish.spec (smoke "search fast" and a11y
+  "sync QR dark" failed under a parallel unit run, 2/2 alone; camera: port 4173), Lighthouse 100/100/100.
+
+## 2026-11-15 — M67 Portion screen (interactive session)
+
+- "Lägg till" before the "Om du lägger till" preview (in view on 360×640). Portion memory checked: it
+  works; the walkthrough's 1 dl defaults were first logs. Gap fixed: an amount corrected after logging
+  is remembered (`correctAmount`, only for the food's latest entry). Recents/favourites show "2 dl · 263 kcal".
+- Tests: unit 303 ✓, build ✓ (33.8 KB), e2e 208/209 ✓ + portion.spec (camera: port 4173, passed
+  privately), Lighthouse 100/100/100.
+
+## 2026-11-15 — M66 Calm nutrients tab (interactive session)
+
+- Today: folded groups say "n av m nådda" instead of "n under målet" (limits passed still said);
+  past days and periods unchanged (`groupCount`/`groupStatus`, lib/group-status.ts). E% gloss on tapping
+  the diary's macro tiles; Kostmönster gloss; "NNR 2023" spelled out in the target editor.
+- Tests: unit 298 ✓, build ✓ (33.6 KB), e2e 207/208 ✓ + calm.spec (camera: port 4173, passed
+  privately), Lighthouse 100/100/100.
+
+## 2026-11-15 — M65 Honest default profile (interactive session)
+
+- `Profile.standard` (default; settings v4 moves the untouched old "Kvinna, 2 000 kcal" once): targets
+  cover both sexes (higher RI, lower limit), no Mifflin estimate without a sex, life stage hidden.
+  Settings "Ingen profil – standardmål"; Näringsämnen footnote + "Ange profil"; welcome step 2 says so.
+- Tests: unit 294 ✓, build ✓ (33.5 KB), e2e 205/207 then layout ✓ after its fix (camera: port 4173,
+  passed privately), Lighthouse 100/100/100.
+
+## 2026-11-15 — M64 Undo and feedback (interactive session)
+
+- "Ta bort" on an entry and "Töm måltiden" → message with Ångra (same ids back, newer than the
+  deletion for sync; a quick entry's food too). Logging a saved meal says "Min frukost tillagd: 3
+  livsmedel, 320 kcal · Ångra". "Töm måltiden" asks in the meal card, not in `confirm()`.
+- The message region is `aria-live`, not `role="status"`: 7 specs use `getByRole('status')`.
+- Tests: unit 289 ✓, build ✓ (33.2 KB), e2e 204/206 ✓ (camera: port 4173 held by another job, passed
+  on a private port; quick "mark day" flaked once under a parallel run, 3/3 alone), Lighthouse 100/100/100.
+- Review (#99) left for later: a `foodRef` index so `refsInUse` (quick-entry delete) isn't a full cursor
+  walk (needs a DB version); restore quick foods + entries in one transaction; pause the 8 s message
+  timer while it has focus (screen readers). One message at a time: a new one replaces the old.
+
+## 2026-11-15 — M63 Calories remaining (interactive session)
+
+- Phase 12 (M62–M69) planned from the owner's walkthrough (ROADMAP). M63: the diary's energy card says
+  what is left ("1 794 kcal kvar", past the target "44 kcal över målet", no red), protein "10 / 50 g".
+- Tests: unit 286 ✓, build ✓ (32.7 KB), e2e 203/204 ✓ + new remaining.spec; camera.spec hardcodes
+  :4173, which another job's server held on this machine: passed on a private port. Lighthouse 100/100/100.
 
 ## 2026-11-11 — M53 Iron Notes bridge (interactive session)
 

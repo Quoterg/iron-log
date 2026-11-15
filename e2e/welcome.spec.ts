@@ -68,5 +68,7 @@ test('the first-start card can be put away for good; empty Näringsämnen says w
   await page.getByRole('button', { name: 'Lägg till', exact: true }).click();
   await tab(page, 'Näringsämnen');
   await expect(page.getByText(/Inget loggat i dag än/)).toHaveCount(0);
-  await expect(page.getByText(/under målet/).first()).toBeVisible();
+  // Today, still going (M66): how many targets are reached so far, not how many are short.
+  await expect(page.getByText(/\d+ av \d+ nådda/).first()).toBeVisible();
+  await expect(page.getByText(/under målet/)).toHaveCount(0);
 });

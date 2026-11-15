@@ -108,15 +108,23 @@ export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
   return (
     <section class="card form">
       <h2>{t('profile')}</h2>
+      {p.standard && !brief && <p class="muted small">{t('standardProfileNote')}</p>}
       <label>
         {t('sex')}
         <select
-          value={p.sex}
+          value={p.standard ? '' : p.sex}
           onChange={(e) => {
             const sex = (e.currentTarget as HTMLSelectElement).value as Sex;
-            save({ sex, status: 'none', kcal: p.kcalAuto ? p.kcal : defaultKcal(sex) });
+            // The default target follows the sex; one the user typed (also while on standard targets, M65) stays.
+            const typed = p.standard && p.kcal !== defaultKcal('female');
+            save({ sex, status: 'none', standard: undefined, kcal: p.kcalAuto || typed ? p.kcal : defaultKcal(sex) });
           }}
         >
+          {p.standard && (
+            <option value="" disabled>
+              {t('sexUnset')}
+            </option>
+          )}
           <option value="female">{t('female')}</option>
           <option value="male">{t('male')}</option>
         </select>
@@ -137,7 +145,7 @@ export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
           ))}
         </select>
       </label>
-      {p.sex === 'female' && (
+      {p.sex === 'female' && !p.standard && (
         <>
           <label>
             {t('lifeStage')}
