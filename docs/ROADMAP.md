@@ -673,10 +673,14 @@ milestone is small, keeps the first bundle within budget and comes with unit/e2e
 screenshots. Order of work: M63–M69 first, M62 once the search work in PR #97 has merged (it
 changes the same worker/ranking code).
 
-- [ ] **M62 Search ranking: plain staples first** — "mjölk" ranks Lättmjölk/Mellanmjölk/Standardmjölk
+- [x] **M62 Search ranking: plain staples first** (PR #105) — "mjölk" ranks Lättmjölk/Mellanmjölk/Standardmjölk
   above Mjölkchoklad/Mjölkpulver; "ägg" doesn't lead with "Våffla m. ägg"; foods the user has logged
   before rank first; near-duplicate eko/non-eko variants don't crowd the top. Pure ranking logic in
-  `src/lib/` with unit tests listing these cases. **Waits for PR #97** (search worker/ranking).
+  `src/lib/` with unit tests listing these cases. Done (stacked on #97): lib/rank.ts — Swedish
+  compounds name their kind last, so a first word ending with the query (4+ letters: "lättmjölk") is
+  a staple of that kind and one only starting with it ("mjölkchoklad") ranks low once the query is a
+  whole word; eko twins of a plain food in the results drop; anything logged before gets +10. "ägg"
+  already led with "Ägg kokt" in the walkthrough's own screenshot; its three eko twins were the issue.
 - [x] **M63 Calories remaining** (PR #98) — the diary's energy card says what is left of the day's target
   (kcal), and protein shows against its target, without opening Näringsämnen. Neutral wording ("kvar",
   "över målet"), no colours of alarm. Done: "1 794 kcal kvar" / "44 kcal över målet" under the bar

@@ -15,6 +15,7 @@ import { scale, sum } from './lib/totals';
 import { correctAmount, isLatestEntry, rememberAmount } from './lib/servings';
 import { itemsFromEntries, type MealTemplate, type TemplateUse } from './lib/templates';
 import { accept, dismiss, resetIfLogged, USUAL_RULES, type UsualMeal, type UsualState } from './lib/usual';
+import { usageBoost } from './lib/rank';
 import { afterRestore, BACKUP_DAYS, backupDue, countFrom, type BackupState } from './lib/backup-reminder';
 
 /** Entries of the period the Nutrients tab loaded last, reused by the sources sheet. */
@@ -516,7 +517,7 @@ export async function loadUsage(): Promise<void> {
 export function userBoosts(map: Map<string, Usage>): Record<string, number> {
   const out: Record<string, number> = {};
   for (const u of map.values()) {
-    const b = Math.min(3, 0.75 * Math.log2(1 + u.count)) + (u.fav ? 2 : 0);
+    const b = usageBoost(u.count, u.fav); // logged before: first among the matches (M62)
     if (b > 0) out[u.foodRef] = b;
   }
   return out;

@@ -1,5 +1,6 @@
 // Food search: small, allocation-light and fast enough to run on every keystroke
 // over ~10k foods on a low-end phone (runs inside a Web Worker).
+import { nameBonus, twinPenalties } from './rank';
 
 /** Lowercase and fold diacritics so "ost" finds "Öst" and "creme" finds "crème".
  * å/ä/ö are folded too — users on non-Swedish keyboards type "o" for "ö". */
@@ -64,6 +65,8 @@ const MIN_PART = 3;
  */
 class TokenMatch {
   private readonly score: Uint8Array;
+  /** The query word is a whole word somewhere in this vocabulary (M62: "mjölk" vs still typing "mjö"). */
+  readonly isWord: boolean;
   /** Per word: bit k set when the word starts with the query's k-th head / contains its k-th tail. */
   private heads?: Uint32Array;
   private tails?: Uint32Array;
@@ -74,10 +77,13 @@ class TokenMatch {
   ) {
     const words = vocab.words;
     this.score = new Uint8Array(words.length);
+    let isWord = false;
     for (let w = 0; w < words.length; w++) {
       const x = words[w];
+      if (x === t) isWord = true;
       this.score[w] = x === t ? 3 : x.startsWith(t) ? 2 : t.length >= MIN_PART && x.includes(t) ? 1 : 0;
     }
+    this.isWord = isWord;
   }
 
   /** The best match among a food's words (the same scores as before M54). */
@@ -131,7 +137,7 @@ export function search(entries: SearchEntry[], query: string, limit = 50): numbe
   const whole = tokens.join(' ');
   // Built per vocabulary on first use (the databases', the user's own foods').
   const matchers = new Map<Vocab, TokenMatch[]>();
-  const hits: { i: number; score: number }[] = [];
+  const hits: { i: number; score: number; name: string }[] = [];
 
   outer: for (const e of entries) {
     let m = matchers.get(e.vocab);
@@ -142,15 +148,32 @@ export function search(entries: SearchEntry[], query: string, limit = 50): numbe
       if (best === 0) continue outer;
       score += best;
     }
-    // Prefer foods whose (localised) name starts with the query, and short, generic names:
-    // "Mjölk" before "Mjölkchoklad med hasselnötter".
-    if (e.name.startsWith(first)) score += 4;
     if (e.name === whole) score += 4;
     score -= e.name.length / 40;
     score += e.boost ?? 0;
-    hits.push({ i: e.i, score });
+    hits.push({ i: e.i, score, name: e.name });
   }
 
+  // Prefer foods whose (localised) name is the query's kind, and short, generic names: "Mjölk" and
+  // "Lättmjölk" before "Mjölkchoklad med hasselnötter" (M62, lib/rank.ts). Whether the query is a
+  // whole word is asked of all the data at once — the databases' words and the user's own — so both
+  // kinds of food are ranked by the same rule (review #105).
+  let isWord = false;
+  for (const m of matchers.values()) isWord ||= m[0].isWord;
+  for (const h of hits) h.score += nameBonus(h.name, first, isWord);
   hits.sort((a, b) => b.score - a.score);
-  return hits.slice(0, limit).map((h) => h.i);
+
+  // Eko twins of a plain food near the top drop a little (M62): not three of the first six. Only the
+  // top few hundred are looked at (review #105): a one-letter query matches thousands of foods, and
+  // the penalty only matters where the user looks.
+  const top = hits.slice(0, Math.max(TWIN_WINDOW, limit * 3));
+  const penalty = twinPenalties(top.map((h) => h.name));
+  if (penalty.some((p) => p > 0)) {
+    top.forEach((h, k) => (h.score -= penalty[k]));
+    top.sort((a, b) => b.score - a.score);
+  }
+  return top.slice(0, limit).map((h) => h.i);
 }
+
+/** How many of the best hits the eko-twin pass looks at. */
+const TWIN_WINDOW = 150;

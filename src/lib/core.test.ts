@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { addDays, usageFromEntries } from './db';
 import { userBoosts } from '../state';
+import { LOGGED_BOOST } from './rank';
 import { NUTRIENT_INDEX, NUTRIENTS } from './nutrients';
 import { buildEntry, normalize, search, Vocab } from './search';
 import { nnrTargets, progress } from './targets';
@@ -200,8 +201,9 @@ describe('usage', () => {
       ['c', { foodRef: 'c', count: 0, lastUsed: 0, lastGrams: 1, fav: true }],
     ]);
     const b = userBoosts(map);
-    expect(b.a).toBeCloseTo(0.75);
-    expect(b.b).toBe(3);
+    // Logged at all: LOGGED_BOOST (M62), then up to 3 for often; a favourite +2.
+    expect(b.a).toBeCloseTo(LOGGED_BOOST + 0.75);
+    expect(b.b).toBe(LOGGED_BOOST + 3);
     expect(b.c).toBe(2);
   });
 });
