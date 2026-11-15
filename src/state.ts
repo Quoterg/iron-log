@@ -99,8 +99,9 @@ export const dayTotals = computed(() =>
 let loadSeq = 0;
 /**
  * Show a day: its entries, activities, water and mark, then the names of its foods (which may need
- * the food data). `shown` is called once the day is in the signals, before the names (M54: the
- * first paint waits for that, not for an empty diary to fill in afterwards).
+ * the food data). `shown` is called once the day can be shown right (M70): at once when every food
+ * it needs is already known, else after they are loaded — the first paint waits for that, so it
+ * never shows "…" names and 0 kcal that then jump (review #97).
  */
 export async function loadDay(d: string, shown?: () => void): Promise<void> {
   date.value = d;
@@ -123,8 +124,13 @@ export async function loadDay(d: string, shown?: () => void): Promise<void> {
   dayActivities.value = acts.sort((a, b) => a.createdAt - b.createdAt);
   if (acts.length) loadActivityTypes();
   dayWater.value = water;
-  shown?.();
-  if (list.length || prev.length) await ensureFoods([...list, ...prev].map((e) => e.foodRef));
+  const refs = [...list, ...prev].map((e) => e.foodRef);
+  if (refs.every((r) => foods.value.has(r))) shown?.();
+  try {
+    if (refs.length) await ensureFoods(refs);
+  } finally {
+    shown?.(); // a second call does nothing; also when the food files can't load (offline)
+  }
   clock.value = Date.now();
   if (usualReady && d === db.isoDate(new Date())) void refreshUsual(d);
 }

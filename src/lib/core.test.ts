@@ -140,7 +140,7 @@ describe('real food data', () => {
     const vocab = new Vocab();
     const entries = data.foods.map((f, i) => buildEntry(i, [f[1], f[2]], f[1], vocab));
     const words = entries.map((e) => e.ids.map((id) => vocab.words[id]));
-    for (const q of ['mjölk', 'kycklingbröstfilé', 'kycklingfilé', 'fullkornsvetemjöl', 'filé', 'ost', 'nötfärs', 'chicken breast', 'blodpudding lingon']) {
+    for (const q of ['mjölk', 'kycklingbröstfilé', 'kycklingfilé', 'fullkornsvetemjöl', 'filé', 'ost', 'nötfärs', 'chicken breast', 'blodpudding lingon', 'äppelmos', 'smörgåsgurka', 'räksmörgås', 'ölbröd', 'kycklingbröstfiléermedgrönsakerochrisotto', 'potatismoslättmjölkmedsmörochmuskotnöten']) {
       const tokens = normalize(q).split(' ');
       const expected = entries.filter((_, i) => tokens.every((t) => oldMatch(words[i], t) > 0)).map((e) => e.i);
       expect(search(entries, q, 100000).sort((a, b) => a - b), q).toEqual(expected);

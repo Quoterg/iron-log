@@ -14,7 +14,9 @@ export function normalize(s: string): string {
 
 /**
  * The distinct words of a set of foods (M54): a query is matched against each word once, not once
- * per food — ~5 000 words instead of ~86 000 word slots in 10 600 foods. Grows as entries are added.
+ * per food — ~5 000 words instead of ~86 000 word slots in 10 600 foods. Filled while the entries
+ * are built, all before the first search: a search snapshots it, so words added later are missed until
+ * the index is rebuilt (the worker builds each part with its own Vocab, lib/food-index.ts).
  */
 export class Vocab {
   readonly words: string[] = [];
@@ -31,6 +33,7 @@ export class Vocab {
 }
 
 /** For callers that don't keep their own (tests, one-off lists). */
+/** For callers that pass no Vocab (tests, one-off use): grows across calls. The worker never uses it. */
 const shared = new Vocab();
 
 export interface SearchEntry {
