@@ -38,6 +38,9 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   is remembered (`correctAmount`, only for the food's latest entry). Recents/favourites show "2 dl · 263 kcal".
 - Tests: unit 303 ✓, build ✓ (33.8 KB), e2e 208/209 ✓ + portion.spec (camera: port 4173, passed
   privately), Lighthouse 100/100/100.
+- Review (#102): "latest entry" is now within 2 s of the counted use (`isLatestEntry`), tested on
+  `updateEntry`. Ångra stores before it shows (a reload right after it raced on CI). Known: undoing a
+  removal restores the use record as it was, dropping a correction made in between (harmless).
 
 ## 2026-11-15 — M66 Calm nutrients tab (interactive session)
 

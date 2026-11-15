@@ -12,7 +12,7 @@ import type { BodyEntry } from './lib/body';
 import { supplementServings, UNIT_GRAMS, type SupplementInfo } from './lib/supplements';
 import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, migrateGoal, normalizeOverrides, untouchedProfile, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
-import { correctAmount, rememberAmount } from './lib/servings';
+import { correctAmount, isLatestEntry, rememberAmount } from './lib/servings';
 import { itemsFromEntries, type MealTemplate, type TemplateUse } from './lib/templates';
 import { accept, dismiss, resetIfLogged, USUAL_RULES, type UsualMeal, type UsualState } from './lib/usual';
 
@@ -190,7 +190,7 @@ export async function updateEntry(id: string, patch: EntryPatch): Promise<void> 
   }
   // A corrected amount is remembered for next time (M67), if this is the food's latest entry.
   const u = usage.value.get(next.foodRef);
-  if (amount && !patch.foodRef && u && !quickRefs.value.has(next.foodRef) && e.createdAt >= u.lastUsed - LATEST_SLACK_MS) {
+  if (amount && !patch.foodRef && u && !quickRefs.value.has(next.foodRef) && isLatestEntry(e.createdAt, u.lastUsed)) {
     await putUsage(correctAmount(u, measure(amount)));
   }
   // Moving to another day removes it from the day on screen.
@@ -200,9 +200,6 @@ export async function updateEntry(id: string, patch: EntryPatch): Promise<void> 
       : entries.value.filter((x) => x.id !== id);
   await db.putEntry(next);
 }
-
-/** An entry is its food's latest when logged at most this long before the food's last use was counted. */
-const LATEST_SLACK_MS = 60_000;
 
 export async function removeEntry(id: string): Promise<Removed> {
   return removeEntries([id]);
@@ -257,11 +254,12 @@ export async function restoreEntries(r: Removed): Promise<void> {
     syncCustomFoods();
     for (const f of r.foods) await db.putCustomFood(f);
   }
+  // Stored first, then shown: what Ångra shows back is already safe from a reload.
+  await db.putEntries(r.entries);
   const ids = new Set(entries.value.map((e) => e.id));
   // Only the day on screen shows them; another day gets them back in storage.
   const shown = r.entries.filter((e) => e.date === date.value && !ids.has(e.id));
   if (shown.length) entries.value = [...entries.value, ...shown].sort((a, b) => a.createdAt - b.createdAt);
-  await db.putEntries(r.entries);
 }
 
 /**
