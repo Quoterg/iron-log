@@ -648,9 +648,10 @@ changes the same worker/ranking code).
   above Mjölkchoklad/Mjölkpulver; "ägg" doesn't lead with "Våffla m. ägg"; foods the user has logged
   before rank first; near-duplicate eko/non-eko variants don't crowd the top. Pure ranking logic in
   `src/lib/` with unit tests listing these cases. **Waits for PR #97** (search worker/ranking).
-- [ ] **M63 Calories remaining** — the diary's energy card says what is left of the day's target
+- [x] **M63 Calories remaining** (PR #98) — the diary's energy card says what is left of the day's target
   (kcal), and protein shows against its target, without opening Näringsämnen. Neutral wording ("kvar",
-  "över målet"), no colours of alarm.
+  "över målet"), no colours of alarm. Done: "1 794 kcal kvar" / "44 kcal över målet" under the bar
+  (`leftText`, lib/totals.ts); the protein tile "10 / 50 g" (Näringsämnen's target).
 - [ ] **M64 Undo and feedback** — deleting an entry offers Undo (today it vanishes at once); logging a
   saved meal says what was added (4 foods landed silently) with Undo; "Töm måltiden" asks in the app's
   own confirm instead of the browser's native `confirm()`.

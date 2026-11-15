@@ -23,6 +23,13 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-15 — M63 Calories remaining (interactive session)
+
+- Phase 12 (M62–M69) planned from the owner's walkthrough (ROADMAP). M63: the diary's energy card says
+  what is left ("1 794 kcal kvar", past the target "44 kcal över målet", no red), protein "10 / 50 g".
+- Tests: unit 286 ✓, build ✓ (32.7 KB), e2e 203/204 ✓ + new remaining.spec; camera.spec hardcodes
+  :4173, which another job's server held on this machine: passed on a private port. Lighthouse 100/100/100.
+
 ## 2026-11-09 — M52a Wholegrain goal (weekly run)
 
 - Split M52: **M52a** done, **M52b** (fruit & vegetables) left. Wholegrain needs no new data:
