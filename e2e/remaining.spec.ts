@@ -19,7 +19,9 @@ test('calories remaining (M63): what is left, then how far over, in plain words;
   // 100 g oats = 375 kcal (Livsmedelsverket).
   await logOats(page, 0, '100');
   await expect(page.locator('.hero-left')).toHaveText(/^1\s625 kcal kvar$/);
-  await expect(page.locator('.macro.m-carbs .macro-val')).toHaveText(/^\d+ g$/); // only protein has a target shown
+  // 100 g oats: 9.5 g protein, 64.1 g carbohydrates (Livsmedelsverket). Only protein shows its target.
+  await expect(page.locator('.macro.m-protein .macro-val')).toHaveText('10 / 50 g');
+  await expect(page.locator('.macro.m-carbs .macro-val')).toHaveText('64 g');
 
   // Past the target: how far over, not a negative number, and no alarm colour on the bar.
   await logOats(page, 2, '500');
