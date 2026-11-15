@@ -23,6 +23,14 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-15 — M66 Calm nutrients tab (interactive session)
+
+- Today: folded groups say "n av m nådda" instead of "n under målet" (limits passed still said);
+  past days and periods unchanged (`groupCount`/`groupStatus`, lib/group-status.ts). E% gloss on tapping
+  the diary's macro tiles; Kostmönster gloss; "NNR 2023" spelled out in the target editor.
+- Tests: unit 298 ✓, build ✓ (33.6 KB), e2e 207/208 ✓ + calm.spec (camera: port 4173, passed
+  privately), Lighthouse 100/100/100.
+
 ## 2026-11-15 — M65 Honest default profile (interactive session)
 
 - `Profile.standard` (default; settings v4 moves the untouched old "Kvinna, 2 000 kcal" once): targets
