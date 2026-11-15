@@ -1,20 +1,11 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { BackupError, makeBackup, parseBackup, toCsv } from '../lib/backup';
+import { BackupError, parseBackup, toCsv } from '../lib/backup';
 import { clearAll, exportAll, importAll, isoDate } from '../lib/db';
+import { download, saveBackup } from '../lib/export-backup';
+import { markBackedUp, settings, updateSettings } from '../state';
 import { getFoods } from '../lib/foods';
 import { lang, nutrientName, t } from '../lib/i18n';
 import { installPrompt } from '../lib/install';
-
-function download(name: string, text: string, type: string) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
-}
 
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !(navigator as { standalone?: boolean }).standalone;
 
@@ -30,7 +21,8 @@ export function YourData() {
   const stamp = isoDate(new Date());
 
   const exportJson = async () => {
-    download(`iron-log-${stamp}.json`, JSON.stringify(makeBackup(await exportAll())), 'application/json');
+    await saveBackup();
+    await markBackedUp();
   };
 
   const exportCsv = async () => {
@@ -94,6 +86,15 @@ export function YourData() {
       <button class="btn wide" onClick={exportCsv}>
         {t('exportCsv')}
       </button>
+      {/* The diary's quiet reminder (M69): about once a month of logging, on this device. */}
+      <label class="check">
+        <input
+          type="checkbox"
+          checked={!settings.value.backupReminderOff}
+          onChange={(e) => void updateSettings({ backupReminderOff: !(e.currentTarget as HTMLInputElement).checked || undefined })}
+        />
+        {t('backupReminderSetting')}
+      </label>
       <label class="btn wide file">
         {t('importBackup')}
         <input
