@@ -406,8 +406,8 @@ table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom
 .page-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 4px 0 12px; }
 .page-head h2 { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 
-/* M64: the last action's message with "Ångra", above the tab bar (and over a sheet). */
-.toast-slot { position: fixed; left: 12px; right: 12px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 20; max-width: 616px; margin: 0 auto; pointer-events: none; }
+/* M64: the last action's message with "Ångra", above the tab bar; under sheets (z 10), so it never covers a form's buttons. */
+.toast-slot { position: fixed; left: 12px; right: 12px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 5; max-width: 616px; margin: 0 auto; pointer-events: none; }
 .toast {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 14px; pointer-events: auto;
   border-radius: 16px; background: var(--card-solid); color: var(--text); border: 1px solid var(--usual-border); box-shadow: var(--card-shadow); font-size: 0.92rem;
