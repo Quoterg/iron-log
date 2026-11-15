@@ -5,6 +5,9 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
+**Phase 12 Quality of life (M62–M69)**, owner-approved 2026-11-15 (see ROADMAP): build M63–M69 in
+order, one PR each (stacked); **M62 search ranking waits until PR #97 has merged** (same code).
+
 **M40 Frukt i säsong** merged (PR #70); its seasons update with the prices (prices.yml, 1 March and
 1 September — check the fruit table in that PR). **M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (security housekeeping) merged (PR #46). **Released v1.7.0** (2026-10-21, M40 + M39b; v1.6.6 M39a, v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
 **Owner, once:** allow "GitHub Actions to create and approve pull requests" (repo Settings → Actions →
@@ -19,6 +22,13 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
+
+## 2026-11-15 — M63 Calories remaining (interactive session)
+
+- Phase 12 (M62–M69) planned from the owner's walkthrough (ROADMAP). M63: the diary's energy card says
+  what is left ("1 794 kcal kvar", past the target "44 kcal över målet", no red), protein "10 / 50 g".
+- Tests: unit 286 ✓, build ✓ (32.7 KB), e2e 203/204 ✓ + new remaining.spec; camera.spec hardcodes
+  :4173, which another job's server held on this machine: passed on a private port. Lighthouse 100/100/100.
 
 ## 2026-11-09 — M52a Wholegrain goal (weekly run)
 

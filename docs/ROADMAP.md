@@ -634,6 +634,44 @@ held items (M18d, M19c, M22, M37) and "Later" items stay untouched until the own
     routing a newer app page on `{ type: 'check' }` → restart bar appears; filter and delete a custom
     food in the library), axe + 200 %.
 
+## Phase 12 — Quality of life (owner, 2026-11-15) (M62–M69)
+
+Owner-approved plan (2026-11-15), from a hands-on walkthrough of the live site on an emulated phone
+(360 × 640, sv-SE): logging a breakfast, editing and deleting entries, saved meals, quick add, the
+nutrients tab and Settings after skipping the first start. Principles: speed on old phones is a hard
+gate, no accounts/analytics/server, advice is opt-in and never preachy, one job per screen. Each
+milestone is small, keeps the first bundle within budget and comes with unit/e2e tests and
+screenshots. Order of work: M63–M69 first, M62 once the search work in PR #97 has merged (it
+changes the same worker/ranking code).
+
+- [ ] **M62 Search ranking: plain staples first** — "mjölk" ranks Lättmjölk/Mellanmjölk/Standardmjölk
+  above Mjölkchoklad/Mjölkpulver; "ägg" doesn't lead with "Våffla m. ägg"; foods the user has logged
+  before rank first; near-duplicate eko/non-eko variants don't crowd the top. Pure ranking logic in
+  `src/lib/` with unit tests listing these cases. **Waits for PR #97** (search worker/ranking).
+- [x] **M63 Calories remaining** (PR #98) — the diary's energy card says what is left of the day's target
+  (kcal), and protein shows against its target, without opening Näringsämnen. Neutral wording ("kvar",
+  "över målet"), no colours of alarm. Done: "1 794 kcal kvar" / "44 kcal över målet" under the bar
+  (`leftText`, lib/totals.ts); the protein tile "10 / 50 g" (Näringsämnen's target).
+- [ ] **M64 Undo and feedback** — deleting an entry offers Undo (today it vanishes at once); logging a
+  saved meal says what was added (4 foods landed silently) with Undo; "Töm måltiden" asks in the app's
+  own confirm instead of the browser's native `confirm()`.
+- [ ] **M65 Honest default profile** — "Inte nu" on the welcome card left the user silently as "Kvinna ·
+  Har menstruation · 2 000 kcal". Skipping gives clearly labelled standard targets (no invented sex or
+  menstruation) with a visible, non-nagging way to set the profile; Settings doesn't present
+  defaults as the user's data.
+- [ ] **M66 Calm nutrients tab** — early in the day "10 under målet" reads as an alarm: judge the day
+  against the day so far (or show the count only when it means something), and explain "E%",
+  "Kostmönster" and "NNR 2023" in place (a tap or a short gloss).
+- [ ] **M67 Portion screen** — "Lägg till" stays reachable without scrolling past the nutrient
+  preview. Check that portion memory (M23) pre-selects the amount last used for a food (the
+  walkthrough saw 1 dl defaults again): fix with a test if it's a bug, else say so; recents may show
+  the last amount.
+- [ ] **M68 Polish batch** — "1 måltider" singular; "Välj delar" flush against the screen edge;
+  Snabblogga's macro fields wrap and Energi isn't focused; offline or no-match search says only "Inga
+  träffar" (say that online lookup needs a connection when offline); result rows labelled "per 100 g".
+- [ ] **M69 Quiet backup reminder** — one unobtrusive prompt when about a month of new data has
+  piled up since the last export, one tap to export, an off switch; never a streak or a nag.
+
 ## Later — ideas, not scheduled
 
 Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.

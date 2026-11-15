@@ -89,7 +89,10 @@ export function Diary() {
         <div class="macros">
           {(['protein', 'carbs', 'fat'] as const).map((k) => (
             <div class={`macro m-${k}`} key={k}>
-              <span class="macro-val num">{fmt(g(k))} g</span>
+              {/* Protein against its target (M63): the one macro people aim for, without opening Näringsämnen. */}
+              <span class="macro-val num">
+                {k === 'protein' && tg.protein?.min ? t('ofTarget').replace('{n}', fmt(g(k))).replace('{target}', fmt(tg.protein.min)) : `${fmt(g(k))} g`}
+              </span>
               <span class="macro-lbl">{nutrientName(NUTRIENTS[NUTRIENT_INDEX[k]])}</span>
               <span class="macro-pct num">{Math.round(split[k] * 100)} E%</span>
             </div>
