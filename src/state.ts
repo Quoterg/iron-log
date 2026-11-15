@@ -652,6 +652,8 @@ async function logItemsList(meal: Meal, items: MealTemplate['items']): Promise<E
 }
 
 export async function logTemplate(meal: Meal, m: MealTemplate): Promise<number> {
+  // What Ångra puts back (M64 review): the foods' use records and the meal's own count, as before.
+  const usedBefore = new Map(m.items.map((i) => [i.foodRef, usage.value.get(i.foodRef)]));
   const added = await logItemsList(meal, m.items);
   if (added.length) {
     const cur = templateUse.value[m.id];
@@ -663,9 +665,32 @@ export async function logTemplate(meal: Meal, m: MealTemplate): Promise<number> 
       .replace('{name}', m.name)
       .replace('{n}', String(added.length))
       .replace('{kcal}', fmt(kcal));
-    showToast(text, async () => void (await removeEntries(added.map((e) => e.id))));
+    showToast(text, async () => {
+      await removeEntries(added.map((e) => e.id));
+      const use = { ...templateUse.value };
+      if (cur) use[m.id] = cur;
+      else delete use[m.id];
+      templateUse.value = use;
+      writeLocal(TEMPLATE_USE_KEY, use);
+      await restoreUsage(usedBefore);
+    });
   }
   return added.length;
+}
+
+/** Put foods' use records back as they were (undefined: the food had none, so it goes). */
+async function restoreUsage(before: Map<string, Usage | undefined>): Promise<void> {
+  const map = new Map(usage.value);
+  const back: Usage[] = [];
+  for (const [ref, u] of before) {
+    if (u) {
+      map.set(ref, u);
+      back.push(u);
+    } else if (map.delete(ref)) await db.deleteUsage(ref);
+  }
+  usage.value = map;
+  setUserBoosts(userBoosts(map));
+  await db.putUsages(back);
 }
 
 /** Mark the selected day complete or incomplete; choosing the current mark again makes it automatic. */
