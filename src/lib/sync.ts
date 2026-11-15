@@ -36,7 +36,8 @@ export interface Applied {
 export const TOMBSTONE_DAYS = 90;
 const MAX_CLOCK_AHEAD = 5 * 60_000;
 /** Kept per device, never taken from the other device's settings. */
-const DEVICE_LOCAL_SETTINGS = ['lang', 'sources', 'energyNotice', 'goalNotice'] as const;
+// The backup reminder (M69) is about this device's copy of the data, so it stays here too.
+const DEVICE_LOCAL_SETTINGS = ['lang', 'sources', 'energyNotice', 'goalNotice', 'backupAt', 'backupNudgeAt', 'backupReminderOff'] as const;
 
 /** A sync failure. Its message may contain text from the other device: show it as plain text only. */
 export class SyncError extends Error {}
