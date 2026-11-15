@@ -673,7 +673,7 @@ milestone is small, keeps the first bundle within budget and comes with unit/e2e
 screenshots. Order of work: M63–M69 first, M62 once the search work in PR #97 has merged (it
 changes the same worker/ranking code).
 
-- [x] **M62 Search ranking: plain staples first** — "mjölk" ranks Lättmjölk/Mellanmjölk/Standardmjölk
+- [x] **M62 Search ranking: plain staples first** (PR #105) — "mjölk" ranks Lättmjölk/Mellanmjölk/Standardmjölk
   above Mjölkchoklad/Mjölkpulver; "ägg" doesn't lead with "Våffla m. ägg"; foods the user has logged
   before rank first; near-duplicate eko/non-eko variants don't crowd the top. Pure ranking logic in
   `src/lib/` with unit tests listing these cases. Done (stacked on #97): lib/rank.ts — Swedish
