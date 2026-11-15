@@ -250,6 +250,8 @@ export const SV_LATER = {
   whatIfNote: 'På livsmedelsskärmen: hur dagens energi och näringsämnen ändras om du lägger till det.',
   groupUnder: '{n} under målet',
   groupOver: '{n} över gränsen',
+  groupReached: '{n} av {m} nådda',
+  dietPatternNote: 'Livsmedel som de nordiska näringsrekommendationerna (NNR 2023) anger en mängd per dag för, t.ex. fullkorn.',
   noDataNutrients: 'Inga uppgifter om {list} i det du loggat.',
   adviceTitle: 'Vad du kan äta',
   adviceFoods: 'Livsmedel',
@@ -282,7 +284,7 @@ export const SV_LATER = {
   adjustTargets: 'Anpassa mål',
   macroDistribution: 'Fördelning av energi (E%)',
   preset: 'Förval',
-  preset_nnr: 'NNR 2023 (rekommenderat)',
+  preset_nnr: 'Nordiska rekommendationer, NNR 2023 (rekommenderat)',
   preset_highProtein: 'Högt protein',
   preset_lowCarb: 'Låg kolhydrat',
   preset_keto: 'Keto',
@@ -297,7 +299,7 @@ export const SV_LATER = {
   perNutrient: 'Mål per näringsämne',
   perNutrientHint: 'Lämna tomt för att använda standardvärdet (visas i grått). Målet är ett minimum, max är en övre gräns.',
   resetTargets: 'Återställ alla mål',
-  resetTargetsConfirm: 'Återställa alla mål till NNR 2023?',
+  resetTargetsConfirm: 'Återställa alla mål till de nordiska näringsrekommendationerna (NNR 2023)?',
 };
 
 registerSv(SV_LATER);

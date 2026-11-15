@@ -145,7 +145,7 @@ export default function Nutrients() {
         </section>
       )}
       {amounts ? (
-        <NutrientGroups compact empty={empty} amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
+        <NutrientGroups compact empty={empty} partial={period === 1 && to === isoDate(new Date())} amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
       ) : (
         <p class="muted center">{t('loading')}</p>
       )}

@@ -22,6 +22,7 @@ export function Diary() {
   const [menu, setMenu] = useState<string | null>(null);
   // The meal being cleared: "Töm måltiden" asks in place, not in the browser's dialog (M64).
   const [clearing, setClearing] = useState<string | null>(null);
+  const [gloss, setGloss] = useState(false);
   const tot = dayTotals.value;
   const g = (k: string) => tot[NUTRIENT_INDEX[k]];
   const tg = targets.value;
@@ -88,18 +89,20 @@ export function Diary() {
         {settings.value.addBurnedToTarget && burnedToday.value > 0 && (
           <p class="muted small">{t('targetInclActivity').replace('{kcal}', fmt(burnedToday.value))}</p>
         )}
-        <div class="macros">
+        {/* Tapping the tiles explains E% in place (M66). */}
+        <button type="button" class="macros" aria-expanded={gloss} onClick={() => setGloss(!gloss)}>
           {(['protein', 'carbs', 'fat'] as const).map((k) => (
-            <div class={`macro m-${k}`} key={k}>
+            <span class={`macro m-${k}`} key={k}>
               {/* Protein against its target (M63): the one macro people aim for, without opening Näringsämnen. */}
               <span class="macro-val num">
                 {k === 'protein' && tg.protein?.min ? t('ofTarget').replace('{n}', fmt(g(k))).replace('{target}', fmt(tg.protein.min)) : `${fmt(g(k))} g`}
               </span>
               <span class="macro-lbl">{nutrientName(NUTRIENTS[NUTRIENT_INDEX[k]])}</span>
               <span class="macro-pct num">{Math.round(split[k] * 100)} E%</span>
-            </div>
+            </span>
           ))}
-        </div>
+        </button>
+        {gloss && <p class="muted small macro-gloss">{t('ePctGloss')}</p>}
         {dayCost && <p class="muted small day-cost">{t('dayCost').replace('{kr}', book!.text(dayCost))}</p>}
       </section>
 

@@ -86,6 +86,7 @@ const sv = {
   clearMealDo: 'Töm',
   clearMealNo: 'Avbryt',
   ofTarget: '{n} / {target} g',
+  ePctGloss: 'E% (energiprocent): hur stor del av dagens energi som kommer från protein, kolhydrater och fett.',
   welcomeText: 'Välkommen! Berätta lite om dig, så räknar appen ut ditt energimål och vad du behöver av varje näringsämne.',
   welcomeStart: 'Kom igång',
   updateReady: 'Det finns en ny version av appen.',

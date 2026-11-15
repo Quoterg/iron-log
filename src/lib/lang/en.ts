@@ -331,6 +331,9 @@ const strings: Dict = {
   dietPattern: 'Dietary pattern',
   groupUnder: '{n} under target',
   groupOver: '{n} over the limit',
+  groupReached: '{n} of {m} reached',
+  dietPatternNote: 'Foods the Nordic Nutrition Recommendations (NNR 2023) give a daily amount for, e.g. wholegrain.',
+  ePctGloss: 'E% (energy percent): the share of the day’s energy from protein, carbohydrates and fat.',
   noDataNutrients: 'No data on {list} in what you logged.',
   adviceTitle: 'What you could eat',
   adviceFoods: 'Foods',
@@ -365,7 +368,7 @@ const strings: Dict = {
   adjustTargets: 'Adjust targets',
   macroDistribution: 'Energy distribution (E%)',
   preset: 'Preset',
-  preset_nnr: 'NNR 2023 (recommended)',
+  preset_nnr: 'Nordic recommendations, NNR 2023 (recommended)',
   preset_highProtein: 'High protein',
   preset_lowCarb: 'Low carb',
   preset_keto: 'Keto',
@@ -382,7 +385,7 @@ const strings: Dict = {
   perNutrient: 'Targets per nutrient',
   perNutrientHint: 'Leave empty to use the default (shown in grey). Target is a minimum, max is an upper limit.',
   resetTargets: 'Reset all targets',
-  resetTargetsConfirm: 'Reset all targets to NNR 2023?',
+  resetTargetsConfirm: 'Reset all targets to the Nordic Nutrition Recommendations (NNR 2023)?',
 };
 
 const sync: Record<string, string> = {
