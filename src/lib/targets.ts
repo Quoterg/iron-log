@@ -243,25 +243,31 @@ export function ageBand(age?: number): '18-24' | '25-50' | '51-70' | '71+' {
 }
 
 /**
- * NNR 2023 targets for a profile. Without one (M65, `standard`): the adults' values (25–50 years)
- * that cover both women and men — the higher of the two recommended intakes, the lower of two
- * limits — the way reference values for "everyone" are usually set. Nothing assumed about pregnancy.
+ * NNR 2023 targets for a profile. Without a sex (M65, `standard`): the adults' values for the given
+ * age band (25–50 when no age is given) that cover both women and men — the higher of the two
+ * recommended intakes, the lower of two limits — the way reference values for "everyone" are usually
+ * set. The women's side follows the same age default for menstruation as a female profile (before
+ * 51), so an age of 68 gives the post-menopause iron value. Nothing assumed about pregnancy.
  */
 export function nnrTargets(p: Profile): Record<string, Target> {
-  if (p.standard) {
+  if (!p.standard) return sexTargets(p);
+  // Called whenever targets are computed: the last result is kept by profile (a copy is handed
+  // out, since computeTargets replaces entries of what it gets).
+  if (standardCache?.p !== p) {
     const base = { kcal: p.kcal, age: p.age, weightKg: p.weightKg, heightCm: p.heightCm, pal: p.pal };
-    const f = sexTargets({ ...base, sex: 'female', menstruating: true });
+    const f = sexTargets({ ...base, sex: 'female', menstruating: p.age == null || p.age < 51 });
     const m = sexTargets({ ...base, sex: 'male' });
     const out: Record<string, Target> = {};
-    for (const key of new Set([...Object.keys(f), ...Object.keys(m)])) {
+    for (const key of Object.keys(f)) {
       const a = f[key], b = m[key];
-      if (!a || !b) continue;
-      out[key] = { min: higher(a.min, b.min), max: lower(a.max, b.max) };
+      if (b) out[key] = { min: higher(a.min, b.min), max: lower(a.max, b.max) };
     }
-    return out;
+    standardCache = { p, out };
   }
-  return sexTargets(p);
+  return { ...standardCache.out };
 }
+
+let standardCache: { p: Profile; out: Record<string, Target> } | null = null;
 
 const higher = (a: number | null, b: number | null) => (a == null ? b : b == null ? a : Math.max(a, b));
 const lower = (a: number | null, b: number | null) => (a == null ? b : b == null ? a : Math.min(a, b));

@@ -23,6 +23,14 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-15 — M67 Portion screen (interactive session)
+
+- "Lägg till" before the "Om du lägger till" preview (in view on 360×640). Portion memory checked: it
+  works; the walkthrough's 1 dl defaults were first logs. Gap fixed: an amount corrected after logging
+  is remembered (`correctAmount`, only for the food's latest entry). Recents/favourites show "2 dl · 263 kcal".
+- Tests: unit 303 ✓, build ✓ (33.8 KB), e2e 208/209 ✓ + portion.spec (camera: port 4173, passed
+  privately), Lighthouse 100/100/100.
+
 ## 2026-11-15 — M66 Calm nutrients tab (interactive session)
 
 - Today: folded groups say "n av m nådda" instead of "n under målet" (limits passed still said);
