@@ -161,7 +161,7 @@ const strings: Dict = {
   notNow: 'Not now',
   kcalLeft: '{n} left',
   kcalOver: '{n} over target',
-  ofTarget: '{n} of {target} g',
+  ofTarget: '{n} / {target} g',
   welcomeText: 'Welcome! Tell the app a little about yourself, and it works out your energy target and what you need of each nutrient.',
   welcomeStart: 'Get started',
   updateReady: 'A new version of the app is ready.',

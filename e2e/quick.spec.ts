@@ -22,7 +22,7 @@ test('quick add (M47): energy and macros without a food; editable, never in sear
   await expect(entry).toContainText('900 kcal');
   await expect(page.locator('.summary')).toContainText('900');
   // 35.5 g protein = 142 kcal of 900: 16 E%, not 100 % (the rest of the energy is of unknown kind).
-  await expect(page.locator('.macro.m-protein')).toContainText('36 av 50 g');
+  await expect(page.locator('.macro.m-protein')).toContainText('36 / 50 g');
   await expect(page.locator('.macro.m-protein')).toContainText('16 E%');
 
   // Half a portion: half the energy.

@@ -78,7 +78,7 @@ const sv = {
   notNow: 'Inte nu',
   kcalLeft: '{n} kvar',
   kcalOver: '{n} över målet',
-  ofTarget: '{n} av {target} g',
+  ofTarget: '{n} / {target} g',
   welcomeText: 'Välkommen! Berätta lite om dig, så räknar appen ut ditt energimål och vad du behöver av varje näringsämne.',
   welcomeStart: 'Kom igång',
   updateReady: 'Det finns en ny version av appen.',
