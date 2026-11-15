@@ -7,7 +7,7 @@ import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, backupReminder, burnedToday, checkBackupReminder, clock, date, dayActivities, dayState,
+  activityTypes, addWater, backupReminder, backupState, burnedToday, checkBackupReminder, clock, date, dayActivities, dayState,
   dayTotals, dayWater, dismissUsual, entries, foods, logUsual, markBackedUp, notice, prevEntries, recipes,
   removeActivity, removeEntries, repeatYesterday, restoreEntries, settings, showToast, snoozeBackupReminder,
   supplementRefs, supplements, takeSupplement, targets,
@@ -88,7 +88,7 @@ export function Diary() {
           </div>
         </section>
       ) : (
-        backupReminder.value && !settings.value.backupReminderOff && <BackupCard />
+        backupReminder.value && !backupState.value.backupReminderOff && <BackupCard />
       )}
       <section class="card summary">
         <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} hero />
@@ -254,10 +254,9 @@ export function Diary() {
  * with no backup on this device. One tap saves it; "Inte nu" waits another month; Settings turns it off.
  */
 function BackupCard() {
-  const s = settings.value;
   return (
     <section class="card checkin-teaser backup-note">
-      <span>{s.backupAt ? t('backupDueSince') : t('backupDueNever')}</span>
+      <span>{backupState.value.backupAt ? t('backupDueSince') : t('backupDueNever')}</span>
       <div class="row">
         <button
           class="btn small primary"
@@ -269,12 +268,12 @@ function BackupCard() {
               showToast(t('backupFailed')); // nothing marked: the card stays
               return;
             }
-            await markBackedUp();
+            markBackedUp();
           }}
         >
           {t('backupSave')}
         </button>
-        <button class="btn small" onClick={() => void snoozeBackupReminder()}>
+        <button class="btn small" onClick={() => snoozeBackupReminder()}>
           {t('notNow')}
         </button>
       </div>

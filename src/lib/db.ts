@@ -92,10 +92,6 @@ export interface Settings {
   costs?: boolean;
   /** Store chains offered as offer links on the shopping list (lib/stores.ts ids; default there). */
   chains?: string[];
-  /** M69, this device only: the last backup saved, the last "Inte nu" on its reminder, and its off switch. */
-  backupAt?: string;
-  backupNudgeAt?: string;
-  backupReminderOff?: boolean;
 }
 
 /**

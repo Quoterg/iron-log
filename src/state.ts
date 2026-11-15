@@ -15,7 +15,7 @@ import { scale, sum } from './lib/totals';
 import { correctAmount, isLatestEntry, rememberAmount } from './lib/servings';
 import { itemsFromEntries, type MealTemplate, type TemplateUse } from './lib/templates';
 import { accept, dismiss, resetIfLogged, USUAL_RULES, type UsualMeal, type UsualState } from './lib/usual';
-import { BACKUP_DAYS, backupDue, countFrom } from './lib/backup-reminder';
+import { afterRestore, BACKUP_DAYS, backupDue, countFrom, type BackupState } from './lib/backup-reminder';
 
 /** Entries of the period the Nutrients tab loaded last, reused by the sources sheet. */
 export const periodCache = signal<{ key: string; entries: Entry[] } | null>(null);
@@ -697,31 +697,46 @@ async function restoreUsage(before: Map<string, Usage | undefined>): Promise<voi
  * Checked once after start (the diary, when idle), never on the first paint.
  */
 export const backupReminder = signal(false);
+const BACKUP_KEY = 'iron-log-backup';
+/**
+ * The reminder's state: this device's own, in localStorage like `templateUse` — never in the synced
+ * settings, where writing it would make this device's settings the newest and replace a paired
+ * device's profile on the next sync; and untouched by a restore.
+ */
+export const backupState = signal<BackupState>(readLocal(BACKUP_KEY));
+function setBackupState(patch: BackupState): void {
+  const next = { ...backupState.value, ...patch };
+  for (const k of Object.keys(next) as (keyof BackupState)[]) if (next[k] === undefined) delete next[k];
+  backupState.value = next;
+  writeLocal(BACKUP_KEY, next);
+}
 let backupChecked = false;
 /** Once per session (review #104): the diary mounts on every return to its tab. `force`: the switch. */
 export async function checkBackupReminder(force = false): Promise<void> {
-  const s = settings.value;
+  const s = backupState.value;
   if (s.backupReminderOff || (backupChecked && !force)) return;
   backupChecked = true;
   backupReminder.value = backupDue(s, await db.loggedDaysAfter(countFrom(s), BACKUP_DAYS));
 }
 /** A backup was saved on this device: the count starts again. */
-export async function markBackedUp(): Promise<void> {
-  // Stored first, then hidden: a reload right after must not bring it back.
-  await updateSettings({ backupAt: db.isoDate(new Date()) });
+export function markBackedUp(): void {
+  setBackupState({ backupAt: db.isoDate(new Date()) });
   backupReminder.value = false;
+}
+/** A backup was restored (review #104): this device's data is in a backup, so the count starts again. */
+export function markRestored(): void {
+  setBackupState(afterRestore(backupState.value, db.isoDate(new Date())));
 }
 /** The switch in Settings (review #104): off takes a showing card away at once; on checks again. */
 export async function setBackupReminder(on: boolean): Promise<void> {
-  await updateSettings({ backupReminderOff: on ? undefined : true });
+  setBackupState({ backupReminderOff: on ? undefined : true });
   if (on) await checkBackupReminder(true);
   else backupReminder.value = false;
 }
 
 /** "Inte nu": quiet for another month of logging. */
-export async function snoozeBackupReminder(): Promise<void> {
-  // Stored first, then hidden: a reload right after must not bring it back.
-  await updateSettings({ backupNudgeAt: db.isoDate(new Date()) });
+export function snoozeBackupReminder(): void {
+  setBackupState({ backupNudgeAt: db.isoDate(new Date()) });
   backupReminder.value = false;
 }
 

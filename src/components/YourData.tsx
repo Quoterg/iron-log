@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { BackupError, parseBackup, toCsv } from '../lib/backup';
 import { clearAll, exportAll, importAll, isoDate } from '../lib/db';
 import { download, saveBackup } from '../lib/export-backup';
-import { afterRestore } from '../lib/backup-reminder';
-import { markBackedUp, setBackupReminder, settings, updateSettings } from '../state';
+import { backupState, markBackedUp, markRestored, setBackupReminder } from '../state';
 import { getFoods } from '../lib/foods';
 import { lang, nutrientName, t } from '../lib/i18n';
 import { installPrompt } from '../lib/install';
@@ -23,7 +22,7 @@ export function YourData() {
 
   const exportJson = async () => {
     await saveBackup();
-    await markBackedUp();
+    markBackedUp();
   };
 
   const exportCsv = async () => {
@@ -43,15 +42,11 @@ export function YourData() {
 
   const importFile = async (file: File) => {
     try {
-      const parsed = parseBackup(await file.text());
-      // The reminder's own fields are this device's (M69, review #104): a restore counts as a backup.
-      const kept = afterRestore(settings.value, isoDate(new Date()));
-      const data = parsed.settings ? { ...parsed, settings: { ...parsed.settings, ...kept } } : parsed;
+      const data = parseBackup(await file.text());
       const q = t('importConfirm').replace('{n}', String(data.entries.length)).replace('{f}', String(data.customFoods.length));
       if (!confirm(q)) return;
       await importAll(data);
-      // Without settings in the backup the stored ones stay (and are the ones in memory): add the date.
-      if (!data.settings) await updateSettings(kept);
+      markRestored(); // a restore counts as a backup (review #104); this device's reminder state stays
       setMessage(t('importDone'));
       location.reload();
     } catch (err) {
@@ -96,7 +91,7 @@ export function YourData() {
       <label class="check backup-check">
         <input
           type="checkbox"
-          checked={!settings.value.backupReminderOff}
+          checked={!backupState.value.backupReminderOff}
           onChange={(e) => void setBackupReminder((e.currentTarget as HTMLInputElement).checked)}
         />
         {t('backupReminderSetting')}

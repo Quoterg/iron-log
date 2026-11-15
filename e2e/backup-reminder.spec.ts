@@ -25,17 +25,13 @@ async function logDays(page: Page, days: number) {
   await page.reload();
 }
 
-/** Change stored settings directly (a month can't pass in a test). */
-async function patchSettings(page: Page, drop: string[]) {
-  await page.evaluate(async (keys) => {
-    const req = indexedDB.open('iron-log');
-    const db: IDBDatabase = await new Promise((ok) => (req.onsuccess = () => ok(req.result)));
-    const get = db.transaction('kv').objectStore('kv').get('settings');
-    const s = await new Promise<Record<string, unknown>>((ok) => (get.onsuccess = () => ok(get.result)));
-    for (const k of keys) delete s[k];
-    await new Promise((ok) => (db.transaction('kv', 'readwrite').objectStore('kv').put(s, 'settings').onsuccess = ok));
-    db.close();
-  }, drop);
+/** Forget part of the reminder's state on this device (a month can't pass in a test). */
+async function forget(page: Page, keys: string[]) {
+  await page.evaluate((drop) => {
+    const s = JSON.parse(localStorage.getItem('iron-log-backup') ?? '{}');
+    for (const k of drop) delete s[k];
+    localStorage.setItem('iron-log-backup', JSON.stringify(s));
+  }, keys);
 }
 
 const card = (page: Page) => page.locator('.backup-note');
@@ -76,7 +72,7 @@ test('a quiet backup reminder (M69): one tap saves, then it waits; "Inte nu" wai
   await expect(card(page)).toHaveCount(0);
 
   // "Inte nu" (the saved date cleared to reach the count again): gone, and still gone after a reload.
-  await patchSettings(page, ['backupAt']);
+  await forget(page, ['backupAt']);
   await page.reload();
   await expect(card(page)).toBeVisible({ timeout: 10_000 });
   await card(page).getByRole('button', { name: 'Inte nu' }).click();
