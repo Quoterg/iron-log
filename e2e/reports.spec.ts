@@ -36,7 +36,8 @@ test('7-day averages, gaps, top sources and streak', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Fibrer', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Största källor' })).toBeVisible();
   // Nutrient detail: target and the richest foods in the database.
-  await expect(page.getByRole('dialog')).toContainText('Mål: ≥ 25 g');
+  // No profile (M65): the standard target covers women and men (men's 35 g).
+  await expect(page.getByRole('dialog')).toContainText('Mål: ≥ 35 g');
   await expect(page.getByRole('heading', { name: 'Rikast i livsmedelsdatabasen' })).toBeVisible();
   await expect(page.getByRole('dialog').locator('.entries').last().locator('.entry')).toHaveCount(10);
   const rows = page.locator('.contrib');

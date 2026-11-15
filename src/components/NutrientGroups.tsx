@@ -1,6 +1,7 @@
 import { nutrientName, t } from '../lib/i18n';
 import { NUTRIENTS, type NutrientGroup } from '../lib/nutrients';
 import { targets } from '../state';
+import { groupCount, groupStatus } from '../lib/group-status';
 import { Bar } from './Bar';
 
 type Title = 'macros' | 'dietPattern' | 'carbsDetail' | 'lipids' | 'vitamins' | 'minerals' | 'aminoAcids' | 'other';
@@ -34,9 +35,13 @@ function indices(group: NutrientGroup[], isPattern: boolean, compact?: boolean):
  * saying how many are under target or over a limit, and nutrients no logged food reports are left
  * out — named once at the end instead of a column of "–".
  */
-/** `empty`: nothing logged — the targets only, no "under målet" (M45). */
-export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; onSelect?: (key: string) => void; compact?: boolean; empty?: boolean }) {
-  const { amounts, known, onSelect, compact, empty } = props;
+/**
+ * `empty`: nothing logged — the targets only, no "under målet" (M45). `partial`: today, still going
+ * (M66) — a group says how many targets are reached so far, not how many are short; a limit passed
+ * is still said.
+ */
+export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; onSelect?: (key: string) => void; compact?: boolean; empty?: boolean; partial?: boolean }) {
+  const { amounts, known, onSelect, compact, empty, partial } = props;
   const tg = targets.value;
   const row = (i: number) => {
     const n = NUTRIENTS[i];
@@ -79,15 +84,14 @@ export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; on
         </section>
       );
     }
-    const under = shown.filter((i) => {
-      const min = tg[NUTRIENTS[i].key]?.min;
-      return min != null && amounts[i] < min;
-    }).length;
-    const over = shown.filter((i) => {
-      const max = tg[NUTRIENTS[i].key]?.max;
-      return max != null && amounts[i] > max;
-    }).length;
-    const status = empty ? '' : [under && t('groupUnder').replace('{n}', String(under)), over && t('groupOver').replace('{n}', String(over))].filter(Boolean).join(' · ');
+    const count = groupCount(shown.map((i) => NUTRIENTS[i].key), shown.map((i) => amounts[i]), tg);
+    const over = count.over;
+    const words = { reached: t('groupReached'), under: t('groupUnder'), over: t('groupOver') };
+    const status = empty
+      ? ''
+      : groupStatus(count, !!partial)
+          .map((x) => words[x.kind].replace('{n}', String(x.n)).replace('{m}', String(x.m)))
+          .join(' · ');
     return (
       <section class="card group" key={title}>
         <details>
@@ -95,6 +99,7 @@ export function NutrientGroups(props: { amounts: number[]; known?: boolean[]; on
             <h2>{t(title)}</h2>
             {status && <span class={over ? 'small warn' : 'small muted'}>{status}</span>}
           </summary>
+          {isPattern && <p class="muted small">{t('dietPatternNote')}</p>}
           {shown.map(row)}
         </details>
       </section>

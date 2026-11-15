@@ -656,13 +656,17 @@ changes the same worker/ranking code).
   saved meal says what was added (4 foods landed silently) with Undo; "Töm måltiden" asks in the app's
   own confirm instead of the browser's native `confirm()`. Done: one message at a time above the tab
   bar (`showToast`, 8 s, aria-live); `removeEntries` → `restoreEntries` (same ids, quick foods too).
-- [ ] **M65 Honest default profile** — "Inte nu" on the welcome card left the user silently as "Kvinna ·
+- [x] **M65 Honest default profile** (PR #100) — "Inte nu" on the welcome card left the user silently as "Kvinna ·
   Har menstruation · 2 000 kcal". Skipping gives clearly labelled standard targets (no invented sex or
   menstruation) with a visible, non-nagging way to set the profile; Settings doesn't present
-  defaults as the user's data.
-- [ ] **M66 Calm nutrients tab** — early in the day "10 under målet" reads as an alarm: judge the day
+  defaults as the user's data. Done: `Profile.standard` (the default); targets the higher of women's
+  and men's NNR values (lower limit), no Mifflin estimate without a sex; Settings "Ingen profil –
+  standardmål"; Näringsämnen's footnote with "Ange profil"; settings v4 moves the untouched old default.
+- [x] **M66 Calm nutrients tab** (PR #101) — early in the day "10 under målet" reads as an alarm: judge the day
   against the day so far (or show the count only when it means something), and explain "E%",
-  "Kostmönster" and "NNR 2023" in place (a tap or a short gloss).
+  "Kostmönster" and "NNR 2023" in place (a tap or a short gloss). Done: today's groups say "3 av 13
+  nådda" (limits passed still said; `lib/group-status.ts`); tapping the diary's macro tiles explains E%;
+  Kostmönster opens with a gloss; "NNR 2023" spelled out in the target editor.
 - [ ] **M67 Portion screen** — "Lägg till" stays reachable without scrolling past the nutrient
   preview. Check that portion memory (M23) pre-selects the amount last used for a food (the
   walkthrough saw 1 dl defaults again): fix with a test if it's a bug, else say so; recents may show

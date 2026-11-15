@@ -145,14 +145,23 @@ export default function Nutrients() {
         </section>
       )}
       {amounts ? (
-        <NutrientGroups compact empty={empty} amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
+        <NutrientGroups compact empty={empty} partial={period === 1 && to === isoDate(new Date())} amounts={amounts} known={report?.known} onSelect={(key) => open({ kind: 'contributors', key, from, to })} />
       ) : (
         <p class="muted center">{t('loading')}</p>
       )}
       <button class="btn wide" onClick={() => open({ kind: 'targets' })}>
         {t('adjustTargets')}
       </button>
-      <p class="muted small">{t('targetsNote')}</p>
+      {settings.value.profile.standard ? (
+        <p class="muted small">
+          {t('standardNote')}{' '}
+          <button class="link inline" onClick={() => ((view.value = 'settings'), open({ kind: 'settings', page: 'profile' }))}>
+            {t('standardSet')}
+          </button>
+        </p>
+      ) : (
+        <p class="muted small">{t('targetsNote')}</p>
+      )}
       {/* Last on the 7- and 30-day pages (owner, M40b), one card for "what could I eat" (M43). */}
       {report && <Advice foods={settings.value.suggestions && g && g.low.length > 0 ? g.low : null} fruit={short} amounts={report.amounts} covered={report.covered} />}
     </>

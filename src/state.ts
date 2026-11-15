@@ -10,7 +10,7 @@ import { burnedKcal, DEFAULT_WEIGHT_KG, type Activity } from './lib/activity';
 import type { ActivityType } from './lib/activity-types';
 import type { BodyEntry } from './lib/body';
 import { supplementServings, UNIT_GRAMS, type SupplementInfo } from './lib/supplements';
-import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, migrateGoal, normalizeOverrides, withEnergy, type Target } from './lib/targets';
+import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, migrateGoal, normalizeOverrides, untouchedProfile, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
 import { rememberAmount } from './lib/servings';
 import { itemsFromEntries, type MealTemplate, type TemplateUse } from './lib/templates';
@@ -309,6 +309,8 @@ export async function loadSettings(): Promise<void> {
         profile = m.profile;
         if (m.changed) told.goalNotice = true;
       }
+      // M65: the old default profile nobody filled in ("Kvinna", 2 000 kcal) is the standard one.
+      if (v < 4 && untouchedProfile(profile)) profile = { ...profile, standard: true };
       next = { ...next, profile, version: db.SETTINGS_VERSION, ...told };
       await db.saveSettings(next);
     }

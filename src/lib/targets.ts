@@ -25,6 +25,11 @@ export interface Profile {
   status?: Status;
   /** Women: still menstruating (iron 15 mg). Defaults to age < 51. */
   menstruating?: boolean;
+  /**
+   * No profile given yet (M65: "Inte nu" on the first start, or never set): standard targets for
+   * adults instead of a guessed sex. `sex` is then only a placeholder and is never shown or used.
+   */
+  standard?: boolean;
 }
 
 export interface Target {
@@ -49,7 +54,19 @@ export const DEFAULT_PAL = 1.2;
 export function snapPal(x: number): number {
   return PAL_LEVELS.reduce((best, v) => (Math.abs(v - x) < Math.abs(best - x) ? v : best), DEFAULT_PAL);
 }
-export const DEFAULT_PROFILE: Profile = { sex: 'female', kcal: 2000 };
+export const DEFAULT_PROFILE: Profile = { sex: 'female', kcal: 2000, standard: true };
+
+/**
+ * A profile nobody filled in: the old default ("Kvinna", 2 000 kcal) exactly as it was stored before
+ * M65, which an untouched profile and one where "Kvinna" was picked (already selected) can't be told
+ * apart from. Moved to the standard profile once; picking a sex again takes a tap.
+ */
+export function untouchedProfile(p: Profile): boolean {
+  return (
+    !p.standard && p.sex === 'female' && p.kcal === 2000 && !p.kcalAuto && p.age == null && p.weightKg == null && p.heightCm == null &&
+    p.bodyFatPct == null && (p.status ?? 'none') === 'none' && p.menstruating == null
+  );
+}
 
 export function defaultKcal(sex: Sex): number {
   return sex === 'male' ? 2500 : 2000;
@@ -69,7 +86,8 @@ const EXTRA_MJ: Record<Status, number> = { none: 0, pregnant1: 0.3, pregnant2: 1
 export function basalKcal(p: Profile): number | null {
   const { age, weightKg: w, heightCm: h, bodyFatPct: bf } = p;
   if (w && bf != null) return 370 + 21.6 * w * (1 - bf / 100);
-  if (!age || !w || !h) return null;
+  // Mifflin–St Jeor differs by sex: without one (M65) there is no estimate rather than a guess.
+  if (!age || !w || !h || p.standard) return null;
   return 10 * w + 6.25 * h - 5 * age + (p.sex === 'male' ? 5 : -161);
 }
 
@@ -224,8 +242,37 @@ export function ageBand(age?: number): '18-24' | '25-50' | '51-70' | '71+' {
   return age <= 70 ? '51-70' : '71+';
 }
 
-/** NNR 2023 targets for a profile. */
+/**
+ * NNR 2023 targets for a profile. Without a sex (M65, `standard`): the adults' values for the given
+ * age band (25–50 when no age is given) that cover both women and men — the higher of the two
+ * recommended intakes, the lower of two limits — the way reference values for "everyone" are usually
+ * set. The women's side follows the same age default for menstruation as a female profile (before
+ * 51), so an age of 68 gives the post-menopause iron value. Nothing assumed about pregnancy.
+ */
 export function nnrTargets(p: Profile): Record<string, Target> {
+  if (!p.standard) return sexTargets(p);
+  // Called whenever targets are computed: the last result is kept by profile (a copy is handed
+  // out, since computeTargets replaces entries of what it gets).
+  if (standardCache?.p !== p) {
+    const base = { kcal: p.kcal, age: p.age, weightKg: p.weightKg, heightCm: p.heightCm, pal: p.pal };
+    const f = sexTargets({ ...base, sex: 'female', menstruating: p.age == null || p.age < 51 });
+    const m = sexTargets({ ...base, sex: 'male' });
+    const out: Record<string, Target> = {};
+    for (const key of Object.keys(f)) {
+      const a = f[key], b = m[key];
+      if (b) out[key] = { min: higher(a.min, b.min), max: lower(a.max, b.max) };
+    }
+    standardCache = { p, out };
+  }
+  return { ...standardCache.out };
+}
+
+let standardCache: { p: Profile; out: Record<string, Target> } | null = null;
+
+const higher = (a: number | null, b: number | null) => (a == null ? b : b == null ? a : Math.max(a, b));
+const lower = (a: number | null, b: number | null) => (a == null ? b : b == null ? a : Math.min(a, b));
+
+function sexTargets(p: Profile): Record<string, Target> {
   const i = p.sex === 'male' ? 1 : 0;
   const band = ageBand(p.age);
   const status = p.sex === 'female' ? (p.status ?? 'none') : 'none';
