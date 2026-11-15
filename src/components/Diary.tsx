@@ -156,13 +156,19 @@ export function Diary() {
                   {t('saveAsMeal')}
                 </button>
                 {/* The whole meal at once (M41) instead of one entry at a time; asked in place (M64). */}
-                <button class="link" onClick={() => (setMenu(null), setClearing(meal))}>
+                <button class="link" onClick={() => (setMenu(null), (clearingShown = null), setClearing(meal))}>
                   {t('clearMeal')}
                 </button>
               </div>
             )}
             {clearing === meal && list.length > 0 && (
-              <div class="confirm-row" role="group" aria-label={t('clearMeal')}>
+              // Scrolled into view above the floating tab bar (M71: it opened half under it).
+              <div class="confirm-row" role="group" aria-label={t('clearMeal')} ref={(el) => {
+                if (el && clearingShown !== meal) {
+                  clearingShown = meal;
+                  el.scrollIntoView({ block: 'nearest' });
+                }
+              }}>
                 <span>{t('clearMealConfirm').replace('{meal}', t(meal).toLowerCase()).replace('{n}', String(list.length))}</span>
                 <div class="row">
                   <button
@@ -280,6 +286,9 @@ function BackupCard() {
     </section>
   );
 }
+
+/** The meal whose clear question was last scrolled into view (once per opening, not every render). */
+let clearingShown: string | null = null;
 
 /** Supplements, activity and water not used today: one compact row to start them (M42). */
 function MoreToLog() {
