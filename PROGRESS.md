@@ -5,6 +5,10 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
+**Phase 13 Everyday use, round 2** (owner/PM 2026-11-15, see ROADMAP): M71 bugs → M72 search words →
+M73 undo everywhere → M59 body log → M54 saved meals → M56 recipes → M58 shopping list → M74
+suggestions, one PR each, stacked while the previous one is open.
+
 **Phase 12 Quality of life (M62–M69)**, owner-approved 2026-11-15 (see ROADMAP): all built and merged
 except M62 (#105, base retargeted to main after #97 merged; the reviewer's sweep merges it). #97 (M70,
 faster search) merged and **contains #94 (M52b) and #95 (M53)** with their review fixes — those two
