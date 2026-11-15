@@ -5,9 +5,10 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
-**Phase 12 Quality of life (M62–M69)**, owner-approved 2026-11-15 (see ROADMAP): all built. M63–M68
-merged (#98–#103); M69 (#104) and M62 (stacked on #97, PR base = #97's branch) under review. #97 (M70,
-faster search) carries #94/#95: once it merges, retarget M62's PR to main.
+**Phase 12 Quality of life (M62–M69)**, owner-approved 2026-11-15 (see ROADMAP): all built and merged
+except M62 (#105, base retargeted to main after #97 merged; the reviewer's sweep merges it). #97 (M70,
+faster search) merged and **contains #94 (M52b) and #95 (M53)** with their review fixes — those two
+PRs can be closed by the owner (not by a session).
 
 **M40 Frukt i säsong** merged (PR #70); its seasons update with the prices (prices.yml, 1 March and
 1 September — check the fruit table in that PR). **M37 Veckomenyn** planned — **don't start until the owner says go**. An "athlete option" (training-day targets) is parked under "Later" in ROADMAP. **M21b** (security housekeeping) merged (PR #46). **Released v1.7.0** (2026-10-21, M40 + M39b; v1.6.6 M39a, v1.6.5 M38, v1.6.0 M36, v1.5.0 M35, v1.4.0 M33 + M34). Release PRs go on `milestone/` branches (the reviewer only picks those up).
@@ -36,6 +37,15 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   down, logged foods first. "mjölk" → Mjölk 3%, lantmjölk, Filmjölk, Lättmjölk, Mellanmjölk (choklad and
   pulver out of the top 8); "ägg" → Ägg kokt/stekt/rått, Äggröra, Äggakaka (eko twins further down).
 
+## 2026-11-15 — M69 Quiet backup reminder (interactive session)
+
+- After 28 logged days since the last backup (or "Inte nu") on this device: one card, last in the
+  diary's message slot; "Spara säkerhetskopia" saves the JSON in one tap. Checked 3 s after start
+  (`loggedDaysAfter`, unique date keys, capped). `backupAt`/`backupNudgeAt`/`backupReminderOff` are
+  device-local in sync; switch in Utseende, data & om. lib/export-backup.ts shared with YourData.
+- Tests: unit 309 ✓, build ✓ (34.2 KB), e2e 211/212 ✓ + backup-reminder.spec (camera: port 4173,
+  passed privately), Lighthouse 100/100/100.
+
 ## 2026-11-15 — M68 Polish batch (interactive session)
 
 - Singular counts in the library summary; "Välj delar" inset 16 px (`.link.parts-link`); Snabblogga
@@ -51,6 +61,9 @@ db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (
   is remembered (`correctAmount`, only for the food's latest entry). Recents/favourites show "2 dl · 263 kcal".
 - Tests: unit 303 ✓, build ✓ (33.8 KB), e2e 208/209 ✓ + portion.spec (camera: port 4173, passed
   privately), Lighthouse 100/100/100.
+- Review (#102): "latest entry" is now within 2 s of the counted use (`isLatestEntry`), tested on
+  `updateEntry`. Ångra stores before it shows (a reload right after it raced on CI). Known: undoing a
+  removal restores the use record as it was, dropping a correction made in between (harmless).
 
 ## 2026-11-15 — M66 Calm nutrients tab (interactive session)
 

@@ -607,6 +607,21 @@ export async function entriesBetween(from: string, to: string): Promise<Entry[]>
 }
 
 /**
+ * How many days have something logged after `after` (YYYY-MM-DD; all days when undefined), counted up
+ * to `cap` (M69): unique keys of the date index, no entries loaded.
+ */
+export async function loggedDaysAfter(after: string | undefined, cap: number): Promise<number> {
+  const index = (await db()).transaction('entries').store.index('date');
+  let cur = await index.openKeyCursor(after ? IDBKeyRange.lowerBound(after, true) : undefined, 'nextunique');
+  let n = 0;
+  while (cur && n < cap) {
+    n++;
+    cur = await cur.continue();
+  }
+  return n;
+}
+
+/**
  * Logged dates walking back from `today` (unique index keys only — no entries loaded), stopping at
  * the first gap of more than one day: enough for the streak, O(streak) instead of O(history).
  */

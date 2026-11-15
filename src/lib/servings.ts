@@ -25,6 +25,14 @@ export function rememberAmount(list: LoggedAmount[] | undefined, a: LoggedAmount
 }
 
 /**
+ * Whether an entry is its food's latest log (M67 review): `recordUses` stamps `lastUsed` a few ms
+ * after the entries' `createdAt`, so an entry created at most this long before it is the one counted
+ * last. Small, so a second log of the same food seconds later is never mistaken for the first.
+ */
+export const LATEST_SLACK_MS = 2_000;
+export const isLatestEntry = (createdAt: number, lastUsed: number): boolean => createdAt >= lastUsed - LATEST_SLACK_MS;
+
+/**
  * An entry's amount was corrected after logging (M67): the correction is what was eaten, so it
  * replaces the remembered amount it came from — not a new use. Only for the food's latest entry.
  */
