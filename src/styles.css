@@ -416,7 +416,7 @@ table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom
 }
 .toast span { min-width: 0; overflow-wrap: anywhere; }
 .toast .btn { flex: none; }
-.confirm-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: 8px; padding: 10px 12px; border-radius: 14px; background: var(--inner); border: 1px solid var(--line); font-size: 0.92rem; }
+.confirm-row { scroll-margin-bottom: calc(96px + env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: 8px; padding: 10px 12px; border-radius: 14px; background: var(--inner); border: 1px solid var(--line); font-size: 0.92rem; }
 .confirm-row .row { margin: 0; gap: 8px; }
 .backup-note { flex-wrap: wrap; }
 .backup-note .row { margin: 0; gap: 8px; }

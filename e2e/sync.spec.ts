@@ -76,8 +76,9 @@ test('two devices pair with codes and end up with each other’s data, in batche
   await paste(a, answer);
 
   for (const p of [a, b]) await expect(p.getByRole('status')).toContainText('Klart!', { timeout: 60_000 });
-  // 1,500 history entries + the logged entry + its usage record.
-  await expect(a.getByRole('status')).toContainText(/1[\s ]?502 ändringar hämtade/);
+  // 1,500 history entries + the logged entry + its usage record + the history food's usage record
+  // (rebuilt from the restored diary since M71).
+  await expect(a.getByRole('status')).toContainText(/1[\s ]?503 ändringar hämtade/);
 
   // After "OK" (reload), each device shows the other's data.
   for (const p of [a, b]) await p.getByRole('button', { name: 'OK', exact: true }).click();

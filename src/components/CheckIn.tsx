@@ -158,7 +158,7 @@ export default function CheckIn() {
                       type="button"
                       class="btn small"
                       onClick={() => {
-                        void updateSettings({ profile: { ...p, kcal: suggested, kcalAuto: false } });
+                        void updateSettings({ profile: { ...p, kcal: suggested, kcalAuto: false, kcalTyped: true } });
                         setApplied(suggested);
                       }}
                     >

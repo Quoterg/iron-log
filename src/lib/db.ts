@@ -294,12 +294,9 @@ export function usageFromEntries(entries: Entry[]): Usage[] {
   const map = new Map<string, Usage>();
   for (const e of [...entries].sort((a, b) => a.createdAt - b.createdAt)) {
     const u = map.get(e.foodRef);
-    map.set(e.foodRef, {
-      foodRef: e.foodRef,
-      count: (u?.count ?? 0) + 1,
-      lastUsed: e.createdAt,
-      lastGrams: e.grams,
-    });
+    const next: Usage = { foodRef: e.foodRef, count: (u?.count ?? 0) + 1, lastUsed: e.createdAt, lastGrams: e.grams };
+    if (e.unit && e.qty) Object.assign(next, { lastUnit: e.unit, lastQty: e.qty });
+    map.set(e.foodRef, next);
   }
   return [...map.values()];
 }
@@ -416,6 +413,42 @@ export async function importAll(data: AllData): Promise<void> {
     puts.push(tx.objectStore('kv').put(data.settings, 'settings').then(() => meta.put({ mt: Date.now() }, metaKey('kv', 'settings'))));
   }
   await Promise.all([...puts, tx.done]);
+  // A backup without (or with older) use counts still has its diary: "Senaste", the usual amounts
+  // and the search boost come from it (M71: after a restore only today's foods were "recent").
+  await rebuildUsage();
+}
+
+/**
+ * Use counts merged from the whole diary into what is stored (M71): a food missing gets its counts;
+ * one known gets the larger count and, when the diary has a later use, that use's amount. Favourites
+ * are kept; quick entries' hidden foods are left out (they never count, M47).
+ */
+export async function rebuildUsage(): Promise<void> {
+  const d = await db();
+  const [all, stored, custom] = await Promise.all([d.getAll('entries'), d.getAll('usage'), d.getAll('customFoods')]);
+  const quick = new Set(custom.filter((f) => f.quick).map((f) => f.ref));
+  const write = mergeUsage(stored, usageFromEntries(all.filter((e) => !quick.has(e.foodRef))));
+  if (write.length) await put('usage', write);
+}
+
+/** The records to write so `stored` also knows what `fromDiary` says (pure; see rebuildUsage). */
+export function mergeUsage(stored: Usage[], fromDiary: Usage[]): Usage[] {
+  const byRef = new Map(stored.map((u) => [u.foodRef, u]));
+  const out: Usage[] = [];
+  for (const u of fromDiary) {
+    const cur = byRef.get(u.foodRef);
+    if (!cur) out.push(u);
+    else if (u.count > cur.count || u.lastUsed > cur.lastUsed) {
+      const later = u.lastUsed > cur.lastUsed;
+      out.push({
+        ...cur,
+        count: Math.max(cur.count, u.count),
+        lastUsed: Math.max(cur.lastUsed, u.lastUsed),
+        ...(later ? { lastGrams: u.lastGrams, lastUnit: u.lastUnit, lastQty: u.lastQty } : {}),
+      });
+    }
+  }
+  return out;
 }
 
 /**

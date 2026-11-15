@@ -30,6 +30,8 @@ export interface Profile {
    * adults instead of a guessed sex. `sex` is then only a placeholder and is never shown or used.
    */
   standard?: boolean;
+  /** The user typed (or accepted) this energy target (M71): only then does it stay put when the profile is filled. */
+  kcalTyped?: boolean;
 }
 
 export interface Target {
@@ -70,6 +72,25 @@ export function untouchedProfile(p: Profile): boolean {
 
 export function defaultKcal(sex: Sex): number {
   return sex === 'male' ? 2500 : 2000;
+}
+
+/**
+ * The energy target is still the app's default, not the user's (M71): never typed, and one of the
+ * defaults (2 000 / 2 500 kcal). Profiles from before M71 have no `kcalTyped`; a value other than a
+ * default there was typed.
+ */
+export const defaultTarget = (p: Profile): boolean =>
+  !p.kcalAuto && !p.kcalTyped && (p.kcal === defaultKcal('female') || p.kcal === defaultKcal('male'));
+
+/**
+ * A profile change (M71): the patch on the current profile; a target that is still the default
+ * follows the profile from the moment the profile can estimate it (it stayed "Skriv själv" at a
+ * 2 500 kcal nobody typed), unless the target follows the measured expenditure.
+ */
+export function profileUpdate(p: Profile, patch: Partial<Profile>, following: boolean): Profile {
+  const next = { ...p, ...patch };
+  if (!following && defaultTarget(next) && energyNeed(next) != null) next.kcalAuto = true;
+  return next;
 }
 
 const KCAL_PER_MJ = 239.006;
