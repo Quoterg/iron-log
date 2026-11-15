@@ -23,6 +23,14 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-15 — M68 Polish batch (interactive session)
+
+- Singular counts in the library summary; "Välj delar" inset 16 px (`.link.parts-link`); Snabblogga
+  focuses energy, macro fields aligned (`.grid3` align-items end); no-match hint (offline: the barcode
+  lookup needs a connection — name search is local); "Per 100 g" list title over results.
+- Tests: unit 306 ✓, build ✓ (33.8 KB), e2e 207/210 ✓ + polish.spec (smoke "search fast" and a11y
+  "sync QR dark" failed under a parallel unit run, 2/2 alone; camera: port 4173), Lighthouse 100/100/100.
+
 ## 2026-11-15 — M67 Portion screen (interactive session)
 
 - "Lägg till" before the "Om du lägger till" preview (in view on 360×640). Portion memory checked: it

@@ -673,9 +673,11 @@ changes the same worker/ranking code).
   the last amount. Done: the button sits before the preview. Portion memory works (the walkthrough
   only saw first logs); a corrected amount wasn't remembered — now it is (`correctAmount`). Recents and
   favourites show the amount they open at.
-- [ ] **M68 Polish batch** — "1 måltider" singular; "Välj delar" flush against the screen edge;
+- [x] **M68 Polish batch** (PR #103) — "1 måltider" singular; "Välj delar" flush against the screen edge;
   Snabblogga's macro fields wrap and Energi isn't focused; offline or no-match search says only "Inga
   träffar" (say that online lookup needs a connection when offline); result rows labelled "per 100 g".
+  Done, all five. Note: name search is always local (worker); only the barcode lookup needs a
+  connection, so the offline line says that. "Per 100 g" is one list title above the results.
 - [ ] **M69 Quiet backup reminder** — one unobtrusive prompt when about a month of new data has
   piled up since the last export, one tap to export, an off switch; never a streak or a nag.
 
