@@ -33,7 +33,7 @@ export default function Settings() {
     [
       'profile',
       t('settingsProfile'),
-      [p.standard ? t('standardSummary') : t(p.sex === 'female' ? 'female' : 'male'), p.age && t('ageYears').replace('{n}', String(p.age)), p.weightKg && `${fmt(p.weightKg, 1)} kg`, goalText(goal, paceFor(p, s.pace))]
+      [p.standard ? t('standardSummary') : t(p.sex === 'female' ? 'female' : 'male'), p.age && t('ageYears').replace('{n}', String(p.age)), p.weightKg && `${fmt(p.weightKg, 1)} kg`, !(p.standard && !s.goal) && goalText(goal, paceFor(p, s.pace))]
         .filter(Boolean)
         .join(' · '),
     ],
