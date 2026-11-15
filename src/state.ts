@@ -98,7 +98,13 @@ export const dayTotals = computed(() =>
 );
 
 let loadSeq = 0;
-export async function loadDay(d: string): Promise<void> {
+/**
+ * Show a day: its entries, activities, water and mark, then the names of its foods (which may need
+ * the food data). `shown` is called once the day can be shown right (M70): at once when every food
+ * it needs is already known, else after they are loaded — the first paint waits for that, so it
+ * never shows "…" names and 0 kcal that then jump (review #97).
+ */
+export async function loadDay(d: string, shown?: () => void): Promise<void> {
   date.value = d;
   const seq = ++loadSeq;
   notice.value = null;
@@ -119,7 +125,13 @@ export async function loadDay(d: string): Promise<void> {
   dayActivities.value = acts.sort((a, b) => a.createdAt - b.createdAt);
   if (acts.length) loadActivityTypes();
   dayWater.value = water;
-  if (list.length || prev.length) await ensureFoods([...list, ...prev].map((e) => e.foodRef));
+  const refs = [...list, ...prev].map((e) => e.foodRef);
+  if (refs.every((r) => foods.value.has(r))) shown?.();
+  try {
+    if (refs.length) await ensureFoods(refs);
+  } finally {
+    shown?.(); // a second call does nothing; also when the food files can't load (offline)
+  }
   clock.value = Date.now();
   if (usualReady && d === db.isoDate(new Date())) void refreshUsual(d);
 }
@@ -917,8 +929,24 @@ export async function saveBody(e: BodyEntry): Promise<void> {
   bodyLog.value = empty ? rest : [...rest, e];
   if (empty) await db.deleteBody(e.date);
   else await db.putBody(e);
-  // The newest remaining measurement drives the profile (also after deleting the newest one).
-  // With no measurements left, the profile keeps what was typed there.
+  await profileFromBody();
+}
+
+/** Days of measurements from elsewhere (Iron Notes, M53), already merged: written in one go. */
+export async function importBody(list: BodyEntry[]): Promise<void> {
+  if (!list.length) return;
+  await loadBody();
+  const dates = new Set(list.map((e) => e.date));
+  bodyLog.value = [...(bodyLog.value ?? []).filter((x) => !dates.has(x.date)), ...list];
+  await db.putBodies(list);
+  await profileFromBody();
+}
+
+/**
+ * The newest measurement drives the profile's weight and body fat (also after deleting the newest
+ * one), so automatic energy follows your weight; with none left, the profile keeps what was typed.
+ */
+async function profileFromBody(): Promise<void> {
   const latest = (metric: 'weightKg' | 'bodyFatPct') =>
     (bodyLog.value ?? []).filter((x) => x[metric] != null).sort((a, b) => b.date.localeCompare(a.date))[0]?.[metric];
   const p = settings.value.profile;

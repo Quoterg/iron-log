@@ -40,7 +40,8 @@ pnpm e2e                   # Playwright smoke tests on emulated Moto G4, 4× CPU
 pnpm lighthouse            # Lighthouse CI on dist/ (mobile, simulated slow 4G); gates in lighthouserc.json
                            # locally: CHROME_PATH=~/.cache/ms-playwright/chromium-*/chrome-linux/chrome
 pnpm data:fetch            # re-download Livsmedelsverket data → data/raw (slow, ~2.6k requests)
-pnpm data:build            # data/raw → public/data/foods.json
+pnpm data:build            # data/raw → public/data/foods.json (fruit & veg, M52: needs data/raw/prices/slv-ravaror.json
+                           # from data:fetch-prices; then data:build-usda and data:build-top too)
 pnpm data:fetch-usda       # USDA FoodData Central CSVs → data/raw/usda (needs `unzip`)
 pnpm data:build-usda       # data/raw/usda → public/data/usda-*.json (+ src/lib/sources.json)
 pnpm data:fetch-prices     # SCB price index, Open Prices, Livsmedelsverket raw commodities → data/raw/prices

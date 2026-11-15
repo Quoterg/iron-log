@@ -5,6 +5,7 @@
 // USDA data is public domain. Usage: node scripts/build-usda.mjs
 import { createReadStream } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { usdaFruitVeg } from './fruitveg.mjs';
 import { createInterface } from 'node:readline';
 import { gzipSync } from 'node:zlib';
 import { writeSourceFiles } from './data-files.mjs';
@@ -96,7 +97,7 @@ function parseCsvLine(line) {
 }
 
 const REQUIRED = {
-  'food.csv': ['fdc_id', 'data_type', 'description'],
+  'food.csv': ['fdc_id', 'data_type', 'description', 'food_category_id'],
   'food_nutrient.csv': ['fdc_id', 'nutrient_id', 'amount'],
   'food_portion.csv': ['fdc_id', 'amount', 'gram_weight', 'modifier', 'portion_description'],
 };
@@ -122,7 +123,7 @@ for (const set of ['foundation', 'sr_legacy']) {
   const dir = `data/raw/usda/${set}`;
   const keepType = set === 'foundation' ? 'foundation_food' : 'sr_legacy_food';
   for await (const r of rows(`${dir}/food.csv`)) {
-    if (r.data_type === keepType) foods.set(r.fdc_id, { id: r.fdc_id, name: r.description.trim(), set, values: new Map(), portions: [] });
+    if (r.data_type === keepType) foods.set(r.fdc_id, { id: r.fdc_id, name: r.description.trim(), category: r.food_category_id, set, values: new Map(), portions: [] });
   }
   for await (const r of rows(`${dir}/food_nutrient.csv`)) {
     const f = foods.get(r.fdc_id);
@@ -157,6 +158,7 @@ for (const f of foods.values()) {
   const byDiff = f.values.get(1005);
   v.carbs = bySum ?? (byDiff == null ? null : Math.max(0, byDiff - (v.fibre ?? 0)));
   if (v.sodium != null) v.salt = (v.sodium * 2.5) / 1000;
+  v.fruitVeg = usdaFruitVeg(f.category, f.name); // M52: by food category
   if (v.kcal == null) continue; // unusable without energy
   const ref = `usda:${f.id}`;
   out.push(trimNulls([ref, f.name, null, ...NUTRIENTS.map((n) => round(v[n.key]))]));

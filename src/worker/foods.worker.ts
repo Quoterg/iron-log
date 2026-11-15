@@ -2,7 +2,7 @@
 // Owns the food databases so parsing and searching never block the UI thread.
 // Each source (Livsmedelsverket, USDA, …) is one or more JSON files, loaded only when the source
 // is enabled for search — or when a diary entry needs one of its foods.
-import { buildEntry, search, type SearchEntry } from '../lib/search';
+import { FoodIndex } from '../lib/food-index';
 import type { Food } from '../lib/nutrients';
 import type { WorkerRequest, WorkerResponse } from '../lib/foods';
 import { rowToFood } from '../lib/food-row';
@@ -15,30 +15,21 @@ interface FoodsFile {
   foods: [ref: string, sv: string, en: string | null, ...values: (number | null)[]][];
 }
 
-/** The user's own foods rank slightly above database foods with the same match. */
-const CUSTOM_BOOST = 1;
-/** Everyday foods (data/popular.txt): "ris" → cooked rice before raw specialty rice. */
-const POPULAR_BOOST = 2;
-
 let files: Record<string, string[]> = {};
 let enabled: string[] = [];
 const sourceFoods = new Map<string, Food[]>();
 const loading = new Map<string, Promise<void>>();
 let custom: Food[] = [];
-let builtInCount = 0;
-let all: Food[] = [];
 const byRef = new Map<string, Food>();
-let index: Partial<Record<string, SearchEntry[]>> = {};
-const popular = new Set<string>();
-/** Per-food boost from the user's own history (count, favourites), set by the main thread. */
-let userBoost: Record<string, number> = {};
+/** The search index: the databases' part kept, the user's own rebuilt on change (lib/food-index.ts). */
+const idx = new FoodIndex();
 
 async function loadFile(url: string): Promise<Food[]> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
   const data = (await res.json()) as FoodsFile;
   const units = data.units ?? {};
-  for (const r of data.popular ?? []) popular.add(r);
+  for (const r of data.popular ?? []) idx.popular.add(r);
   const n = data.keys.length;
   return data.foods.map((row) => {
     const f = rowToFood(row, n);
@@ -69,10 +60,7 @@ function loadSource(source: string): Promise<void> {
 
 /** Search covers the enabled sources (in order) plus the user's own foods. */
 function rebuild() {
-  const builtIn = enabled.flatMap((s) => sourceFoods.get(s) ?? []);
-  builtInCount = builtIn.length;
-  all = builtIn.concat(custom);
-  index = {};
+  idx.setBuiltIn(enabled.flatMap((s) => sourceFoods.get(s) ?? []));
 }
 
 /**
@@ -83,18 +71,6 @@ function rebuild() {
 async function ready(): Promise<string[]> {
   const results = await Promise.allSettled(enabled.map(loadSource));
   return enabled.filter((_, i) => results[i].status === 'rejected');
-}
-
-function indexFor(lang: string): SearchEntry[] {
-  return (index[lang] ??= all.map((f, i) => {
-    const e = buildEntry(i, [f.sv, f.en, f.terms ?? null], lang === 'en' ? (f.en ?? f.sv) : f.sv);
-    e.boost = boostFor(f.ref, i >= builtInCount);
-    return e;
-  }));
-}
-
-function boostFor(ref: string, isCustom: boolean): number {
-  return (isCustom ? CUSTOM_BOOST : 0) + (popular.has(ref) ? POPULAR_BOOST : 0) + (userBoost[ref] ?? 0);
 }
 
 /** Load only the sources these refs need (e.g. an old USDA entry while USDA is off). */
@@ -121,22 +97,18 @@ self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
   if (req.type === 'warm') {
     // At idle after first paint: load, then build the search index so the first keystroke is fast.
     await ready();
-    indexFor(req.lang);
+    idx.indexFor(req.lang);
     return;
   }
   if (req.type === 'boost') {
-    userBoost = req.boosts;
-    // Update in place: cheaper than rebuilding the normalised index after every logged food.
-    for (const entries of Object.values(index)) {
-      for (const e of entries ?? []) e.boost = boostFor(all[e.i].ref, e.i >= builtInCount);
-    }
+    idx.setBoosts(req.boosts);
     return;
   }
   if (req.type === 'custom') {
     for (const f of custom) byRef.delete(f.ref);
     custom = req.foods;
     for (const f of custom) byRef.set(f.ref, f);
-    rebuild();
+    idx.setCustom(custom);
     return;
   }
   let res: WorkerResponse;
@@ -144,7 +116,7 @@ self.onmessage = async (ev: MessageEvent<WorkerRequest>) => {
     if (req.type === 'search') {
       const failed = await ready();
       const ex = req.excludePrefix;
-      const hits = search(indexFor(req.lang), req.query, ex ? 200 : 40).map((i) => all[i]);
+      const hits = idx.search(req.query, req.lang, ex ? 200 : 40);
       res = { id: req.id, foods: (ex ? hits.filter((f) => !f.ref.startsWith(ex)) : hits).slice(0, 40), failed };
     } else {
       const failed = await loadFor(req.refs);

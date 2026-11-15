@@ -62,7 +62,8 @@ export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string;
   const allowed = (f: Food) => !(pickIngredient && f.ref.startsWith('recipe:'));
 
   const pick = (f: Food) => {
-    foods.value = new Map(foods.value).set(f.ref, f);
+    // Copying the whole map re-runs everything that reads it: only when the food is new (M54).
+    if (foods.value.get(f.ref) !== f) foods.value = new Map(foods.value).set(f.ref, f);
     if (multi) {
       const next = new Map(picked);
       if (next.has(f.ref)) next.delete(f.ref);

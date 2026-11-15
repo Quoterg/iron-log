@@ -6,6 +6,10 @@ import { backupState, markBackedUp, markRestored, setBackupReminder } from '../s
 import { getFoods } from '../lib/foods';
 import { lang, nutrientName, t } from '../lib/i18n';
 import { installPrompt } from '../lib/install';
+import { GOAL_LABEL, te } from '../lib/strings-energy';
+import { IronNotesError, isIronNotes, parseIronNotes, planBody } from '../lib/ironnotes';
+import { bodyLog, importBody, loadBody, settings } from '../state';
+import { changeGoal } from './ProfileForm';
 
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !(navigator as { standalone?: boolean }).standalone;
 
@@ -40,9 +44,37 @@ export function YourData() {
     download(`iron-log-${stamp}.csv`, csv, 'text/csv;charset=utf-8');
   };
 
+  /** An Iron Notes backup (M53): its body measurements, and its diet phase as the goal; asked first. */
+  const importIronNotes = async (raw: unknown) => {
+    const data = parseIronNotes(raw, isoDate(new Date()));
+    await loadBody();
+    const plan = planBody(data, bodyLog.value ?? [], Date.now());
+    const goal = data.goal && data.goal !== (settings.value.goal ?? 'maintain') ? data.goal : undefined;
+    if (!plan.write.length && !goal) return setMessage(t('ironNotesNothing'));
+    let done = false;
+    const c = plan.counts;
+    if (plan.write.length && confirm(t('ironNotesConfirm').replace('{w}', String(c.weightKg)).replace('{f}', String(c.bodyFatPct)).replace('{m}', String(c.waistCm)))) {
+      await importBody(plan.write);
+      done = true;
+    }
+    if (goal && confirm(t('ironNotesGoal').replace('{goal}', te(GOAL_LABEL[goal])))) {
+      await changeGoal(goal);
+      done = true;
+    }
+    if (done) setMessage(t('ironNotesDone'));
+  };
+
   const importFile = async (file: File) => {
     try {
-      const data = parseBackup(await file.text());
+      const text = await file.text();
+      let raw: unknown;
+      try {
+        raw = JSON.parse(text);
+      } catch {
+        // not JSON: parseBackup says so below
+      }
+      if (isIronNotes(raw)) return await importIronNotes(raw);
+      const data = parseBackup(text, raw); // parsed once (review #95)
       const q = t('importConfirm').replace('{n}', String(data.entries.length)).replace('{f}', String(data.customFoods.length));
       if (!confirm(q)) return;
       await importAll(data);
@@ -50,7 +82,7 @@ export function YourData() {
       setMessage(t('importDone'));
       location.reload();
     } catch (err) {
-      if (!(err instanceof BackupError)) console.error(err);
+      if (!(err instanceof BackupError || err instanceof IronNotesError)) console.error(err);
       setMessage(t('importFailed'));
     } finally {
       if (fileRef.current) fileRef.current.value = '';

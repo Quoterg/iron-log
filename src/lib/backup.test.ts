@@ -43,6 +43,12 @@ describe('backup', () => {
     expect(parseBackup(text)).toEqual(data);
   });
 
+  it('leaves trailing unknowns out of exported vectors, for older app versions (M52b review)', () => {
+    const b = makeBackup(data);
+    expect(b.recipes[0].per100g).toEqual([120]); // the stored vector is NUTRIENTS.length long
+    expect(parseBackup(JSON.stringify(b)).recipes[0].per100g).toEqual(data.recipes[0].per100g);
+  });
+
   it('accepts backups from before recipes existed, and pads short nutrient vectors', () => {
     const old = { format: 'iron-log-backup', version: 1, entries: [], customFoods: [], usage: [] };
     expect(parseBackup(JSON.stringify(old)).recipes).toEqual([]);

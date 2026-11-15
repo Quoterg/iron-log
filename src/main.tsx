@@ -24,16 +24,24 @@ async function start() {
   performance.mark('il:start');
   await loadSettings();
   performance.mark('il:settings');
-  await Promise.all([early, loadLang(lang.value).catch(() => {})]);
+  // In parallel (M70): the language pack, and the small local tables then today's diary (custom
+  // foods are needed to resolve diary entries, including deleted ones), so the first paint already
+  // shows the day instead of an empty diary filling in. loadDay says when the day can be shown: at
+  // once if every food it needs is known, else once they are (never 0 kcal that then jumps).
+  let shown = () => {};
+  const dayShown = new Promise<void>((ok) => (shown = ok));
+  const library = Promise.all([loadLibrary(), loadUsage(), loadServings()]).then(() => performance.mark('il:library'));
+  const day = library.then(() => loadDay(date.value, shown));
+  // Whatever fails below, the app is rendered (review #97: a rejected loadDay must not leave a
+  // blank screen); the error is reported, and the diary shows what it has.
+  await Promise.all([
+    Promise.all([early, loadLang(lang.value).catch(() => {})]).then(() => performance.mark('il:lang')),
+    Promise.race([dayShown, day]).catch((err) => console.error(err)),
+  ]);
   document.documentElement.lang = lang.value;
-  // Small local tables, loaded before first render so every screen starts with complete data
-  // (custom foods are also needed to resolve diary entries, including deleted ones).
-  performance.mark('il:lang');
-  await Promise.all([loadLibrary(), loadUsage(), loadServings()]);
-  performance.mark('il:library');
   render(<App />, document.getElementById('app')!);
   performance.mark('il:render'); // M39: measured by e2e/perf.spec.ts
-  await loadDay(date.value);
+  await day.catch(() => {}); // reported above
   performance.mark('il:day');
   runShortcut();
   showWhatsNew().catch(() => {}); // offline and not cached yet: next start
