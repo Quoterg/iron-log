@@ -189,7 +189,7 @@ function Toast() {
   const m = toast.value;
   // Always in the page (empty when idle), so screen readers announce what is put into it.
   return (
-    <div class="toast-slot" role="status">
+    <div class="toast-slot" aria-live="polite">
       {m && (
         <div class="toast">
           <span>{m.text}</span>
