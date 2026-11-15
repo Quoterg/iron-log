@@ -726,14 +726,17 @@ M61) stay where they are. Order: most felt and safest first, one PR each. Not in
 the iron + vitamin C pairing (M57), install prompts (the browser's), multi-word search ("kaffe med
 mjölk").
 
-1. [ ] **M71 Bugs from everyday use** — (1) Profil & mål: a number typed into a field and then a select
+1. [x] **M71 Bugs from everyday use** (PR #106) — (1) Profil & mål: a number typed into a field and then a select
    changed right away (Aktivitetsnivå, Mål) loses the typed value (repro `s17.mjs`); nothing typed may
    be lost when another control changes. (2) The energy target stayed "Skriv själv" at 2 500 kcal the
    user never typed after the profile was filled: find how and let the target follow the profile unless
    the user really typed one. (3) Restoring a backup doesn't rebuild food usage: "Senaste" and "Samma
    som igår"'s amounts only know what was logged here — rebuild usage from the restored diary. (4) One
    rounding rule per unit: "74,8 / 2 000 kcal" vs integers, "6,66 / 50 g". (5) The in-card "Töm /
-   Avbryt" question renders under the floating tab bar.
+   Avbryt" question renders under the floating tab bar. Done: pending typed numbers are committed
+   before any other change and saves read the stored profile; `kcalTyped` + `profileUpdate` (a default
+   2 000/2 500 target follows the profile — "Man" on the standard profile set 2 500 and nothing switched
+   it); `rebuildUsage` after `importAll`; `fmtUnit`; the question scrolls above the tab bar.
 2. [ ] **M72 Words people type** — everyday words that miss ("knäckebröd", "matbröd", "laxfilé" →
    "Inga träffar"; the database says "Hårt bröd"): a small hand-written synonym map (~100–150 common
    grocery words, found by testing ordinary words against the index), applied in the search worker

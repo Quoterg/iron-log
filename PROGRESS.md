@@ -29,6 +29,16 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-15 — M71 Bugs from everyday use (interactive session)
+
+- Phase 13 planned (ROADMAP). #97, #104, #105 merged; #94/#95 are contained in #97 (owner may close).
+- Profile: typed numbers committed before any other change, saves read the stored profile (s17 repro);
+  `kcalTyped` — a default target (2 000/2 500, never typed) follows the profile once it can be
+  estimated. `rebuildUsage` after a restore (recents from the restored diary). `fmtUnit`: whole kcal,
+  other units 0/1/2 decimals by size. The clear question scrolls above the tab bar.
+- Tests: unit 346 ✓, build ✓ (35.0 KB), e2e 219/222 + everyday.spec (sync.spec +1 change by design;
+  camera: port; undo: load flake, passes alone), Lighthouse 100/100/100.
+
 ## 2026-11-15 — M70 (was M54) review fixes and M62 Search ranking (interactive session)
 
 - #97 brought home: merged main + #95 (+ #94) in, its review fixed (own foods keep their boost with
