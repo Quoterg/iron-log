@@ -115,7 +115,14 @@ export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string;
           {multi && <span class="muted small">{t('pickSeveralNote')}</span>}
         </div>
       )}
-      {results && results.length === 0 && <p class="muted center">{t('noResults')}</p>}
+      {/* Say what else can be tried (M68); offline, that the barcode lookup is what needs a connection. */}
+      {results && results.length === 0 && (
+        <div class="pad center">
+          <p class="muted">{t('noResults')}</p>
+          <p class="muted small">{navigator.onLine === false ? t('noResultsOffline') : t('noResultsHint')}</p>
+        </div>
+      )}
+      {results && results.length > 0 && <h3 class="list-title">{t('per100Label')}</h3>}
       {results ? (
         <ul class="results">{results.filter(allowed).map((f) => row(f, pick, sel))}</ul>
       ) : query.trim() ? null : (
@@ -202,7 +209,7 @@ function SavedMeals({ list, meal }: { list: MealTemplate[]; meal: Meal }) {
             </button>
             {m.items.length > 1 && (
               <button
-                class="link small"
+                class="link small parts-link"
                 aria-expanded={parts?.id === m.id}
                 onClick={() => setParts(parts?.id === m.id ? null : { id: m.id, off: new Set() })}
               >
@@ -301,12 +308,13 @@ function QuickList({ title, list, pick, sel }: { title: string; list: Usage[]; p
   return (
     <>
       <h3 class="list-title">{title}</h3>
-      <ul class="results">{items.map((f) => row(f, pick, sel))}</ul>
+      {/* The amount it opens at (M67), as logged last time or usually, instead of per 100 g. */}
+      <ul class="results">{items.map((f) => row(f, pick, sel, usualAmountOf(f)))}</ul>
     </>
   );
 }
 
-function row(f: Food, pick: (f: Food) => void, sel: Sel) {
+function row(f: Food, pick: (f: Food) => void, sel: Sel, usual?: Amount) {
   const on = sel(f.ref);
   return (
     <li key={f.ref}>
@@ -321,11 +329,18 @@ function row(f: Food, pick: (f: Food) => void, sel: Sel) {
           {f.ref.startsWith('recipe:') && <span class="badge">{t('recipeBadge')}</span>}
           {f.ref.startsWith('usda:') && <span class="badge">USDA</span>}
         </span>
-        <span class="num muted">
-          {fmt(value(f.per100g, 'kcal'))} kcal · P {fmtAmount(value(f.per100g, 'protein'))} ·{' '}
-          {t('carbsAbbr')} {fmtAmount(value(f.per100g, 'carbs'))} · F{' '}
-          {fmtAmount(value(f.per100g, 'fat'))}
-        </span>
+        {usual ? (
+          <span class="num muted">
+            {usual.unit && usual.qty ? `${fmtAmount(usual.qty)} ${unitLabel(usual.unit)}` : `${fmtAmount(usual.grams)} g`} ·{' '}
+            {fmt((value(f.per100g, 'kcal') * usual.grams) / 100)} kcal
+          </span>
+        ) : (
+          <span class="num muted">
+            {fmt(value(f.per100g, 'kcal'))} kcal · P {fmtAmount(value(f.per100g, 'protein'))} ·{' '}
+            {t('carbsAbbr')} {fmtAmount(value(f.per100g, 'carbs'))} · F{' '}
+            {fmtAmount(value(f.per100g, 'fat'))}
+          </span>
+        )}
       </button>
     </li>
   );

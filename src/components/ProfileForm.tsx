@@ -34,7 +34,6 @@ const PAL_LABEL: Record<number, 'palSedentary' | 'palLight' | 'palModerate' | 'p
   1.9: 'palAthlete',
 };
 
-/** Body data → NNR 2023 targets for age band, pregnancy/lactation, and an energy estimate. */
 /**
  * A new goal (M35) sets the automatic target too: the need ± the pace's energy. While the target
  * follows the measured expenditure, a new goal or pace moves it at once by the difference (M41) —
@@ -57,7 +56,9 @@ export async function changeGoal(g: Goal, pace = settings.value.pace): Promise<v
   });
 }
 
-/** `brief` (first start, M45): only what the targets need — no body fat, no link onwards. */
+/**
+ * Body data → NNR 2023 targets for age band, pregnancy/lactation, and an energy estimate.
+ * `brief` (first start, M45): only what the targets need — no body fat, no link onwards. */
 export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
   const p = settings.value.profile;
   const s = settings.value;
@@ -108,15 +109,23 @@ export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
   return (
     <section class="card form">
       <h2>{t('profile')}</h2>
+      {p.standard && !brief && <p class="muted small">{t('standardProfileNote')}</p>}
       <label>
         {t('sex')}
         <select
-          value={p.sex}
+          value={p.standard ? '' : p.sex}
           onChange={(e) => {
             const sex = (e.currentTarget as HTMLSelectElement).value as Sex;
-            save({ sex, status: 'none', kcal: p.kcalAuto ? p.kcal : defaultKcal(sex) });
+            // The default target follows the sex; one the user typed (also while on standard targets, M65) stays.
+            const typed = p.standard && p.kcal !== defaultKcal('female');
+            save({ sex, status: 'none', standard: undefined, kcal: p.kcalAuto || typed ? p.kcal : defaultKcal(sex) });
           }}
         >
+          {p.standard && (
+            <option value="" disabled>
+              {t('sexUnset')}
+            </option>
+          )}
           <option value="female">{t('female')}</option>
           <option value="male">{t('male')}</option>
         </select>
@@ -137,7 +146,7 @@ export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
           ))}
         </select>
       </label>
-      {p.sex === 'female' && (
+      {p.sex === 'female' && !p.standard && (
         <>
           <label>
             {t('lifeStage')}

@@ -44,7 +44,7 @@ export default function Welcome() {
           </>
         ) : (
           <>
-            <p>{t(p.kcalAuto ? 'welcomeTarget' : 'welcomeTargetDefault').replace('{kcal}', fmt(p.kcal))}</p>
+            <p>{(p.kcalAuto ? t('welcomeTarget') : p.standard ? t('welcomeTargetStandard') : t('welcomeTargetDefault')).replace('{kcal}', fmt(p.kcal))}</p>
             <p class="muted small">{t('welcomeFeatures')}</p>
             <FeatureList />
             <button class="btn primary" onClick={() => void finish()}>

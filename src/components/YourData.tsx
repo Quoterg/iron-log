@@ -75,14 +75,14 @@ export function YourData() {
   const importFile = async (file: File) => {
     try {
       const text = await file.text();
-      let raw: unknown = null;
+      let raw: unknown;
       try {
         raw = JSON.parse(text);
       } catch {
         // not JSON: parseBackup says so below
       }
       if (isIronNotes(raw)) return await importIronNotes(raw);
-      const data = parseBackup(text);
+      const data = parseBackup(text, raw); // parsed once (review #95)
       const q = t('importConfirm').replace('{n}', String(data.entries.length)).replace('{f}', String(data.customFoods.length));
       if (!confirm(q)) return;
       await importAll(data);
