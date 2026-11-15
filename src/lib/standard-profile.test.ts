@@ -42,6 +42,37 @@ describe('standard targets without a profile (M65)', () => {
     expect(computeTargets({ profile: p }).kcal.min).toBe(2000);
   });
 
+  it('with an age, the age band applies to both sides; iron follows the menstruation default (review #100)', () => {
+    const at = (age: number) => nnrTargets({ ...DEFAULT_PROFILE, age });
+    expect(at(30).iron.min).toBe(15); // women before 51: 15 mg
+    expect(at(68).iron.min).toBe(9); // after menopause women 8, men 9
+    expect(at(75).iron.min).toBe(9); // 71+: women 7, men 9
+    // Every value covers both sides of the same age band.
+    for (const age of [20, 30, 60, 75]) {
+      const std = at(age);
+      const w = nnrTargets({ sex: 'female', kcal: 2000, age });
+      const m = nnrTargets({ sex: 'male', kcal: 2000, age });
+      for (const key of Object.keys(std)) {
+        if (std[key].min != null) expect(std[key].min).toBe(Math.max(w[key]?.min ?? -Infinity, m[key]?.min ?? -Infinity));
+      }
+      expect(std.vitD.min).toBe(Math.max(w.vitD.min!, m.vitD.min!));
+    }
+  });
+
+  it('with an age and a weight, the weight-based targets are set; wholegrain only for adults', () => {
+    const std = nnrTargets({ ...DEFAULT_PROFILE, age: 40, weightKg: 70 });
+    expect(std.leucine.min).toBe(2.7); // 39 mg/kg × 70 kg, the same for both sexes
+    expect(std.wholegrain.min).toBe(Math.round((9 * 2000) / 239.006));
+    expect(nnrTargets({ ...DEFAULT_PROFILE, age: 17 }).wholegrain).toBeUndefined();
+  });
+
+  it('a target object handed out can be changed without changing the next one', () => {
+    const p = { ...DEFAULT_PROFILE };
+    const a = nnrTargets(p);
+    a.iron = { min: 1, max: null };
+    expect(nnrTargets(p).iron.min).toBe(15);
+  });
+
   it('only the untouched old default counts as no profile', () => {
     expect(untouchedProfile({ sex: 'female', kcal: 2000 })).toBe(true);
     expect(untouchedProfile({ sex: 'female', kcal: 2000, age: 30 })).toBe(false);
