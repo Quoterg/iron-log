@@ -704,13 +704,15 @@ export async function checkBackupReminder(): Promise<void> {
 }
 /** A backup was saved on this device: the count starts again. */
 export async function markBackedUp(): Promise<void> {
-  backupReminder.value = false;
+  // Stored first, then hidden: a reload right after must not bring it back.
   await updateSettings({ backupAt: db.isoDate(new Date()) });
+  backupReminder.value = false;
 }
 /** "Inte nu": quiet for another month of logging. */
 export async function snoozeBackupReminder(): Promise<void> {
-  backupReminder.value = false;
+  // Stored first, then hidden: a reload right after must not bring it back.
   await updateSettings({ backupNudgeAt: db.isoDate(new Date()) });
+  backupReminder.value = false;
 }
 
 /** Mark the selected day complete or incomplete; choosing the current mark again makes it automatic. */
