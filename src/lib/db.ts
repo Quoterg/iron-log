@@ -316,6 +316,11 @@ export async function putUsages(list: Usage[]): Promise<void> {
   if (list.length) await put('usage', list);
 }
 
+/** A food's use record removed (M64: a logged saved meal taken back with Ångra). */
+export async function deleteUsage(ref: string): Promise<void> {
+  await del('usage', ref);
+}
+
 export interface AllData {
   entries: Entry[];
   customFoods: CustomFood[];

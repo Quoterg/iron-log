@@ -64,4 +64,26 @@ describe('undo (M64)', () => {
     await msg.undo!();
     expect(state.entries.value).toEqual([]);
   });
+
+  it('taking a saved meal back also takes back what it counted: food uses and the meal’s own rank', async () => {
+    const state = await import('../state');
+    const db = await import('./db');
+    state.foods.value = new Map([...state.foods.value, ['slv:new', state.foods.value.get('slv:oats')!]]);
+    await state.loadDay('2026-11-05');
+    const usageBefore = new Map(state.usage.value);
+    const useBefore = state.templateUse.value.t1;
+    const meal = { id: 't1', name: 'Gröt', items: [{ foodRef: 'slv:oats', grams: 100 }, { foodRef: 'slv:new', grams: 50 }], createdAt: 1, updatedAt: 1 };
+    await state.logTemplate('dinner', meal);
+    expect(state.usage.value.get('slv:oats')!.count).toBe(usageBefore.get('slv:oats')!.count + 1);
+    expect(state.usage.value.has('slv:new')).toBe(true);
+    expect(state.templateUse.value.t1!.n).toBe((useBefore?.n ?? 0) + 1);
+
+    await state.toast.value!.undo!();
+    expect(state.usage.value.get('slv:oats')).toEqual(usageBefore.get('slv:oats'));
+    expect(state.usage.value.has('slv:new')).toBe(false); // never used before: gone again
+    expect(state.templateUse.value.t1).toEqual(useBefore);
+    const stored = new Map((await db.listUsage()).map((u) => [u.foodRef, u]));
+    expect(stored.get('slv:oats')).toEqual(usageBefore.get('slv:oats'));
+    expect(stored.has('slv:new')).toBe(false);
+  });
 });

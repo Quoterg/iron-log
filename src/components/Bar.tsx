@@ -72,4 +72,3 @@ export function Bar({ label, amount, unit, target, unknown, hero }: Props) {
     </div>
   );
 }
-
