@@ -20,6 +20,8 @@ import {
   recipeDraft,
   recipes,
   removeEntry,
+  restoreEntries,
+  showToast,
   splitEntry,
   toggleFavourite,
   updateEntry,
@@ -246,8 +248,10 @@ export default function FoodDetail(props: {
               type="button"
               class="btn danger"
               onClick={async () => {
-                await removeEntry(entry.id);
+                // Gone at once, with a way back (M64) instead of a question first.
+                const removed = await removeEntry(entry.id);
                 back();
+                showToast(t('toastRemoved').replace('{name}', foodName(food, lang.value)), () => restoreEntries(removed));
               }}
             >
               {t('remove')}

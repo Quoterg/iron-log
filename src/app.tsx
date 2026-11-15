@@ -3,7 +3,7 @@ import { locale, t } from './lib/i18n';
 import { Diary } from './components/Diary';
 import { lazyView } from './lazy';
 import { closeAll, stack, top, type Screen } from './nav';
-import { date, loadDay, supplementRefs, updateReady, view, type View } from './state';
+import { date, loadDay, supplementRefs, toast, updateReady, view, type View } from './state';
 
 const TABS: View[] = ['diary', 'nutrients', 'body', 'settings'];
 
@@ -88,6 +88,7 @@ export function App() {
       </div>
       {/* Every sheet in the stack stays mounted (only the top is shown), so going back
           restores it as it was, e.g. the search query and results. */}
+      <Toast />
       {stack.value.map((screen, i) => (
         <div key={i} hidden={i !== stack.value.length - 1}>
           <ScreenView screen={screen} />
@@ -181,4 +182,31 @@ function dayLabel(d: string): string {
 function settingsShown() {
   const s = [...stack.value].reverse().find((x) => x.kind === 'settings');
   return s?.kind === 'settings' ? s.page : undefined;
+}
+
+/** The last action's message with "Ångra" (M64), above the tab bar and over sheets. */
+function Toast() {
+  const m = toast.value;
+  // Always in the page (empty when idle), so screen readers announce what is put into it.
+  return (
+    <div class="toast-slot" role="status">
+      {m && (
+        <div class="toast">
+          <span>{m.text}</span>
+          {m.undo && (
+            <button
+              class="btn small"
+              onClick={() => {
+                const undo = m.undo!;
+                toast.value = null;
+                void undo();
+              }}
+            >
+              {t('undo')}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
