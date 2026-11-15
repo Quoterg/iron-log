@@ -401,12 +401,15 @@ export const SYNC_VALIDATORS: Record<SyncStore, (x: unknown) => unknown> = {
 };
 
 /** Parse and validate a backup file. Throws BackupError on anything unexpected (nothing is imported). */
-export function parseBackup(text: string): AllData {
-  let raw: unknown;
-  try {
-    raw = JSON.parse(text);
-  } catch {
-    throw new BackupError('json');
+/** `parsed`: the text already parsed by the caller (review #95: a large backup is parsed once). */
+export function parseBackup(text: string, parsed?: unknown): AllData {
+  let raw: unknown = parsed;
+  if (raw === undefined) {
+    try {
+      raw = JSON.parse(text);
+    } catch {
+      throw new BackupError('json');
+    }
   }
   if (!isObj(raw) || raw.format !== BACKUP_FORMAT || !isNum(raw.version)) throw new BackupError('format');
   if (raw.version > BACKUP_VERSION) throw new BackupError('version');

@@ -7,7 +7,7 @@ import type { Goal } from './targets';
 /** An Iron Notes backup is recognised by this, before anything else is parsed. */
 export const isIronNotes = (x: unknown): boolean => !!x && typeof x === 'object' && (x as { app?: unknown }).app === 'iron-notes';
 
-interface Metric {
+export interface Metric {
   id: string;
   name: string;
   kind: string;
@@ -28,12 +28,28 @@ export interface IronNotesData {
 }
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const FIELDS = [
-  // [Iron Log field, Iron Notes kind, name pattern, range (as Iron Log's backup validation)]
-  ['weightKg', 'weight', /weight|vikt/i, 20, 400],
-  ['bodyFatPct', 'percent', /fat|fett/i, 2, 75],
-  ['waistCm', 'length', /waist|midja/i, 30, 250],
+export const FIELDS = [
+  // [Iron Log field, Iron Notes kind, name pattern, range (as Iron Log's backup validation), exact default names]
+  ['weightKg', 'weight', /weight|vikt/i, 20, 400, /^\s*(body\s*weight|weight|vikt|kroppsvikt)\s*$/i],
+  ['bodyFatPct', 'percent', /fat|fett/i, 2, 75, /^\s*(body\s*fat(\s*%)?|fettprocent|kroppsfett(\s*%)?)\s*$/i],
+  ['waistCm', 'length', /waist|midja/i, 30, 250, /^\s*(waist|midja|midjemått)\s*$/i],
 ] as const;
+/** Measures that only look like one: a goal, a lean or fat-free mass, muscle (review #95). */
+const NOT_BODY = /goal|target|mål|lean|fri|free|mass|muscle|muskel/i;
+
+/**
+ * The one measure to read for a field, or none when it would be a guess (review #95): an exact
+ * default name first; else the only name that fits; a lone weight measure counts as body weight.
+ * Free names like "Target weight" or "Fat-free %" are never taken, and two candidates mean none.
+ */
+export function pickMetric(metrics: Metric[], f: (typeof FIELDS)[number]): Metric | undefined {
+  const ofKind = metrics.filter((m) => m.kind === f[1] && !NOT_BODY.test(m.name));
+  const exact = ofKind.filter((m) => f[5].test(m.name));
+  if (exact.length) return exact.length === 1 ? exact[0] : undefined;
+  const named = ofKind.filter((m) => f[2].test(m.name));
+  if (named.length) return named.length === 1 ? named[0] : undefined;
+  return f[1] === 'weight' && ofKind.length === 1 ? ofKind[0] : undefined;
+}
 const GOALS: Record<string, Goal> = { cut: 'lose', maintain: 'maintain', build: 'gain' };
 
 export class IronNotesError extends Error {}
@@ -49,8 +65,7 @@ export function parseIronNotes(x: unknown, today: string): IronNotesData {
   const metrics = ((b.metrics ?? []) as Metric[]).filter((m) => m && typeof m.id === 'string' && typeof m.name === 'string' && typeof m.kind === 'string');
   const ids = new Map<string, (typeof FIELDS)[number]>();
   for (const f of FIELDS) {
-    const ofKind = metrics.filter((m) => m.kind === f[1]);
-    const m = ofKind.find((x) => f[2].test(x.name)) ?? (f[1] === 'weight' && ofKind.length === 1 ? ofKind[0] : undefined);
+    const m = pickMetric(metrics, f);
     if (m) ids.set(m.id, f);
   }
   const days: IronNotesData['days'] = new Map();

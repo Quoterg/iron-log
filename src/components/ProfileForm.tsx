@@ -34,7 +34,6 @@ const PAL_LABEL: Record<number, 'palSedentary' | 'palLight' | 'palModerate' | 'p
   1.9: 'palAthlete',
 };
 
-/** Body data → NNR 2023 targets for age band, pregnancy/lactation, and an energy estimate. */
 /**
  * A new goal (M35) sets the automatic target too: the need ± the pace's energy. While the target
  * follows the measured expenditure, a new goal or pace moves it at once by the difference (M41) —
@@ -57,7 +56,9 @@ export async function changeGoal(g: Goal, pace = settings.value.pace): Promise<v
   });
 }
 
-/** `brief` (first start, M45): only what the targets need — no body fat, no link onwards. */
+/**
+ * Body data → NNR 2023 targets for age band, pregnancy/lactation, and an energy estimate.
+ * `brief` (first start, M45): only what the targets need — no body fat, no link onwards. */
 export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
   const p = settings.value.profile;
   const s = settings.value;
