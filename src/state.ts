@@ -12,7 +12,7 @@ import type { BodyEntry } from './lib/body';
 import { supplementServings, UNIT_GRAMS, type SupplementInfo } from './lib/supplements';
 import { computeTargets, DEFAULT_PROFILE, migrateEnergyProfile, migrateGoal, normalizeOverrides, untouchedProfile, withEnergy, type Target } from './lib/targets';
 import { scale, sum } from './lib/totals';
-import { rememberAmount } from './lib/servings';
+import { correctAmount, rememberAmount } from './lib/servings';
 import { itemsFromEntries, type MealTemplate, type TemplateUse } from './lib/templates';
 import { accept, dismiss, resetIfLogged, USUAL_RULES, type UsualMeal, type UsualState } from './lib/usual';
 
@@ -188,6 +188,11 @@ export async function updateEntry(id: string, patch: EntryPatch): Promise<void> 
     delete next.snap;
     if (patch.foodRef.startsWith('recipe:')) next.snap = foods.value.get(patch.foodRef)?.per100g;
   }
+  // A corrected amount is remembered for next time (M67), if this is the food's latest entry.
+  const u = usage.value.get(next.foodRef);
+  if (amount && !patch.foodRef && u && !quickRefs.value.has(next.foodRef) && e.createdAt >= u.lastUsed - LATEST_SLACK_MS) {
+    await putUsage(correctAmount(u, measure(amount)));
+  }
   // Moving to another day removes it from the day on screen.
   entries.value =
     next.date === date.value
@@ -195,6 +200,9 @@ export async function updateEntry(id: string, patch: EntryPatch): Promise<void> 
       : entries.value.filter((x) => x.id !== id);
   await db.putEntry(next);
 }
+
+/** An entry is its food's latest when logged at most this long before the food's last use was counted. */
+const LATEST_SLACK_MS = 60_000;
 
 export async function removeEntry(id: string): Promise<Removed> {
   return removeEntries([id]);
