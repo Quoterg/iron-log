@@ -652,9 +652,10 @@ changes the same worker/ranking code).
   (kcal), and protein shows against its target, without opening Näringsämnen. Neutral wording ("kvar",
   "över målet"), no colours of alarm. Done: "1 794 kcal kvar" / "44 kcal över målet" under the bar
   (`leftText`, lib/totals.ts); the protein tile "10 / 50 g" (Näringsämnen's target).
-- [ ] **M64 Undo and feedback** — deleting an entry offers Undo (today it vanishes at once); logging a
+- [x] **M64 Undo and feedback** (PR #99) — deleting an entry offers Undo (today it vanishes at once); logging a
   saved meal says what was added (4 foods landed silently) with Undo; "Töm måltiden" asks in the app's
-  own confirm instead of the browser's native `confirm()`.
+  own confirm instead of the browser's native `confirm()`. Done: one message at a time above the tab
+  bar (`showToast`, 8 s, aria-live); `removeEntries` → `restoreEntries` (same ids, quick foods too).
 - [ ] **M65 Honest default profile** — "Inte nu" on the welcome card left the user silently as "Kvinna ·
   Har menstruation · 2 000 kcal". Skipping gives clearly labelled standard targets (no invented sex or
   menstruation) with a visible, non-nagging way to set the profile; Settings doesn't present
