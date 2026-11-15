@@ -1,4 +1,5 @@
 import { fmtAmount } from '../lib/i18n';
+import { leftText as left } from '../lib/totals';
 import type { Target } from '../lib/targets';
 
 interface Props {
@@ -48,6 +49,8 @@ export function Bar({ label, amount, unit, target, unknown, hero }: Props) {
             <div class="fill" style={{ transform: `scaleX(${Math.min(pct, 100) / 100})` }} />
           </div>
         ) : null}
+        {/* What is left of the day (M63), in plain words: no alarm colour when it's passed. */}
+        {goal ? <p class="hero-left num">{left(goal - amount, unit)}</p> : null}
       </div>
     );
   }
@@ -69,3 +72,4 @@ export function Bar({ label, amount, unit, target, unknown, hero }: Props) {
     </div>
   );
 }
+

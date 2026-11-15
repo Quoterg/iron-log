@@ -146,6 +146,7 @@ main {
 .hero-num { font-size: 3rem; font-weight: 200; line-height: 1.1; letter-spacing: -0.02em; overflow-wrap: anywhere; }
 .hero-num small { font-size: 1rem; font-weight: 400; letter-spacing: 0; color: var(--muted); }
 .hero .fill { background: var(--grad); }
+.hero-left { margin: 6px 0 0; font-size: 0.9rem; color: var(--muted); }
 .theme-label { margin: 0 0 6px; }
 .whatif { margin: 4px 0 12px; padding: 10px 12px; border-radius: 14px; background: var(--inner); border: 1px solid var(--line); }
 .whatif h3 { margin: 0 0 4px; font-weight: 600; }

@@ -1,3 +1,4 @@
+import { fmt, t } from './i18n';
 import { NUTRIENTS, type NutrientVector } from './nutrients';
 
 /** Scale a per-100 g vector to an amount in grams. */
@@ -37,4 +38,13 @@ export function energySplit(protein: number, carbs: number, fat: number, alcohol
   const total = kcal > sum * 1.1 ? kcal : sum;
   if (total === 0) return { protein: 0, carbs: 0, fat: 0, alcohol: 0 };
   return { protein: p / total, carbs: c / total, fat: f / total, alcohol: a / total };
+}
+
+/**
+ * What is left of a day's target (M63), in plain words: "1 618 kcal kvar" or "120 kcal över målet".
+ * Rounded first, so 0.4 kcal over still reads "0 kcal kvar".
+ */
+export function leftText(rest: number, unit: string): string {
+  const r = Math.round(rest);
+  return (r >= 0 ? t('kcalLeft') : t('kcalOver')).replace('{n}', `${fmt(Math.abs(r))} ${unit}`);
 }
