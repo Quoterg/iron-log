@@ -420,3 +420,5 @@ table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom
 .confirm-row .row { margin: 0; gap: 8px; }
 .backup-note { flex-wrap: wrap; }
 .backup-note .row { margin: 0; gap: 8px; }
+.backup-check { display: flex; align-items: center; gap: 10px; margin: 4px 0 12px; }
+.backup-check input { width: 22px; height: 22px; flex: none; }

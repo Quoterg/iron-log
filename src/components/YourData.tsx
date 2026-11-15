@@ -87,7 +87,7 @@ export function YourData() {
         {t('exportCsv')}
       </button>
       {/* The diary's quiet reminder (M69): about once a month of logging, on this device. */}
-      <label class="check">
+      <label class="check backup-check">
         <input
           type="checkbox"
           checked={!settings.value.backupReminderOff}

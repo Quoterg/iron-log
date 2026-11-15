@@ -35,6 +35,8 @@ test('no reminder before about a month of logging', async ({ page }) => {
 test('a quiet backup reminder (M69): one tap saves, then it waits; "Inte nu" waits; it can be switched off', async ({ page }) => {
   test.slow();
   await page.goto('./');
+  // The diary shows one message at a time; the first-start card comes first.
+  await page.locator('.welcome').getByRole('button', { name: 'Inte nu' }).click();
   await importDays(page, 30);
   await tab(page, 'Dagbok');
   // Never on the first paint; shown once the idle check has run.
