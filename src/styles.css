@@ -279,8 +279,9 @@ input[type='number'], input[type='text'], input[type='search'], select {
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
 .grid2 input, .grid2 select { width: 100%; min-width: 0; }
 .grid2 > :only-child { grid-column: 1 / -1; }
-.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 10px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 10px; align-items: end; } /* M68: a wrapped label keeps the fields in line */
 .grid3 input { width: 100%; min-width: 0; }
+.parts-link { padding-left: 16px; padding-right: 16px; } /* M68: in line with the row above, not at the screen edge */
 .parts { display: flex; flex-direction: column; gap: 6px; padding: 4px 16px 12px; }
 .parts .btn { align-self: flex-start; }
 .multi-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding-top: 0; }

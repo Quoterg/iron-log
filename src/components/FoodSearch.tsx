@@ -114,7 +114,14 @@ export default function FoodSearch(props: { meal: Meal; replaceEntryId?: string;
           {multi && <span class="muted small">{t('pickSeveralNote')}</span>}
         </div>
       )}
-      {results && results.length === 0 && <p class="muted center">{t('noResults')}</p>}
+      {/* Say what else can be tried (M68); offline, that the barcode lookup is what needs a connection. */}
+      {results && results.length === 0 && (
+        <div class="pad center">
+          <p class="muted">{t('noResults')}</p>
+          <p class="muted small">{navigator.onLine === false ? t('noResultsOffline') : t('noResultsHint')}</p>
+        </div>
+      )}
+      {results && results.length > 0 && <h3 class="list-title">{t('per100Label')}</h3>}
       {results ? (
         <ul class="results">{results.filter(allowed).map((f) => row(f, pick, sel))}</ul>
       ) : query.trim() ? null : (
@@ -201,7 +208,7 @@ function SavedMeals({ list, meal }: { list: MealTemplate[]; meal: Meal }) {
             </button>
             {m.items.length > 1 && (
               <button
-                class="link small"
+                class="link small parts-link"
                 aria-expanded={parts?.id === m.id}
                 onClick={() => setParts(parts?.id === m.id ? null : { id: m.id, off: new Set() })}
               >
