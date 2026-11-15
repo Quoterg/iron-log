@@ -1,20 +1,11 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { BackupError, makeBackup, parseBackup, toCsv } from '../lib/backup';
+import { BackupError, parseBackup, toCsv } from '../lib/backup';
 import { clearAll, exportAll, importAll, isoDate } from '../lib/db';
+import { download, saveBackup } from '../lib/export-backup';
+import { backupState, markBackedUp, markRestored, setBackupReminder } from '../state';
 import { getFoods } from '../lib/foods';
 import { lang, nutrientName, t } from '../lib/i18n';
 import { installPrompt } from '../lib/install';
-
-function download(name: string, text: string, type: string) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
-}
 
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !(navigator as { standalone?: boolean }).standalone;
 
@@ -30,7 +21,8 @@ export function YourData() {
   const stamp = isoDate(new Date());
 
   const exportJson = async () => {
-    download(`iron-log-${stamp}.json`, JSON.stringify(makeBackup(await exportAll())), 'application/json');
+    await saveBackup();
+    markBackedUp();
   };
 
   const exportCsv = async () => {
@@ -54,6 +46,7 @@ export function YourData() {
       const q = t('importConfirm').replace('{n}', String(data.entries.length)).replace('{f}', String(data.customFoods.length));
       if (!confirm(q)) return;
       await importAll(data);
+      markRestored(); // a restore counts as a backup (review #104); this device's reminder state stays
       setMessage(t('importDone'));
       location.reload();
     } catch (err) {
@@ -94,6 +87,15 @@ export function YourData() {
       <button class="btn wide" onClick={exportCsv}>
         {t('exportCsv')}
       </button>
+      {/* The diary's quiet reminder (M69): about once a month of logging, on this device. */}
+      <label class="check backup-check">
+        <input
+          type="checkbox"
+          checked={!backupState.value.backupReminderOff}
+          onChange={(e) => void setBackupReminder((e.currentTarget as HTMLInputElement).checked)}
+        />
+        {t('backupReminderSetting')}
+      </label>
       <label class="btn wide file">
         {t('importBackup')}
         <input

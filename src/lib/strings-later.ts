@@ -122,6 +122,7 @@ export const SV_LATER = {
   searchHint: 'Tips: tidigare och favoritmarkerade livsmedel visas här.',
   yourData: 'Dina data',
   exportBackup: 'Exportera säkerhetskopia (JSON)',
+  backupReminderSetting: 'Påminn om säkerhetskopia efter ungefär en månads loggning',
   exportCsv: 'Exportera dagbok som kalkylark (CSV)',
   importBackup: 'Importera säkerhetskopia',
   importConfirm: 'Importera {n} poster och {f} egna livsmedel? Befintliga data behålls: bara det som saknas (eller är äldre här) läggs till.',

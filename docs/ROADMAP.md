@@ -678,8 +678,10 @@ changes the same worker/ranking code).
   träffar" (say that online lookup needs a connection when offline); result rows labelled "per 100 g".
   Done, all five. Note: name search is always local (worker); only the barcode lookup needs a
   connection, so the offline line says that. "Per 100 g" is one list title above the results.
-- [ ] **M69 Quiet backup reminder** — one unobtrusive prompt when about a month of new data has
-  piled up since the last export, one tap to export, an off switch; never a streak or a nag.
+- [x] **M69 Quiet backup reminder** (PR #104) — one unobtrusive prompt when about a month of new data has
+  piled up since the last export, one tap to export, an off switch; never a streak or a nag. Done: 28
+  logged days since the last backup or "Inte nu" → one card last in the diary's message slot (checked
+  3 s after start, unique date keys only); device-local settings; switch in Utseende, data & om.
 
 ## Later — ideas, not scheduled
 

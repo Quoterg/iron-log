@@ -7,9 +7,10 @@ import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, burnedToday, clock, date, dayActivities, dayState, dayTotals,
-  dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, recipes, removeActivity, removeEntries,
-  repeatYesterday, restoreEntries, settings, showToast, supplementRefs, supplements, takeSupplement, targets,
+  activityTypes, addWater, backupReminder, backupState, burnedToday, checkBackupReminder, clock, date, dayActivities, dayState,
+  dayTotals, dayWater, dismissUsual, entries, foods, logUsual, markBackedUp, notice, prevEntries, recipes,
+  removeActivity, removeEntries, repeatYesterday, restoreEntries, settings, showToast, snoozeBackupReminder,
+  supplementRefs, supplements, takeSupplement, targets,
   markDay, toggleSupplementTaken, updateSettings, usage, usual, usualState,
 } from '../state';
 import { inSeason, scheduledOn, timeRank } from '../lib/supplements';
@@ -23,6 +24,11 @@ export function Diary() {
   // The meal being cleared: "Töm måltiden" asks in place, not in the browser's dialog (M64).
   const [clearing, setClearing] = useState<string | null>(null);
   const [gloss, setGloss] = useState(false);
+  // The backup reminder is checked once, a few seconds after start (M69): never on the first paint.
+  useEffect(() => {
+    const id = setTimeout(() => void checkBackupReminder(), 3000);
+    return () => clearTimeout(id);
+  }, []);
   const tot = dayTotals.value;
   const g = (k: string) => tot[NUTRIENT_INDEX[k]];
   const tg = targets.value;
@@ -69,20 +75,20 @@ export function Diary() {
             {t('checkinShow')}
           </button>
         </section>
+      ) : welcomeDue() ? (
+        <section class="card welcome">
+          <p>{t('welcomeText')}</p>
+          <div class="row">
+            <button class="btn primary" onClick={() => open({ kind: 'welcome' })}>
+              {t('welcomeStart')}
+            </button>
+            <button class="btn" onClick={() => void updateSettings({ welcomed: true })}>
+              {t('notNow')}
+            </button>
+          </div>
+        </section>
       ) : (
-        welcomeDue() && (
-          <section class="card welcome">
-            <p>{t('welcomeText')}</p>
-            <div class="row">
-              <button class="btn primary" onClick={() => open({ kind: 'welcome' })}>
-                {t('welcomeStart')}
-              </button>
-              <button class="btn" onClick={() => void updateSettings({ welcomed: true })}>
-                {t('notNow')}
-              </button>
-            </div>
-          </section>
-        )
+        backupReminder.value && !backupState.value.backupReminderOff && <BackupCard />
       )}
       <section class="card summary">
         <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} hero />
@@ -240,6 +246,38 @@ export function Diary() {
         </button>
       </div>
     </>
+  );
+}
+
+/**
+ * The quiet backup reminder (M69): one card, last in the message slot, after about a month of logging
+ * with no backup on this device. One tap saves it; "Inte nu" waits another month; Settings turns it off.
+ */
+function BackupCard() {
+  return (
+    <section class="card checkin-teaser backup-note">
+      <span>{backupState.value.backupAt ? t('backupDueSince') : t('backupDueNever')}</span>
+      <div class="row">
+        <button
+          class="btn small primary"
+          onClick={async () => {
+            try {
+              const { saveBackup } = await import('../lib/export-backup');
+              await saveBackup();
+            } catch {
+              showToast(t('backupFailed')); // nothing marked: the card stays
+              return;
+            }
+            markBackedUp();
+          }}
+        >
+          {t('backupSave')}
+        </button>
+        <button class="btn small" onClick={() => snoozeBackupReminder()}>
+          {t('notNow')}
+        </button>
+      </div>
+    </section>
   );
 }
 
