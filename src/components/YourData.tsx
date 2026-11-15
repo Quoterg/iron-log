@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { BackupError, parseBackup, toCsv } from '../lib/backup';
 import { clearAll, exportAll, importAll, isoDate } from '../lib/db';
 import { download, saveBackup } from '../lib/export-backup';
-import { markBackedUp, settings, updateSettings } from '../state';
+import { afterRestore } from '../lib/backup-reminder';
+import { markBackedUp, setBackupReminder, settings, updateSettings } from '../state';
 import { getFoods } from '../lib/foods';
 import { lang, nutrientName, t } from '../lib/i18n';
 import { installPrompt } from '../lib/install';
@@ -42,10 +43,15 @@ export function YourData() {
 
   const importFile = async (file: File) => {
     try {
-      const data = parseBackup(await file.text());
+      const parsed = parseBackup(await file.text());
+      // The reminder's own fields are this device's (M69, review #104): a restore counts as a backup.
+      const kept = afterRestore(settings.value, isoDate(new Date()));
+      const data = parsed.settings ? { ...parsed, settings: { ...parsed.settings, ...kept } } : parsed;
       const q = t('importConfirm').replace('{n}', String(data.entries.length)).replace('{f}', String(data.customFoods.length));
       if (!confirm(q)) return;
       await importAll(data);
+      // Without settings in the backup the stored ones stay (and are the ones in memory): add the date.
+      if (!data.settings) await updateSettings(kept);
       setMessage(t('importDone'));
       location.reload();
     } catch (err) {
@@ -91,7 +97,7 @@ export function YourData() {
         <input
           type="checkbox"
           checked={!settings.value.backupReminderOff}
-          onChange={(e) => void updateSettings({ backupReminderOff: !(e.currentTarget as HTMLInputElement).checked || undefined })}
+          onChange={(e) => void setBackupReminder((e.currentTarget as HTMLInputElement).checked)}
         />
         {t('backupReminderSetting')}
       </label>

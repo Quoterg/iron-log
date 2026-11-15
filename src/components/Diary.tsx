@@ -7,9 +7,10 @@ import { foodName, NUTRIENT_INDEX, NUTRIENTS, value } from '../lib/nutrients';
 import { energySplit } from '../lib/totals';
 import { open } from '../nav';
 import {
-  activityTypes, addWater, backupReminder, burnedToday, checkBackupReminder, markBackedUp, snoozeBackupReminder, clock, date, dayActivities, dayState, dayTotals,
-  dayWater, dismissUsual, entries, foods, logUsual, notice, prevEntries, recipes, removeActivity, removeEntries,
-  repeatYesterday, restoreEntries, settings, showToast, supplementRefs, supplements, takeSupplement, targets,
+  activityTypes, addWater, backupReminder, burnedToday, checkBackupReminder, clock, date, dayActivities, dayState,
+  dayTotals, dayWater, dismissUsual, entries, foods, logUsual, markBackedUp, notice, prevEntries, recipes,
+  removeActivity, removeEntries, repeatYesterday, restoreEntries, settings, showToast, snoozeBackupReminder,
+  supplementRefs, supplements, takeSupplement, targets,
   markDay, toggleSupplementTaken, updateSettings, usage, usual, usualState,
 } from '../state';
 import { inSeason, scheduledOn, timeRank } from '../lib/supplements';
@@ -87,7 +88,7 @@ export function Diary() {
           </div>
         </section>
       ) : (
-        backupReminder.value && <BackupCard />
+        backupReminder.value && !settings.value.backupReminderOff && <BackupCard />
       )}
       <section class="card summary">
         <Bar label={t('energy')} amount={g('kcal')} unit="kcal" target={tg.kcal} hero />
@@ -261,8 +262,13 @@ function BackupCard() {
         <button
           class="btn small primary"
           onClick={async () => {
-            const { saveBackup } = await import('../lib/export-backup');
-            await saveBackup();
+            try {
+              const { saveBackup } = await import('../lib/export-backup');
+              await saveBackup();
+            } catch {
+              showToast(t('backupFailed')); // nothing marked: the card stays
+              return;
+            }
             await markBackedUp();
           }}
         >

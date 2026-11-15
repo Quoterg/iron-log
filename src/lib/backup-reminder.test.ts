@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
-import { BACKUP_DAYS, backupDue, countFrom } from './backup-reminder';
+import { afterRestore, BACKUP_DAYS, backupDue, countFrom } from './backup-reminder';
 
 describe('quiet backup reminder (M69)', () => {
   it('counts from the later of the last backup and the last "Inte nu"', () => {
@@ -14,6 +14,15 @@ describe('quiet backup reminder (M69)', () => {
     expect(backupDue({}, BACKUP_DAYS - 1)).toBe(false);
     expect(backupDue({}, BACKUP_DAYS)).toBe(true);
     expect(backupDue({ backupReminderOff: true }, 400)).toBe(false);
+  });
+
+  it('a restore counts as a backup saved today; this device’s "Inte nu" and off switch stay (review #104)', () => {
+    expect(afterRestore({}, '2026-11-15')).toEqual({ backupAt: '2026-11-15' });
+    expect(afterRestore({ backupAt: '2026-01-01', backupNudgeAt: '2026-10-01', backupReminderOff: true }, '2026-11-15')).toEqual({
+      backupAt: '2026-11-15',
+      backupNudgeAt: '2026-10-01',
+      backupReminderOff: true,
+    });
   });
 
   it('counts logged days (not entries) after a date, and stops counting at the cap', async () => {

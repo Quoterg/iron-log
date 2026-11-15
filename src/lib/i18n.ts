@@ -89,6 +89,7 @@ const sv = {
   backupDueNever: 'Dina data finns bara på den här enheten, och du har loggat ungefär en månad utan säkerhetskopia.',
   backupDueSince: 'Dina data finns bara på den här enheten. Ungefär en månad har loggats sedan din senaste säkerhetskopia.',
   backupSave: 'Spara säkerhetskopia',
+  backupFailed: 'Säkerhetskopian kunde inte sparas. Försök igen, eller spara den under Inställningar.',
   ePctGloss: 'E% (energiprocent): hur stor del av dagens energi som kommer från protein, kolhydrater och fett.',
   welcomeText: 'Välkommen! Berätta lite om dig, så räknar appen ut ditt energimål och vad du behöver av varje näringsämne.',
   welcomeStart: 'Kom igång',

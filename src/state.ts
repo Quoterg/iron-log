@@ -697,9 +697,12 @@ async function restoreUsage(before: Map<string, Usage | undefined>): Promise<voi
  * Checked once after start (the diary, when idle), never on the first paint.
  */
 export const backupReminder = signal(false);
-export async function checkBackupReminder(): Promise<void> {
+let backupChecked = false;
+/** Once per session (review #104): the diary mounts on every return to its tab. `force`: the switch. */
+export async function checkBackupReminder(force = false): Promise<void> {
   const s = settings.value;
-  if (s.backupReminderOff) return;
+  if (s.backupReminderOff || (backupChecked && !force)) return;
+  backupChecked = true;
   backupReminder.value = backupDue(s, await db.loggedDaysAfter(countFrom(s), BACKUP_DAYS));
 }
 /** A backup was saved on this device: the count starts again. */
@@ -708,6 +711,13 @@ export async function markBackedUp(): Promise<void> {
   await updateSettings({ backupAt: db.isoDate(new Date()) });
   backupReminder.value = false;
 }
+/** The switch in Settings (review #104): off takes a showing card away at once; on checks again. */
+export async function setBackupReminder(on: boolean): Promise<void> {
+  await updateSettings({ backupReminderOff: on ? undefined : true });
+  if (on) await checkBackupReminder(true);
+  else backupReminder.value = false;
+}
+
 /** "Inte nu": quiet for another month of logging. */
 export async function snoozeBackupReminder(): Promise<void> {
   // Stored first, then hidden: a reload right after must not bring it back.

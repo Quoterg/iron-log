@@ -21,6 +21,18 @@ export function countFrom(s: BackupState): string | undefined {
   return a && b ? (a > b ? a : b) : a ?? b;
 }
 
+/**
+ * The reminder's fields after restoring a backup (review #104): the data just came from a backup, so
+ * that counts as one saved today; "Inte nu" and the off switch are this device's and stay as they were
+ * (a backup's settings never carry them).
+ */
+export function afterRestore(current: BackupState, today: string): BackupState {
+  const out: BackupState = { backupAt: today };
+  if (current.backupNudgeAt) out.backupNudgeAt = current.backupNudgeAt;
+  if (current.backupReminderOff) out.backupReminderOff = true;
+  return out;
+}
+
 /** Whether to show the reminder, given how many days have been logged since `countFrom`. */
 export function backupDue(s: BackupState, loggedDays: number): boolean {
   return !s.backupReminderOff && loggedDays >= BACKUP_DAYS;
