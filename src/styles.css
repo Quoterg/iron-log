@@ -146,6 +146,7 @@ main {
 .hero-num { font-size: 3rem; font-weight: 200; line-height: 1.1; letter-spacing: -0.02em; overflow-wrap: anywhere; }
 .hero-num small { font-size: 1rem; font-weight: 400; letter-spacing: 0; color: var(--muted); }
 .hero .fill { background: var(--grad); }
+.hero-left { margin: 6px 0 0; font-size: 0.9rem; color: var(--muted); }
 .theme-label { margin: 0 0 6px; }
 .whatif { margin: 4px 0 12px; padding: 10px 12px; border-radius: 14px; background: var(--inner); border: 1px solid var(--line); }
 .whatif h3 { margin: 0 0 4px; font-weight: 600; }
@@ -185,7 +186,8 @@ input[type='checkbox'], input[type='radio'] { accent-color: var(--accent); }
 .bar.over .fill { background: var(--over); }
 .bar.over b { color: var(--over); }
 
-.macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: center; cursor: pointer; }
+.macro-gloss { margin: 8px 0 0; }
 .macro { display: flex; flex-direction: column; align-items: center; padding: 8px 4px 6px; border-bottom: 3px solid; border-radius: 14px; background: var(--inner); min-width: 0; }
 .m-protein { border-color: var(--protein); }
 .m-carbs { border-color: var(--carbs); }
@@ -277,8 +279,9 @@ input[type='number'], input[type='text'], input[type='search'], select {
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
 .grid2 input, .grid2 select { width: 100%; min-width: 0; }
 .grid2 > :only-child { grid-column: 1 / -1; }
-.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 10px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 10px; align-items: end; } /* M68: a wrapped label keeps the fields in line */
 .grid3 input { width: 100%; min-width: 0; }
+.link.parts-link { padding-left: 16px; padding-right: 16px; } /* M68: in line with the row above, not at the screen edge */
 .parts { display: flex; flex-direction: column; gap: 6px; padding: 4px 16px 12px; }
 .parts .btn { align-self: flex-start; }
 .multi-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding-top: 0; }
@@ -404,3 +407,14 @@ table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .page-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 4px 0 12px; }
 .page-head h2 { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+/* M64: the last action's message with "Ångra", above the tab bar; under sheets (z 10), so it never covers a form's buttons. */
+.toast-slot { position: fixed; left: 12px; right: 12px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 5; max-width: 616px; margin: 0 auto; pointer-events: none; }
+.toast {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 14px; pointer-events: auto;
+  border-radius: 16px; background: var(--card-solid); color: var(--text); border: 1px solid var(--usual-border); box-shadow: var(--card-shadow); font-size: 0.92rem;
+}
+.toast span { min-width: 0; overflow-wrap: anywhere; }
+.toast .btn { flex: none; }
+.confirm-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: 8px; padding: 10px 12px; border-radius: 14px; background: var(--inner); border: 1px solid var(--line); font-size: 0.92rem; }
+.confirm-row .row { margin: 0; gap: 8px; }

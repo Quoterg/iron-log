@@ -314,6 +314,7 @@ function settings(x: unknown): Settings | undefined {
     profile.status = p.status as Settings['profile']['status'];
   }
   if (typeof p.menstruating === 'boolean') profile.menstruating = p.menstruating;
+  if (p.standard === true) profile.standard = true; // M65: no profile given yet
   // Imported profiles are already in the current format (activity snapped above).
   const out: Settings = { lang, profile, targetOverrides: overrides, version: SETTINGS_VERSION };
   if (['nnr', 'highProtein', 'lowCarb', 'keto', 'custom'].includes(x.macroPreset as string)) {

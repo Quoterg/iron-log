@@ -25,6 +25,15 @@ export function rememberAmount(list: LoggedAmount[] | undefined, a: LoggedAmount
 }
 
 /**
+ * An entry's amount was corrected after logging (M67): the correction is what was eaten, so it
+ * replaces the remembered amount it came from — not a new use. Only for the food's latest entry.
+ */
+export function correctAmount(u: Usage, a: LoggedAmount): Usage {
+  const amounts = u.amounts?.length ? [...u.amounts.slice(0, -1), a] : [a];
+  return { ...u, lastGrams: a.grams, lastUnit: a.unit, lastQty: a.qty, amounts };
+}
+
+/**
  * The amount the user usually logs: the most frequent of the remembered ones (same measure and
  * quantity, or same grams), the most recent of equally frequent ones; else the last one.
  */

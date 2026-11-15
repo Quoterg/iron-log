@@ -132,7 +132,7 @@ export interface DayMark {
 export type DayState = 'auto' | 'complete' | 'skip';
 
 /** Current settings format version. */
-export const SETTINGS_VERSION = 3;
+export const SETTINGS_VERSION = 4; // 4: M65, the untouched default profile became the standard one
 
 /** A food the user created. Deleting only hides it, so past diary entries still resolve. */
 export interface CustomFood extends Food {
@@ -314,6 +314,11 @@ export async function putUsage(u: Usage): Promise<void> {
 
 export async function putUsages(list: Usage[]): Promise<void> {
   if (list.length) await put('usage', list);
+}
+
+/** A food's use record removed (M64: a logged saved meal taken back with Ångra). */
+export async function deleteUsage(ref: string): Promise<void> {
+  await del('usage', ref);
 }
 
 export interface AllData {

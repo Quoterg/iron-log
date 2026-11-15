@@ -19,6 +19,7 @@ test('no screen overflows a 360 px phone', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Inställningar', exact: true }).click();
   await page.locator('.settings-menu .entry', { hasText: 'Profil & mål' }).click();
+  await page.getByLabel('Kön').selectOption('female'); // life stage needs a sex (M65)
   await page.getByLabel('Livssituation').selectOption('lactating');
   await expectNoHorizontalOverflow(page, 'settings: Profil & mål');
   await page.getByRole('button', { name: /^‹ / }).click();
