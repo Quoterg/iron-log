@@ -89,7 +89,9 @@ export const defaultTarget = (p: Profile): boolean =>
  */
 export function profileUpdate(p: Profile, patch: Partial<Profile>, following: boolean): Profile {
   const next = { ...p, ...patch };
-  if (!following && defaultTarget(next) && energyNeed(next) != null) next.kcalAuto = true;
+  // Only at the moment the profile becomes complete: a legacy or synced target that equals a default
+  // (no `kcalTyped`) on an already complete profile is never taken over.
+  if (!following && defaultTarget(next) && energyNeed(p) == null && energyNeed(next) != null) next.kcalAuto = true;
   return next;
 }
 

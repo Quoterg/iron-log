@@ -1,4 +1,4 @@
-import { useRef } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { fmt, parseNum, t } from '../lib/i18n';
 import {
   defaultKcal,
@@ -94,14 +94,18 @@ export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
    * them first, and every save starts from the stored profile, not this render's: a value typed and
    * then a select changed right away was lost (M71, walkthrough s17).
    */
+  const [rev, setRev] = useState(0);
   const pending = useRef(new Map<NumKey, string>());
   const typedPatch = (): Partial<Profile> => {
     const patch: Partial<Profile> = {};
+    let invalid = false;
     for (const [key, text] of pending.current) {
       const v = checkNum(key, text);
       if (v !== null) Object.assign(patch, numPatch(settings.value.profile, key, v));
+      else invalid = true;
     }
     pending.current.clear();
+    if (invalid) setRev((r) => r + 1); // re-key the inputs: an invalid text goes back to the stored value
     return patch;
   };
   const save = async (patch: Partial<Profile>) => {
@@ -128,6 +132,7 @@ export function ProfileForm({ brief = false }: { brief?: boolean } = {}) {
     <label>
       {label}
       <input
+        key={rev}
         type="text"
         inputMode={NUM[key].decimals ? 'decimal' : 'numeric'}
         value={shown(key, NUM[key].decimals)}
@@ -269,11 +274,11 @@ export function EnergyTarget() {
   const goalKcal = estimate && goal !== 'maintain' && !noGoal(p) ? goalTarget(estimate, goal, pace, minIntake(p)) : null;
   const mode: Mode = s.adaptive && s.adaptiveFollow ? 'follow' : p.kcalAuto ? 'profile' : 'manual';
   const choose = async (m: Mode) => {
-    if (m === 'manual') await updateSettings({ adaptiveFollow: false, profile: { ...p, kcalAuto: false } });
+    if (m === 'manual') await updateSettings({ adaptiveFollow: false, profile: { ...p, kcalAuto: false, kcalTyped: true } });
     if (m === 'profile') await updateSettings({ adaptiveFollow: false, profile: withEnergy({ ...p, kcalAuto: true }, goal, s.pace) });
     if (m === 'follow') {
       // It alone sets the target from now; the first step happens now if there is enough data.
-      await updateSettings({ adaptive: true, adaptiveFollow: true, profile: { ...p, kcalAuto: false } });
+      await updateSettings({ adaptive: true, adaptiveFollow: true, profile: { ...p, kcalAuto: false, kcalTyped: true } });
       await (await import('../lib/follow')).runFollow();
     }
   };

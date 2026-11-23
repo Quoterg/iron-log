@@ -57,3 +57,15 @@ describe('one rounding rule per unit (M71)', () => {
     expect(fmtUnit(0.254, 'mg')).toBe('0,25');
   });
 });
+
+describe('review fixes (M71)', () => {
+  const body = { age: 40, weightKg: 80, heightCm: 180 };
+  it('a legacy default-valued target on a complete profile is never taken over', () => {
+    const legacy: Profile = { sex: 'female', kcal: 2000, ...body };
+    expect(profileUpdate(legacy, { weightKg: 80.1 }, false).kcalAuto).toBeFalsy();
+  });
+  it('a deliberately chosen manual target counts as typed', () => {
+    const chosen: Profile = { sex: 'female', kcal: 2000, kcalTyped: true };
+    expect(profileUpdate(chosen, body, false).kcalAuto).toBeFalsy();
+  });
+});

@@ -29,6 +29,16 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
 
+## 2026-11-23 — M71 review fixes (weekly session)
+
+- Target typed/"Skriv själv"/follow now set `kcalTyped`; a default target follows the profile only at the moment the profile
+  *becomes* complete, so legacy (pre-M71) and synced-from-older-device 2 000/2 500 targets are never taken over. Invalid
+  pending numbers reset to the stored value after another control commits (inputs re-keyed).
+- Not done (perf/nits, listed): rebuildUsage full `getAll` on import and `mt = Date.now()` for rebuilt usage records
+  (needs a put variant keeping `lastUsed`); `usageFromEntries` sort; `clearingShown` → useRef; `fmtUnit` <0,01.
+- e2e in this sandbox: QR/CSP specs (QR image) and profile.spec:157 fail identically on the untouched branch tip
+  (environment); everything else passes.
+
 ## 2026-11-15 — M71 Bugs from everyday use (interactive session)
 
 - Phase 13 planned (ROADMAP). #97, #104, #105 merged; #94/#95 are contained in #97 (owner may close).

@@ -36,7 +36,7 @@ export async function runFollow(): Promise<void> {
           followWeek: week,
           followNote: { week, from: p.kcal, to: next },
           energyChange: { date: isoDate(new Date()), from: p.kcal, to: next, why },
-          profile: { ...p, kcal: next, kcalAuto: false },
+          profile: { ...p, kcal: next, kcalAuto: false, kcalTyped: true },
         },
   );
 }
