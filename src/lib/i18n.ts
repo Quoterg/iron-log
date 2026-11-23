@@ -279,6 +279,17 @@ export function parseNum(s: string): number {
   return t === '' ? NaN : Number(t);
 }
 
+/**
+ * One rounding rule per unit for amounts against a target (M71): energy in whole kcal/kJ ("75 / 2 000
+ * kcal", not "74,8"); other units whole from 10, one decimal from 1, two below 1 ("6,7 / 50 g", "0,25
+ * mg"). The amount and its target in the same row follow the same rule.
+ */
+export function fmtUnit(n: number, unit: string): string {
+  if (unit === 'kcal' || unit === 'kJ') return fmt(n, 0);
+  const a = Math.abs(n);
+  return fmt(n, a >= 10 ? 0 : a >= 1 ? 1 : 2);
+}
+
 /** Sensible precision for a nutrient amount. */
 export function fmtAmount(n: number): string {
   const a = Math.abs(n);

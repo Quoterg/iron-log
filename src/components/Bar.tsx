@@ -1,4 +1,4 @@
-import { fmtAmount } from '../lib/i18n';
+import { fmtUnit } from '../lib/i18n';
 import { leftText as left } from '../lib/totals';
 import type { Target } from '../lib/targets';
 
@@ -39,9 +39,9 @@ export function Bar({ label, amount, unit, target, unknown, hero }: Props) {
           {goal ? <span class="num">{Math.round(pct)} %</span> : null}
         </div>
         <div class="hero-num num">
-          {fmtAmount(amount)}
+          {fmtUnit(amount, unit)}
           <small>
-            {goal ? ` / ${fmtAmount(goal)}` : ''} {unit}
+            {goal ? ` / ${fmtUnit(goal, unit)}` : ''} {unit}
           </small>
         </div>
         {goal ? (
@@ -59,8 +59,8 @@ export function Bar({ label, amount, unit, target, unknown, hero }: Props) {
       <div class="bar-head">
         <span>{label}</span>
         <span class="num">
-          {fmtAmount(amount)}
-          {goal ? ` / ${fmtAmount(goal)}` : ''} {unit}
+          {fmtUnit(amount, unit)}
+          {goal ? ` / ${fmtUnit(goal, unit)}` : ''} {unit}
           {goal ? <b> {Math.round(pct)}%</b> : null}
         </span>
       </div>

@@ -5,6 +5,10 @@ Keep entries short — this file is read at the start of every session.
 
 ## Next up
 
+**Phase 13 Everyday use, round 2** (owner/PM 2026-11-15, see ROADMAP): M71 bugs → M72 search words →
+M73 undo everywhere → M59 body log → M54 saved meals → M56 recipes → M58 shopping list → M74
+suggestions, one PR each, stacked while the previous one is open.
+
 **Phase 12 Quality of life (M62–M69)**, owner-approved 2026-11-15 (see ROADMAP): all built and merged
 except M62 (#105, base retargeted to main after #97 merged; the reviewer's sweep merges it). #97 (M70,
 faster search) merged and **contains #94 (M52b) and #95 (M53)** with their review fixes — those two
@@ -24,6 +28,26 @@ than a local build — keep ≥ 0.5 KB margin. Strings of new screens go in lazy
 (strings-*.ts). Next biggest first-bundle parts: i18n.ts (Swedish strings, 6.4 KB), state.ts,
 db.ts, targets.ts. PRs: the reviewer agent merges once its review is addressed (owner, 2026-10-11).
 **Phase 9 Simpler to use (M42–M46)** done 2026-11-05 (PRs #80–#84); consider a version PR (1.8.0) once merged. Only Swedish and English since M41c.
+
+## 2026-11-23 — M71 review fixes (weekly session)
+
+- Target typed/"Skriv själv"/follow now set `kcalTyped`; a default target follows the profile only at the moment the profile
+  *becomes* complete, so legacy (pre-M71) and synced-from-older-device 2 000/2 500 targets are never taken over. Invalid
+  pending numbers reset to the stored value after another control commits (inputs re-keyed).
+- Not done (perf/nits, listed): rebuildUsage full `getAll` on import and `mt = Date.now()` for rebuilt usage records
+  (needs a put variant keeping `lastUsed`); `usageFromEntries` sort; `clearingShown` → useRef; `fmtUnit` <0,01.
+- e2e in this sandbox: QR/CSP specs (QR image) and profile.spec:157 fail identically on the untouched branch tip
+  (environment); everything else passes.
+
+## 2026-11-15 — M71 Bugs from everyday use (interactive session)
+
+- Phase 13 planned (ROADMAP). #97, #104, #105 merged; #94/#95 are contained in #97 (owner may close).
+- Profile: typed numbers committed before any other change, saves read the stored profile (s17 repro);
+  `kcalTyped` — a default target (2 000/2 500, never typed) follows the profile once it can be
+  estimated. `rebuildUsage` after a restore (recents from the restored diary). `fmtUnit`: whole kcal,
+  other units 0/1/2 decimals by size. The clear question scrolls above the tab bar.
+- Tests: unit 346 ✓, build ✓ (35.0 KB), e2e 219/222 + everyday.spec (sync.spec +1 change by design;
+  camera: port; undo: load flake, passes alone), Lighthouse 100/100/100.
 
 ## 2026-11-15 — M70 (was M54) review fixes and M62 Search ranking (interactive session)
 

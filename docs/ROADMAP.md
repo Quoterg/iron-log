@@ -716,6 +716,52 @@ changes the same worker/ranking code).
   logged days since the last backup or "Inte nu" → one card last in the diary's message slot (checked
   3 s after start, unique date keys only); device-local settings; switch in Utseende, data & om.
 
+## Phase 13 — Everyday use, round 2 (owner/PM, 2026-11-15) (M71–M74, with M54, M56, M58, M59)
+
+From a second hands-on walkthrough (three weeks of seeded history, the M62 branch, 360 × 640, sv-SE;
+`tmp/ux2-log`). The owner made the coordinator product manager: "keep designing and building". Where
+an item is already a Phase 11 milestone, that milestone is done here with these specifics folded in
+(keeping its number); only new items get new numbers. Phase 11 items not named here (M55, M57, M60,
+M61) stay where they are. Order: most felt and safest first, one PR each. Not in this phase (decided):
+the iron + vitamin C pairing (M57), install prompts (the browser's), multi-word search ("kaffe med
+mjölk").
+
+1. [x] **M71 Bugs from everyday use** (PR #106) — (1) Profil & mål: a number typed into a field and then a select
+   changed right away (Aktivitetsnivå, Mål) loses the typed value (repro `s17.mjs`); nothing typed may
+   be lost when another control changes. (2) The energy target stayed "Skriv själv" at 2 500 kcal the
+   user never typed after the profile was filled: find how and let the target follow the profile unless
+   the user really typed one. (3) Restoring a backup doesn't rebuild food usage: "Senaste" and "Samma
+   som igår"'s amounts only know what was logged here — rebuild usage from the restored diary. (4) One
+   rounding rule per unit: "74,8 / 2 000 kcal" vs integers, "6,66 / 50 g". (5) The in-card "Töm /
+   Avbryt" question renders under the floating tab bar. Done: pending typed numbers are committed
+   before any other change and saves read the stored profile; `kcalTyped` + `profileUpdate` (a default
+   2 000/2 500 target follows the profile — "Man" on the standard profile set 2 500 and nothing switched
+   it); `rebuildUsage` after `importAll`; `fmtUnit`; the question scrolls above the tab bar.
+2. [ ] **M72 Words people type** — everyday words that miss ("knäckebröd", "matbröd", "laxfilé" →
+   "Inga träffar"; the database says "Hårt bröd"): a small hand-written synonym map (~100–150 common
+   grocery words, found by testing ordinary words against the index), applied in the search worker
+   within its budget, unit-tested case by case. Short queries: "öl" must not list "Potatis höst kokt"
+   first — two letters match whole words and word starts first.
+3. [ ] **M73 Undo everywhere** — removing an activity (×); "Samma som igår" (says what was added,
+   Ångra); "Dela upp i ingredienser" (in-app question instead of `confirm()`, Ångra). M64's pattern.
+4. [ ] **M59 Body log** (Phase 11, with the walkthrough's specifics): rows in the table tap to edit or
+   delete (Ångra) instead of re-entering a date with a blank weight; the change since the first entry
+   or over the shown period; dates in the user's format, not ISO; the chart visible without scrolling.
+5. [ ] **M54 Saved meals** (Phase 11): edit a saved meal's amounts (and the rest of M54).
+6. [ ] **M56 Recipes** (Phase 11): "Skapa recept av måltiden" in the meal menu (and the rest of M56);
+   ingredient rows show kcal; plural or neutral forms for household units ("2 portioner", "2
+   bullar"); the recipe's two red delete buttons separated and aligned so deleting the whole recipe
+   can't be hit by mistake.
+7. [ ] **M58 Shopping list** (Phase 11): "Det du åt de senaste 7 dagarna" becomes a checklist (nothing
+   added until confirmed) instead of 30 lines; cooked/raw forms of one food merged where the data
+   links them or the name is unambiguous ("Ägg kokt" + "Ägg rått" → Ägg); quantities in buyable terms
+   where a package size is known; a custom food without a price says so. No recipe-to-shopping planner.
+8. [ ] **M74 Suggestions in everyday foods** (the opt-in gap/swap suggestions): they proposed raw
+   database items ("Vetemjöl fullkorn grahamsmjöl 60 g", "Äggula rå eko. 18 g") and skipped the
+   biggest gap (calcium at 50 %). Prefer foods the user logs, then common groceries, with household
+   portions; the largest gaps first; neutral, opt-in. "Mifflin–St Jeor, som tdeecalculator.net" →
+   a plain sentence, details on tap.
+
 ## Later — ideas, not scheduled
 
 Owner's call (2026-10-15): not relevant at this stage; kept here so the thinking isn't lost.

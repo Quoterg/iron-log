@@ -93,7 +93,7 @@ export function AdaptiveEnergy() {
               {!p.kcalAuto && p.kcal === target.kcal ? (
                 <p class="muted small" role="status">{te(s.adaptiveFollow ? 'followOnTarget' : 'adaptiveIsTarget')}</p>
               ) : (
-                <button type="button" class="btn wide" onClick={() => void updateSettings({ profile: { ...p, kcal: target.kcal, kcalAuto: false } })}>
+                <button type="button" class="btn wide" onClick={() => void updateSettings({ profile: { ...p, kcal: target.kcal, kcalAuto: false, kcalTyped: true } })}>
                   {te('adaptiveApply')}
                 </button>
               )}
